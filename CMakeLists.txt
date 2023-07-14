@@ -3,5 +3,10 @@ project(project_x)
 
 set(CMAKE_CXX_STANDARD 20)
 
+add_subdirectory(3rd-party/fmt)
+include_directories(3rd-party/fmt/include)
+
 add_executable(project_x src/main.cpp)
+target_link_libraries(project_x fmt)
+
 add_executable(test test/test.cpp)
