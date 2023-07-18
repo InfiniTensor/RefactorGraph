@@ -1,6 +1,13 @@
-﻿#include <fmt/core.h>
+﻿#include "core.h"
+#include "kernel_list.h"
+#include <cassert>
+
+using namespace proj_namespace;
 
 int main() {
-    fmt::print("Hello, world!\n");
+    core::try_sub_project();
+    assert(core::parse_data_type(3) == core::DataType::I8);
+
+    kernel_list::try_sub_project();
     return 0;
 }
