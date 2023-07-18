@@ -1,6 +1,8 @@
 ﻿#include "core.h"
 #include "kernel_list.h"
 #include <cassert>
+#include <iostream>
+#include <unordered_map>
 
 using namespace proj_namespace;
 
