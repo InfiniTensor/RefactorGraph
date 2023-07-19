@@ -37,10 +37,20 @@ namespace proj_namespace::kernel_list {
         std::unordered_map<std::string, KernelAttribute> attributes;
     };
 
+    /// @brief 用于索引的 kernel 类型。
+    struct KernelType {
+        /// @brief kernel 工作的设备。
+        std::string device;
+        /// @brief kernel 语义对应的算子。
+        std::string op_type;
+
+        bool operator==(KernelType const &others) const {
+            return device == others.device && op_type == others.op_type;
+        }
+    };
+
     /// @brief kernel 信息。
     struct Kernel {
-        /// @brief kernel 的名字。
-        std::string name;
         /// @brief kernel 入口。
         void *code;
         /// @brief 测试 kernel 适用性的谓词。
@@ -54,8 +64,7 @@ namespace proj_namespace::kernel_list {
     /// @return 符合要求的 kernel。
     std::vector<std::pair<std::string, void *>>
     get_kernels(
-        std::string device,
-        std::string op_type,
+        KernelType const &type,
         KernelParam const &param);
 
     void try_sub_project();

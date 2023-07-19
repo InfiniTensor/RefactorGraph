@@ -8,15 +8,6 @@ namespace proj_namespace::kernel_list {
         fmt::print("This is 'kernel_list' lib.\n");
     }
 
-    struct KernelType {
-        std::string device;
-        std::string op_type;
-
-        bool operator==(KernelType const &others) const {
-            return device == others.device && op_type == others.op_type;
-        }
-    };
-
     struct KernelTypeHash {
         size_t operator()(KernelType const &kt) const {
             size_t h[]{
@@ -28,7 +19,11 @@ namespace proj_namespace::kernel_list {
     };
 
     class KernelList {
-        std::unordered_multimap<KernelType, Kernel, KernelTypeHash> inner;
+        std::unordered_map<
+            KernelType,
+            std::unordered_map<std::string, Kernel>,
+            KernelTypeHash>
+            inner;
 
     public:
         static KernelList global() {
@@ -36,29 +31,46 @@ namespace proj_namespace::kernel_list {
             return g;
         }
 
-        std::vector<std::pair<std::string, void *>>
-        get(std::string device,
+        bool insert(
+            std::string device,
             std::string op_type,
+            std::string name,
+            void *code,
+            std::function<bool(KernelParam const &)> predicate) {
+            return inner
+                .emplace(
+                    KernelType{std::move(device), std::move(op_type)},
+                    std::unordered_map<std::string, Kernel>{})
+                .first->second// it->map
+                .emplace(
+                    std::move(name),
+                    Kernel{code, std::move(predicate)})
+                .second;
+        }
+
+        std::vector<std::pair<std::string, void *>> get(
+            KernelType const &type,
             KernelParam const &param) const {
-            std::vector<std::pair<std::string, void *>> ans;
 
-            auto [begin, end] = inner.equal_range({std::move(device), std::move(op_type)});
-            for (auto it = begin; it != end; ++it) {
-                auto const &[name, code, predicate] = it->second;
-                if (predicate(param)) {
-                    ans.push_back({name, code});
+            auto const it = inner.find(type);
+            if (it != inner.end()) {
+                std::vector<std::pair<std::string, void *>> ans;
+                for (auto const &[name, kernel] : it->second) {
+                    if (kernel.predicate(param)) {
+                        ans.push_back({name, kernel.code});
+                    }
                 }
+                return ans;
+            } else {
+                return {};
             }
-
-            return ans;
         }
     };
 
     std::vector<std::pair<std::string, void *>>
-    get_kernels(std::string device,
-                std::string op_type,
+    get_kernels(KernelType const &type,
                 KernelParam const &param) {
-        return KernelList::global().get(std::move(device), std::move(op_type), param);
+        return KernelList::global().get(type, param);
     }
 
 }// namespace proj_namespace::kernel_list
