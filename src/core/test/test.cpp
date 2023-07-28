@@ -1,10 +1,13 @@
-﻿#include "fp16.h"
+﻿#include "fp16_t.h"
 #include <cassert>
 #include <fmt/core.h>
 
+using namespace proj_namespace::core;
+
 int main() {
-    fp16_t val(192.0f);
-    assert(val.to_f32() == 192.0f);
-    fmt::println("{}", val.to_string());
+    float val = 2047;
+    fp16_t ans(val);
+    assert(ans.to_f32() == val);
+    fmt::println("{}", ans.to_string());
     return 0;
 }
