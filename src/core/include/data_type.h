@@ -16,11 +16,11 @@ namespace proj_namespace::core {
         I32 = 6,// int32_t
         I64 = 7,// int64_t
         // String = 8,
-        Bool = 9,// bool
-        F16 = 10,// f16
-        F64 = 11,// f64
-        U32 = 12,// u32
-        U64 = 13,// u64
+        Bool = 9, // bool
+        FP16 = 10,// fp16
+        F64 = 11, // f64
+        U32 = 12, // u32
+        U64 = 13, // u64
     };
 
     /// @brief 从数值解析数据类型。

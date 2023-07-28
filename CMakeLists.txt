@@ -9,6 +9,9 @@ include_directories(3rd-party/fmt/include)
 add_subdirectory(src/core)
 include_directories(src/core/include)
 
+add_subdirectory(src/graph)
+include_directories(src/graph/include)
+
 add_subdirectory(src/kernel_list)
 include_directories(src/kernel_list/include)
 
