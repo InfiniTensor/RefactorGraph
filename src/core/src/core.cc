@@ -3,7 +3,7 @@
 
 namespace proj_namespace::core {
     void try_sub_project() {
-        fmt::print("This is 'core' lib.\n");
+        fmt::println("This is 'core' lib.");
     }
 
     std::optional<DataType> parse_data_type(uint8_t value) {
