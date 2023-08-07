@@ -26,9 +26,9 @@ namespace proj_namespace::core {
     /// @brief 从数值解析数据类型。
     /// @param param1 数据类型数值。
     /// @return 当 `param1` 是合法的数据类型值，`std::optional` 非空。
-    std::optional<DataType> parse_data_type(uint8_t);
+    std::optional<DataType> parseDataType(uint8_t);
 
-    void try_sub_project();
+    void trySubProject();
 
 }// namespace proj_namespace::core
 

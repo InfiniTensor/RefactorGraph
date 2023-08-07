@@ -7,9 +7,9 @@
 using namespace proj_namespace;
 
 int main() {
-    core::try_sub_project();
-    assert(core::parse_data_type(3) == core::DataType::I8);
+    core::trySubProject();
+    assert(core::parseDataType(3) == core::DataType::I8);
 
-    kernel_list::try_sub_project();
+    kernel_list::trySubProject();
     return 0;
 }

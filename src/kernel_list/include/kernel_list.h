@@ -14,7 +14,7 @@ namespace proj_namespace::kernel_list {
     /// @brief kernel 的输入张量信息。
     struct KernelInput {
         /// @brief 张量的数据类型。
-        core::DataType data_type;
+        core::DataType dataType;
         /// @brief 张量的形状。
         std::vector<DimInfo> shape;
     };
@@ -22,7 +22,7 @@ namespace proj_namespace::kernel_list {
     /// @brief kernel 的属性张量信息。
     struct KernelAttribute {
         /// @brief 张量的数据类型。
-        core::DataType data_type;
+        core::DataType dataType;
         /// @brief 张量的形状。
         std::vector<size_t> shape;
         /// @brief 张量的值。
@@ -42,10 +42,10 @@ namespace proj_namespace::kernel_list {
         /// @brief kernel 工作的设备。
         std::string device;
         /// @brief kernel 语义对应的算子。
-        std::string op_type;
+        std::string opType;
 
         bool operator==(KernelType const &others) const {
-            return device == others.device && op_type == others.op_type;
+            return device == others.device && opType == others.opType;
         }
     };
 
@@ -59,14 +59,14 @@ namespace proj_namespace::kernel_list {
 
     /// @brief 获取 kernel 参数获取满足条件的 kernel。
     /// @param device 设备类型。
-    /// @param op_type 算子类型。
+    /// @param opType 算子类型。
     /// @param param kernel 参数。
     /// @return 符合要求的 kernel。
     std::vector<std::pair<std::string, void *>>
-    get_kernels(
+    getKernels(
         KernelType const &type,
         KernelParam const &param);
 
-    void try_sub_project();
+    void trySubProject();
 
 }// namespace proj_namespace::kernel_list

@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 namespace proj_namespace::kernel_list {
-    void try_sub_project() {
+    void trySubProject() {
         fmt::print("This is 'kernel_list' lib.\n");
     }
 
@@ -12,7 +12,7 @@ namespace proj_namespace::kernel_list {
         size_t operator()(KernelType const &kt) const {
             size_t h[]{
                 std::hash<std::string>{}(kt.device),
-                std::hash<std::string>{}(kt.op_type),
+                std::hash<std::string>{}(kt.opType),
             };
             return h[0] ^ (h[1] << 1);
         }
@@ -33,13 +33,13 @@ namespace proj_namespace::kernel_list {
 
         bool insert(
             std::string device,
-            std::string op_type,
+            std::string opType,
             std::string name,
             void *code,
             std::function<bool(KernelParam const &)> predicate) {
             return inner
                 .emplace(
-                    KernelType{std::move(device), std::move(op_type)},
+                    KernelType{std::move(device), std::move(opType)},
                     std::unordered_map<std::string, Kernel>{})
                 .first->second// it->map
                 .emplace(
@@ -68,7 +68,7 @@ namespace proj_namespace::kernel_list {
     };
 
     std::vector<std::pair<std::string, void *>>
-    get_kernels(KernelType const &type,
+    getKernels(KernelType const &type,
                 KernelParam const &param) {
         return KernelList::global().get(type, param);
     }
