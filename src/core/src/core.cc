@@ -2,11 +2,11 @@
 #include <fmt/core.h>
 
 namespace proj_namespace::core {
-    void try_sub_project() {
+    void trySubProject() {
         fmt::println("This is 'core' lib.");
     }
 
-    std::optional<DataType> parse_data_type(uint8_t value) {
+    std::optional<DataType> parseDataType(uint8_t value) {
         switch (value) {
             case 1:
             case 2:
