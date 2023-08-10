@@ -9,7 +9,7 @@
 using idx_t = int32_t;
 using len_t = std::size_t;
 
-class GraphTopoWapper;
+class GraphTopoSearcher;
 
 /// @brief 图拓扑表示。
 /// @details 图拓扑使用二重的图结构表示。
@@ -20,7 +20,7 @@ class GraphTopoWapper;
 /// @tparam EdgeInfo 边绑定信息。
 template<class NodeInfo, class EdgeInfo>
 class GraphTopo {
-    friend GraphTopoWapper;
+    friend GraphTopoSearcher;
 
     /// @brief 用于索引节点。
     struct NodeIdx {
