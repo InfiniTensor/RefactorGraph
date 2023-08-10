@@ -21,7 +21,7 @@ using EdgeInfo = int;
 /// @tparam EdgeInfo 边绑定信息。
 // template<class NodeInfo, class EdgeInfo>
 
-struct GraphTopo {
+class GraphTopo {
     /// @brief 用于索引节点。
     struct NodeIdx {
         idx_t idx;
@@ -33,11 +33,6 @@ struct GraphTopo {
     /// @brief 用于索引边的目标。
     struct TargetIdx {
         idx_t idx;
-    };
-    /// @brief 用于获取节点的所有输出边。
-    struct NodeRef {
-        NodeIdx idx;
-        len_t edgeCount;
     };
 
     /// @brief 节点。
@@ -67,6 +62,13 @@ struct GraphTopo {
     std::vector<Node> nodes;
     std::vector<Edge> edges;
     std::vector<Target> targets;
+
+public:
+    /// @brief 用于获取节点的所有输出边。
+    class NodeRef {
+        NodeIdx idx;
+        len_t edgeCount;
+    };
 
     NodeRef addNode(
         NodeInfo info,
