@@ -9,9 +9,7 @@
 using idx_t = int32_t;
 using len_t = std::size_t;
 
-// 为了方便随便弄个类型占位
-// using NodeInfo = int;
-// using EdgeInfo = int;
+class GraphTopoWapper;
 
 /// @brief 图拓扑表示。
 /// @details 图拓扑使用二重的图结构表示。
@@ -22,17 +20,31 @@ using len_t = std::size_t;
 /// @tparam EdgeInfo 边绑定信息。
 template<class NodeInfo, class EdgeInfo>
 class GraphTopo {
+    friend GraphTopoWapper;
+
     /// @brief 用于索引节点。
     struct NodeIdx {
         idx_t idx;
+
+        bool operator<(NodeIdx const &rhs) const {
+            return idx < rhs.idx;
+        }
     };
     /// @brief 用于索引边。
     struct EdgeIdx {
         idx_t idx;
+
+        bool operator<(EdgeIdx const &rhs) const {
+            return idx < rhs.idx;
+        }
     };
     /// @brief 用于索引边的目标。
     struct TargetIdx {
         idx_t idx;
+
+        bool operator<(TargetIdx const &rhs) const {
+            return idx < rhs.idx;
+        }
     };
 
     /// @brief 节点。

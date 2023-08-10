@@ -1,5 +1,5 @@
 ﻿#include "data_type.h"
-#include "graph_topo.hpp"
+#include "graph_topo_wapper.hpp"
 #include "kernel_list.h"
 #include <cassert>
 #include <iostream>
