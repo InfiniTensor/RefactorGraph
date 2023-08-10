@@ -1,6 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_HPP
 #define GRAPH_TOPO_HPP
 
+#include <cassert>
 #include <cstdint>
 #include <utility>
 #include <vector>
@@ -9,8 +10,8 @@ using idx_t = int32_t;
 using len_t = std::size_t;
 
 // 为了方便随便弄个类型占位
-using NodeInfo = int;
-using EdgeInfo = int;
+// using NodeInfo = int;
+// using EdgeInfo = int;
 
 /// @brief 图拓扑表示。
 /// @details 图拓扑使用二重的图结构表示。
@@ -19,8 +20,7 @@ using EdgeInfo = int;
 ///          图拓扑中只包含单向的指向关系，为了获取反向指向关系或其他关系，应基于此结构重新构建。
 /// @tparam NodeInfo 节点绑定信息。
 /// @tparam EdgeInfo 边绑定信息。
-// template<class NodeInfo, class EdgeInfo>
-
+template<class NodeInfo, class EdgeInfo>
 class GraphTopo {
     /// @brief 用于索引节点。
     struct NodeIdx {
@@ -64,33 +64,64 @@ class GraphTopo {
     std::vector<Target> targets;
 
 public:
-    /// @brief 用于获取节点的所有输出边。
-    class NodeRef {
-        GraphTopo const &graph;
-        NodeIdx idx;
-        len_t edgeCount;
+    class EdgeRef;
+    class NodeRef;
 
-    public:
-        NodeRef(GraphTopo const &graph, NodeIdx idx, len_t edgeCount)
-            : graph(graph), idx(idx), edgeCount(edgeCount) {}
+    /// @brief 图中一条边的引用。
+    class EdgeRef {
+        friend GraphTopo;
+        friend NodeRef;
+        EdgeIdx idx;
+        EdgeRef(idx_t idx) : idx(idx) {}
     };
 
+    /// @brief 图中一个节点的引用。
+    class NodeRef {
+        friend GraphTopo;
+        friend EdgeRef;
+        NodeIdx idx;
+        EdgeIdx firstEdge;
+        len_t edgeCount;
+
+        NodeRef(NodeIdx idx, EdgeIdx firstEdge, len_t edgeCount)
+            : idx(idx), firstEdge(firstEdge), edgeCount(edgeCount) {}
+
+    public:
+        EdgeRef operator[](idx_t i) const {
+            if (i < 0 || edgeCount <= i) {
+                throw std::out_of_range("Edge index out of range");
+            }
+            return EdgeRef(firstEdge.idx + i);
+        }
+    };
+
+    /// @brief 添加边。
+    /// @param info 边信息。
+    /// @return 边的引用。
+    EdgeRef addEdge(EdgeInfo info) {
+        edges.push_back({std::move(info), {-1}});
+        return EdgeRef{static_cast<idx_t>(edges.size()) - 1};
+    }
+
+    /// @brief 添加节点。
+    /// @param info 节点信息。
+    /// @param inputs 输入。
+    /// @param outputs 输出。
+    /// @return 节点的引用。
     NodeRef addNode(
         NodeInfo info,
-        std::vector<EdgeIdx> inputs,
+        std::vector<EdgeRef> inputs,
         std::vector<EdgeInfo> outputs) {
-        // 添加节点。
         auto nodeIdx = NodeIdx{static_cast<idx_t>(nodes.size())};
-        nodes.push_back({
-            std::move(info),
-            {static_cast<idx_t>(edges.size())},// firstEdge
-            static_cast<len_t>(inputs.size()), // edgeCount
-        });
+        auto firstEdge = EdgeIdx{static_cast<idx_t>(edges.size())};
+        auto edgeCount = static_cast<len_t>(outputs.size());
+        // 添加节点。
+        nodes.push_back({std::move(info), firstEdge, edgeCount});
         // 将节点加入输入边的目标。
         for (auto edge : inputs) {
             targets.push_back({
                 std::exchange(
-                    edges[edge.idx].firstTarget,
+                    edges[edge.idx.idx].firstTarget,
                     {static_cast<idx_t>(targets.size())}),
                 nodeIdx,
             });
@@ -100,7 +131,21 @@ public:
         for (auto &edge : outputs) {
             edges.push_back({std::move(edge), {-1}});
         }
-        return NodeRef(*this, nodeIdx, static_cast<len_t>(outputs.size()));
+        return NodeRef(nodeIdx, firstEdge, edgeCount);
+    }
+
+    /// @brief 获取节点信息。
+    /// @param ref 节点在图上的引用。
+    /// @return 节点信息。
+    NodeInfo &getInfo(NodeRef ref) {
+        return nodes[ref.idx.idx].info;
+    }
+
+    /// @brief 获取边信息。
+    /// @param ref 边在图上的引用。
+    /// @return 边信息。
+    EdgeInfo &getInfo(EdgeRef ref) {
+        return edges[ref.idx.idx].info;
     }
 };
 

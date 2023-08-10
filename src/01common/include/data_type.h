@@ -23,7 +23,7 @@ namespace refactor::common {
         F64 = 11, // double
         U32 = 12, // uint32_t
         U64 = 13, // uint64_t
-        BF16 = 13,// bf16_t
+        BF16 = 14,// bf16_t
     };
 
     /// @brief 从数值解析数据类型。

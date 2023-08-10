@@ -29,9 +29,9 @@ namespace refactor::common {
         }
 
     public:
-        const static fp16_t ZERO, ONE, INF, NAN;
+        static const fp16_t ZERO, ONE, INF;
 
-        constexpr fp16_t() noexcept : code(code) {}
+        constexpr fp16_t() noexcept : code(from_f32(0.0)) {}
         constexpr fp16_t(uint16_t code) noexcept : code(code) {}
         constexpr fp16_t(float value) noexcept : code(from_f32(value)) {}
         constexpr fp16_t(fp16_t const &) noexcept = default;
@@ -100,10 +100,10 @@ namespace refactor::common {
     };
 
 
-    const fp16_t fp16_t::ZERO = fp16_t(0.0f);
-    const fp16_t fp16_t::ONE = fp16_t(1.0f);
-    const fp16_t fp16_t::INF = fp16_t((uint16_t) 0b0'11111'0000000000);
-    const fp16_t fp16_t::NAN = fp16_t((uint16_t) 0b0'11111'1000000000);
+    inline const fp16_t fp16_t::ZERO = fp16_t(0.0f);
+    inline const fp16_t fp16_t::ONE = fp16_t(1.0f);
+    inline const fp16_t fp16_t::INF = fp16_t((uint16_t) 0b0'11111'0000000000);
+    // inline const fp16_t fp16_t::NAN = fp16_t((uint16_t) 0b0'11111'1000000000);
 
 }// namespace refactor::common
 

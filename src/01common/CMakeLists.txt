@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(common)
 
 include_directories(include)
-add_library(common src/*.cc)
+file(GLOB_RECURSE COMMON_SRC src/*.cc)
+add_library(common ${COMMON_SRC})
 target_link_libraries(common fmt)
 
 add_executable(common_test test/test.cpp)
