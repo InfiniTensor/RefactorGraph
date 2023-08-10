@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <optional>
 
-namespace proj_namespace::core {
+namespace refactor::common {
 
     /// @brief 数据类型。
     enum class DataType : uint8_t {
@@ -30,6 +30,6 @@ namespace proj_namespace::core {
 
     void trySubProject();
 
-}// namespace proj_namespace::core
+}// namespace refactor::common
 
 #endif// CORE_H

@@ -1,9 +1,9 @@
 ﻿#include "data_type.h"
 #include <fmt/core.h>
 
-namespace proj_namespace::core {
+namespace refactor::common {
     void trySubProject() {
-        fmt::println("This is 'core' lib.");
+        fmt::println("This is 'common' lib.");
     }
 
     std::optional<DataType> parseDataType(uint8_t value) {
@@ -25,4 +25,4 @@ namespace proj_namespace::core {
                 return {};
         }
     }
-}// namespace proj_namespace::core
+}// namespace refactor::common

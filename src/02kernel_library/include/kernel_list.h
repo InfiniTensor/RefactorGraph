@@ -2,7 +2,7 @@
 #include <functional>
 #include <string>
 
-namespace proj_namespace::kernel_list {
+namespace refactor::kernel_list {
     /// @brief 一个维度的信息。
     struct DimInfo {
         /// @brief 维度的长度。
@@ -14,7 +14,7 @@ namespace proj_namespace::kernel_list {
     /// @brief kernel 的输入张量信息。
     struct KernelInput {
         /// @brief 张量的数据类型。
-        core::DataType dataType;
+        common::DataType dataType;
         /// @brief 张量的形状。
         std::vector<DimInfo> shape;
     };
@@ -22,7 +22,7 @@ namespace proj_namespace::kernel_list {
     /// @brief kernel 的属性张量信息。
     struct KernelAttribute {
         /// @brief 张量的数据类型。
-        core::DataType dataType;
+        common::DataType dataType;
         /// @brief 张量的形状。
         std::vector<size_t> shape;
         /// @brief 张量的值。
@@ -69,4 +69,4 @@ namespace proj_namespace::kernel_list {
 
     void trySubProject();
 
-}// namespace proj_namespace::kernel_list
+}// namespace refactor::kernel_list

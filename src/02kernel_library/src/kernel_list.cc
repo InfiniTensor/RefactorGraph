@@ -3,7 +3,7 @@
 #include <fmt/core.h>
 #include <unordered_map>
 
-namespace proj_namespace::kernel_list {
+namespace refactor::kernel_list {
     void trySubProject() {
         fmt::print("This is 'kernel_list' lib.\n");
     }
@@ -73,4 +73,4 @@ namespace proj_namespace::kernel_list {
         return KernelList::global().get(type, param);
     }
 
-}// namespace proj_namespace::kernel_list
+}// namespace refactor::kernel_list

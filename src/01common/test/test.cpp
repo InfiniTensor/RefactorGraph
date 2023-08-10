@@ -2,7 +2,7 @@
 #include <cassert>
 #include <fmt/core.h>
 
-using namespace proj_namespace::core;
+using namespace refactor::common;
 
 int main() {
     float val = 2047;

@@ -4,11 +4,11 @@
 #include <iostream>
 #include <unordered_map>
 
-using namespace proj_namespace;
+using namespace refactor;
 
 int main() {
-    core::trySubProject();
-    assert(core::parseDataType(3) == core::DataType::I8);
+    common::trySubProject();
+    assert(common::parseDataType(3) == common::DataType::I8);
 
     kernel_list::trySubProject();
     return 0;

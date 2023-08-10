@@ -1,10 +1,10 @@
 ﻿#ifndef GRAPH_H
 #define GRAPH_H
 
-namespace proj_namespace::graph {
+namespace refactor::graph {
 
     class Graph {};
 
-}// namespace proj_namespace::graph
+}// namespace refactor::graph
 
 #endif// GRAPH_H
