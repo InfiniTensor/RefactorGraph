@@ -9,6 +9,7 @@
 using idx_t = int32_t;
 using len_t = std::size_t;
 
+template<class NodeInfo, class EdgeInfo>
 class GraphTopoSearcher;
 
 /// @brief 图拓扑表示。
@@ -20,7 +21,7 @@ class GraphTopoSearcher;
 /// @tparam EdgeInfo 边绑定信息。
 template<class NodeInfo, class EdgeInfo>
 class GraphTopo {
-    friend GraphTopoSearcher;
+    friend class GraphTopoSearcher<NodeInfo, EdgeInfo>;
 
     /// @brief 用于索引节点。
     struct NodeIdx {
@@ -76,29 +77,41 @@ class GraphTopo {
     std::vector<Target> targets;
 
 public:
-    class EdgeRef;
     class NodeRef;
+    class EdgeRef;
+    class NodeProductRef;
+
+    /// @brief 图中一个节点的引用。
+    class NodeRef {
+        friend GraphTopo;
+        friend NodeProductRef;
+        NodeIdx idx;
+        NodeRef(idx_t idx) : idx(idx) {}
+    };
 
     /// @brief 图中一条边的引用。
     class EdgeRef {
         friend GraphTopo;
-        friend NodeRef;
+        friend NodeProductRef;
         EdgeIdx idx;
         EdgeRef(idx_t idx) : idx(idx) {}
     };
 
-    /// @brief 图中一个节点的引用。
-    class NodeRef {
+    class NodeProductRef {
         friend GraphTopo;
         friend EdgeRef;
         NodeIdx idx;
         EdgeIdx firstEdge;
         len_t edgeCount;
 
-        NodeRef(NodeIdx idx, EdgeIdx firstEdge, len_t edgeCount)
+        NodeProductRef(NodeIdx idx, EdgeIdx firstEdge, len_t edgeCount)
             : idx(idx), firstEdge(firstEdge), edgeCount(edgeCount) {}
 
     public:
+        NodeRef node() const {
+            return NodeRef(idx);
+        }
+
         EdgeRef operator[](idx_t i) const {
             if (i < 0 || edgeCount <= i) {
                 throw std::out_of_range("Edge index out of range");
@@ -120,7 +133,7 @@ public:
     /// @param inputs 输入。
     /// @param outputs 输出。
     /// @return 节点的引用。
-    NodeRef addNode(
+    NodeProductRef addNode(
         NodeInfo info,
         std::vector<EdgeRef> inputs,
         std::vector<EdgeInfo> outputs) {
@@ -143,7 +156,7 @@ public:
         for (auto &edge : outputs) {
             edges.push_back({std::move(edge), {-1}});
         }
-        return NodeRef(nodeIdx, firstEdge, edgeCount);
+        return NodeProductRef(nodeIdx, firstEdge, edgeCount);
     }
 
     /// @brief 获取节点信息。

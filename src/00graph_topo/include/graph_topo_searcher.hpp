@@ -1,5 +1,5 @@
-﻿#ifndef GRAPH_TOPO_WAPPER_HPP
-#define GRAPH_TOPO_WAPPER_HPP
+﻿#ifndef GRAPH_TOPO_SEARCHER_HPP
+#define GRAPH_TOPO_SEARCHER_HPP
 
 #include "graph_topo.hpp"
 #include <cstddef>
@@ -9,14 +9,21 @@
 // using NodeInfo = int;
 // using EdgeInfo = int;
 
+/// @brief 这个类缓存了图拓朴中的各种关系，以支持快速查询。
+/// @tparam NodeInfo 节点绑定信息。
+/// @tparam EdgeInfo 边绑定信息。
 template<class NodeInfo, class EdgeInfo>
 class GraphTopoSearcher {
     using Internal = GraphTopo<NodeInfo, EdgeInfo>;
-    std::set<Internal::EdgeIdx> globalInputs, globalOutputs;
-    std::vector<std::vector<Internal::EdgeIdx>> nodeInputs, nodeOutputs;
-    std::vector<std::set<Internal::NodeIdx>> nodePredecessors, nodeSuccessors;
-    std::vector<Internal::NodeIdx> edgeSource;
-    std::vector<std::vector<Internal::NodeIdx>> edgeTargets;
+    using NodeIdx = typename Internal::NodeIdx;
+    using EdgeIdx = typename Internal::EdgeIdx;
+    using TargetIdx = typename Internal::TargetIdx;
+
+    std::set<EdgeIdx> globalInputs, globalOutputs;
+    std::vector<std::vector<EdgeIdx>> nodeInputs, nodeOutputs;
+    std::vector<std::set<NodeIdx>> nodePredecessors, nodeSuccessors;
+    std::vector<NodeIdx> edgeSource;
+    std::vector<std::vector<NodeIdx>> edgeTargets;
 
     void init(Internal const &topo) {
         {// 为所有缓存开辟空间。
@@ -35,7 +42,7 @@ class GraphTopoSearcher {
         }
         // 遍历节点。
         for (size_t i = 0; i < nodeInputs.size(); ++i) {
-            auto nodeIdx = Internal::NodeIdx{static_cast<idx_t>(i)};
+            auto nodeIdx = NodeIdx{static_cast<idx_t>(i)};
             auto const &node = topo.nodes[i];
             nodeOutputs[i].resize(node.edgeCount);
             // 遍历节点的生成的边。
@@ -83,4 +90,4 @@ public:
     };
 };
 
-#endif// GRAPH_TOPO_WAPPER_HPP
+#endif// GRAPH_TOPO_SEARCHER_HPP

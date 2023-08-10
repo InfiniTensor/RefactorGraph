@@ -1,5 +1,5 @@
-﻿#ifndef GRAPH_TOPO_WAPPER_HPP
-#define GRAPH_TOPO_WAPPER_HPP
+﻿#ifndef GRAPH_TOPO_BUILDER_HPP
+#define GRAPH_TOPO_BUILDER_HPP
 
 #include "graph_topo.hpp"
 
@@ -27,4 +27,4 @@ public:
     }
 };
 
-#endif// GRAPH_TOPO_WAPPER_HPP
+#endif// GRAPH_TOPO_BUILDER_HPP
