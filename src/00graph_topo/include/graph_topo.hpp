@@ -66,8 +66,13 @@ class GraphTopo {
 public:
     /// @brief 用于获取节点的所有输出边。
     class NodeRef {
+        GraphTopo const &graph;
         NodeIdx idx;
         len_t edgeCount;
+
+    public:
+        NodeRef(GraphTopo const &graph, NodeIdx idx, len_t edgeCount)
+            : graph(graph), idx(idx), edgeCount(edgeCount) {}
     };
 
     NodeRef addNode(
@@ -95,7 +100,7 @@ public:
         for (auto &edge : outputs) {
             edges.push_back({std::move(edge), {-1}});
         }
-        return {nodeIdx, static_cast<len_t>(outputs.size())};
+        return NodeRef(*this, nodeIdx, static_cast<len_t>(outputs.size()));
     }
 };
 

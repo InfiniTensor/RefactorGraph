@@ -1,4 +1,5 @@
 ﻿#include "data_type.h"
+#include "graph_topo.hpp"
 #include "kernel_list.h"
 #include <cassert>
 #include <iostream>
