@@ -31,6 +31,9 @@ namespace refactor::common {
     /// @return 当 `param1` 是合法的数据类型值，`std::optional` 非空。
     std::optional<DataType> parseDataType(uint8_t);
 
+    /// @brief 判断是否数字数据类型。
+    bool isNumbericDataType(DataType);
+
     template<DataType t>
     struct primitive_t;
 

@@ -1,5 +1,6 @@
 ﻿#include "data_type.h"
 #include <fmt/core.h>
+#include <unordered_set>
 
 namespace refactor::common {
     void trySubProject() {
@@ -24,5 +25,12 @@ namespace refactor::common {
             default:
                 return {};
         }
+    }
+
+    bool isNumbericDataType(DataType dt) {
+        static const std::unordered_set<DataType> set{
+            DataType::F32, DataType::U8, DataType::I8, DataType::U16, DataType::I16, DataType::I32,
+            DataType::I64, DataType::FP16, DataType::F64, DataType::U32, DataType::U64, DataType::BF16};
+        return set.find(dt) != set.end();
     }
 }// namespace refactor::common

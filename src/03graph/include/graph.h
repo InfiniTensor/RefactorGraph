@@ -13,19 +13,7 @@ namespace refactor::graph {
     class Graph {
         GraphTopoSearcher<NodeInfo, EdgeInfo> topoSearcher;
 
-        void fillEdgeInfo() {
-            auto nodes = topoSearcher.nodes();
-
-            for (auto node : nodes) {
-                switch (node.info().opType.underlying()) {
-                    case common::OpType::Abs:
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-        }
+        void fillEdgeInfo();
 
     public:
     };

@@ -1,0 +1,13 @@
+﻿#ifndef INFER_H
+#define INFER_H
+
+#include "edge_info.h"
+#include <vector>
+
+namespace refactor::graph {
+
+    std::vector<EdgeInfo> inferAbs(std::vector<EdgeInfo> inputs);
+
+}// namespace refactor::graph
+
+#endif// INFER_H
