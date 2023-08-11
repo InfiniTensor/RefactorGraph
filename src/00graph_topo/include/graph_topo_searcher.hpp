@@ -101,15 +101,15 @@ public:
     class Edges;
 
     class Nodes {
-        GraphTopoSearcher const &graph;
+        GraphTopoSearcher &graph;
 
     public:
         class Iterator {
-            GraphTopoSearcher const &graph;
+            GraphTopoSearcher &graph;
             idx_t idx;
 
         public:
-            Iterator(GraphTopoSearcher const &graph, idx_t idx) : graph(graph), idx(idx) {}
+            Iterator(GraphTopoSearcher &graph, idx_t idx) : graph(graph), idx(idx) {}
 
             bool operator==(Iterator const &rhs) const { return idx == rhs.idx; }
             bool operator!=(Iterator const &rhs) const { return !operator==(rhs); }
@@ -119,19 +119,21 @@ public:
                 return *this;
             }
 
-            Node operator*() const { return {graph, idx}; }
+            Node operator*() { return {graph, idx}; }
         };
+
+        Nodes(GraphTopoSearcher &graph) : graph(graph) {}
 
         Iterator begin() const { return {graph, 0}; }
         Iterator end() const { return {graph, static_cast<idx_t>(graph.nodeInputs.size())}; }
     };
 
     class Edges {
-        GraphTopoSearcher const &graph;
+        GraphTopoSearcher &graph;
 
     public:
         class Iterator {
-            GraphTopoSearcher const &graph;
+            GraphTopoSearcher &graph;
             idx_t idx;
 
         public:
@@ -148,6 +150,8 @@ public:
             Edge operator*() const { return {graph, idx}; }
         };
 
+        Edges(GraphTopoSearcher const &graph) : graph(graph) {}
+
         Iterator begin() const { return {graph, 0}; }
         Iterator end() const { return {graph, static_cast<idx_t>(graph.edgeSource.size())}; }
     };
@@ -157,6 +161,7 @@ public:
         idx_t idx;
 
     public:
+        Node(GraphTopoSearcher &graph, idx_t idx) : graph(graph), idx(idx) {}
         NodeInfo &info() { return graph.topo.nodes[idx].info; }
         std::vector<Edge> inputs() {
             auto const &inputs = graph.nodeInputs[idx];
@@ -193,6 +198,7 @@ public:
         idx_t idx;
 
     public:
+        Edge(GraphTopoSearcher &graph, idx_t idx) : graph(graph), idx(idx) {}
         EdgeInfo &info() { return graph.topo.edges[idx].info; }
         Node source() { return Node{graph, graph.edgeSource[idx].idx}; }
         std::vector<Node> targets() {
@@ -204,8 +210,8 @@ public:
         }
     };
 
-    Nodes nodes() { return {*this}; }
-    Edges edges() { return {*this}; }
+    Nodes nodes() { return *this; }
+    Edges edges() { return *this; }
     std::vector<Edge> globalInputs() {
         std::vector<Edge> ans(globalInputs_.size());
         std::transform(globalInputs_.begin(), globalInputs_.end(), ans.begin(),
