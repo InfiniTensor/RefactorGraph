@@ -1,6 +1,5 @@
 ﻿#include "data_type.h"
-#include "graph_topo_builder.hpp"
-#include "graph_topo_searcher.hpp"
+#include "error_handler.h"
 #include "kernel_list.h"
 #include <cassert>
 #include <iostream>

@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+add_subdirectory(3rd-party/backward-cpp)
+
 add_subdirectory(3rd-party/fmt)
 include_directories(3rd-party/fmt/include)
 
@@ -24,6 +26,7 @@ add_subdirectory("src/03graph")
 include_directories("src/03graph/include")
 
 add_executable(refactor_graph src/main.cpp)
-target_link_libraries(refactor_graph common kernel_library)
+target_link_libraries(refactor_graph common kernel_library graph ${BACKWARD_ENABLE})
+add_backward(refactor_graph)
 
 add_executable(test test/test.cpp)
