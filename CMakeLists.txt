@@ -8,6 +8,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_subdirectory(3rd-party/fmt)
 include_directories(3rd-party/fmt/include)
 
+add_subdirectory(3rd-party/googletest)
+include_directories(3rd-party/googletest/googletest/include)
+
 add_subdirectory("src/00graph_topo")
 include_directories("src/00graph_topo/include")
 

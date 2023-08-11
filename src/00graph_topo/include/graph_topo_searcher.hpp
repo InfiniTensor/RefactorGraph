@@ -122,8 +122,6 @@ public:
             Node operator*() const { return {graph, idx}; }
         };
 
-        Nodes(GraphTopoSearcher const &graph) : graph(graph) {}
-
         Iterator begin() const { return {graph, 0}; }
         Iterator end() const { return {graph, static_cast<idx_t>(graph.nodeInputs.size())}; }
     };
@@ -149,8 +147,6 @@ public:
 
             Edge operator*() const { return {graph, idx}; }
         };
-
-        Edges(GraphTopoSearcher const &graph) : graph(graph) {}
 
         Iterator begin() const { return {graph, 0}; }
         Iterator end() const { return {graph, static_cast<idx_t>(graph.edgeSource.size())}; }
