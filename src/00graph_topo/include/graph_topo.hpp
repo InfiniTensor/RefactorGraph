@@ -47,6 +47,14 @@ class GraphTopo {
             return idx < rhs.idx;
         }
     };
+    /// @brief 用于索引边作为全局输出的顺序。
+    struct OutputIdx {
+        idx_t idx;
+
+        bool operator<(OutputIdx const &rhs) const {
+            return idx < rhs.idx;
+        }
+    };
 
     /// @brief 节点。
     struct Node {
@@ -63,6 +71,8 @@ class GraphTopo {
         EdgeInfo info;
         /// @brief 下一个目标的引用。边的所有目标构成单链表，此为头指针。
         TargetIdx firstTarget;
+        /// @brief 如果边是全局输出的话，标记边作为输出的序号。
+        OutputIdx outputIdx;
     };
     /// @brief 边的目标。
     struct Target {
@@ -120,12 +130,20 @@ public:
         }
     };
 
-    /// @brief 添加边。
+    /// @brief 添加全局输入边。
     /// @param info 边信息。
     /// @return 边的引用。
     EdgeRef addEdge(EdgeInfo info) {
         edges.push_back({std::move(info), {-1}});
         return EdgeRef{static_cast<idx_t>(edges.size()) - 1};
+    }
+
+    /// @brief 标记全局输出边。
+    /// @param globalOutputs 所有全局输出边的列表。
+    void markOutput(std::vector<EdgeRef> const &globalOutputs) {
+        for (size_t i = 0; i < globalOutputs.size(); ++i) {
+            edges[globalOutputs[i].idx.idx].outputIdx = {i};
+        }
     }
 
     /// @brief 添加节点。

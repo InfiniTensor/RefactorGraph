@@ -19,13 +19,14 @@ class GraphTopoSearcher {
     using EdgeIdx = typename Internal::EdgeIdx;
     using TargetIdx = typename Internal::TargetIdx;
 
-    std::set<EdgeIdx> globalInputs, globalOutputs;
+    std::vector<EdgeIdx> globalInputs, globalOutputs;
     std::vector<std::vector<EdgeIdx>> nodeInputs, nodeOutputs;
     std::vector<std::set<NodeIdx>> nodePredecessors, nodeSuccessors;
     std::vector<NodeIdx> edgeSource;
     std::vector<std::vector<NodeIdx>> edgeTargets;
 
     void init(Internal const &topo) {
+        std::set<EdgeIdx> globalInputCandidates;
         {// 为所有缓存开辟空间。
             auto nodeCount = topo.nodes.size();
             auto edgeCount = topo.edges.size();
@@ -36,7 +37,7 @@ class GraphTopoSearcher {
             edgeSource.resize(edgeCount);
             edgeTargets.resize(edgeCount);
             for (size_t i = 0; i < edgeCount; ++i) {
-                globalInputs.insert({static_cast<idx_t>(i)});
+                globalInputCandidates.insert({static_cast<idx_t>(i)});
             }
             globalOutputs.clear();
         }
@@ -51,24 +52,41 @@ class GraphTopoSearcher {
                 auto const &edge = topo.edges[edgeIdx];
                 auto targetIdx = edge.firstTarget;
 
-                globalInputs.erase({edgeIdx});// 节点生成的边不是全图的输入。
-                nodeOutputs[i][j] = {edgeIdx};// 填写节点输出。
-                edgeSource[edgeIdx] = nodeIdx;// 填写边的源节点。
-                if (targetIdx.idx < 0) {
-                    globalOutputs.insert({edgeIdx});// 没有目标的边是全图的输出。
-                } else {
-                    do {
-                        auto [next, to] = topo.targets[targetIdx.idx];
-                        targetIdx = next;
+                globalInputCandidates.erase({edgeIdx});// 节点生成的边不是全图的输入。
+                nodeOutputs[i][j] = {edgeIdx};         // 填写节点输出。
+                edgeSource[edgeIdx] = nodeIdx;         // 填写边的源节点。
 
-                        edgeTargets[edgeIdx].push_back(to);      // 填写边的目标节点。
-                        nodeInputs[to.idx].push_back({edgeIdx}); // 填写节点的输入。
-                        nodePredecessors[to.idx].insert(nodeIdx);// 填写节点的前驱。
-                        nodeSuccessors[i].insert(to);            // 填写节点的后继。
-                    } while (targetIdx.idx >= 0);
+                {// 填写全图输出。
+                    auto outputIdx = edge.outputIdx.idx;
+                    if (outputIdx >= 0) {
+                        if (outputIdx >= globalOutputs.size())
+                            globalOutputs.resize(outputIdx + 1);
+                        globalOutputs[outputIdx] = {edgeIdx};
+                    }
+                }
+
+                while (targetIdx.idx >= 0) {
+                    auto [next, to] = topo.targets[targetIdx.idx];
+                    targetIdx = next;
+
+                    edgeTargets[edgeIdx].push_back(to);      // 填写边的目标节点。
+                    nodeInputs[to.idx].push_back({edgeIdx}); // 填写节点的输入。
+                    nodePredecessors[to.idx].insert(nodeIdx);// 填写节点的前驱。
+                    nodeSuccessors[i].insert(to);            // 填写节点的后继。
                 }
             }
         }
+        globalInputs = std::vector<EdgeIdx>(globalInputCandidates.begin(), globalInputCandidates.end());
+        std::sort(globalInputs.begin(), globalInputs.end());
+
+        globalInputs.shrink_to_fit();
+        globalOutputs.shrink_to_fit();
+        nodeInputs.shrink_to_fit();
+        nodeOutputs.shrink_to_fit();
+        nodePredecessors.shrink_to_fit();
+        nodeSuccessors.shrink_to_fit();
+        edgeSource.shrink_to_fit();
+        edgeTargets.shrink_to_fit();
     }
 
 public:
