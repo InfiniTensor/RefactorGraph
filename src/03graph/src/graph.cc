@@ -1,4 +1,5 @@
 ﻿#include "graph.h"
+#include "error_handler.h"
 #include "infer/infer.h"
 #include <algorithm>
 
@@ -19,7 +20,7 @@ namespace refactor::graph {
         std::vector<Edge> outputs;
         node.outputs();
         if (infered.size() < outputs.size()) {
-            throw std::runtime_error("infered.size() < outputs");
+            OUT_OF_RANGE("outputs more than infered", infered.size(), outputs.size());
         } else {
             for (auto i = 0; i < outputs.size(); ++i) {
                 outputs[i].info() = infered[i];

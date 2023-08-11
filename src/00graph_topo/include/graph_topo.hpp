@@ -1,6 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_HPP
 #define GRAPH_TOPO_HPP
 
+#include "error_handler.h"
 #include <cassert>
 #include <cstdint>
 #include <utility>
@@ -124,7 +125,7 @@ public:
 
         EdgeRef operator[](idx_t i) const {
             if (i < 0 || edgeCount <= i) {
-                throw std::out_of_range("Edge index out of range");
+                OUT_OF_RANGE("Edge index out of range", i, edgeCount);
             }
             return EdgeRef(firstEdge.idx + i);
         }
