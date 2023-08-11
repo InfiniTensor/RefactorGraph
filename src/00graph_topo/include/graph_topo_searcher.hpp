@@ -19,7 +19,8 @@ class GraphTopoSearcher {
     using EdgeIdx = typename Internal::EdgeIdx;
     using TargetIdx = typename Internal::TargetIdx;
 
-    std::vector<EdgeIdx> globalInputs, globalOutputs;
+    Internal topo;
+    std::vector<EdgeIdx> globalInputs_, globalOutputs_;
     std::vector<std::vector<EdgeIdx>> nodeInputs, nodeOutputs;
     std::vector<std::set<NodeIdx>> nodePredecessors, nodeSuccessors;
     std::vector<NodeIdx> edgeSource;
@@ -39,7 +40,7 @@ class GraphTopoSearcher {
             for (size_t i = 0; i < edgeCount; ++i) {
                 globalInputCandidates.insert({static_cast<idx_t>(i)});
             }
-            globalOutputs.clear();
+            globalOutputs_.clear();
         }
         // 遍历节点。
         for (size_t i = 0; i < nodeInputs.size(); ++i) {
@@ -59,9 +60,9 @@ class GraphTopoSearcher {
                 {// 填写全图输出。
                     auto outputIdx = edge.outputIdx.idx;
                     if (outputIdx >= 0) {
-                        if (outputIdx >= globalOutputs.size())
-                            globalOutputs.resize(outputIdx + 1);
-                        globalOutputs[outputIdx] = {edgeIdx};
+                        if (outputIdx >= globalOutputs_.size())
+                            globalOutputs_.resize(outputIdx + 1);
+                        globalOutputs_[outputIdx] = {edgeIdx};
                     }
                 }
 
@@ -76,11 +77,11 @@ class GraphTopoSearcher {
                 }
             }
         }
-        globalInputs = std::vector<EdgeIdx>(globalInputCandidates.begin(), globalInputCandidates.end());
-        std::sort(globalInputs.begin(), globalInputs.end());
+        globalInputs_ = std::vector<EdgeIdx>(globalInputCandidates.begin(), globalInputCandidates.end());
+        std::sort(globalInputs_.begin(), globalInputs_.end());
 
-        globalInputs.shrink_to_fit();
-        globalOutputs.shrink_to_fit();
+        globalInputs_.shrink_to_fit();
+        globalOutputs_.shrink_to_fit();
         nodeInputs.shrink_to_fit();
         nodeOutputs.shrink_to_fit();
         nodePredecessors.shrink_to_fit();
@@ -90,22 +91,137 @@ class GraphTopoSearcher {
     }
 
 public:
-    explicit GraphTopoSearcher(Internal const &topo) {
+    explicit GraphTopoSearcher(Internal topo) : topo(std::move(topo)) {
         init(topo);
     }
 
-    struct NodeRef;
-    struct EdgeRef;
+    class Node;
+    class Edge;
+    class Nodes;
+    class Edges;
 
-    struct NodeRef {
-        GraphTopoSearcher &graph;
-        idx_t idx;
+    class Nodes {
+        GraphTopoSearcher const &graph;
+
+    public:
+        class Iterator {
+            GraphTopoSearcher const &graph;
+            idx_t idx;
+
+        public:
+            Iterator(GraphTopoSearcher const &graph, idx_t idx) : graph(graph), idx(idx) {}
+
+            bool operator==(Iterator const &rhs) const { return idx == rhs.idx; }
+            bool operator!=(Iterator const &rhs) const { return !operator==(rhs); }
+
+            Iterator &operator++() {
+                ++idx;
+                return *this;
+            }
+
+            Node operator*() const { return {graph, idx}; }
+        };
+
+        Nodes(GraphTopoSearcher const &graph) : graph(graph) {}
+
+        Iterator begin() const { return {graph, 0}; }
+        Iterator end() const { return {graph, static_cast<idx_t>(graph.nodeInputs.size())}; }
     };
 
-    struct EdgeRef {
+    class Edges {
+        GraphTopoSearcher const &graph;
+
+    public:
+        class Iterator {
+            GraphTopoSearcher const &graph;
+            idx_t idx;
+
+        public:
+            Iterator(GraphTopoSearcher const &graph, idx_t idx) : graph(graph), idx(idx) {}
+
+            bool operator==(Iterator const &rhs) const { return idx == rhs.idx; }
+            bool operator!=(Iterator const &rhs) const { return !operator==(rhs); }
+
+            Iterator &operator++() {
+                ++idx;
+                return *this;
+            }
+
+            Edge operator*() const { return {graph, idx}; }
+        };
+
+        Edges(GraphTopoSearcher const &graph) : graph(graph) {}
+
+        Iterator begin() const { return {graph, 0}; }
+        Iterator end() const { return {graph, static_cast<idx_t>(graph.edgeSource.size())}; }
+    };
+
+    class Node {
         GraphTopoSearcher &graph;
         idx_t idx;
+
+    public:
+        NodeInfo &info() { return graph.topo.nodes[idx].info; }
+        std::vector<Edge> inputs() {
+            auto const &inputs = graph.nodeInputs[idx];
+            std::vector<Edge> ans(inputs.size());
+            std::transform(inputs.begin(), inputs.end(), ans.begin(),
+                           [this](auto const &edgeIdx) { return Edge{graph, edgeIdx.idx}; });
+            return ans;
+        }
+        std::vector<Edge> outputs() {
+            auto const &outputs = graph.nodeOutputs[idx];
+            std::vector<Edge> ans(outputs.size());
+            std::transform(outputs.begin(), outputs.end(), ans.begin(),
+                           [this](auto const &edgeIdx) { return Edge{graph, edgeIdx.idx}; });
+            return ans;
+        }
+        std::set<Node> predecessors() {
+            auto const &predecessors = graph.nodePredecessors[idx];
+            std::set<Node> ans;
+            std::transform(predecessors.begin(), predecessors.end(), std::inserter(ans, ans.end()),
+                           [this](auto const &nodeIdx) { return Node{graph, nodeIdx.idx}; });
+            return ans;
+        }
+        std::set<Node> successors() {
+            auto const &successors = graph.nodeSuccessors[idx];
+            std::set<Node> ans;
+            std::transform(successors.begin(), successors.end(), std::inserter(ans, ans.end()),
+                           [this](auto const &nodeIdx) { return Node{graph, nodeIdx.idx}; });
+            return ans;
+        }
     };
+
+    class Edge {
+        GraphTopoSearcher &graph;
+        idx_t idx;
+
+    public:
+        EdgeInfo &info() { return graph.topo.edges[idx].info; }
+        Node source() { return Node{graph, graph.edgeSource[idx].idx}; }
+        std::vector<Node> targets() {
+            auto const &targets = graph.edgeTargets[idx];
+            std::vector<Node> ans(targets.size());
+            std::transform(targets.begin(), targets.end(), ans.begin(),
+                           [this](auto const &nodeIdx) { return Node{graph, nodeIdx.idx}; });
+            return ans;
+        }
+    };
+
+    Nodes nodes() { return {*this}; }
+    Edges edges() { return {*this}; }
+    std::vector<Edge> globalInputs() {
+        std::vector<Edge> ans(globalInputs_.size());
+        std::transform(globalInputs_.begin(), globalInputs_.end(), ans.begin(),
+                       [this](auto const &edgeIdx) { return Edge{*this, edgeIdx.idx}; });
+        return ans;
+    }
+    std::vector<Edge> globalOutputs() {
+        std::vector<Edge> ans(globalOutputs_.size());
+        std::transform(globalOutputs_.begin(), globalOutputs_.end(), ans.begin(),
+                       [this](auto const &edgeIdx) { return Edge{*this, edgeIdx.idx}; });
+        return ans;
+    }
 };
 
 #endif// GRAPH_TOPO_SEARCHER_HPP
