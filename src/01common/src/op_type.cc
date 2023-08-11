@@ -1,6 +1,6 @@
 ﻿#include "op_type.h"
 
-namespace infini {
+namespace refactor::common {
     const char *OpType::toString() const {
 #define CASE(NAME)     \
     case OpType::NAME: \
@@ -320,4 +320,4 @@ namespace infini {
         return set.find(type) != set.end();
     }
 
-}// namespace infini
+}// namespace refactor::common

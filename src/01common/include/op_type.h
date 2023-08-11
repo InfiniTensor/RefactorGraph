@@ -1,11 +1,10 @@
-﻿#pragma once
-#ifndef OP_TYPE_H
+﻿#ifndef OP_TYPE_H
 #define OP_TYPE_H
 
 #include <string>
 #include <unordered_set>
 
-namespace infini {
+namespace refactor::common {
 
     struct OpType {
         using underlying_t = uint16_t;
@@ -248,6 +247,6 @@ namespace infini {
         Tanh,
     };
 
-}// namespace infini
+}// namespace refactor::common
 
 #endif// OP_TYPE_H
