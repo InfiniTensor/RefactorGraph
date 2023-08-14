@@ -25,172 +25,233 @@ class GraphTopo {
     friend class GraphTopoSearcher<NodeInfo, EdgeInfo>;
 
     /// @brief 用于索引节点。
-    struct NodeIdx {
-        idx_t idx;
-
-        bool operator<(NodeIdx const &rhs) const {
-            return idx < rhs.idx;
-        }
-    };
+    class NodeIdx;
     /// @brief 用于索引边。
-    struct EdgeIdx {
-        idx_t idx;
-
-        bool operator<(EdgeIdx const &rhs) const {
-            return idx < rhs.idx;
-        }
-    };
+    class EdgeIdx;
     /// @brief 用于索引边的目标。
-    struct TargetIdx {
-        idx_t idx;
-
-        bool operator<(TargetIdx const &rhs) const {
-            return idx < rhs.idx;
-        }
-    };
+    class TargetIdx;
     /// @brief 用于索引边作为全局输出的顺序。
-    struct OutputIdx {
-        idx_t idx;
-
-        bool operator<(OutputIdx const &rhs) const {
-            return idx < rhs.idx;
-        }
-    };
+    class OutputIdx;
 
     /// @brief 节点。
-    struct Node {
-        /// @brief 节点信息。
-        NodeInfo info;
-        /// @brief 节点的第一条边的引用。节点的所有边构成单链表，此为头指针。
-        EdgeIdx firstEdge;
-        /// @brief 节点产生的边的数量。
-        len_t edgeCount;
-    };
+    class Node;
     /// @brief 边。
-    struct Edge {
-        /// @brief 边信息。
-        EdgeInfo info;
-        /// @brief 下一个目标的引用。边的所有目标构成单链表，此为头指针。
-        TargetIdx firstTarget;
-        /// @brief 如果边是全局输出的话，标记边作为输出的序号。
-        OutputIdx outputIdx;
-    };
+    class Edge;
     /// @brief 边的目标。
-    struct Target {
-        /// @brief 下一个目标的引用。
-        TargetIdx next;
-        /// @brief 指向目标节点。
-        NodeIdx to;
-    };
+    class Target;
 
+    /// @brief 保存所有节点。
     std::vector<Node> nodes;
+    /// @brief 保存所有边。
     std::vector<Edge> edges;
+    /// @brief 保存所有边的目标。
     std::vector<Target> targets;
 
 public:
-    class NodeRef;
-    class EdgeRef;
-    class NodeProductRef;
-
     /// @brief 图中一个节点的引用。
-    class NodeRef {
-        friend GraphTopo;
-        friend NodeProductRef;
-        NodeIdx idx;
-        NodeRef(idx_t idx) : idx(idx) {}
-    };
-
+    class NodeRef;
     /// @brief 图中一条边的引用。
-    class EdgeRef {
-        friend GraphTopo;
-        friend NodeProductRef;
-        EdgeIdx idx;
-        EdgeRef(idx_t idx) : idx(idx) {}
-    };
-
-    class NodeProductRef {
-        friend GraphTopo;
-        friend EdgeRef;
-        NodeIdx idx;
-        EdgeIdx firstEdge;
-        len_t edgeCount;
-
-        NodeProductRef(NodeIdx idx, EdgeIdx firstEdge, len_t edgeCount)
-            : idx(idx), firstEdge(firstEdge), edgeCount(edgeCount) {}
-
-    public:
-        NodeRef node() const {
-            return NodeRef(idx);
-        }
-
-        EdgeRef operator[](idx_t i) const {
-            if (i < 0 || edgeCount <= i) {
-                OUT_OF_RANGE("Edge index out of range", i, edgeCount);
-            }
-            return EdgeRef(firstEdge.idx + i);
-        }
-    };
+    class EdgeRef;
+    /// @brief 节点的产品（输出边）。
+    class NodeProduct;
 
     /// @brief 添加全局输入边。
     /// @param info 边信息。
     /// @return 边的引用。
-    EdgeRef addEdge(EdgeInfo info) {
-        edges.push_back({std::move(info), {-1}});
-        return EdgeRef{static_cast<idx_t>(edges.size()) - 1};
-    }
-
+    EdgeRef addEdge(EdgeInfo info);
     /// @brief 标记全局输出边。
     /// @param globalOutputs 所有全局输出边的列表。
-    void markOutput(std::vector<EdgeRef> const &globalOutputs) {
-        for (size_t i = 0; i < globalOutputs.size(); ++i) {
-            edges[globalOutputs[i].idx.idx].outputIdx = {static_cast<idx_t>(i)};
-        }
-    }
-
+    void markOutput(std::vector<EdgeRef> const &globalOutputs);
     /// @brief 添加节点。
     /// @param info 节点信息。
     /// @param inputs 输入。
     /// @param outputs 输出。
     /// @return 节点的引用。
-    NodeProductRef addNode(
-        NodeInfo info,
-        std::vector<EdgeRef> inputs,
-        std::vector<EdgeInfo> outputs) {
-        auto nodeIdx = NodeIdx{static_cast<idx_t>(nodes.size())};
-        auto firstEdge = EdgeIdx{static_cast<idx_t>(edges.size())};
-        auto edgeCount = static_cast<len_t>(outputs.size());
-        // 添加节点。
-        nodes.push_back({std::move(info), firstEdge, edgeCount});
-        // 将节点加入输入边的目标。
-        for (auto edge : inputs) {
-            targets.push_back({
-                std::exchange(
-                    edges[edge.idx.idx].firstTarget,
-                    {static_cast<idx_t>(targets.size())}),
-                nodeIdx,
-            });
-        }
-        // 添加节点产生的边。
-        nodes.reserve(nodes.size() + outputs.size());
-        for (auto &edge : outputs) {
-            edges.push_back({std::move(edge), {-1}});
-        }
-        return NodeProductRef(nodeIdx, firstEdge, edgeCount);
-    }
-
+    NodeProduct addNode(NodeInfo info, std::vector<EdgeRef> inputs, std::vector<EdgeInfo> outputs);
     /// @brief 获取节点信息。
     /// @param ref 节点在图上的引用。
     /// @return 节点信息。
-    NodeInfo &getInfo(NodeRef ref) {
-        return nodes[ref.idx.idx].info;
-    }
-
+    NodeInfo &getInfo(NodeRef ref);
     /// @brief 获取边信息。
     /// @param ref 边在图上的引用。
     /// @return 边信息。
-    EdgeInfo &getInfo(EdgeRef ref) {
-        return edges[ref.idx.idx].info;
+    EdgeInfo &getInfo(EdgeRef ref);
+};
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::NodeIdx {
+    idx_t idx;
+
+    bool operator<(NodeIdx const &rhs) const {
+        return idx < rhs.idx;
     }
 };
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::EdgeIdx {
+    idx_t idx;
+
+    bool operator<(EdgeIdx const &rhs) const {
+        return idx < rhs.idx;
+    }
+};
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::TargetIdx {
+    idx_t idx;
+
+    bool operator<(TargetIdx const &rhs) const {
+        return idx < rhs.idx;
+    }
+};
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::OutputIdx {
+    idx_t idx;
+
+    bool operator<(OutputIdx const &rhs) const {
+        return idx < rhs.idx;
+    }
+};
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::Node {
+    /// @brief 节点信息。
+    NodeInfo info;
+    /// @brief 节点的第一条边的引用。节点的所有边构成单链表，此为头指针。
+    EdgeIdx firstEdge;
+    /// @brief 节点产生的边的数量。
+    len_t edgeCount;
+};
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::Edge {
+    /// @brief 边信息。
+    EdgeInfo info;
+    /// @brief 下一个目标的引用。边的所有目标构成单链表，此为头指针。
+    TargetIdx firstTarget;
+    /// @brief 如果边是全局输出的话，标记边作为输出的序号。
+    OutputIdx outputIdx;
+};
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::Target {
+    /// @brief 下一个目标的引用。
+    TargetIdx next;
+    /// @brief 指向目标节点。
+    NodeIdx to;
+};
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::NodeRef {
+    friend GraphTopo;
+    friend NodeProduct;
+    NodeIdx idx;
+    NodeRef(idx_t idx) : idx(idx) {}
+};
+
+/// @brief 图中一条边的引用。
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::EdgeRef {
+    friend GraphTopo;
+    friend NodeProduct;
+    EdgeIdx idx;
+    EdgeRef(idx_t idx) : idx(idx) {}
+};
+
+template<class NodeInfo, class EdgeInfo>
+struct GraphTopo<NodeInfo, EdgeInfo>::NodeProduct {
+    friend GraphTopo;
+    friend EdgeRef;
+    NodeIdx idx;
+    EdgeIdx firstEdge;
+    len_t edgeCount;
+
+    NodeProduct(NodeIdx idx, EdgeIdx firstEdge, len_t edgeCount)
+        : idx(idx), firstEdge(firstEdge), edgeCount(edgeCount) {}
+
+public:
+    NodeRef node() const {
+        return NodeRef(idx);
+    }
+
+    EdgeRef operator[](idx_t i) const {
+        if (i < 0 || edgeCount <= i) {
+            OUT_OF_RANGE("Edge index out of range", i, edgeCount);
+        }
+        return EdgeRef(firstEdge.idx + i);
+    }
+};
+
+/// @brief 添加全局输入边。
+/// @param info 边信息。
+/// @return 边的引用。
+template<class NodeInfo, class EdgeInfo>
+GraphTopo<NodeInfo, EdgeInfo>::EdgeRef
+GraphTopo<NodeInfo, EdgeInfo>::addEdge(EdgeInfo info) {
+    edges.push_back({std::move(info), {-1}});
+    return EdgeRef{static_cast<idx_t>(edges.size()) - 1};
+}
+
+/// @brief 标记全局输出边。
+/// @param globalOutputs 所有全局输出边的列表。
+template<class NodeInfo, class EdgeInfo>
+void GraphTopo<NodeInfo, EdgeInfo>::markOutput(std::vector<EdgeRef> const &globalOutputs) {
+    for (size_t i = 0; i < globalOutputs.size(); ++i) {
+        edges[globalOutputs[i].idx.idx].outputIdx = {static_cast<idx_t>(i)};
+    }
+}
+
+/// @brief 添加节点。
+/// @param info 节点信息。
+/// @param inputs 输入。
+/// @param outputs 输出。
+/// @return 节点的引用。
+template<class NodeInfo, class EdgeInfo>
+GraphTopo<NodeInfo, EdgeInfo>::NodeProduct
+GraphTopo<NodeInfo, EdgeInfo>::addNode(
+    NodeInfo info,
+    std::vector<EdgeRef> inputs,
+    std::vector<EdgeInfo> outputs) {
+    auto nodeIdx = NodeIdx{static_cast<idx_t>(nodes.size())};
+    auto firstEdge = EdgeIdx{static_cast<idx_t>(edges.size())};
+    auto edgeCount = static_cast<len_t>(outputs.size());
+    // 添加节点。
+    nodes.push_back({std::move(info), firstEdge, edgeCount});
+    // 将节点加入输入边的目标。
+    for (auto edge : inputs) {
+        targets.push_back({
+            std::exchange(
+                edges[edge.idx.idx].firstTarget,
+                {static_cast<idx_t>(targets.size())}),
+            nodeIdx,
+        });
+    }
+    // 添加节点产生的边。
+    nodes.reserve(nodes.size() + outputs.size());
+    for (auto &edge : outputs) {
+        edges.push_back({std::move(edge), {-1}});
+    }
+    return NodeProduct(nodeIdx, firstEdge, edgeCount);
+}
+
+/// @brief 获取节点信息。
+/// @param ref 节点在图上的引用。
+/// @return 节点信息。
+template<class NodeInfo, class EdgeInfo>
+NodeInfo &
+GraphTopo<NodeInfo, EdgeInfo>::getInfo(NodeRef ref) {
+    return nodes[ref.idx.idx].info;
+}
+
+/// @brief 获取边信息。
+/// @param ref 边在图上的引用。
+/// @return 边信息。
+template<class NodeInfo, class EdgeInfo>
+EdgeInfo &
+GraphTopo<NodeInfo, EdgeInfo>::getInfo(EdgeRef ref) {
+    return edges[ref.idx.idx].info;
+}
+
 
 #endif// GRAPH_TOPO_HPP
