@@ -29,9 +29,7 @@ namespace refactor::graph {
     }
 
     void Graph::fillEdgeInfo() {
-        auto nodes = topoSearcher.nodes();
-
-        for (auto node : nodes) {
+        for (auto node : topoSearcher.nodes()) {
             auto info = takeInfo(node.inputs());
             switch (node.info().opType.underlying()) {
                 case OpType::Abs:
@@ -53,7 +51,12 @@ namespace refactor::graph {
                 case OpType::Tanh:
                     putInfo(node, inferTanh(info));
                     break;
-
+                case OpType::Add:
+                case OpType::Sub:
+                case OpType::Mul:
+                case OpType::Div:
+                    putInfo(node, inferArithmetic(info));
+                    break;
                 default:
                     break;
             }

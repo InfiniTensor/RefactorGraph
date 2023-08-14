@@ -30,27 +30,14 @@ namespace refactor::graph {
     struct EdgeInfo {
         std::variant<EmptyEdgeInfo, Tensor, ShapeVariable> info;
 
-        std::optional<Tensor> optionalTensor() {
-            if (std::holds_alternative<Tensor>(info)) {
-                return {std::get<Tensor>(info)};
-            } else {
-                return std::nullopt;
-            }
-        }
+        bool isTensor() const { return std::holds_alternative<Tensor>(info); }
+        bool isShapeVariable() const { return std::holds_alternative<ShapeVariable>(info); }
 
         Tensor &tensor() {
             if (std::holds_alternative<Tensor>(info)) {
                 return std::get<Tensor>(info);
             } else {
                 RUNTIME_ERROR("edge type error");
-            }
-        }
-
-        std::optional<ShapeVariable> optionalShapeVariable() {
-            if (std::holds_alternative<ShapeVariable>(info)) {
-                return {std::get<ShapeVariable>(info)};
-            } else {
-                return std::nullopt;
             }
         }
 
