@@ -31,6 +31,12 @@ namespace refactor::common {
     /// @return 当 `param1` 是合法的数据类型值，`std::optional` 非空。
     std::optional<DataType> parseDataType(uint8_t);
 
+    /// @brief 判断是否符合 IEE754 的浮点数数据类型。
+    bool isIeee754DataType(DataType);
+
+    /// @brief 判断是否浮点数数据类型。
+    bool isFloatDataType(DataType);
+
     /// @brief 判断是否数字数据类型。
     bool isNumbericDataType(DataType);
 

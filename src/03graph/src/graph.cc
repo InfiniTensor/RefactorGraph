@@ -39,6 +39,19 @@ namespace refactor::graph {
                     break;
                 case OpType::Acos:
                 case OpType::Acosh:
+                case OpType::Asin:
+                case OpType::Asinh:
+                case OpType::Atan:
+                case OpType::Atanh:
+                case OpType::Cos:
+                case OpType::Cosh:
+                case OpType::Sin:
+                case OpType::Sinh:
+                case OpType::Tan:
+                    putInfo(node, inferTrigonometry(info));
+                    break;
+                case OpType::Tanh:
+                    putInfo(node, inferTanh(info));
                     break;
 
                 default:
