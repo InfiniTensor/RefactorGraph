@@ -17,8 +17,7 @@ namespace refactor::graph {
     }
 
     void putInfo(Node &node, std::vector<EdgeInfo> infered) {
-        std::vector<Edge> outputs;
-        node.outputs();
+        auto outputs = node.outputs();
         if (infered.size() < outputs.size()) {
             OUT_OF_RANGE("outputs more than infered", infered.size(), outputs.size());
         } else {

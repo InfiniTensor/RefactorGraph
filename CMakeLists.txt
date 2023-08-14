@@ -13,6 +13,9 @@ include_directories(3rd-party/fmt/include)
 add_subdirectory(3rd-party/googletest)
 include_directories(3rd-party/googletest/googletest/include)
 
+add_subdirectory("src/iterator")
+include_directories("src/iterator/include")
+
 add_subdirectory("src/00common")
 include_directories("src/00common/include")
 

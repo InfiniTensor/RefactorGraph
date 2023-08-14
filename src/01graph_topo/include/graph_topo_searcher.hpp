@@ -246,14 +246,14 @@ template<class NodeInfo, class EdgeInfo>
 std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalInputs() {
     std::vector<Edge> ans(globalInputs_.size());
     std::transform(globalInputs_.begin(), globalInputs_.end(), ans.begin(),
-                   [this](auto const &edgeIdx) { return Edge{*this, edgeIdx.idx}; });
+                   [this](auto const &edgeIdx) { return Edge{this, edgeIdx.idx}; });
     return ans;
 }
 template<class NodeInfo, class EdgeInfo>
 std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalOutputs() {
     std::vector<Edge> ans(globalOutputs_.size());
     std::transform(globalOutputs_.begin(), globalOutputs_.end(), ans.begin(),
-                   [this](auto const &edgeIdx) { return Edge{*this, edgeIdx.idx}; });
+                   [this](auto const &edgeIdx) { return Edge{this, edgeIdx.idx}; });
     return ans;
 }
 
