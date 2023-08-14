@@ -7,3 +7,6 @@
 [submodule "3rd-party/backward-cpp"]
 	path = 3rd-party/backward-cpp
 	url = git@github.com:bombela/backward-cpp.git
+[submodule "3rd-party/fmtlog"]
+	path = 3rd-party/fmtlog
+	url = git@github.com:MengRao/fmtlog.git
