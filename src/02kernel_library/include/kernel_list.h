@@ -67,6 +67,4 @@ namespace refactor::kernel_list {
         KernelType const &type,
         KernelParam const &param);
 
-    void trySubProject();
-
 }// namespace refactor::kernel_list

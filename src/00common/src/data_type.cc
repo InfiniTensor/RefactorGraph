@@ -3,10 +3,6 @@
 #include <unordered_set>
 
 namespace refactor::common {
-    void trySubProject() {
-        fmt::println("This is 'common' lib.");
-    }
-
     std::optional<DataType> parseDataType(uint8_t value) {
         switch (value) {
             case 1:

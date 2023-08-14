@@ -4,10 +4,6 @@
 #include <unordered_map>
 
 namespace refactor::kernel_list {
-    void trySubProject() {
-        fmt::print("This is 'kernel_list' lib.\n");
-    }
-
     struct KernelTypeHash {
         size_t operator()(KernelType const &kt) const {
             size_t h[]{
@@ -69,7 +65,7 @@ namespace refactor::kernel_list {
 
     std::vector<std::pair<std::string, void *>>
     getKernels(KernelType const &type,
-                KernelParam const &param) {
+               KernelParam const &param) {
         return KernelList::global().get(type, param);
     }
 

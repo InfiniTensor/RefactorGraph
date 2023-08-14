@@ -96,8 +96,6 @@ namespace refactor::common {
         using type = bf16_t;
     };
 
-    void trySubProject();
-
 }// namespace refactor::common
 
 #endif// CORE_H

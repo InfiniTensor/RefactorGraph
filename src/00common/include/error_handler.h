@@ -22,4 +22,13 @@ struct UnimplementError : public std::logic_error {
     buildMsg((std::to_string(a) + '/' + std::to_string(b) + ' ' + msg).c_str(), __FILE__, __LINE__))
 #define TODO(msg) throw UnimplementError(buildMsg(msg, __FILE__, __LINE__).c_str())
 
+#ifndef DISABLE_ASSERT
+#define ASSERT(condition, msg)                \
+    {                                         \
+        if (!(condition)) RUNTIME_ERROR(msg); \
+    }
+#else
+#define ASSERT(condition, msg)
+#endif
+
 #endif// ERROR_HANDLER_H
