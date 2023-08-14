@@ -3,12 +3,7 @@
 
 #include "graph_topo.hpp"
 
-// 为了方便随便弄个类型占位
-using NodeInfo = int;
-using EdgeInfo = int;
-using EdgeKey = int;
-
-// template<class NodeInfo, class EdgeInfo, class EdgeKey>
+template<class NodeInfo, class EdgeInfo, class EdgeKey>
 class GraphTopoBuilder {
     GraphTopo<NodeInfo, EdgeInfo> graph;
 

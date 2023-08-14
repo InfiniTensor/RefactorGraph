@@ -1,6 +1,7 @@
 ﻿#ifndef ERROR_HANDLER_H
 #define ERROR_HANDLER_H
 
+#include <stdexcept>
 #include <string>
 
 inline std::string buildMsg(const char *msg, const char *file, int line) {

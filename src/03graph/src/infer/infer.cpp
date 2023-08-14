@@ -4,19 +4,19 @@
 using namespace refactor::common;
 
 namespace refactor::graph {
+    template<class T>
+    inline void checkInputSize(std::vector<T> const &inputs, len_t size) {
+        if (inputs.size() != size) {
+            RUNTIME_ERROR("invalid inputs");
+        }
+    }
 
     std::vector<EdgeInfo> inferAbs(std::vector<EdgeInfo> inputs) {
-        if (inputs.size() != 1) {
-            RUNTIME_ERROR("inputs.size() != 1");
-        }
-        if (std::holds_alternative<Tensor>(inputs[0])) {
-            if (!isNumbericDataType(std::get<Tensor>(inputs[0]).dataType)) {
-                return inputs;
-            } else {
-                RUNTIME_ERROR("data type not support");
-            }
+        checkInputSize(inputs, 1);
+        if (!isNumbericDataType(inputs[0].tensor().dataType)) {
+            return inputs;
         } else {
-            RUNTIME_ERROR("edge type not support");
+            RUNTIME_ERROR("data type not support");
         }
     }
 

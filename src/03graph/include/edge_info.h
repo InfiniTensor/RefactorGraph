@@ -27,7 +27,41 @@ namespace refactor::graph {
     };
 
     /// @brief 边信息可能是某一种。
-    using EdgeInfo = std::variant<EmptyEdgeInfo, Tensor, ShapeVariable>;
+    struct EdgeInfo {
+        std::variant<EmptyEdgeInfo, Tensor, ShapeVariable> info;
+
+        std::optional<Tensor> optionalTensor() {
+            if (std::holds_alternative<Tensor>(info)) {
+                return {std::get<Tensor>(info)};
+            } else {
+                return std::nullopt;
+            }
+        }
+
+        Tensor &tensor() {
+            if (std::holds_alternative<Tensor>(info)) {
+                return std::get<Tensor>(info);
+            } else {
+                RUNTIME_ERROR("edge type error");
+            }
+        }
+
+        std::optional<ShapeVariable> optionalShapeVariable() {
+            if (std::holds_alternative<ShapeVariable>(info)) {
+                return {std::get<ShapeVariable>(info)};
+            } else {
+                return std::nullopt;
+            }
+        }
+
+        ShapeVariable &shapeVariable() {
+            if (std::holds_alternative<ShapeVariable>(info)) {
+                return std::get<ShapeVariable>(info);
+            } else {
+                RUNTIME_ERROR("edge type error");
+            }
+        }
+    };
 
 }// namespace refactor::graph
 

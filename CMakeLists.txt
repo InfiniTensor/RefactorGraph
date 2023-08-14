@@ -13,11 +13,11 @@ include_directories(3rd-party/fmt/include)
 add_subdirectory(3rd-party/googletest)
 include_directories(3rd-party/googletest/googletest/include)
 
-add_subdirectory("src/00graph_topo")
-include_directories("src/00graph_topo/include")
+add_subdirectory("src/00common")
+include_directories("src/00common/include")
 
-add_subdirectory("src/01common")
-include_directories("src/01common/include")
+add_subdirectory("src/01graph_topo")
+include_directories("src/01graph_topo/include")
 
 add_subdirectory("src/02kernel_library")
 include_directories("src/02kernel_library/include")

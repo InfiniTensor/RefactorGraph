@@ -143,7 +143,7 @@ public:
     /// @param globalOutputs 所有全局输出边的列表。
     void markOutput(std::vector<EdgeRef> const &globalOutputs) {
         for (size_t i = 0; i < globalOutputs.size(); ++i) {
-            edges[globalOutputs[i].idx.idx].outputIdx = {i};
+            edges[globalOutputs[i].idx.idx].outputIdx = {static_cast<idx_t>(i)};
         }
     }
 

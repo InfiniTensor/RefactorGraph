@@ -5,10 +5,6 @@
 #include <cstddef>
 #include <set>
 
-// 为了方便随便弄个类型占位
-// using NodeInfo = int;
-// using EdgeInfo = int;
-
 /// @brief 这个类缓存了图拓朴中的各种关系，以支持快速查询。
 /// @tparam NodeInfo 节点绑定信息。
 /// @tparam EdgeInfo 边绑定信息。
