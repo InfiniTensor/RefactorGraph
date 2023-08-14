@@ -148,7 +148,7 @@ public:
     Nodes(GraphTopoSearcher *graph) : graph(graph) {}
 
     Iterator begin() const { return {graph, 0}; }
-    Iterator end() const { return {graph, static_cast<idx_t>(graph->nodeInputs.size())}; }
+    Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.nodes.size())}; }
 };
 
 template<class NodeInfo, class EdgeInfo>
@@ -177,7 +177,7 @@ public:
     Edges(GraphTopoSearcher const *graph) : graph(graph) {}
 
     Iterator begin() const { return {graph, 0}; }
-    Iterator end() const { return {graph, static_cast<idx_t>(graph->edgeSource.size())}; }
+    Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.edges.size())}; }
 };
 
 template<class NodeInfo, class EdgeInfo>
