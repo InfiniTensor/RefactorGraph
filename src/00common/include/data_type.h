@@ -3,12 +3,14 @@
 
 #include "bf16_t.h"
 #include "fp16_t.h"
+#include <complex>
 #include <cstdint>
 #include <optional>
 
 namespace refactor::common {
 
     /// @brief 数据类型。
+    /// @see <https://onnx.ai/onnx/api/mapping.html#l-onnx-types-mapping>
     enum class DataType : uint8_t {
         F32 = 1,// float
         U8 = 2, // uint8_t
@@ -18,12 +20,14 @@ namespace refactor::common {
         I32 = 6,// int32_t
         I64 = 7,// int64_t
         // String = 8,
-        Bool = 9, // bool
-        FP16 = 10,// fp16_t
-        F64 = 11, // double
-        U32 = 12, // uint32_t
-        U64 = 13, // uint64_t
-        BF16 = 14,// bf16_t
+        Bool = 9,       // bool
+        FP16 = 10,      // fp16_t
+        F64 = 11,       // double
+        U32 = 12,       // uint32_t
+        U64 = 13,       // uint64_t
+        Complex64 = 14, // std::complex<float>
+        Complex128 = 15,// std::complex<double>
+        BF16 = 16,      // bf16_t
     };
 
     /// @brief 从数值解析数据类型。
@@ -90,6 +94,14 @@ namespace refactor::common {
     template<>
     struct primitive_t<DataType::U64> {
         using type = uint64_t;
+    };
+    template<>
+    struct primitive_t<DataType::Complex64> {
+        using type = std::complex<float>;
+    };
+    template<>
+    struct primitive_t<DataType::Complex128> {
+        using type = std::complex<double>;
     };
     template<>
     struct primitive_t<DataType::BF16> {
