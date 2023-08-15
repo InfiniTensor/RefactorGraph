@@ -10,27 +10,31 @@ namespace refactor::graph {
 
     /// @brief 非全局输入边填写之前的状态。
     struct EmptyEdgeInfo {
-        bool operator==(EmptyEdgeInfo const &rhs) const { return true; }
+        bool operator==(EmptyEdgeInfo const &rhs) const { return false; }
     };
 
     /// @brief 张量边。
     struct Tensor {
         common::DataType dataType;
-        std::vector<len_t> layout;
+        std::vector<len_t> shape;
 
-        bool operator==(Tensor const &rhs) const { return dataType == rhs.dataType && layout == rhs.layout; }
+        bool operator==(Tensor const &rhs) const { return dataType == rhs.dataType && shape == rhs.shape; }
     };
 
     /// @brief `shape` 算子产生的边，作为变量，但在边推理中立即产生值。
     struct ShapeVariable {
-        std::vector<len_t> layout;
+        std::vector<len_t> shape;
 
-        bool operator==(ShapeVariable const &rhs) const { return layout == rhs.layout; }
+        bool operator==(ShapeVariable const &rhs) const { return shape == rhs.shape; }
     };
 
     /// @brief 边信息可能是某一种。
     struct EdgeInfo {
         std::variant<EmptyEdgeInfo, Tensor, ShapeVariable> info;
+
+        EdgeInfo() : info(EmptyEdgeInfo()) {}
+        EdgeInfo(Tensor tensor_) : info(std::move(tensor_)) {}
+        EdgeInfo(ShapeVariable shape_) : info(std::move(shape_)) {}
 
         bool isTensor() const { return std::holds_alternative<Tensor>(info); }
         bool isShapeVariable() const { return std::holds_alternative<ShapeVariable>(info); }

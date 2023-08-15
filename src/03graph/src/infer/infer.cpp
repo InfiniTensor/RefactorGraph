@@ -52,7 +52,7 @@ namespace refactor::graph {
             auto i0 = inputs[0].tensor();
             auto i1 = inputs[1].tensor();
             if (isNumbericDataType(i0.dataType) && i0.dataType == i1.dataType) {
-                return {EdgeInfo{Tensor{i0.dataType, multidirBroadcast({i0.layout, i1.layout})}}};
+                return {EdgeInfo{Tensor{i0.dataType, multidirBroadcast({i0.shape, i1.shape})}}};
             } else {
                 RUNTIME_ERROR("data type not support");
             }
