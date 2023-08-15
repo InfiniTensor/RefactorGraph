@@ -1,6 +1,7 @@
-﻿.PHONY : build clean
+﻿.PHONY : build clean format
 
 TYPE ?= release
+FORMAT_ORIGIN ?=
 
 CMAKE_OPT = -DCMAKE_BUILD_TYPE=$(TYPE)
 
@@ -10,3 +11,6 @@ build:
 
 clean:
 	rm -rf build
+
+format:
+	@python3 scripts/format.py $(FORMAT_ORIGIN)
