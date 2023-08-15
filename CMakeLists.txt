@@ -34,5 +34,3 @@ include_directories("src/03graph/include")
 add_executable(refactor_graph src/main.cpp)
 target_link_libraries(refactor_graph common kernel_library graph ${BACKWARD_ENABLE})
 add_backward(refactor_graph)
-
-add_executable(test test/test.cpp)
