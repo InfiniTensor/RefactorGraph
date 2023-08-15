@@ -13,8 +13,8 @@ namespace refactor::graph {
         }
     }
 
-    inline std::vector<LayoutDim> multidirBroadcast(std::vector<std::vector<LayoutDim>> const &inputs) {
-        std::vector<LayoutDim> ans;
+    inline std::vector<len_t> multidirBroadcast(std::vector<std::vector<len_t>> const &inputs) {
+        std::vector<len_t> ans;
         TODO("做个迭代器");
         return ans;
     }
