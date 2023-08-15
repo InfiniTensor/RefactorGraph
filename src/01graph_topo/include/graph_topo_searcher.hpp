@@ -1,6 +1,8 @@
 ﻿#ifndef GRAPH_TOPO_SEARCHER_HPP
 #define GRAPH_TOPO_SEARCHER_HPP
 
+#include "error_handler.h"
+#include "fmtlog.h"
 #include "graph_topo.hpp"
 #include <cstddef>
 #include <set>
@@ -56,8 +58,8 @@ public:
 
 template<class NodeInfo, class EdgeInfo>
 GraphTopoSearcher<NodeInfo, EdgeInfo>::GraphTopoSearcher(
-    GraphTopoSearcher<NodeInfo, EdgeInfo>::Internal topo)
-    : topo(std::move(topo)) {
+    GraphTopoSearcher<NodeInfo, EdgeInfo>::Internal topo_)
+    : topo(std::move(topo_)) {
     std::set<EdgeIdx> globalInputCandidates;
     {// 为所有缓存开辟空间。
         auto nodeCount = topo.nodes.size();
@@ -120,6 +122,12 @@ GraphTopoSearcher<NodeInfo, EdgeInfo>::GraphTopoSearcher(
     nodeSuccessors.shrink_to_fit();
     edgeSource.shrink_to_fit();
     edgeTargets.shrink_to_fit();
+
+    logi("Built GraphTopoSearcher with {} nodes, {} edges, {} global inputs, {} global outputs.",
+         topo.nodes.size(),
+         topo.edges.size(),
+         globalInputs_.size(),
+         globalOutputs_.size());
 }
 
 template<class NodeInfo, class EdgeInfo>
@@ -145,10 +153,15 @@ public:
         Node operator*() { return {graph, idx}; }
     };
 
-    Nodes(GraphTopoSearcher *graph) : graph(graph) {}
+    Nodes(GraphTopoSearcher *graph_) : graph(graph_) {}
 
     Iterator begin() const { return {graph, 0}; }
     Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.nodes.size())}; }
+    size_t size() const { return graph->topo.nodes.size(); }
+    Node operator[](idx_t idx) const {
+        ASSERT(0 <= idx && idx < graph->topo.nodes.size(), "Node index out of range.");
+        return {graph, idx};
+    }
 };
 
 template<class NodeInfo, class EdgeInfo>
@@ -174,10 +187,15 @@ public:
         Edge operator*() const { return {graph, idx}; }
     };
 
-    Edges(GraphTopoSearcher const *graph) : graph(graph) {}
+    Edges(GraphTopoSearcher *graph_) : graph(graph_) {}
 
     Iterator begin() const { return {graph, 0}; }
     Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.edges.size())}; }
+    size_t size() const { return graph->topo.edges.size(); }
+    Edge operator[](idx_t idx) const {
+        ASSERT(0 <= idx && idx < graph->topo.edges.size(), "Edge index out of range.");
+        return {graph, idx};
+    }
 };
 
 template<class NodeInfo, class EdgeInfo>
