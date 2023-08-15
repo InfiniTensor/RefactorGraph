@@ -1,8 +1,5 @@
-﻿#include "error_handler.h"
-#include "graph_topo.hpp"
-#include "graph_topo_searcher.hpp"
+﻿#include "graph_topo_searcher.hpp"
 #include <gtest/gtest.h>
-
 
 TEST(GraphTopo, Build) {
     // fmtlog::setLogLevel(fmtlog::LogLevel::DBG);

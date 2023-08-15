@@ -1,7 +1,6 @@
 ﻿#include "graph.h"
 #include "error_handler.h"
 #include "infer/infer.h"
-#include <algorithm>
 
 using namespace refactor::common;
 

@@ -2,9 +2,7 @@
 #define GRAPH_TOPO_HPP
 
 #include "error_handler.h"
-#include <cassert>
 #include <cstdint>
-#include <utility>
 #include <vector>
 
 using idx_t = int32_t;
