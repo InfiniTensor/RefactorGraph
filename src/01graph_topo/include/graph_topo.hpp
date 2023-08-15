@@ -189,7 +189,7 @@ public:
 template<class NodeInfo, class EdgeInfo>
 GraphTopo<NodeInfo, EdgeInfo>::EdgeRef
 GraphTopo<NodeInfo, EdgeInfo>::addEdge(EdgeInfo info) {
-    edges.push_back({std::move(info), {-1}});
+    edges.push_back({std::move(info), {-1}, {-1}});
     return EdgeRef{static_cast<idx_t>(edges.size()) - 1};
 }
 
@@ -230,7 +230,7 @@ GraphTopo<NodeInfo, EdgeInfo>::addNode(
     // 添加节点产生的边。
     nodes.reserve(nodes.size() + outputs.size());
     for (auto &edge : outputs) {
-        edges.push_back({std::move(edge), {-1}});
+        edges.push_back({std::move(edge), {-1}, {-1}});
     }
     return NodeProduct(nodeIdx, firstEdge, edgeCount);
 }

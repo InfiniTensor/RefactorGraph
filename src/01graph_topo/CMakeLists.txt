@@ -6,4 +6,5 @@ include_directories(include)
 # target_link_libraries(graph_topo fmt)
 
 add_executable(graph_topo_test test/test.cpp)
-target_link_libraries(graph_topo_test fmt GTest::gtest_main)
+target_link_libraries(graph_topo_test fmt GTest::gtest_main ${BACKWARD_ENABLE})
+add_backward(graph_topo_test)

@@ -30,6 +30,11 @@ class GraphTopoSearcher {
     /// @brief 边的目标节点。
     std::vector<std::vector<NodeIdx>> edgeTargets;
 
+    /// @brief 构造图拓扑索引时访问边使用这个函数。
+    /// @param 边的源节点序号。
+    /// @param 边的序号。
+    void accessEdge(NodeIdx, EdgeIdx);
+
 public:
     /// @brief 构造图拓朴索引。
     /// @param topo 图拓朴表示。
@@ -80,38 +85,24 @@ GraphTopoSearcher<NodeInfo, EdgeInfo>::GraphTopoSearcher(
         auto nodeIdx = NodeIdx{static_cast<idx_t>(i)};
         auto const &node = topo.nodes[i];
         nodeOutputs[i].resize(node.edgeCount);
+        logd("GraphTopoSearcher/init: node {} with {} output(s)", i, node.edgeCount);
         // 遍历节点的生成的边。
         for (size_t j = 0; j < node.edgeCount; ++j) {
             auto edgeIdx = node.firstEdge.idx + static_cast<idx_t>(j);
-            auto const &edge = topo.edges[edgeIdx];
-            auto targetIdx = edge.firstTarget;
-
             globalInputCandidates.erase({edgeIdx});// 节点生成的边不是全图的输入。
             nodeOutputs[i][j] = {edgeIdx};         // 填写节点输出。
             edgeSource[edgeIdx] = nodeIdx;         // 填写边的源节点。
+            logd("GraphTopoSearcher/init: node {} output {} is {}", i, j, edgeIdx);
 
-            {// 填写全图输出。
-                auto outputIdx = edge.outputIdx.idx;
-                if (outputIdx >= 0) {
-                    if (outputIdx >= globalOutputs_.size())
-                        globalOutputs_.resize(outputIdx + 1);
-                    globalOutputs_[outputIdx] = {edgeIdx};
-                }
-            }
-
-            while (targetIdx.idx >= 0) {
-                auto [next, to] = topo.targets[targetIdx.idx];
-                targetIdx = next;
-
-                edgeTargets[edgeIdx].push_back(to);      // 填写边的目标节点。
-                nodeInputs[to.idx].push_back({edgeIdx}); // 填写节点的输入。
-                nodePredecessors[to.idx].insert(nodeIdx);// 填写节点的前驱。
-                nodeSuccessors[i].insert(to);            // 填写节点的后继。
-            }
+            accessEdge(nodeIdx, {edgeIdx});
         }
     }
     globalInputs_ = std::vector<EdgeIdx>(globalInputCandidates.begin(), globalInputCandidates.end());
     std::sort(globalInputs_.begin(), globalInputs_.end());
+    for (auto const edgeIdx : globalInputs_) {
+        accessEdge({-1}, edgeIdx);
+        edgeSource[edgeIdx.idx] = {-1};
+    }
 
     // 收缩空间。
     globalInputs_.shrink_to_fit();
@@ -129,6 +120,36 @@ GraphTopoSearcher<NodeInfo, EdgeInfo>::GraphTopoSearcher(
          globalInputs_.size(),
          globalOutputs_.size());
 }
+
+template<class NodeInfo, class EdgeInfo>
+void GraphTopoSearcher<NodeInfo, EdgeInfo>::accessEdge(NodeIdx nodeIdx, EdgeIdx edgeIdx) {
+    auto const &edge = topo.edges[edgeIdx.idx];
+    {// 填写全图输出。
+        auto outputIdx = edge.outputIdx.idx;
+        if (outputIdx >= 0) {
+            if (outputIdx >= globalOutputs_.size())
+                globalOutputs_.resize(outputIdx + 1);
+            globalOutputs_[outputIdx] = edgeIdx;
+            logd("GraphTopoSearcher/init: edge {} is global output {}", edgeIdx.idx, outputIdx);
+        }
+    }
+
+    auto targetIdx = edge.firstTarget;
+    while (targetIdx.idx >= 0) {
+        auto [next, to] = topo.targets[targetIdx.idx];
+        targetIdx = next;
+
+        edgeTargets[edgeIdx.idx].push_back(to);// 填写边的目标节点。
+        nodeInputs[to.idx].push_back(edgeIdx); // 填写节点的输入。
+        logd("GraphTopoSearcher/init: edge {} has target {}", edgeIdx.idx, to.idx);
+
+        if (nodeIdx.idx >= 0) {
+            nodeSuccessors[nodeIdx.idx].insert(to);  // 填写节点的后继。
+            nodePredecessors[to.idx].insert(nodeIdx);// 填写节点的前驱。
+        }
+    }
+}
+
 
 template<class NodeInfo, class EdgeInfo>
 class GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes {
@@ -205,7 +226,9 @@ class GraphTopoSearcher<NodeInfo, EdgeInfo>::Node {
 
 public:
     Node() : graph(nullptr), idx(-1) {}
-    Node(GraphTopoSearcher *graph, idx_t idx) : graph(graph), idx(idx) {}
+    Node(GraphTopoSearcher *graph_, idx_t idx_) : graph(graph_), idx(idx_) {}
+    bool exist() const { return idx >= 0; }
+    operator bool() const { return exist(); }
     NodeInfo &info() { return graph->topo.nodes[idx].info; }
     std::vector<Edge> inputs() {
         auto const &inputs = graph->nodeInputs[idx];
