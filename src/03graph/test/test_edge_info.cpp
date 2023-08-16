@@ -41,4 +41,16 @@ TEST(EdgeInfo, EdgeInfo) {
     EXPECT_NE(a, c);
     EXPECT_NE(a, d);
     EXPECT_NE(c, d);
+
+    EXPECT_FALSE(a.isEmpty());
+    EXPECT_TRUE(a.isTensor());
+    EXPECT_FALSE(a.isShapeVariable());
+
+    EXPECT_TRUE(c.isEmpty());
+    EXPECT_FALSE(c.isTensor());
+    EXPECT_FALSE(c.isShapeVariable());
+
+    EXPECT_FALSE(d.isEmpty());
+    EXPECT_FALSE(d.isTensor());
+    EXPECT_TRUE(d.isShapeVariable());
 }
