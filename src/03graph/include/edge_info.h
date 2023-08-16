@@ -11,6 +11,7 @@ namespace refactor::graph {
     /// @brief 非全局输入边填写之前的状态。
     struct EmptyEdgeInfo {
         bool operator==(EmptyEdgeInfo const &rhs) const { return false; }
+        bool operator!=(EmptyEdgeInfo const &rhs) const { return !operator==(rhs); }
     };
 
     /// @brief 张量边。
@@ -19,6 +20,7 @@ namespace refactor::graph {
         std::vector<len_t> shape;
 
         bool operator==(Tensor const &rhs) const { return dataType == rhs.dataType && shape == rhs.shape; }
+        bool operator!=(Tensor const &rhs) const { return !operator==(rhs); }
     };
 
     /// @brief `shape` 算子产生的边，作为变量，但在边推理中立即产生值。
@@ -26,6 +28,7 @@ namespace refactor::graph {
         std::vector<len_t> shape;
 
         bool operator==(ShapeVariable const &rhs) const { return shape == rhs.shape; }
+        bool operator!=(ShapeVariable const &rhs) const { return !operator==(rhs); }
     };
 
     /// @brief 边信息可能是某一种。
@@ -87,6 +90,7 @@ namespace refactor::graph {
                 }
             }
         }
+        bool operator!=(EdgeInfo const &rhs) const { return !operator==(rhs); }
     };
 
 }// namespace refactor::graph

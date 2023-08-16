@@ -279,9 +279,9 @@ public:
 };
 
 template<class NodeInfo, class EdgeInfo>
-GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes GraphTopoSearcher<NodeInfo, EdgeInfo>::nodes() { return this; }
+typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes GraphTopoSearcher<NodeInfo, EdgeInfo>::nodes() { return this; }
 template<class NodeInfo, class EdgeInfo>
-GraphTopoSearcher<NodeInfo, EdgeInfo>::Edges GraphTopoSearcher<NodeInfo, EdgeInfo>::edges() { return this; }
+typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edges GraphTopoSearcher<NodeInfo, EdgeInfo>::edges() { return this; }
 template<class NodeInfo, class EdgeInfo>
 std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalInputs() {
     std::vector<Edge> ans(globalInputs_.size());

@@ -77,7 +77,8 @@ public:
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::NodeIdx {
+class GraphTopo<NodeInfo, EdgeInfo>::NodeIdx {
+public:
     idx_t idx;
 
     bool operator<(NodeIdx const &rhs) const {
@@ -86,7 +87,8 @@ struct GraphTopo<NodeInfo, EdgeInfo>::NodeIdx {
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::EdgeIdx {
+class GraphTopo<NodeInfo, EdgeInfo>::EdgeIdx {
+public:
     idx_t idx;
 
     bool operator<(EdgeIdx const &rhs) const {
@@ -95,7 +97,8 @@ struct GraphTopo<NodeInfo, EdgeInfo>::EdgeIdx {
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::TargetIdx {
+class GraphTopo<NodeInfo, EdgeInfo>::TargetIdx {
+public:
     idx_t idx;
 
     bool operator<(TargetIdx const &rhs) const {
@@ -104,7 +107,8 @@ struct GraphTopo<NodeInfo, EdgeInfo>::TargetIdx {
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::OutputIdx {
+class GraphTopo<NodeInfo, EdgeInfo>::OutputIdx {
+public:
     idx_t idx;
 
     bool operator<(OutputIdx const &rhs) const {
@@ -113,7 +117,8 @@ struct GraphTopo<NodeInfo, EdgeInfo>::OutputIdx {
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::Node {
+class GraphTopo<NodeInfo, EdgeInfo>::Node {
+public:
     /// @brief 节点信息。
     NodeInfo info;
     /// @brief 节点的第一条边的引用。节点的所有边构成单链表，此为头指针。
@@ -123,7 +128,8 @@ struct GraphTopo<NodeInfo, EdgeInfo>::Node {
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::Edge {
+class GraphTopo<NodeInfo, EdgeInfo>::Edge {
+public:
     /// @brief 边信息。
     EdgeInfo info;
     /// @brief 下一个目标的引用。边的所有目标构成单链表，此为头指针。
@@ -133,7 +139,8 @@ struct GraphTopo<NodeInfo, EdgeInfo>::Edge {
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::Target {
+class GraphTopo<NodeInfo, EdgeInfo>::Target {
+public:
     /// @brief 下一个目标的引用。
     TargetIdx next;
     /// @brief 指向目标节点。
@@ -141,32 +148,32 @@ struct GraphTopo<NodeInfo, EdgeInfo>::Target {
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::NodeRef {
+class GraphTopo<NodeInfo, EdgeInfo>::NodeRef {
     friend GraphTopo;
     friend NodeProduct;
     NodeIdx idx;
-    NodeRef(idx_t idx) : idx(idx) {}
+    NodeRef(idx_t idx_) : idx({idx_}) {}
 };
 
 /// @brief 图中一条边的引用。
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::EdgeRef {
+class GraphTopo<NodeInfo, EdgeInfo>::EdgeRef {
     friend GraphTopo;
     friend NodeProduct;
     EdgeIdx idx;
-    EdgeRef(idx_t idx) : idx(idx) {}
+    EdgeRef(idx_t idx_) : idx({idx_}) {}
 };
 
 template<class NodeInfo, class EdgeInfo>
-struct GraphTopo<NodeInfo, EdgeInfo>::NodeProduct {
+class GraphTopo<NodeInfo, EdgeInfo>::NodeProduct {
     friend GraphTopo;
     friend EdgeRef;
     NodeIdx idx;
     EdgeIdx firstEdge;
     len_t edgeCount;
 
-    NodeProduct(NodeIdx idx, EdgeIdx firstEdge, len_t edgeCount)
-        : idx(idx), firstEdge(firstEdge), edgeCount(edgeCount) {}
+    NodeProduct(NodeIdx idx_, EdgeIdx firstEdge_, len_t edgeCount_)
+        : idx(idx_), firstEdge(firstEdge_), edgeCount(edgeCount_) {}
 
 public:
     NodeRef node() const {
@@ -185,10 +192,10 @@ public:
 /// @param info 边信息。
 /// @return 边的引用。
 template<class NodeInfo, class EdgeInfo>
-GraphTopo<NodeInfo, EdgeInfo>::EdgeRef
+typename GraphTopo<NodeInfo, EdgeInfo>::EdgeRef
 GraphTopo<NodeInfo, EdgeInfo>::addEdge(EdgeInfo info) {
     edges.push_back({std::move(info), {-1}, {-1}});
-    return EdgeRef{static_cast<idx_t>(edges.size()) - 1};
+    return EdgeRef(static_cast<idx_t>(edges.size()) - 1);
 }
 
 /// @brief 标记全局输出边。
@@ -206,7 +213,7 @@ void GraphTopo<NodeInfo, EdgeInfo>::markOutput(std::vector<EdgeRef> const &globa
 /// @param outputs 输出。
 /// @return 节点的引用。
 template<class NodeInfo, class EdgeInfo>
-GraphTopo<NodeInfo, EdgeInfo>::NodeProduct
+typename GraphTopo<NodeInfo, EdgeInfo>::NodeProduct
 GraphTopo<NodeInfo, EdgeInfo>::addNode(
     NodeInfo info,
     std::vector<EdgeRef> inputs,
