@@ -5,6 +5,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(BUILD_SHARED "Build shared library" ON)
+
+if(BUILD_SHARED)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    set(LIBRARY_TYPE SHARED)
+else()
+    set(LIBRARY_TYPE STATIC)
+endif()
+
 add_subdirectory(3rd-party/backward-cpp)
 
 add_subdirectory(3rd-party/fmt)
