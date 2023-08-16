@@ -1,4 +1,4 @@
-﻿#include "edge_info.h"
+﻿#include "graph/edge_info.h"
 #include <gtest/gtest.h>
 
 using namespace refactor::graph;

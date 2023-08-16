@@ -1,5 +1,5 @@
-﻿#ifndef OP_TYPE_H
-#define OP_TYPE_H
+﻿#ifndef REFACTOR_OP_TYPE_H
+#define REFACTOR_OP_TYPE_H
 
 #include <string>
 #include <unordered_set>

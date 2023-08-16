@@ -1,5 +1,5 @@
-﻿#ifndef CORE_H
-#define CORE_H
+﻿#ifndef REFACTOR_DATA_TYPE
+#define REFACTOR_DATA_TYPE
 
 #include "bf16_t.h"
 #include "fp16_t.h"
@@ -110,4 +110,4 @@ namespace refactor::common {
 
 }// namespace refactor::common
 
-#endif// CORE_H
+#endif// REFACTOR_DATA_TYPE

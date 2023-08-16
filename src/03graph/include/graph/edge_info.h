@@ -1,8 +1,8 @@
 ﻿#ifndef EDGE_INFO_H
 #define EDGE_INFO_H
 
-#include "data_type.h"
-#include "graph_topo_searcher.hpp"
+#include "common/data_type.h"
+#include "graph_topo/graph_topo_searcher.hpp"
 #include <cstring>
 #include <variant>
 

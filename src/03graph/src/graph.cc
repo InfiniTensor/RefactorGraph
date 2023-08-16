@@ -1,5 +1,5 @@
-﻿#include "graph.h"
-#include "error_handler.h"
+﻿#include "graph/graph.h"
+#include "common/error_handler.h"
 #include "infer/infer.h"
 
 using namespace refactor::common;

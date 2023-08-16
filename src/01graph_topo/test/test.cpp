@@ -1,4 +1,4 @@
-﻿#include "graph_topo_searcher.hpp"
+﻿#include "graph_topo/graph_topo_searcher.hpp"
 #include <gtest/gtest.h>
 
 TEST(GraphTopo, Build) {

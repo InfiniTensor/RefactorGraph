@@ -1,7 +1,7 @@
 ﻿#ifndef INFER_H
 #define INFER_H
 
-#include "edge_info.h"
+#include "graph/edge_info.h"
 #include <vector>
 
 namespace refactor::graph {
