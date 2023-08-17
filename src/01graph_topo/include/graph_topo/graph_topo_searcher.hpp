@@ -194,7 +194,7 @@ public:
         idx_t idx;
 
     public:
-        Iterator(GraphTopoSearcher const *graph, idx_t idx) : graph(graph), idx(idx) {}
+        Iterator(GraphTopoSearcher *graph, idx_t idx) : graph(graph), idx(idx) {}
 
         bool operator==(Iterator const &rhs) const { return idx == rhs.idx; }
         bool operator!=(Iterator const &rhs) const { return !operator==(rhs); }
@@ -229,6 +229,7 @@ public:
     bool exist() const { return idx >= 0; }
     operator bool() const { return exist(); }
     NodeInfo &info() { return graph->topo.nodes[idx].info; }
+    NodeInfo const &info() const { return graph->topo.nodes[idx].info; }
     std::vector<Edge> inputs() {
         auto const &inputs = graph->nodeInputs[idx];
         std::vector<Edge> ans(inputs.size());
@@ -268,6 +269,7 @@ public:
     Edge() : graph(nullptr), idx(-1) {}
     Edge(GraphTopoSearcher *graph, idx_t idx) : graph(graph), idx(idx) {}
     EdgeInfo &info() { return graph->topo.edges[idx].info; }
+    EdgeInfo const &info() const { return graph->topo.edges[idx].info; }
     Node source() { return Node{graph, graph->edgeSource[idx].idx}; }
     std::vector<Node> targets() {
         auto const &targets = graph->edgeTargets[idx];

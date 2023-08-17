@@ -28,7 +28,6 @@ TEST(GraphTopoSearcher, Build) {
         auto e = mul[0];                              // edge 4 | globalOutput 0
         topo.markOutput({e});
     }
-
     auto searcher = GraphTopoSearcher(std::move(topo));
     {
         auto globalInputs = searcher.globalInputs();
@@ -98,5 +97,19 @@ TEST(GraphTopoSearcher, Build) {
 
         EXPECT_EQ("mul", e.source().info());
         EXPECT_TRUE(e.targets().empty());
+    }
+    {
+        std::set<const char *> nodeNames{"add", "mul"};
+        for (auto node : nodes) {
+            EXPECT_EQ(1, nodeNames.erase(node.info()));
+        }
+        EXPECT_TRUE(nodeNames.empty());
+    }
+    {
+        std::set<const char *> edgeNames{"a", "b", "c", "d", "e"};
+        for (auto edge : edges) {
+            EXPECT_EQ(1, edgeNames.erase(edge.info()));
+        }
+        EXPECT_TRUE(edgeNames.empty());
     }
 }
