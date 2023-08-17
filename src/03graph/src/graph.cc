@@ -26,6 +26,10 @@ namespace refactor::graph {
         }
     }
 
+    GraphTopoSearcher<NodeInfo, EdgeInfo> const &Graph::topo() const {
+        return topoSearcher;
+    }
+
     void Graph::fillEdgeInfo() {
         for (auto node : topoSearcher.nodes()) {
             auto info = takeInfo(node.inputs());

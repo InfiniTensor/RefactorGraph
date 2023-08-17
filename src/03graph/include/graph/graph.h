@@ -16,6 +16,7 @@ namespace refactor::graph {
         void fillEdgeInfo();
 
     public:
+        GraphTopoSearcher<NodeInfo, EdgeInfo> const &topo() const;
     };
 
 }// namespace refactor::graph
