@@ -10,3 +10,6 @@
 [submodule "3rd-party/fmtlog"]
 	path = 3rd-party/fmtlog
 	url = git@github.com:MengRao/fmtlog.git
+[submodule "3rd-party/result"]
+	path = 3rd-party/result
+	url = git@github.com:oktal/result.git

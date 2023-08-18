@@ -25,6 +25,8 @@ include_directories(3rd-party/googletest/googletest/include)
 include_directories(3rd-party/fmtlog)
 add_definitions(-D FMTLOG_HEADER_ONLY)
 
+include_directories(3rd-party/result)
+
 add_subdirectory(src/iterator)
 include_directories(src/iterator/include)
 

@@ -15,13 +15,15 @@ namespace refactor::graph {
         return info;
     }
 
-    void putInfo(Node const &node, std::vector<EdgeInfo> infered) {
+    void putInfo(Node const &node, InferResult infered) {
+        //TODO
+        auto infered_ = infered.unwrap();
         auto const outputs = node.outputs();
-        if (infered.size() < outputs.size()) {
-            OUT_OF_RANGE("outputs more than infered", infered.size(), outputs.size());
+        if (infered_.size() < outputs.size()) {
+            OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
         } else {
             for (auto i = 0; i < outputs.size(); ++i) {
-                outputs[i].info().value = infered[i];
+                outputs[i].info().value = infered_[i];
             }
         }
     }

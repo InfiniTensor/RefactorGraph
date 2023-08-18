@@ -19,40 +19,44 @@ namespace refactor::graph {
         return ans;
     }
 
-    std::vector<EdgeInfo> inferAbs(std::vector<EdgeInfo> inputs) {
+    InferError::InferError(std::string &&msg)
+        : std::runtime_error(std::forward<std::string>(msg)) {}
+
+    InferResult inferAbs(Edges inputs) {
         checkInputSize(inputs, 1);
         if (isNumbericDataType(inputs[0].tensor().dataType)) {
-            return inputs;
+            return {Ok(std::move(inputs))};
         } else {
             RUNTIME_ERROR("data type not support");
         }
     }
 
-    std::vector<EdgeInfo> inferTrigonometry(std::vector<EdgeInfo> inputs) {
+    InferResult inferTrigonometry(Edges inputs) {
         checkInputSize(inputs, 1);
         if (isIeee754DataType(inputs[0].tensor().dataType)) {
-            return inputs;
+            return {Ok(std::move(inputs))};
         } else {
             RUNTIME_ERROR("data type not support");
         }
     }
 
-    std::vector<EdgeInfo> inferTanh(std::vector<EdgeInfo> inputs) {
+    InferResult inferTanh(Edges inputs) {
         checkInputSize(inputs, 1);
         if (isFloatDataType(inputs[0].tensor().dataType)) {
-            return inputs;
+            return {Ok(std::move(inputs))};
         } else {
             RUNTIME_ERROR("data type not support");
         }
     }
 
-    std::vector<EdgeInfo> inferArithmetic(std::vector<EdgeInfo> inputs) {
+    InferResult inferArithmetic(Edges inputs) {
         checkInputSize(inputs, 2);
         if (inputs[0].isTensor()) {
             auto i0 = inputs[0].tensor();
             auto i1 = inputs[1].tensor();
             if (isNumbericDataType(i0.dataType) && i0.dataType == i1.dataType) {
-                return {EdgeInfo{Tensor{i0.dataType, multidirBroadcast({i0.shape, i1.shape})}}};
+                auto ans = Tensor{i0.dataType, multidirBroadcast({std::move(i0.shape), std::move(i1.shape)})};
+                return {Ok(Edges{EdgeInfo{std::move(ans)}})};
             } else {
                 RUNTIME_ERROR("data type not support");
             }

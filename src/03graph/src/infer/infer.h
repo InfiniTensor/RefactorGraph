@@ -2,14 +2,23 @@
 #define INFER_H
 
 #include "graph/edge_info.h"
+#include <result.h>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace refactor::graph {
 
-    std::vector<EdgeInfo> inferAbs(std::vector<EdgeInfo> inputs);
-    std::vector<EdgeInfo> inferTrigonometry(std::vector<EdgeInfo> inputs);
-    std::vector<EdgeInfo> inferTanh(std::vector<EdgeInfo> inputs);
-    std::vector<EdgeInfo> inferArithmetic(std::vector<EdgeInfo> inputs);
+    using Edges = std::vector<EdgeInfo>;
+    struct InferError : public std::runtime_error {
+        explicit InferError(std::string &&msg);
+    };
+    using InferResult = Result<Edges, InferError>;
+
+    InferResult inferAbs(Edges inputs);
+    InferResult inferTrigonometry(Edges inputs);
+    InferResult inferTanh(Edges inputs);
+    InferResult inferArithmetic(Edges inputs);
 
 }// namespace refactor::graph
 
