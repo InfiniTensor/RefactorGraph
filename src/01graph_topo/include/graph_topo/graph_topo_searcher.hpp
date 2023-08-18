@@ -130,7 +130,7 @@ void GraphTopoSearcher<NodeInfo, EdgeInfo>::accessEdge(NodeIdx nodeIdx, EdgeIdx 
     {// 填写全图输出。
         auto outputIdx = edge.outputIdx.idx;
         if (outputIdx >= 0) {
-            if (outputIdx >= globalOutputs_.size())
+            if (static_cast<len_t>(outputIdx) >= globalOutputs_.size())
                 globalOutputs_.resize(outputIdx + 1);
             globalOutputs_[outputIdx] = edgeIdx;
             logd("GraphTopoSearcher/init: edge {} is global output {}", edgeIdx.idx, outputIdx);

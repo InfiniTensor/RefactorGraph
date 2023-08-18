@@ -17,10 +17,27 @@ namespace refactor::graph {
 
 #define INFER_ERROR(msg) InferError(buildMsg(msg, __FILE__, __LINE__))
 
-    InferResult inferAbs(Edges inputs);
-    InferResult inferTrigonometry(Edges inputs);
-    InferResult inferTanh(Edges inputs);
-    InferResult inferArithmetic(Edges inputs);
+    InferResult inferUnary(Edges, bool(DataType));
+    InferResult inferArithmetic(Edges);
+    InferResult inferGemm(Edges, bool, bool);
+    InferResult inferConv(Edges);
+    InferResult inferPool(Edges);
+    InferResult inferGlobalPool(Edges);
+    InferResult inferReshape(Edges);
+    InferResult inferBatchNormalization(Edges);
+
+    using BroadcastResult = Result<Shape, std::string>;
+
+    /// @brief 多方向形状广播。
+    /// @param inputs 所有输入的形状。
+    /// @return 广播后的形状。
+    BroadcastResult multidirBroadcast(std::vector<Shape> const &);
+
+    /// @brief 单方向形状广播。
+    /// @param target 目标形状。
+    /// @param test 测试形状。
+    /// @return 测试形状是否可以广播到目标形状。
+    bool unidirBroadcast(Shape target, Shape test);
 
 }// namespace refactor::graph
 

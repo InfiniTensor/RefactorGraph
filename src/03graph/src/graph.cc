@@ -36,7 +36,9 @@ namespace refactor::graph {
             auto info = takeInfo(node.inputs());
             switch (node.info().value.opType.underlying()) {
                 case OpType::Abs:
-                    putInfo(node, inferAbs(info));
+                case OpType::Relu:
+                case OpType::PRelu:
+                    putInfo(node, inferUnary(info, isNumbericDataType));
                     break;
                 case OpType::Acos:
                 case OpType::Acosh:
@@ -49,10 +51,10 @@ namespace refactor::graph {
                 case OpType::Sin:
                 case OpType::Sinh:
                 case OpType::Tan:
-                    putInfo(node, inferTrigonometry(info));
+                    putInfo(node, inferUnary(info, isIeee754DataType));
                     break;
                 case OpType::Tanh:
-                    putInfo(node, inferTanh(info));
+                    putInfo(node, inferUnary(info, isFloatDataType));
                     break;
                 case OpType::Add:
                 case OpType::Sub:
@@ -60,6 +62,14 @@ namespace refactor::graph {
                 case OpType::Div:
                     putInfo(node, inferArithmetic(info));
                     break;
+                case OpType::Gemm: {
+                    auto const &attributes = node.info().value.attributes;
+                    auto transA = attributes.find("transA");
+                    auto transB = attributes.find("transB");
+                    putInfo(node, inferGemm(info,
+                                            transA == attributes.end() ? false : std::get<Int>(transA->second),
+                                            transB == attributes.end() ? false : std::get<Int>(transB->second)));
+                } break;
                 default:
                     break;
             }
