@@ -5,17 +5,31 @@
 using namespace refactor::common;
 
 namespace refactor::graph {
-    /// @brief 检查输入边是否是指定的数量。
-    template<class T>
-    inline void checkInputSize(std::vector<T> const &inputs, len_t size) {
-        if (inputs.size() != size) {
-            RUNTIME_ERROR("invalid inputs");
+    /// @brief 多方向形状广播。
+    /// @param inputs 所有输入的形状。
+    /// @return 广播后的形状。
+    inline static Shape multidirBroadcast(std::vector<Shape> const &inputs) {
+        Shape ans;
+        for (auto i = 0;; ++i) {
+            auto any = false;
+            len_t value = 1;
+            for (auto const &input : inputs) {
+                if (i < input.size()) {
+                    any = true;
+                    if (value == 1) {
+                        value = input[i];
+                    } else if (input[i] != 1 && input[i] != value) {
+                        RUNTIME_ERROR("invalid broadcast");
+                    }
+                }
+            }
+            if (any) {
+                ans.push_back(value);
+            } else {
+                break;
+            }
         }
-    }
-
-    inline std::vector<len_t> multidirBroadcast(std::vector<std::vector<len_t>> const &inputs) {
-        std::vector<len_t> ans;
-        TODO("做个迭代器");
+        ans.shrink_to_fit();
         return ans;
     }
 
@@ -23,42 +37,46 @@ namespace refactor::graph {
         : std::runtime_error(std::forward<std::string>(msg)) {}
 
     InferResult inferAbs(Edges inputs) {
-        checkInputSize(inputs, 1);
-        if (isNumbericDataType(inputs[0].tensor().dataType)) {
-            return {Ok(std::move(inputs))};
+        if (inputs.size() != 1) {
+            return Err(INFER_ERROR("Input size error"));
+        } else if (!isNumbericDataType(inputs[0].tensor().dataType)) {
+            return Err(INFER_ERROR("Data type not support"));
         } else {
-            RUNTIME_ERROR("data type not support");
+            return Ok(std::move(inputs));
         }
     }
 
     InferResult inferTrigonometry(Edges inputs) {
-        checkInputSize(inputs, 1);
-        if (isIeee754DataType(inputs[0].tensor().dataType)) {
-            return {Ok(std::move(inputs))};
+        if (inputs.size() != 1) {
+            return Err(INFER_ERROR("Input size error"));
+        } else if (!isIeee754DataType(inputs[0].tensor().dataType)) {
+            return Err(INFER_ERROR("Data type not support"));
         } else {
-            RUNTIME_ERROR("data type not support");
+            return Ok(std::move(inputs));
         }
     }
 
     InferResult inferTanh(Edges inputs) {
-        checkInputSize(inputs, 1);
-        if (isFloatDataType(inputs[0].tensor().dataType)) {
-            return {Ok(std::move(inputs))};
+        if (inputs.size() != 1) {
+            return Err(INFER_ERROR("Input size error"));
+        } else if (!isFloatDataType(inputs[0].tensor().dataType)) {
+            return Err(INFER_ERROR("Data type not support"));
         } else {
-            RUNTIME_ERROR("data type not support");
+            return Ok(std::move(inputs));
         }
     }
 
     InferResult inferArithmetic(Edges inputs) {
-        checkInputSize(inputs, 2);
-        if (inputs[0].isTensor()) {
+        if (inputs.size() != 2) {
+            return Err(INFER_ERROR("Input size error"));
+        } else if (inputs[0].isTensor()) {
             auto i0 = inputs[0].tensor();
             auto i1 = inputs[1].tensor();
             if (isNumbericDataType(i0.dataType) && i0.dataType == i1.dataType) {
                 auto ans = Tensor{i0.dataType, multidirBroadcast({std::move(i0.shape), std::move(i1.shape)})};
-                return {Ok(Edges{EdgeInfo{std::move(ans)}})};
+                return Ok(Edges{EdgeInfo{std::move(ans)}});
             } else {
-                RUNTIME_ERROR("data type not support");
+                return Err(INFER_ERROR("Data type not support"));
             }
         } else {
             auto i0 = inputs[0].shapeVariable();

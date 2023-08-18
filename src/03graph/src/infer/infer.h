@@ -15,6 +15,8 @@ namespace refactor::graph {
     };
     using InferResult = Result<Edges, InferError>;
 
+#define INFER_ERROR(msg) InferError(buildMsg(msg, __FILE__, __LINE__))
+
     InferResult inferAbs(Edges inputs);
     InferResult inferTrigonometry(Edges inputs);
     InferResult inferTanh(Edges inputs);
