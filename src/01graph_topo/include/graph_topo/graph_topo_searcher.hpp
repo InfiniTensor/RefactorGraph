@@ -153,7 +153,6 @@ void GraphTopoSearcher<NodeInfo, EdgeInfo>::accessEdge(NodeIdx nodeIdx, EdgeIdx 
     }
 }
 
-
 template<class NodeInfo, class EdgeInfo>
 class GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes {
     GraphTopoSearcher const *graph;
@@ -183,7 +182,7 @@ public:
     Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.nodes.size())}; }
     size_t size() const { return graph->topo.nodes.size(); }
     Node operator[](idx_t idx) const {
-        ASSERT(0 <= idx && idx < graph->topo.nodes.size(), "Node index out of range.");
+        ASSERT(0 <= idx && static_cast<len_t>(idx) < graph->topo.nodes.size(), "Node index out of range.");
         return {graph, idx};
     }
 };
@@ -217,7 +216,7 @@ public:
     Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.edges.size())}; }
     size_t size() const { return graph->topo.edges.size(); }
     Edge operator[](idx_t idx) const {
-        ASSERT(0 <= idx && idx < graph->topo.edges.size(), "Edge index out of range.");
+        ASSERT(0 <= idx && static_cast<len_t>(idx) < graph->topo.edges.size(), "Edge index out of range.");
         return {graph, idx};
     }
 };
@@ -233,6 +232,12 @@ public:
     idx_t index() const { return idx; }
     bool exist() const { return idx >= 0; }
     operator bool() const { return exist(); }
+    bool operator==(Node const &rhs) const { return idx == rhs.idx; }
+    bool operator!=(Node const &rhs) const { return !operator==(rhs); }
+    bool operator<(Node const &rhs) const { return idx < rhs.idx; }
+    bool operator>(Node const &rhs) const { return idx > rhs.idx; }
+    bool operator<=(Node const &rhs) const { return !operator>(rhs); }
+    bool operator>=(Node const &rhs) const { return !operator<(rhs); }
     NodeInfo const &info() const { return graph->topo.nodes[idx].info; }
     std::vector<Edge> inputs() const {
         auto const &inputs = graph->nodeInputs[idx];
@@ -275,6 +280,12 @@ public:
     idx_t index() const { return idx; }
     bool exist() const { return idx >= 0; }
     operator bool() const { return exist(); }
+    bool operator==(Edge const &rhs) const { return idx == rhs.idx; }
+    bool operator!=(Edge const &rhs) const { return !operator==(rhs); }
+    bool operator<(Edge const &rhs) const { return idx < rhs.idx; }
+    bool operator>(Edge const &rhs) const { return idx > rhs.idx; }
+    bool operator<=(Edge const &rhs) const { return !operator>(rhs); }
+    bool operator>=(Edge const &rhs) const { return !operator<(rhs); }
     EdgeInfo const &info() const { return graph->topo.edges[idx].info; }
     Node source() { return Node{graph, graph->edgeSource[idx].idx}; }
     std::vector<Node> targets() {
