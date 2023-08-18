@@ -91,6 +91,10 @@ namespace refactor::graph {
         } else {
             auto a = inputs[0].tensor();
             auto b = inputs[1].tensor();
+            auto dataType = a.dataType;
+            if (!isNumbericDataType(dataType) || b.dataType != dataType) {
+                return Err(INFER_ERROR("Input data type not support"));
+            }
             if (a.shape.size() != 2 || b.shape.size() != 2) {
                 return Err(INFER_ERROR("Input shape not support"));
             }
@@ -101,10 +105,14 @@ namespace refactor::graph {
             }
             if (inputs.size() == 3) {
                 auto c = inputs[2].tensor();
-                if (c.shape.size() != 2 || c.shape[0] != m || c.shape[1] != n) {
+                if (c.dataType != dataType) {
+                    return Err(INFER_ERROR("Input data type not support"));
+                }
+                if (c.shape.size() != 2 || !unidirBroadcast({m, n}, c.shape)) {
                     return Err(INFER_ERROR("Input shape not support"));
                 }
             }
+            return Ok(Edges{EdgeInfo{Tensor{dataType, {m, n}}}});
         }
     }
 
