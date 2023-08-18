@@ -5,35 +5,37 @@
 using namespace refactor::common;
 
 namespace refactor::graph {
-    using Node = GraphTopoSearcher<NodeInfo, EdgeInfo>::Node;
-    using Edge = GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge;
+    using Node = GraphTopoSearcher<Cell<NodeInfo>, Cell<EdgeInfo>>::Node;
+    using Edge = GraphTopoSearcher<Cell<NodeInfo>, Cell<EdgeInfo>>::Edge;
 
     std::vector<EdgeInfo> takeInfo(std::vector<Edge> inputs) {
         std::vector<EdgeInfo> info(inputs.size());
         std::transform(inputs.begin(), inputs.end(), info.begin(),
-                       [](Edge edge) { return std::move(edge.info()); });
+                       [](Edge edge) { return std::move(edge.info().value); });
         return info;
     }
 
-    void putInfo(Node &node, std::vector<EdgeInfo> infered) {
-        auto outputs = node.outputs();
+    void putInfo(Node const &node, std::vector<EdgeInfo> infered) {
+        auto const outputs = node.outputs();
         if (infered.size() < outputs.size()) {
             OUT_OF_RANGE("outputs more than infered", infered.size(), outputs.size());
         } else {
             for (auto i = 0; i < outputs.size(); ++i) {
-                outputs[i].info() = infered[i];
+                outputs[i].info().value = infered[i];
             }
         }
     }
 
     GraphTopoSearcher<NodeInfo, EdgeInfo> const &Graph::topo() const {
-        return topoSearcher;
+        return searcher;
     }
 
-    void Graph::fillEdgeInfo() {
-        for (auto node : topoSearcher.nodes()) {
+    GraphMut::GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&topo) : _topo(topo) {}
+
+    void GraphMut::fillEdgeInfo() {
+        for (auto node : _topo.nodes()) {
             auto info = takeInfo(node.inputs());
-            switch (node.info().opType.underlying()) {
+            switch (node.info().value.opType.underlying()) {
                 case OpType::Abs:
                     putInfo(node, inferAbs(info));
                     break;

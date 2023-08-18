@@ -17,7 +17,6 @@ TEST(GraphTopo, Build) {
 TEST(GraphTopoSearcher, Build) {
     // fmtlog::setLogLevel(fmtlog::LogLevel::DBG);
     auto topo = GraphTopo<const char *, const char *>();
-
     {
         auto a = topo.addEdge("a");                   // edge 0 | globalInput 0
         auto b = topo.addEdge("b");                   // edge 1 | globalInput 1
@@ -112,4 +111,42 @@ TEST(GraphTopoSearcher, Build) {
         }
         EXPECT_TRUE(edgeNames.empty());
     }
+}
+
+template<class T>
+struct Cell {
+    mutable T value;
+    Cell(T &&value) : value(std::forward<T>(value)) {}
+};
+
+TEST(GraphTopo, Cell) {
+    // fmtlog::setLogLevel(fmtlog::LogLevel::DBG);
+    auto topo = GraphTopo<Cell<std::string>, Cell<std::string>>();
+    {
+        auto a = topo.addEdge({"a"});
+        auto b = topo.addEdge({"b"});
+        auto add = topo.addNode({"add"}, {a, b}, {{"c"}});
+        auto c = add[0];
+        auto d = topo.addEdge({"d"});
+        auto mul = topo.addNode({"mul"}, {c, d}, {{"e"}});
+        auto e = mul[0];
+        topo.markOutput({e});
+    }
+    auto const searcher = GraphTopoSearcher(std::move(topo));
+    for (auto const node : searcher.nodes()) {
+        node.info().value += "!";
+    }
+    for (auto const edge : searcher.edges()) {
+        edge.info().value += "?";
+    }
+    auto const nodes = searcher.nodes();
+    EXPECT_EQ("add!", nodes[0].info().value);
+    EXPECT_EQ("mul!", nodes[1].info().value);
+
+    auto const edges = searcher.edges();
+    EXPECT_EQ("a?", edges[0].info().value);
+    EXPECT_EQ("b?", edges[1].info().value);
+    EXPECT_EQ("c?", edges[2].info().value);
+    EXPECT_EQ("d?", edges[3].info().value);
+    EXPECT_EQ("e?", edges[4].info().value);
 }

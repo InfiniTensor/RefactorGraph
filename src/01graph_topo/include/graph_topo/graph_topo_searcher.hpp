@@ -50,14 +50,14 @@ public:
 
     /// @brief 获取所有节点。
     /// @return 所有节点。
-    Nodes nodes();
+    Nodes nodes() const;
     /// @brief 获取所有边。
     /// @return 所有边。
-    Edges edges();
+    Edges edges() const;
     /// @brief 获取所有全局输入边。
-    std::vector<Edge> globalInputs();
+    std::vector<Edge> globalInputs() const;
     /// @brief 获取所有全局输出边。
-    std::vector<Edge> globalOutputs();
+    std::vector<Edge> globalOutputs() const;
 };
 
 template<class NodeInfo, class EdgeInfo>
@@ -152,15 +152,15 @@ void GraphTopoSearcher<NodeInfo, EdgeInfo>::accessEdge(NodeIdx nodeIdx, EdgeIdx 
 
 template<class NodeInfo, class EdgeInfo>
 class GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes {
-    GraphTopoSearcher *graph;
+    GraphTopoSearcher const *graph;
 
 public:
     class Iterator {
-        GraphTopoSearcher *graph;
+        GraphTopoSearcher const *graph;
         idx_t idx;
 
     public:
-        Iterator(GraphTopoSearcher *graph, idx_t idx) : graph(graph), idx(idx) {}
+        Iterator(GraphTopoSearcher const *graph, idx_t idx) : graph(graph), idx(idx) {}
 
         bool operator==(Iterator const &rhs) const { return idx == rhs.idx; }
         bool operator!=(Iterator const &rhs) const { return !operator==(rhs); }
@@ -173,7 +173,7 @@ public:
         Node operator*() { return {graph, idx}; }
     };
 
-    Nodes(GraphTopoSearcher *graph_) : graph(graph_) {}
+    Nodes(GraphTopoSearcher const *graph_) : graph(graph_) {}
 
     Iterator begin() const { return {graph, 0}; }
     Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.nodes.size())}; }
@@ -186,15 +186,15 @@ public:
 
 template<class NodeInfo, class EdgeInfo>
 class GraphTopoSearcher<NodeInfo, EdgeInfo>::Edges {
-    GraphTopoSearcher *graph;
+    GraphTopoSearcher const *graph;
 
 public:
     class Iterator {
-        GraphTopoSearcher *graph;
+        GraphTopoSearcher const *graph;
         idx_t idx;
 
     public:
-        Iterator(GraphTopoSearcher *graph, idx_t idx) : graph(graph), idx(idx) {}
+        Iterator(GraphTopoSearcher const *graph, idx_t idx) : graph(graph), idx(idx) {}
 
         bool operator==(Iterator const &rhs) const { return idx == rhs.idx; }
         bool operator!=(Iterator const &rhs) const { return !operator==(rhs); }
@@ -207,7 +207,7 @@ public:
         Edge operator*() const { return {graph, idx}; }
     };
 
-    Edges(GraphTopoSearcher *graph_) : graph(graph_) {}
+    Edges(GraphTopoSearcher const *graph_) : graph(graph_) {}
 
     Iterator begin() const { return {graph, 0}; }
     Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.edges.size())}; }
@@ -220,38 +220,38 @@ public:
 
 template<class NodeInfo, class EdgeInfo>
 class GraphTopoSearcher<NodeInfo, EdgeInfo>::Node {
-    GraphTopoSearcher *graph;
+    GraphTopoSearcher const *graph;
     idx_t idx;
 
 public:
     Node() : graph(nullptr), idx(-1) {}
-    Node(GraphTopoSearcher *graph_, idx_t idx_) : graph(graph_), idx(idx_) {}
+    Node(GraphTopoSearcher const *graph_, idx_t idx_) : graph(graph_), idx(idx_) {}
+    idx_t index() const { return idx; }
     bool exist() const { return idx >= 0; }
     operator bool() const { return exist(); }
-    NodeInfo &info() { return graph->topo.nodes[idx].info; }
     NodeInfo const &info() const { return graph->topo.nodes[idx].info; }
-    std::vector<Edge> inputs() {
+    std::vector<Edge> inputs() const {
         auto const &inputs = graph->nodeInputs[idx];
         std::vector<Edge> ans(inputs.size());
         std::transform(inputs.begin(), inputs.end(), ans.begin(),
                        [this](auto const &edgeIdx) { return Edge{graph, edgeIdx.idx}; });
         return ans;
     }
-    std::vector<Edge> outputs() {
+    std::vector<Edge> outputs() const {
         auto const &outputs = graph->nodeOutputs[idx];
         std::vector<Edge> ans(outputs.size());
         std::transform(outputs.begin(), outputs.end(), ans.begin(),
                        [this](auto const &edgeIdx) { return Edge{graph, edgeIdx.idx}; });
         return ans;
     }
-    std::set<Node> predecessors() {
+    std::set<Node> predecessors() const {
         auto const &predecessors = graph->nodePredecessors[idx];
         std::set<Node> ans;
         std::transform(predecessors.begin(), predecessors.end(), std::inserter(ans, ans.end()),
                        [this](auto const &nodeIdx) { return Node{graph, nodeIdx.idx}; });
         return ans;
     }
-    std::set<Node> successors() {
+    std::set<Node> successors() const {
         auto const &successors = graph->nodeSuccessors[idx];
         std::set<Node> ans;
         std::transform(successors.begin(), successors.end(), std::inserter(ans, ans.end()),
@@ -262,13 +262,15 @@ public:
 
 template<class NodeInfo, class EdgeInfo>
 class GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge {
-    GraphTopoSearcher *graph;
+    GraphTopoSearcher const *graph;
     idx_t idx;
 
 public:
     Edge() : graph(nullptr), idx(-1) {}
-    Edge(GraphTopoSearcher *graph, idx_t idx) : graph(graph), idx(idx) {}
-    EdgeInfo &info() { return graph->topo.edges[idx].info; }
+    Edge(GraphTopoSearcher const *graph, idx_t idx) : graph(graph), idx(idx) {}
+    idx_t index() const { return idx; }
+    bool exist() const { return idx >= 0; }
+    operator bool() const { return exist(); }
     EdgeInfo const &info() const { return graph->topo.edges[idx].info; }
     Node source() { return Node{graph, graph->edgeSource[idx].idx}; }
     std::vector<Node> targets() {
@@ -281,18 +283,18 @@ public:
 };
 
 template<class NodeInfo, class EdgeInfo>
-typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes GraphTopoSearcher<NodeInfo, EdgeInfo>::nodes() { return this; }
+typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes GraphTopoSearcher<NodeInfo, EdgeInfo>::nodes() const { return this; }
 template<class NodeInfo, class EdgeInfo>
-typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edges GraphTopoSearcher<NodeInfo, EdgeInfo>::edges() { return this; }
+typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edges GraphTopoSearcher<NodeInfo, EdgeInfo>::edges() const { return this; }
 template<class NodeInfo, class EdgeInfo>
-std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalInputs() {
+std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalInputs() const {
     std::vector<Edge> ans(globalInputs_.size());
     std::transform(globalInputs_.begin(), globalInputs_.end(), ans.begin(),
                    [this](auto const &edgeIdx) { return Edge{this, edgeIdx.idx}; });
     return ans;
 }
 template<class NodeInfo, class EdgeInfo>
-std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalOutputs() {
+std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalOutputs() const {
     std::vector<Edge> ans(globalOutputs_.size());
     std::transform(globalOutputs_.begin(), globalOutputs_.end(), ans.begin(),
                    [this](auto const &edgeIdx) { return Edge{this, edgeIdx.idx}; });
