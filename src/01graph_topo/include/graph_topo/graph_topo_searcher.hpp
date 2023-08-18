@@ -58,6 +58,10 @@ public:
     std::vector<Edge> globalInputs() const;
     /// @brief 获取所有全局输出边。
     std::vector<Edge> globalOutputs() const;
+
+    /// @brief 取出内部的 GraphTopo，并使此 Searcher 对象失效。
+    /// @return 内部的 GraphTopo。
+    GraphTopo<NodeInfo, EdgeInfo> intoGraphTopo();
 };
 
 template<class NodeInfo, class EdgeInfo>
@@ -283,22 +287,35 @@ public:
 };
 
 template<class NodeInfo, class EdgeInfo>
-typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes GraphTopoSearcher<NodeInfo, EdgeInfo>::nodes() const { return this; }
+typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Nodes
+GraphTopoSearcher<NodeInfo, EdgeInfo>::nodes() const { return this; }
+
 template<class NodeInfo, class EdgeInfo>
-typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edges GraphTopoSearcher<NodeInfo, EdgeInfo>::edges() const { return this; }
+typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edges
+GraphTopoSearcher<NodeInfo, EdgeInfo>::edges() const { return this; }
+
 template<class NodeInfo, class EdgeInfo>
-std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalInputs() const {
+std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge>
+GraphTopoSearcher<NodeInfo, EdgeInfo>::globalInputs() const {
     std::vector<Edge> ans(globalInputs_.size());
     std::transform(globalInputs_.begin(), globalInputs_.end(), ans.begin(),
                    [this](auto const &edgeIdx) { return Edge{this, edgeIdx.idx}; });
     return ans;
 }
+
 template<class NodeInfo, class EdgeInfo>
-std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge> GraphTopoSearcher<NodeInfo, EdgeInfo>::globalOutputs() const {
+std::vector<typename GraphTopoSearcher<NodeInfo, EdgeInfo>::Edge>
+GraphTopoSearcher<NodeInfo, EdgeInfo>::globalOutputs() const {
     std::vector<Edge> ans(globalOutputs_.size());
     std::transform(globalOutputs_.begin(), globalOutputs_.end(), ans.begin(),
                    [this](auto const &edgeIdx) { return Edge{this, edgeIdx.idx}; });
     return ans;
+}
+
+template<class NodeInfo, class EdgeInfo>
+GraphTopo<NodeInfo, EdgeInfo>
+GraphTopoSearcher<NodeInfo, EdgeInfo>::intoGraphTopo() {
+    return std::move(topo);
 }
 
 #endif// GRAPH_TOPO_SEARCHER_HPP

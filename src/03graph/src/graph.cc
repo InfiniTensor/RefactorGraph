@@ -26,11 +26,8 @@ namespace refactor::graph {
         }
     }
 
-    GraphTopoSearcher<NodeInfo, EdgeInfo> const &Graph::topo() const {
-        return searcher;
-    }
-
-    GraphMut::GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&topo) : _topo(topo) {}
+    GraphMut::GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&topo)
+        : _topo(std::forward<GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>>>(topo)) {}
 
     void GraphMut::fillEdgeInfo() {
         for (auto node : _topo.nodes()) {
@@ -66,4 +63,18 @@ namespace refactor::graph {
             }
         }
     }
+
+    GraphTopo<NodeInfo, EdgeInfo> GraphMut::intoGraphTopo() {
+        return _topo.intoGraphTopo().map<NodeInfo, EdgeInfo>(
+            [](Cell<NodeInfo> &&node) { return std::move(node.value); },
+            [](Cell<EdgeInfo> &&edge) { return std::move(edge.value); });
+    }
+
+    Graph::Graph(GraphTopo<NodeInfo, EdgeInfo> &&topo)
+        : _topo(std::forward<GraphTopo<NodeInfo, EdgeInfo>>(topo)) {}
+
+    GraphTopoSearcher<NodeInfo, EdgeInfo> const &Graph::topo() const {
+        return _topo;
+    }
+
 }// namespace refactor::graph

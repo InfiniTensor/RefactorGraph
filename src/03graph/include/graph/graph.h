@@ -20,11 +20,11 @@ namespace refactor::graph {
 
     public:
         GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&);
-        GraphTopo<NodeInfo, EdgeInfo> intoGraphTopo() const;
+        GraphTopo<NodeInfo, EdgeInfo> intoGraphTopo();
     };
 
     class Graph {
-        GraphTopoSearcher<NodeInfo, EdgeInfo> searcher;
+        GraphTopoSearcher<NodeInfo, EdgeInfo> _topo;
 
     public:
         Graph(GraphTopo<NodeInfo, EdgeInfo> &&);

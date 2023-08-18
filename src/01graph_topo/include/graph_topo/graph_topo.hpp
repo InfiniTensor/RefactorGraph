@@ -22,6 +22,9 @@ template<class NodeInfo, class EdgeInfo>
 class GraphTopo {
     friend class GraphTopoSearcher<NodeInfo, EdgeInfo>;
 
+    template<class OtherNodeInfo, class OtherEdgeInfo>
+    friend class GraphTopo;
+
     /// @brief 用于索引节点。
     class NodeIdx;
     /// @brief 用于索引边。
@@ -74,6 +77,14 @@ public:
     /// @param ref 边在图上的引用。
     /// @return 边信息。
     EdgeInfo &getInfo(EdgeRef ref);
+    /// @brief 在不改变拓扑结构的情况下映射节点和边信息。这个函数将导致当前图拓扑失效。
+    /// @tparam NewNodeInfo 新的节点信息类型。
+    /// @tparam NewEdgeInfo 新的边信息类型。
+    /// @param _1 映射节点信息。
+    /// @param _2 映射边信息。
+    /// @return 映射后的新图拓扑。
+    template<class NewNodeInfo, class NewEdgeInfo>
+    GraphTopo<NewNodeInfo, NewEdgeInfo> map(NewNodeInfo(NodeInfo &&), NewEdgeInfo(EdgeInfo &&));
 };
 
 template<class NodeInfo, class EdgeInfo>
@@ -188,9 +199,6 @@ public:
     }
 };
 
-/// @brief 添加全局输入边。
-/// @param info 边信息。
-/// @return 边的引用。
 template<class NodeInfo, class EdgeInfo>
 typename GraphTopo<NodeInfo, EdgeInfo>::EdgeRef
 GraphTopo<NodeInfo, EdgeInfo>::addEdge(EdgeInfo info) {
@@ -207,11 +215,6 @@ void GraphTopo<NodeInfo, EdgeInfo>::markOutput(std::vector<EdgeRef> const &globa
     }
 }
 
-/// @brief 添加节点。
-/// @param info 节点信息。
-/// @param inputs 输入。
-/// @param outputs 输出。
-/// @return 节点的引用。
 template<class NodeInfo, class EdgeInfo>
 typename GraphTopo<NodeInfo, EdgeInfo>::NodeProduct
 GraphTopo<NodeInfo, EdgeInfo>::addNode(
@@ -240,23 +243,38 @@ GraphTopo<NodeInfo, EdgeInfo>::addNode(
     return NodeProduct(nodeIdx, firstEdge, edgeCount);
 }
 
-/// @brief 获取节点信息。
-/// @param ref 节点在图上的引用。
-/// @return 节点信息。
 template<class NodeInfo, class EdgeInfo>
 NodeInfo &
 GraphTopo<NodeInfo, EdgeInfo>::getInfo(NodeRef ref) {
     return nodes[ref.idx.idx].info;
 }
 
-/// @brief 获取边信息。
-/// @param ref 边在图上的引用。
-/// @return 边信息。
 template<class NodeInfo, class EdgeInfo>
 EdgeInfo &
 GraphTopo<NodeInfo, EdgeInfo>::getInfo(EdgeRef ref) {
     return edges[ref.idx.idx].info;
 }
 
+template<class NodeInfo, class EdgeInfo>
+template<class NewNodeInfo, class NewEdgeInfo>
+GraphTopo<NewNodeInfo, NewEdgeInfo> GraphTopo<NodeInfo, EdgeInfo>::map(
+    NewNodeInfo mapNode(NodeInfo &&),
+    NewEdgeInfo mapEdge(EdgeInfo &&)) {
+
+    GraphTopo<NewNodeInfo, NewEdgeInfo> ans;
+    ans.nodes.reserve(nodes.size());
+    ans.edges.reserve(edges.size());
+    ans.targets.reserve(targets.size());
+    for (auto &node : nodes) {
+        ans.nodes.push_back({mapNode(std::move(node.info)), {node.firstEdge.idx}, node.edgeCount});
+    }
+    for (auto &edge : edges) {
+        ans.edges.push_back({mapEdge(std::move(edge.info)), {edge.firstTarget.idx}, {edge.outputIdx.idx}});
+    }
+    for (auto &target : targets) {
+        ans.targets.push_back({{target.next.idx}, {target.to.idx}});
+    }
+    return ans;
+}
 
 #endif// GRAPH_TOPO_HPP
