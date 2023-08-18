@@ -1,34 +1,37 @@
 ﻿#include "infer.h"
 #include "common/data_type.h"
 #include "common/error_handler.h"
+#include <unordered_set>
 
 using namespace refactor::common;
 
 namespace refactor::graph {
 
     BroadcastResult multidirBroadcast(std::vector<Shape> const &inputs) {
+        using Iter = std::reverse_iterator<std::vector<len_t>::const_iterator>;
+        std::vector<std::pair<Iter, Iter>> iters;
+        iters.reserve(inputs.size());
+        for (auto const &input : inputs) {
+            iters.emplace_back(input.rbegin(), input.rend());
+        }
         Shape ans;
-        for (auto i = 0;; ++i) {
-            auto any = false;
-            len_t value = 1;
-            for (auto const &input : inputs) {
-                if (i < input.size()) {
-                    any = true;
-                    if (value == 1) {
-                        value = input[i];
-                    } else if (input[i] != 1 && input[i] != value) {
-                        return Err(std::string("Shape broadcast failed"));
-                    }
+        while (true) {
+            std::unordered_set<len_t> dims;
+            for (auto &[begin, end] : iters) {
+                if (begin != end) {
+                    dims.insert(*begin++);
                 }
             }
-            if (any) {
-                ans.push_back(value);
-            } else {
+            if (dims.size() == 0) {
                 break;
+            } else if (dims.size() == 1 || (dims.size() == 2 && dims.erase(1) == 1)) {
+                ans.push_back(*dims.begin());
+            } else {
+                return Err(BROADCAST_ERROR("Shape broadcast failed"));
             }
         }
-        ans.shrink_to_fit();
-        return Ok(std::move(ans));
+        std::reverse(ans.begin(), ans.end());
+        return Ok(ans);
     }
 
     bool unidirBroadcast(Shape target, Shape test) {

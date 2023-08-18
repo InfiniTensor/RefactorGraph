@@ -27,6 +27,7 @@ namespace refactor::graph {
     InferResult inferBatchNormalization(Edges);
 
     using BroadcastResult = Result<Shape, std::string>;
+#define BROADCAST_ERROR(msg) buildMsg(msg, __FILE__, __LINE__)
 
     /// @brief 多方向形状广播。
     /// @param inputs 所有输入的形状。

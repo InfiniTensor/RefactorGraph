@@ -22,6 +22,6 @@ TEST(ShapeBroadcast, Multidirectional) {
         auto result = multidirBroadcast({a, b});
         ASSERT_TRUE(result.isOk());
         EXPECT_EQ(ans, result.unwrap());
-        fmt::print("Case #{} pass\n", idx);
+        logi("Multidirectional broadcast test case #{} pass", idx);
     }
 }
