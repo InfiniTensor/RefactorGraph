@@ -1,4 +1,4 @@
-﻿.PHONY : build clean format
+﻿.PHONY : build clean format test-all
 
 TYPE ?= release
 BUILD_SHARED ?= OFF
@@ -15,3 +15,9 @@ clean:
 
 format:
 	@python3 scripts/format.py $(FORMAT_ORIGIN)
+
+test-all:
+	./build/$(TYPE)/src/00common/common_test
+	./build/$(TYPE)/src/01graph_topo/graph_topo_test
+# ./build/$(TYPE)/src/02common/common_test
+	./build/$(TYPE)/src/03graph/graph_test

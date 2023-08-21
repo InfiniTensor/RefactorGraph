@@ -26,3 +26,6 @@ jobs:
 
     - name: build ${{ matrix.type }}
       run: make TYPE=${{ matrix.type }}
+
+    - name: test ${{ matrix.type }}
+      run: make test-all TYPE=${{ matrix.type }}
