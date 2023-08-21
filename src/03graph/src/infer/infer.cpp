@@ -142,6 +142,18 @@ namespace refactor::graph {
             if (!isIeee754DataType(dataType) || kernel.dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
+            if (inputs.size() > 2) {
+                if (!inputs[2].isTensor()) {
+                    return Err(InferError(ERROR_MSG("Edge type not support")));
+                }
+                auto bias = inputs[2].tensor();
+                if (bias.dataType != dataType) {
+                    return Err(InferError(ERROR_MSG("Input data type not support")));
+                }
+                if (bias.shape.size() != 1 || bias.shape[0] != kernel.shape[0]) {
+                    return Err(InferError(ERROR_MSG("Input shape not support")));
+                }
+            }
             auto dim = input.shape.size();
             if (dim < 2 || dim != kernel.shape.size()) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
@@ -164,7 +176,7 @@ namespace refactor::graph {
     }
 
     InferResult inferPool(Edges inputs, Shape dilations, Shape kernelShape, Shape pads, Shape strides) {
-        if (inputs.size() != 2 && inputs.size() != 3) {
+        if (inputs.size() != 1) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
             return Err(InferError(ERROR_MSG("Edge type not support")));
