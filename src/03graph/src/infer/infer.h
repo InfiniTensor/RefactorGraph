@@ -27,7 +27,7 @@ namespace refactor::graph {
     InferResult inferPool(Edges, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides);
     InferResult inferGlobalPool(Edges);
     InferResult inferReshape(Edges);
-    InferResult inferBatchNormalization(Edges);
+    InferResult inferBatchNormalization(Edges, bool training);
 
     using ShapeResult = Result<Shape, std::string>;
 

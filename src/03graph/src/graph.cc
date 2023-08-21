@@ -125,6 +125,22 @@ namespace refactor::graph {
                                             std::move(pads),
                                             std::move(strides)));
                 } break;
+                case OpType::GlobalAveragePool:
+                case OpType::GlobalMaxPool:
+                case OpType::GlobalLpPool:
+                    putInfo(node, inferGlobalPool(info));
+                    break;
+                case OpType::Reshape:
+                    putInfo(node, inferReshape(info));
+                    break;
+                case OpType::BatchNormalization: {
+                    auto const &attributes = node.info().value.attributes;
+                    auto training = false;
+                    if (auto it = attributes.find("training"); it != attributes.end()) {
+                        training = std::get<Int>(it->second) != 0;
+                    }
+                    putInfo(node, inferBatchNormalization(info, training));
+                } break;
                 default:
                     break;
             }

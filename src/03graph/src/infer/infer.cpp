@@ -1,6 +1,7 @@
 ﻿#include "infer.h"
 #include "common/data_type.h"
 #include "common/error_handler.h"
+#include <numeric>
 #include <unordered_set>
 
 using namespace refactor::common;
@@ -8,7 +9,7 @@ using namespace refactor::common;
 namespace refactor::graph {
 
     ShapeResult multidirBroadcast(std::vector<Shape> const &inputs) {
-        using Iter = std::reverse_iterator<std::vector<len_t>::const_iterator>;
+        using Iter = std::reverse_iterator<Shape::const_iterator>;
         std::vector<std::pair<Iter, Iter>> iters;
         iters.reserve(inputs.size());
         for (auto const &input : inputs) {
@@ -233,16 +234,91 @@ namespace refactor::graph {
         }
     }
 
-    InferResult inferGlobalPool(Edges) {
-        return Err(InferError(ERROR_MSG("Not implemented")));
+    InferResult inferGlobalPool(Edges inputs) {
+        if (inputs.size() != 1) {
+            return Err(InferError(ERROR_MSG("Input size error")));
+        } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
+            return Err(InferError(ERROR_MSG("Edge type not support")));
+        } else {
+            auto input = inputs[0].tensor();
+            if (!isIeee754DataType(input.dataType)) {
+                return Err(InferError(ERROR_MSG("Input data type not support")));
+            }
+            auto dim = input.shape.size();
+            if (dim < 2) {
+                return Err(InferError(ERROR_MSG("Input shape not support")));
+            }
+            Shape ans(dim, 1);
+            ans[0] = input.shape[0];
+            ans[1] = input.shape[1];
+            return Ok(Edges{EdgeInfo{Tensor{input.dataType, std::move(ans)}}});
+        }
     }
 
-    InferResult inferReshape(Edges) {
-        return Err(InferError(ERROR_MSG("Not implemented")));
+    InferResult inferReshape(Edges inputs) {
+        if (inputs.size() != 2) {
+            return Err(InferError(ERROR_MSG("Input size error")));
+        } else if (!inputs[0].isTensor() || !inputs[1].isShapeVariable()) {
+            return Err(InferError(ERROR_MSG("Edge type not support")));
+        } else {
+            auto input = inputs[0].tensor();
+            auto shape = inputs[1].shapeVariable().shape;
+            int pos_1 = -1;
+            Shape ans(shape.size());
+            for (int i = 0; i < shape.size(); ++i) {
+                switch (shape[i]) {
+                    case -1:
+                        if (pos_1 != -1) {
+                            return Err(InferError(ERROR_MSG("Invalid shape variable")));
+                        } else {
+                            pos_1 = i;
+                        }
+                        break;
+                    case 0:
+                        ans[i] = input.shape[i];
+                        break;
+                    default:
+                        ans[i] = shape[i];
+                        break;
+                }
+            }
+            if (pos_1 != -1) {
+                auto product = std::accumulate(input.shape.begin(), input.shape.end(), 1, std::multiplies<>());
+                auto product_ = std::accumulate(ans.begin(), ans.end(), 1, std::multiplies<>());
+                if (product % product_ != 0) {
+                    return Err(InferError(ERROR_MSG("Invalid shape variable")));
+                } else {
+                    ans[pos_1] = product / product_;
+                }
+            }
+            return Ok(Edges{EdgeInfo{Tensor{input.dataType, std::move(ans)}}});
+        }
     }
 
-    InferResult inferBatchNormalization(Edges) {
-        return Err(InferError(ERROR_MSG("Not implemented")));
+    InferResult inferBatchNormalization(Edges inputs, bool training) {
+        if (inputs.size() != 5) {
+            return Err(InferError(ERROR_MSG("Input size error")));
+        } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
+            return Err(InferError(ERROR_MSG("Edge type not support")));
+        } else {
+            auto input = inputs[0].tensor();
+            auto scale = inputs[1].tensor();
+            auto bias = inputs[2].tensor();
+            auto mean = inputs[3].tensor();
+            auto variance = inputs[4].tensor();
+            DataType dt[]{input.dataType, scale.dataType, mean.dataType};
+            if (!std::all_of(dt, dt + 3, isFloatDataType) || bias.dataType != dt[1] || variance.dataType != dt[2]) {
+                return Err(InferError(ERROR_MSG("Input data type not support")));
+            }
+            if (input.shape.size() < 1 || scale.shape != bias.shape || scale.shape != mean.shape || scale.shape != variance.shape) {
+                return Err(InferError(ERROR_MSG("Input shape not support")));
+            }
+            if (!training) {
+                return Ok(Edges{std::move(input)});
+            } else {
+                return Err(InferError(ERROR_MSG("Not implemented")));
+            }
+        }
     }
 
 }// namespace refactor::graph

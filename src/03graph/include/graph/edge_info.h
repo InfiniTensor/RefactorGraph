@@ -7,8 +7,8 @@
 #include <variant>
 
 namespace refactor::graph {
-
-    using Shape = std::vector<len_t>;
+    using dim_t = int64_t;
+    using Shape = std::vector<dim_t>;
 
     /// @brief 非全局输入边填写之前的状态。
     struct EmptyEdgeInfo {
