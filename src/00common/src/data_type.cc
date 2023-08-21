@@ -39,4 +39,8 @@ namespace refactor::common {
             DataType::I64, DataType::FP16, DataType::F64, DataType::U32, DataType::U64, DataType::BF16};
         return set.find(dt) != set.end();
     }
+
+    bool isBool(DataType dt) {
+        return dt == DataType::Bool;
+    }
 }// namespace refactor::common

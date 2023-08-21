@@ -110,23 +110,21 @@ namespace refactor::graph {
     InferResult inferArithmetic(Edges inputs) {
         if (inputs.size() != 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
-        } else if (inputs[0].isTensor()) {
+        } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
+            return Err(InferError(ERROR_MSG("Edge type not support")));
+        } else {
             auto i0 = inputs[0].tensor();
             auto i1 = inputs[1].tensor();
-            if (isNumbericDataType(i0.dataType) && i0.dataType == i1.dataType) {
+            if (!isNumbericDataType(i0.dataType) || i0.dataType != i1.dataType) {
+                return Err(InferError(ERROR_MSG("Data type not support")));
+            } else {
                 auto shape = multidirBroadcast({std::move(i0.shape), std::move(i1.shape)});
                 if (shape.isErr()) {
                     return Err(InferError(ERROR_MSG(shape.unwrapErr())));
                 } else {
                     return Ok(Edges{EdgeInfo{Tensor{i0.dataType, shape.unwrap()}}});
                 }
-            } else {
-                return Err(InferError(ERROR_MSG("Data type not support")));
             }
-        } else {
-            auto i0 = inputs[0].shapeVariable();
-            auto i1 = inputs[1].shapeVariable();
-            TODO("calculate shape variable");
         }
     }
 

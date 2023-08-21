@@ -44,6 +44,9 @@ namespace refactor::common {
     /// @brief 判断是否数字数据类型。
     bool isNumbericDataType(DataType);
 
+    /// @brief 判断是否布尔数据类型。
+    bool isBool(DataType);
+
     template<DataType t>
     struct primitive_t;
 
