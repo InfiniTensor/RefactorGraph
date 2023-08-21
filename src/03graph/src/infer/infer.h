@@ -20,10 +20,10 @@ namespace refactor::graph {
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
-    InferResult inferUnary(Edges, bool(DataType));
+    InferResult inferUnary(Edges, bool(common::DataType));
     InferResult inferArithmetic(Edges);
     InferResult inferGemm(Edges, bool transA, bool transB);
-    InferResult inferConv(Edges, ShapeOrNot dilations, len_t group, ShapeOrNot pads, ShapeOrNot strides);
+    InferResult inferConv(Edges, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides);
     InferResult inferPool(Edges, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides);
     InferResult inferGlobalPool(Edges);
     InferResult inferReshape(Edges);

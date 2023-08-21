@@ -73,13 +73,9 @@ namespace refactor::graph {
                 case OpType::Conv: {
                     auto const &attributes = node.info().value.attributes;
                     ShapeOrNot dilations = std::nullopt, pads = std::nullopt, strides = std::nullopt;
-                    len_t group = 1;
                     if (auto it = attributes.find("dilations"); it != attributes.end()) {
                         auto const &val = std::get<Ints>(it->second);
                         dilations = {Shape(val.begin(), val.end())};
-                    }
-                    if (auto it = attributes.find("group"); it != attributes.end()) {
-                        group = std::get<Int>(it->second);
                     }
                     if (auto it = attributes.find("pads"); it != attributes.end()) {
                         auto const &val = std::get<Ints>(it->second);
@@ -91,7 +87,6 @@ namespace refactor::graph {
                     }
                     putInfo(node, inferConv(info,
                                             std::move(dilations),
-                                            group,
                                             std::move(pads),
                                             std::move(strides)));
                 } break;

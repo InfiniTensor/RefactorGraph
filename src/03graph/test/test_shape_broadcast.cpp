@@ -3,14 +3,14 @@
 
 using namespace refactor::graph;
 
-TEST(ShapeBroadcast, Unidirectional) {
+TEST(ShapeInfer, UnidirectionalBroadcast) {
     EXPECT_TRUE(unidirBroadcast({2, 3, 4, 5}, {}));
     EXPECT_TRUE(unidirBroadcast({2, 3, 4, 5}, {5}));
     EXPECT_TRUE(unidirBroadcast({2, 3, 4, 5}, {2, 1, 1, 5}));
     EXPECT_TRUE(unidirBroadcast({2, 3, 4, 5}, {3, 1, 5}));
 }
 
-TEST(ShapeBroadcast, Multidirectional) {
+TEST(ShapeInfer, MultidirectionalBroadcast) {
     std::tuple<int, Shape, Shape, Shape> cases[]{
         {0, {2, 3, 4, 5}, {2, 3, 4, 5}, {}},
         {1, {2, 3, 4, 5}, {2, 3, 4, 5}, {5}},

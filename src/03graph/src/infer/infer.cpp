@@ -145,9 +145,9 @@ namespace refactor::graph {
             if (a.shape.size() != 2 || b.shape.size() != 2) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            auto m = transA ? a.shape[0] : a.shape[1];
-            auto n = transB ? b.shape[1] : b.shape[0];
-            if ((transA ? a.shape[1] : a.shape[0]) != (transB ? b.shape[0] : b.shape[1])) {
+            auto m = transA ? a.shape[1] : a.shape[0];
+            auto n = transB ? b.shape[0] : b.shape[1];
+            if ((transA ? a.shape[0] : a.shape[1]) != (transB ? b.shape[1] : b.shape[0])) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
             if (inputs.size() == 3) {
@@ -163,7 +163,7 @@ namespace refactor::graph {
         }
     }
 
-    InferResult inferConv(Edges inputs, ShapeOrNot dilations, len_t group, ShapeOrNot pads, ShapeOrNot strides) {
+    InferResult inferConv(Edges inputs, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides) {
         if (inputs.size() != 2 && inputs.size() != 3) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
@@ -191,9 +191,9 @@ namespace refactor::graph {
             if (dim < 2 || dim != kernel.shape.size()) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            Shape ans(dim);
-            ans[0] = input.shape[0];
-            ans[1] = kernel.shape[0] * group;
+            if (input.shape[1] % kernel.shape[1] != 0) {
+                return Err(InferError(ERROR_MSG("Input shape not support")));
+            }
             Shape poolInput(dim - 2), poolKernel(dim - 2);
             std::copy(input.shape.begin() + 2, input.shape.end(), poolInput.begin());
             std::copy(kernel.shape.begin() + 2, kernel.shape.end(), poolKernel.begin());
@@ -201,10 +201,13 @@ namespace refactor::graph {
             if (pool_.isErr()) {
                 return Err(InferError(ERROR_MSG(pool_.unwrapErr())));
             } else {
+                Shape ans(dim);
+                ans[0] = input.shape[0];
+                ans[1] = kernel.shape[0] * (input.shape[1] / kernel.shape[1]);
                 auto pool__ = pool_.unwrap();
                 std::copy(pool__.begin(), pool__.end(), ans.begin() + 2);
+                return Ok(Edges{EdgeInfo{Tensor{dataType, std::move(ans)}}});
             }
-            return Ok(Edges{EdgeInfo{Tensor{dataType, std::move(ans)}}});
         }
     }
 
@@ -215,21 +218,26 @@ namespace refactor::graph {
             return Err(InferError(ERROR_MSG("Edge type not support")));
         } else {
             auto input = inputs[0].tensor();
-            auto kernel = inputs[1].tensor();
             auto dataType = input.dataType;
-            if (!isIeee754DataType(dataType) || kernel.dataType != dataType) {
+            if (!isIeee754DataType(dataType)) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
             auto dim = input.shape.size();
-            if (dim != kernel.shape.size()) {
+            if (dim != kernelShape.size() + 2) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            Shape ans(dim);
-            auto pool_ = pool(input.shape, kernelShape, dilations, pads, strides);
+            Shape inputShape(dim - 2);
+            std::copy(input.shape.begin() + 2, input.shape.end(), inputShape.begin());
+            auto pool_ = pool(inputShape, kernelShape, dilations, pads, strides);
             if (pool_.isErr()) {
                 return Err(InferError(ERROR_MSG(pool_.unwrapErr())));
             } else {
-                return Ok(Edges{EdgeInfo{Tensor{dataType, std::move(pool_.unwrap())}}});
+                Shape ans(dim);
+                ans[0] = input.shape[0];
+                ans[1] = input.shape[1];
+                auto pool__ = pool_.unwrap();
+                std::copy(pool__.begin(), pool__.end(), ans.begin() + 2);
+                return Ok(Edges{EdgeInfo{Tensor{dataType, std::move(ans)}}});
             }
         }
     }
@@ -268,13 +276,16 @@ namespace refactor::graph {
             for (int i = 0; i < shape.size(); ++i) {
                 switch (shape[i]) {
                     case -1:
-                        if (pos_1 != -1) {
+                        if (pos_1 >= 0) {
                             return Err(InferError(ERROR_MSG("Invalid shape variable")));
-                        } else {
-                            pos_1 = i;
                         }
+                        pos_1 = i;
+                        ans[i] = 1;
                         break;
                     case 0:
+                        if (i >= input.shape.size()) {
+                            return Err(InferError(ERROR_MSG("Invalid shape variable")));
+                        }
                         ans[i] = input.shape[i];
                         break;
                     default:
@@ -282,14 +293,16 @@ namespace refactor::graph {
                         break;
                 }
             }
+            auto old = std::accumulate(input.shape.begin(), input.shape.end(), 1, std::multiplies<>());
+            auto now = std::accumulate(ans.begin(), ans.end(), 1, std::multiplies<>());
             if (pos_1 != -1) {
-                auto product = std::accumulate(input.shape.begin(), input.shape.end(), 1, std::multiplies<>());
-                auto product_ = std::accumulate(ans.begin(), ans.end(), 1, std::multiplies<>());
-                if (product % product_ != 0) {
+                if (old % now != 0) {
                     return Err(InferError(ERROR_MSG("Invalid shape variable")));
                 } else {
-                    ans[pos_1] = product / product_;
+                    ans[pos_1] = old / now;
                 }
+            } else if (old != now) {
+                return Err(InferError(ERROR_MSG("Invalid shape variable")));
             }
             return Ok(Edges{EdgeInfo{Tensor{input.dataType, std::move(ans)}}});
         }
