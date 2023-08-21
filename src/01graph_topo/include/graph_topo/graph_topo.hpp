@@ -192,7 +192,7 @@ public:
     }
 
     EdgeRef operator[](idx_t i) const {
-        if (i < 0 || edgeCount <= i) {
+        if (i < 0 || edgeCount <= static_cast<len_t>(i)) {
             OUT_OF_RANGE("Edge index out of range", i, edgeCount);
         }
         return EdgeRef(firstEdge.idx + i);

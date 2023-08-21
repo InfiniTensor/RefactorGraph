@@ -15,30 +15,38 @@ namespace refactor::graph {
     };
     using InferResult = Result<Edges, InferError>;
 
-#define INFER_ERROR(msg) InferError(buildMsg(msg, __FILE__, __LINE__))
+#define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
     InferResult inferUnary(Edges, bool(DataType));
     InferResult inferArithmetic(Edges);
-    InferResult inferGemm(Edges, bool, bool);
-    InferResult inferConv(Edges);
-    InferResult inferPool(Edges);
+    InferResult inferGemm(Edges, bool transA, bool transB);
+    InferResult inferConv(Edges, Shape dilations, len_t group, Shape pads, Shape strides);
+    InferResult inferPool(Edges, Shape dilations, Shape kernelShape, Shape pads, Shape strides);
     InferResult inferGlobalPool(Edges);
     InferResult inferReshape(Edges);
     InferResult inferBatchNormalization(Edges);
 
-    using BroadcastResult = Result<Shape, std::string>;
-#define BROADCAST_ERROR(msg) buildMsg(msg, __FILE__, __LINE__)
+    using ShapeResult = Result<Shape, std::string>;
 
     /// @brief 多方向形状广播。
     /// @param inputs 所有输入的形状。
     /// @return 广播后的形状。
-    BroadcastResult multidirBroadcast(std::vector<Shape> const &);
+    ShapeResult multidirBroadcast(std::vector<Shape> const &);
 
     /// @brief 单方向形状广播。
     /// @param target 目标形状。
     /// @param test 测试形状。
     /// @return 测试形状是否可以广播到目标形状。
-    bool unidirBroadcast(Shape target, Shape test);
+    bool unidirBroadcast(Shape const &target, Shape const &test);
+
+    /// @brief 池化形状推断。
+    /// @param data 输入张量的形状。
+    /// @param kernel kernel 的形状。
+    /// @param dilations 空洞参数。
+    /// @param pads 扩张参数。
+    /// @param strides 跳步参数。
+    /// @return 池化后的形状。
+    ShapeResult pool(Shape const &data, Shape const &kernel, Shape const &dilations, Shape const &pads, Shape const &strides);
 
 }// namespace refactor::graph
 
