@@ -2,6 +2,7 @@
 #define INFER_H
 
 #include "graph/edge_info.h"
+#include <optional>
 #include <result.h>
 #include <stdexcept>
 #include <string>
@@ -10,6 +11,8 @@
 namespace refactor::graph {
 
     using Edges = std::vector<EdgeInfo>;
+    using ShapeOrNot = std::optional<Shape>;
+
     struct InferError : public std::runtime_error {
         explicit InferError(std::string &&msg);
     };
@@ -20,8 +23,8 @@ namespace refactor::graph {
     InferResult inferUnary(Edges, bool(DataType));
     InferResult inferArithmetic(Edges);
     InferResult inferGemm(Edges, bool transA, bool transB);
-    InferResult inferConv(Edges, Shape dilations, len_t group, Shape pads, Shape strides);
-    InferResult inferPool(Edges, Shape dilations, Shape kernelShape, Shape pads, Shape strides);
+    InferResult inferConv(Edges, ShapeOrNot dilations, len_t group, ShapeOrNot pads, ShapeOrNot strides);
+    InferResult inferPool(Edges, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides);
     InferResult inferGlobalPool(Edges);
     InferResult inferReshape(Edges);
     InferResult inferBatchNormalization(Edges);
@@ -46,7 +49,11 @@ namespace refactor::graph {
     /// @param pads 扩张参数。
     /// @param strides 跳步参数。
     /// @return 池化后的形状。
-    ShapeResult pool(Shape const &data, Shape const &kernel, Shape const &dilations, Shape const &pads, Shape const &strides);
+    ShapeResult pool(Shape const &data,
+                     Shape const &kernel,
+                     ShapeOrNot const &dilations,
+                     ShapeOrNot const &pads,
+                     ShapeOrNot const &strides);
 
 }// namespace refactor::graph
 

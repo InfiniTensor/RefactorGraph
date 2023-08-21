@@ -47,16 +47,48 @@ namespace refactor::graph {
         }
     }
 
-    ShapeResult pool(Shape const &input, Shape const &kernel, Shape const &dilations, Shape const &pads, Shape const &strides) {
+    ShapeResult pool(Shape const &input,
+                     Shape const &kernel,
+                     ShapeOrNot const &dilations,
+                     ShapeOrNot const &pads,
+                     ShapeOrNot const &strides) {
         auto dim = input.size();
-        if (dim != kernel.size() || dim != dilations.size() || dim != pads.size() / 2 || dim != strides.size()) {
+        if (dim != kernel.size()) {
             return Err(ERROR_MSG("Input shape not support"));
+        }
+        Shape dilations_, pads_, strides_;
+        if (dilations) {
+            if (dilations->size() != dim) {
+                return Err(ERROR_MSG("Input shape not support"));
+            } else {
+                dilations_ = *dilations;
+            }
+        } else {
+            dilations_ = Shape(dim, 1);
+        }
+        if (pads) {
+            if (pads->size() != dim * 2) {
+                return Err(ERROR_MSG("Input shape not support"));
+            } else {
+                pads_ = *pads;
+            }
+        } else {
+            pads_ = Shape(dim * 2, 0);
+        }
+        if (strides) {
+            if (strides->size() != dim) {
+                return Err(ERROR_MSG("Input shape not support"));
+            } else {
+                strides_ = *strides;
+            }
+        } else {
+            strides_ = Shape(dim, 1);
         }
         Shape ans(dim);
         for (size_t i = 0; i < dim; ++i) {
-            auto d = input[i] + pads[i] + pads[i + dim];
-            auto k = (kernel[i] - 1) * dilations[i] + 1;
-            ans[i] = (d - k) / strides[i] + 1;
+            auto d = input[i] + pads_[i] + pads_[i + dim];
+            auto k = (kernel[i] - 1) * dilations_[i] + 1;
+            ans[i] = (d - k) / strides_[i] + 1;
         }
         return Ok(ans);
     }
@@ -130,7 +162,7 @@ namespace refactor::graph {
         }
     }
 
-    InferResult inferConv(Edges inputs, Shape dilations, len_t group, Shape pads, Shape strides) {
+    InferResult inferConv(Edges inputs, ShapeOrNot dilations, len_t group, ShapeOrNot pads, ShapeOrNot strides) {
         if (inputs.size() != 2 && inputs.size() != 3) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
@@ -175,7 +207,7 @@ namespace refactor::graph {
         }
     }
 
-    InferResult inferPool(Edges inputs, Shape dilations, Shape kernelShape, Shape pads, Shape strides) {
+    InferResult inferPool(Edges inputs, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides) {
         if (inputs.size() != 1) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {

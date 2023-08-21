@@ -67,8 +67,63 @@ namespace refactor::graph {
                     auto transA = attributes.find("transA");
                     auto transB = attributes.find("transB");
                     putInfo(node, inferGemm(info,
-                                            transA == attributes.end() ? false : std::get<Int>(transA->second),
-                                            transB == attributes.end() ? false : std::get<Int>(transB->second)));
+                                            transA == attributes.end() ? false : std::get<Int>(transA->second) != 0,
+                                            transB == attributes.end() ? false : std::get<Int>(transB->second) != 0));
+                } break;
+                case OpType::Conv: {
+                    auto const &attributes = node.info().value.attributes;
+                    ShapeOrNot dilations = std::nullopt, pads = std::nullopt, strides = std::nullopt;
+                    len_t group = 1;
+                    if (auto it = attributes.find("dilations"); it != attributes.end()) {
+                        auto const &val = std::get<Ints>(it->second);
+                        dilations = {Shape(val.begin(), val.end())};
+                    }
+                    if (auto it = attributes.find("group"); it != attributes.end()) {
+                        group = std::get<Int>(it->second);
+                    }
+                    if (auto it = attributes.find("pads"); it != attributes.end()) {
+                        auto const &val = std::get<Ints>(it->second);
+                        pads = Shape(val.begin(), val.end());
+                    }
+                    if (auto it = attributes.find("strides"); it != attributes.end()) {
+                        auto const &val = std::get<Ints>(it->second);
+                        strides = Shape(val.begin(), val.end());
+                    }
+                    putInfo(node, inferConv(info,
+                                            std::move(dilations),
+                                            group,
+                                            std::move(pads),
+                                            std::move(strides)));
+                } break;
+                case OpType::AveragePool:
+                case OpType::MaxPool:
+                case OpType::LpPool: {
+                    auto const &attributes = node.info().value.attributes;
+                    ShapeOrNot dilations = std::nullopt, pads = std::nullopt, strides = std::nullopt;
+                    Shape kernelShape;
+                    if (auto it = attributes.find("dilations"); it != attributes.end()) {
+                        auto const &val = std::get<Ints>(it->second);
+                        dilations = {Shape(val.begin(), val.end())};
+                    }
+                    if (auto it = attributes.find("kernel_shape"); it != attributes.end()) {
+                        auto const &val = std::get<Ints>(it->second);
+                        kernelShape = Shape(val.begin(), val.end());
+                    } else {
+                        RUNTIME_ERROR("Required attribute `kernel_shape` not found");
+                    }
+                    if (auto it = attributes.find("pads"); it != attributes.end()) {
+                        auto const &val = std::get<Ints>(it->second);
+                        pads = Shape(val.begin(), val.end());
+                    }
+                    if (auto it = attributes.find("strides"); it != attributes.end()) {
+                        auto const &val = std::get<Ints>(it->second);
+                        strides = Shape(val.begin(), val.end());
+                    }
+                    putInfo(node, inferPool(info,
+                                            std::move(dilations),
+                                            std::move(kernelShape),
+                                            std::move(pads),
+                                            std::move(strides)));
                 } break;
                 default:
                     break;
