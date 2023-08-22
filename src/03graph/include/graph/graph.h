@@ -16,10 +16,12 @@ namespace refactor::graph {
 
     class GraphMut {
         GraphTopoSearcher<Cell<NodeInfo>, Cell<EdgeInfo>> _topo;
-        void fillEdgeInfo();
 
     public:
         GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&);
+
+        void fillEdgeInfo();
+
         GraphTopo<NodeInfo, EdgeInfo> intoGraphTopo();
     };
 

@@ -8,10 +8,10 @@ namespace refactor::graph {
     using Node = GraphTopoSearcher<Cell<NodeInfo>, Cell<EdgeInfo>>::Node;
     using Edge = GraphTopoSearcher<Cell<NodeInfo>, Cell<EdgeInfo>>::Edge;
 
-    std::vector<EdgeInfo> takeInfo(std::vector<Edge> inputs) {
+    std::vector<EdgeInfo> cloneInfo(std::vector<Edge> const &inputs) {
         std::vector<EdgeInfo> info(inputs.size());
         std::transform(inputs.begin(), inputs.end(), info.begin(),
-                       [](Edge edge) { return std::move(edge.info().value); });
+                       [](Edge edge) { return edge.info().value; });
         return info;
     }
 
@@ -33,7 +33,7 @@ namespace refactor::graph {
 
     void GraphMut::fillEdgeInfo() {
         for (auto node : _topo.nodes()) {
-            auto info = takeInfo(node.inputs());
+            auto info = cloneInfo(node.inputs());
             switch (node.info().value.opType.underlying()) {
                 case OpType::Abs:
                 case OpType::Relu:

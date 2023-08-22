@@ -2,6 +2,7 @@
 #define GRAPH_TOPO_HPP
 
 #include "common/error_handler.h"
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
@@ -60,6 +61,9 @@ public:
     /// @param info 边信息。
     /// @return 边的引用。
     EdgeRef addEdge(EdgeInfo info);
+    /// @brief 标记全局输出边。
+    /// @param globalOutputs 所有全局输出边的列表。
+    void markOutput(EdgeRef globalOutput);
     /// @brief 标记全局输出边。
     /// @param globalOutputs 所有全局输出边的列表。
     void markOutput(std::vector<EdgeRef> const &globalOutputs);
@@ -209,9 +213,26 @@ GraphTopo<NodeInfo, EdgeInfo>::addEdge(EdgeInfo info) {
 /// @brief 标记全局输出边。
 /// @param globalOutputs 所有全局输出边的列表。
 template<class NodeInfo, class EdgeInfo>
+void GraphTopo<NodeInfo, EdgeInfo>::markOutput(EdgeRef globalOutput) {
+    auto max = std::max_element(
+                   edges.begin(),
+                   edges.end(),
+                   [](auto const &a, auto const &b) { return a.outputIdx.idx < b.outputIdx.idx; })
+                   ->outputIdx.idx;
+    edges[globalOutput.idx.idx].outputIdx = {++max};
+}
+
+/// @brief 标记全局输出边。
+/// @param globalOutputs 所有全局输出边的列表。
+template<class NodeInfo, class EdgeInfo>
 void GraphTopo<NodeInfo, EdgeInfo>::markOutput(std::vector<EdgeRef> const &globalOutputs) {
-    for (size_t i = 0; i < globalOutputs.size(); ++i) {
-        edges[globalOutputs[i].idx.idx].outputIdx = {static_cast<idx_t>(i)};
+    auto max = std::max_element(
+                   edges.begin(),
+                   edges.end(),
+                   [](auto const &a, auto const &b) { return a.outputIdx.idx < b.outputIdx.idx; })
+                   ->outputIdx.idx;
+    for (auto const &globalOutput : globalOutputs) {
+        edges[globalOutput.idx.idx].outputIdx = {++max};
     }
 }
 

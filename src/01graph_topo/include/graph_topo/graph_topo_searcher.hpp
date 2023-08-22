@@ -179,10 +179,10 @@ public:
     Nodes(GraphTopoSearcher const *graph_) : graph(graph_) {}
 
     Iterator begin() const { return {graph, 0}; }
-    Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.nodes.size())}; }
+    Iterator end() const { return {graph, static_cast<idx_t>(size())}; }
     size_t size() const { return graph->topo.nodes.size(); }
     Node operator[](idx_t idx) const {
-        ASSERT(0 <= idx && static_cast<len_t>(idx) < graph->topo.nodes.size(), "Node index out of range.");
+        ASSERT(0 <= idx && static_cast<len_t>(idx) < size(), "Node index out of range.");
         return {graph, idx};
     }
 };
@@ -213,10 +213,10 @@ public:
     Edges(GraphTopoSearcher const *graph_) : graph(graph_) {}
 
     Iterator begin() const { return {graph, 0}; }
-    Iterator end() const { return {graph, static_cast<idx_t>(graph->topo.edges.size())}; }
+    Iterator end() const { return {graph, static_cast<idx_t>(size())}; }
     size_t size() const { return graph->topo.edges.size(); }
     Edge operator[](idx_t idx) const {
-        ASSERT(0 <= idx && static_cast<len_t>(idx) < graph->topo.edges.size(), "Edge index out of range.");
+        ASSERT(0 <= idx && static_cast<len_t>(idx) < size(), "Edge index out of range.");
         return {graph, idx};
     }
 };

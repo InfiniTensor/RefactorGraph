@@ -9,4 +9,5 @@ target_link_libraries(graph PUBLIC common)
 
 file(GLOB_RECURSE GRAPH_TEST test/*.cpp)
 add_executable(graph_test ${GRAPH_TEST})
-target_link_libraries(graph_test graph GTest::gtest_main)
+target_link_libraries(graph_test graph GTest::gtest_main ${BACKWARD_ENABLE})
+add_backward(graph_test)

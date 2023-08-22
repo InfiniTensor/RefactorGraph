@@ -11,7 +11,7 @@ TEST(GraphTopo, Build) {
     auto d = topo.addEdge("d");
     auto mul = topo.addNode("mul", {c, d}, {"e"});
     auto e = mul[0];
-    topo.markOutput({e});
+    topo.markOutput(e);
 }
 
 TEST(GraphTopoSearcher, Build) {
@@ -25,7 +25,7 @@ TEST(GraphTopoSearcher, Build) {
         auto d = topo.addEdge("d");                   // edge 3 | globalInput 2
         auto mul = topo.addNode("mul", {c, d}, {"e"});// node 1 |
         auto e = mul[0];                              // edge 4 | globalOutput 0
-        topo.markOutput({e});
+        topo.markOutput(e);
     }
     auto searcher = GraphTopoSearcher(std::move(topo));
     {
@@ -130,7 +130,7 @@ TEST(GraphTopo, Cell) {
         auto d = topo.addEdge({"d"});
         auto mul = topo.addNode({"mul"}, {c, d}, {{"e"}});
         auto e = mul[0];
-        topo.markOutput({e});
+        topo.markOutput(e);
     }
     auto const searcher = GraphTopoSearcher(std::move(topo));
     for (auto const node : searcher.nodes()) {
