@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(BUILD_SHARED "Build shared library" ON)
+option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
 
 if(BUILD_SHARED)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -16,31 +17,34 @@ endif()
 
 add_subdirectory(3rd-party/backward-cpp)
 
-add_subdirectory(3rd-party/fmt)
 include_directories(3rd-party/fmt/include)
+add_subdirectory(3rd-party/fmt)
 
-add_subdirectory(3rd-party/googletest)
 include_directories(3rd-party/googletest/googletest/include)
+add_subdirectory(3rd-party/googletest)
 
 include_directories(3rd-party/fmtlog)
 add_definitions(-D FMTLOG_HEADER_ONLY)
 
+include_directories(3rd-party/abseil-cpp)
+add_subdirectory(3rd-party/abseil-cpp)
+
 include_directories(3rd-party/result)
 
-add_subdirectory(src/iterator)
 include_directories(src/iterator/include)
+add_subdirectory(src/iterator)
 
-add_subdirectory(src/00common)
 include_directories(src/00common/include)
+add_subdirectory(src/00common)
 
-add_subdirectory(src/01graph_topo)
 include_directories(src/01graph_topo/include)
+add_subdirectory(src/01graph_topo)
 
-add_subdirectory(src/02kernel_library)
 include_directories(src/02kernel_library/include)
+add_subdirectory(src/02kernel_library)
 
-add_subdirectory(src/03graph)
 include_directories(src/03graph/include)
+add_subdirectory(src/03graph)
 
 add_executable(refactor_graph src/main.cpp)
 target_link_libraries(refactor_graph common kernel_library graph ${BACKWARD_ENABLE})

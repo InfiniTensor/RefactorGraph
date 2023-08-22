@@ -14,26 +14,27 @@ namespace refactor::graph {
     using Floats = std::vector<double>;
     using String = std::string;
     using Strings = std::vector<std::string>;
+
     struct Attribute {
-    	std::variant<Int, Ints, Float, Floats, String, Strings> value;
+        std::variant<Int, Ints, Float, Floats, String, Strings> value;
 
-    	bool operator==(Attribute const &) const;
-    	bool operator!=(Attribute const &) const;
+        bool operator==(Attribute const &) const;
+        bool operator!=(Attribute const &) const;
 
-    	Int int_() const;
-    	Ints ints() const;
-    	Float float_() const;
-    	Floats floats() const;
-    	String string_() const;
-    	Strings strings() const;
-	};
+        Int int_() const;
+        Ints ints() const;
+        Float float_() const;
+        Floats floats() const;
+        String string_() const;
+        Strings strings() const;
+    };
     using Attributes = std::unordered_map<std::string, Attribute>;
 
     struct NodeInfo {
         common::OpType opType;
         Attributes attributes;
 
-		bool operator==(NodeInfo const &) const;
+        bool operator==(NodeInfo const &) const;
         bool operator!=(NodeInfo const &) const;
     };
 }// namespace refactor::graph

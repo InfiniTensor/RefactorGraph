@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(kernel_library)
 
-include_directories(include)
 file(GLOB_RECURSE KERNEL_LIBRAEY_SRC src/*.cc src/*.cpp)
 
 add_library(kernel_library ${LIBRARY_TYPE} ${KERNEL_LIBRAEY_SRC})
