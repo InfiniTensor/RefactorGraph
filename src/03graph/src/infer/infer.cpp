@@ -107,12 +107,10 @@ namespace refactor::graph {
         }
     }
 
-    InferResult inferArithmetic(Edges inputs) {
+    InferResult inferArithmetic(Edges inputs, OpType opType) {
         if (inputs.size() != 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
-        } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
-            return Err(InferError(ERROR_MSG("Edge type not support")));
-        } else {
+        } else if (inputs[0].isTensor() && inputs[1].isTensor()) {
             auto i0 = inputs[0].tensor();
             auto i1 = inputs[1].tensor();
             if (!isNumbericDataType(i0.dataType) || i0.dataType != i1.dataType) {
@@ -125,6 +123,41 @@ namespace refactor::graph {
                     return Ok(Edges{EdgeInfo{Tensor{i0.dataType, shape.unwrap()}}});
                 }
             }
+        } else if (inputs[0].isShapeVariable() && inputs[1].isShapeVariable()) {
+            auto i0 = inputs[0].shapeVariable().shape;
+            auto i1 = inputs[1].shapeVariable().shape;
+            if (i0.size() != i1.size()) {
+                return Err(InferError(ERROR_MSG("Invalid shape variable")));
+            } else {
+                Shape ans(i0.size());
+                switch (opType.underlying()) {
+                    case OpType::Add:
+                        for (size_t i = 0; i < ans.size(); ++i) {
+                            ans[i] = i0[i] + i1[i];
+                        }
+                        break;
+                    case OpType::Sub:
+                        for (size_t i = 0; i < ans.size(); ++i) {
+                            ans[i] = i0[i] - i1[i];
+                        }
+                        break;
+                    case OpType::Mul:
+                        for (size_t i = 0; i < ans.size(); ++i) {
+                            ans[i] = i0[i] * i1[i];
+                        }
+                        break;
+                    case OpType::Div:
+                        for (size_t i = 0; i < ans.size(); ++i) {
+                            ans[i] = i0[i] / i1[i];
+                        }
+                        break;
+                    default:
+                        return Err(InferError(ERROR_MSG("Invalid op type")));
+                }
+                return Ok(Edges{EdgeInfo{ShapeVariable{std::move(ans)}}});
+            }
+        } else {
+            return Err(InferError(ERROR_MSG("Edge type not support")));
         }
     }
 

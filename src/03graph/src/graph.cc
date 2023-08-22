@@ -34,7 +34,8 @@ namespace refactor::graph {
     void GraphMut::fillEdgeInfo() {
         for (auto node : _topo.nodes()) {
             auto info = cloneInfo(node.inputs());
-            switch (node.info().value.opType.underlying()) {
+            auto opType = node.info().value.opType;
+            switch (opType.underlying()) {
                 case OpType::Abs:
                 case OpType::Relu:
                 case OpType::PRelu:
@@ -60,7 +61,7 @@ namespace refactor::graph {
                 case OpType::Sub:
                 case OpType::Mul:
                 case OpType::Div:
-                    putInfo(node, inferArithmetic(info));
+                    putInfo(node, inferArithmetic(info, opType));
                     break;
                 case OpType::Gemm: {
                     auto const &attributes = node.info().value.attributes;

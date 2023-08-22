@@ -1,6 +1,7 @@
 ﻿#ifndef INFER_H
 #define INFER_H
 
+#include "common/op_type.h"
 #include "graph/edge_info.h"
 #include <optional>
 #include <result.h>
@@ -21,7 +22,7 @@ namespace refactor::graph {
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
     InferResult inferUnary(Edges, bool(common::DataType));
-    InferResult inferArithmetic(Edges);
+    InferResult inferArithmetic(Edges, common::OpType opType);
     InferResult inferGemm(Edges, bool transA, bool transB);
     InferResult inferConv(Edges, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides);
     InferResult inferPool(Edges, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides);
