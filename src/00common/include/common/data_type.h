@@ -12,7 +12,7 @@ namespace refactor::common {
     /// @brief 数据类型。
     /// @see <https://onnx.ai/onnx/api/mapping.html#l-onnx-types-mapping>
     enum class DataType : uint8_t {
-        F32 = 1,// float
+        F32 = 1,// float·
         U8 = 2, // uint8_t
         I8 = 3, // int8_t
         U16 = 4,// uint16_t

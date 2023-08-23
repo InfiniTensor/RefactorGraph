@@ -46,6 +46,9 @@ add_subdirectory(src/02kernel_library)
 include_directories(src/03graph/include)
 add_subdirectory(src/03graph)
 
+include_directories(src/04transformation/include)
+add_subdirectory(src/04transformation)
+
 add_executable(refactor_graph src/main.cpp)
 target_link_libraries(refactor_graph common kernel_library graph ${BACKWARD_ENABLE})
 add_backward(refactor_graph)
