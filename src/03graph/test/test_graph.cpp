@@ -9,7 +9,7 @@ TEST(Graph, GraphMut) {
     auto topo = GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>>();
     auto input = topo.addEdge({Tensor{DataType::F32, {1, 3, 224, 224}}});
     auto kernel = topo.addEdge({Tensor{DataType::F32, {6, 3, 3, 3}}});
-    auto conv = topo.addNode({NodeInfo{OpType::Conv}}, {input, kernel}, {EdgeInfo{}});
+    auto conv = topo.addNode({NodeInfo{Operator{OpType::Conv}}}, {input, kernel}, {EdgeInfo{}});
     auto output = conv[0];
     topo.markOutput(output);
 
@@ -22,7 +22,7 @@ TEST(Graph, GraphMut) {
 
     auto nodes = searcher.nodes();
     EXPECT_EQ(nodes.size(), 1);
-    EXPECT_EQ(nodes[0].info(), NodeInfo{OpType::Conv});
+    EXPECT_EQ(nodes[0].info(), NodeInfo{Operator{OpType::Conv}});
 
     auto edges = searcher.edges();
     EXPECT_EQ(edges.size(), 3);

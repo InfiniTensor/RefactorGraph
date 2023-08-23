@@ -2,6 +2,7 @@
 #define NODE_INFO_H
 
 #include "common/op_type.h"
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -14,6 +15,8 @@ namespace refactor::graph {
     using Floats = std::vector<double>;
     using String = std::string;
     using Strings = std::vector<std::string>;
+
+    class GraphMut;
 
     struct Attribute {
         std::variant<Int, Ints, Float, Floats, String, Strings> value;
@@ -30,9 +33,34 @@ namespace refactor::graph {
     };
     using Attributes = std::unordered_map<std::string, Attribute>;
 
-    struct NodeInfo {
+    struct Operator {
         common::OpType opType;
         Attributes attributes;
+
+        bool operator==(Operator const &) const;
+        bool operator!=(Operator const &) const;
+    };
+
+    struct Subgraph {
+        std::shared_ptr<GraphMut> graph;
+
+        bool operator==(Subgraph const &) const;
+        bool operator!=(Subgraph const &) const;
+    };
+
+    struct NodeInfo {
+        std::variant<Operator, Subgraph> info;
+
+        NodeInfo(Operator &&);
+        NodeInfo(Subgraph &&);
+
+        bool isOperator() const;
+        bool isSubgraph() const;
+
+        Operator &operator_();
+        Operator const &operator_() const;
+        Subgraph &subgraph();
+        Subgraph const &subgraph() const;
 
         bool operator==(NodeInfo const &) const;
         bool operator!=(NodeInfo const &) const;

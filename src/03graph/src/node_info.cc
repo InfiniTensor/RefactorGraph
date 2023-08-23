@@ -1,5 +1,6 @@
 ﻿#include "graph/node_info.h"
 #include "common/error_handler.h"
+#include "graph/graph.h"
 
 namespace refactor::graph {
 
@@ -44,8 +45,44 @@ namespace refactor::graph {
     CONVERT(Strings, strings)
 #undef CONVERT
 
-    bool NodeInfo::operator==(NodeInfo const &rhs) const {
+    bool Operator::operator==(Operator const &rhs) const {
         return opType == rhs.opType && attributes == rhs.attributes;
+    }
+    bool Operator::operator!=(Operator const &rhs) const {
+        return !operator==(rhs);
+    }
+
+    bool Subgraph::operator==(Subgraph const &rhs) const {
+        return false;
+    }
+    bool Subgraph::operator!=(Subgraph const &rhs) const {
+        return !operator==(rhs);
+    }
+
+    NodeInfo::NodeInfo(Operator &&op) : info(std::forward<Operator>(op)) {}
+    NodeInfo::NodeInfo(Subgraph &&sg) : info(std::forward<Subgraph>(sg)) {}
+
+    bool NodeInfo::isOperator() const { return std::holds_alternative<Operator>(info); }
+    bool NodeInfo::isSubgraph() const { return std::holds_alternative<Subgraph>(info); }
+
+    Operator &NodeInfo::operator_() { return std::get<Operator>(info); }
+    Operator const &NodeInfo::operator_() const { return std::get<Operator>(info); }
+    Subgraph &NodeInfo::subgraph() { return std::get<Subgraph>(info); }
+    Subgraph const &NodeInfo::subgraph() const { return std::get<Subgraph>(info); }
+
+    bool NodeInfo::operator==(NodeInfo const &rhs) const {
+        if (info.index() != rhs.info.index()) {
+            return false;
+        } else {
+            switch (info.index()) {
+                case 0:
+                    return std::get<0>(info) == std::get<0>(rhs.info);
+                case 1:
+                    return std::get<1>(info) == std::get<1>(rhs.info);
+                default:
+                    RUNTIME_ERROR("Unreachable");
+            }
+        }
     }
     bool NodeInfo::operator!=(NodeInfo const &rhs) const {
         return !operator==(rhs);

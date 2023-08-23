@@ -15,14 +15,18 @@ namespace refactor::graph {
     };
 
     class GraphMut {
-        GraphTopoSearcher<Cell<NodeInfo>, Cell<EdgeInfo>> _topo;
-
     public:
+        using TopoType = GraphTopoSearcher<Cell<NodeInfo>, Cell<EdgeInfo>>;
+
         GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&);
+        TopoType const &topo() const;
 
         void fillEdgeInfo();
 
         GraphTopo<NodeInfo, EdgeInfo> intoGraphTopo();
+
+    private:
+        TopoType _topo;
     };
 
     class Graph {

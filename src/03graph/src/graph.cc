@@ -34,7 +34,7 @@ namespace refactor::graph {
     void GraphMut::fillEdgeInfo() {
         for (auto node : _topo.nodes()) {
             auto info = cloneInfo(node.inputs());
-            auto opType = node.info().value.opType;
+            auto opType = node.info().value.operator_().opType;
             switch (opType.underlying()) {
                 case OpType::Abs:
                 case OpType::Relu:
@@ -64,7 +64,7 @@ namespace refactor::graph {
                     putInfo(node, inferArithmetic(info, opType));
                     break;
                 case OpType::Gemm: {
-                    auto const &attributes = node.info().value.attributes;
+                    auto const &attributes = node.info().value.operator_().attributes;
                     auto transA = attributes.find("transA");
                     auto transB = attributes.find("transB");
                     putInfo(node, inferGemm(info,
@@ -72,7 +72,7 @@ namespace refactor::graph {
                                             transB == attributes.end() ? false : transB->second.int_() != 0));
                 } break;
                 case OpType::Conv: {
-                    auto const &attributes = node.info().value.attributes;
+                    auto const &attributes = node.info().value.operator_().attributes;
                     ShapeOrNot dilations = std::nullopt, pads = std::nullopt, strides = std::nullopt;
                     if (auto it = attributes.find("dilations"); it != attributes.end()) {
                         auto const &val = it->second.ints();
@@ -94,7 +94,7 @@ namespace refactor::graph {
                 case OpType::AveragePool:
                 case OpType::MaxPool:
                 case OpType::LpPool: {
-                    auto const &attributes = node.info().value.attributes;
+                    auto const &attributes = node.info().value.operator_().attributes;
                     ShapeOrNot dilations = std::nullopt, pads = std::nullopt, strides = std::nullopt;
                     Shape kernelShape;
                     if (auto it = attributes.find("dilations"); it != attributes.end()) {
@@ -130,7 +130,7 @@ namespace refactor::graph {
                     putInfo(node, inferReshape(info));
                     break;
                 case OpType::BatchNormalization: {
-                    auto const &attributes = node.info().value.attributes;
+                    auto const &attributes = node.info().value.operator_().attributes;
                     auto training = false;
                     if (auto it = attributes.find("training"); it != attributes.end()) {
                         training = it->second.int_() != 0;
