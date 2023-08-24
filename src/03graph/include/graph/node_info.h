@@ -1,20 +1,20 @@
 ﻿#ifndef NODE_INFO_H
 #define NODE_INFO_H
 
+#include "absl/container/inlined_vector.h"
 #include "common/op_type.h"
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <variant>
-#include <vector>
 
 namespace refactor::graph {
     using Int = long long;
-    using Ints = std::vector<long long>;
+    using Ints = absl::InlinedVector<long long, 4>;
     using Float = double;
-    using Floats = std::vector<double>;
+    using Floats = absl::InlinedVector<double, 4>;
     using String = std::string;
-    using Strings = std::vector<std::string>;
+    using Strings = absl::InlinedVector<std::string, 2>;
 
     class GraphMut;
 

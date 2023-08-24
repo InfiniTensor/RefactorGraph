@@ -168,6 +168,9 @@ class GraphTopo<NodeInfo, EdgeInfo>::NodeRef {
     friend NodeProduct;
     NodeIdx idx;
     NodeRef(idx_t idx_) : idx({idx_}) {}
+
+public:
+    NodeRef() : NodeRef(-1) {}
 };
 
 /// @brief 图中一条边的引用。
@@ -177,6 +180,9 @@ class GraphTopo<NodeInfo, EdgeInfo>::EdgeRef {
     friend NodeProduct;
     EdgeIdx idx;
     EdgeRef(idx_t idx_) : idx({idx_}) {}
+
+public:
+    EdgeRef() : EdgeRef(-1) {}
 };
 
 template<class NodeInfo, class EdgeInfo>
@@ -214,6 +220,8 @@ GraphTopo<NodeInfo, EdgeInfo>::addEdge(EdgeInfo info) {
 /// @param globalOutputs 所有全局输出边的列表。
 template<class NodeInfo, class EdgeInfo>
 void GraphTopo<NodeInfo, EdgeInfo>::markOutput(EdgeRef globalOutput) {
+    ASSERT(0 <= globalOutput.idx.idx && globalOutput.idx.idx < static_cast<idx_t>(edges.size()),
+           "Edge index out of range");
     auto max = std::max_element(
                    edges.begin(),
                    edges.end(),
@@ -226,6 +234,10 @@ void GraphTopo<NodeInfo, EdgeInfo>::markOutput(EdgeRef globalOutput) {
 /// @param globalOutputs 所有全局输出边的列表。
 template<class NodeInfo, class EdgeInfo>
 void GraphTopo<NodeInfo, EdgeInfo>::markOutput(std::vector<EdgeRef> const &globalOutputs) {
+    ASSERT(std::all_of(globalOutputs.begin(), globalOutputs.end(),
+                       [this](auto ref) { return 0 <= ref.idx.idx && ref.idx.idx < static_cast<idx_t>(edges.size()); }),
+           "Edge index out of range");
+
     auto max = std::max_element(
                    edges.begin(),
                    edges.end(),

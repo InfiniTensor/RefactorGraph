@@ -1,6 +1,7 @@
 ﻿#ifndef EDGE_INFO_H
 #define EDGE_INFO_H
 
+#include "absl/container/inlined_vector.h"
 #include "common/data_type.h"
 #include "graph_topo/graph_topo_searcher.hpp"
 #include <cstring>
@@ -8,7 +9,7 @@
 
 namespace refactor::graph {
     using dim_t = int64_t;
-    using Shape = std::vector<dim_t>;
+    using Shape = absl::InlinedVector<dim_t, 4>;
 
     /// @brief 非全局输入边填写之前的状态。
     struct EmptyEdgeInfo {

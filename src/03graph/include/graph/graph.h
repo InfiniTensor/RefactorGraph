@@ -28,11 +28,12 @@ namespace refactor::graph {
     };
 
     class Graph {
-        GraphTopoSearcher<NodeInfo, EdgeInfo> _topo;
+        using seacher_t = GraphTopoSearcher<NodeInfo, EdgeInfo>;
+        seacher_t _topo;
 
     public:
         Graph(GraphTopo<NodeInfo, EdgeInfo> &&);
-        GraphTopoSearcher<NodeInfo, EdgeInfo> const &topo() const;
+        seacher_t const &topo() const;
     };
 
 }// namespace refactor::graph
