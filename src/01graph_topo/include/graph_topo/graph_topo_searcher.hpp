@@ -1,9 +1,9 @@
 ﻿#ifndef GRAPH_TOPO_SEARCHER_HPP
 #define GRAPH_TOPO_SEARCHER_HPP
 
-#include "fmtlog.h"
 #include "graph_topo.hpp"
 #include <algorithm>
+#include <fmtlog.h>
 #include <set>
 
 /// @brief 这个类缓存了图拓朴中的各种关系，以支持快速查询。

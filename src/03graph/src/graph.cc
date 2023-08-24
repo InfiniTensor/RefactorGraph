@@ -31,6 +31,10 @@ namespace refactor::graph {
     GraphMut::GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&topo)
         : _topo(std::forward<GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>>>(topo)) {}
 
+    auto GraphMut::topo() const -> seacher_t const & {
+        return _topo;
+    }
+
     void GraphMut::fillEdgeInfo() {
         for (auto node : _topo.nodes()) {
             auto info = cloneInfo(node.inputs());
@@ -152,7 +156,7 @@ namespace refactor::graph {
     Graph::Graph(GraphTopo<NodeInfo, EdgeInfo> &&topo)
         : _topo(std::forward<GraphTopo<NodeInfo, EdgeInfo>>(topo)) {}
 
-    GraphTopoSearcher<NodeInfo, EdgeInfo> const &Graph::topo() const {
+    auto Graph::topo() const -> seacher_t const & {
         return _topo;
     }
 

@@ -19,6 +19,7 @@ namespace refactor::graph {
             if (subgraph.size() > 1) {
                 RUNTIME_ERROR("Subgraph with more than 1 node is not supported currently");
             }
+            logd("Subgraph/extract: Extracting subgraph with {} nodes", subgraph.size());
 
             auto const &node = subgraph[0];
             GraphTopo_ newGraphTopo;
@@ -27,6 +28,7 @@ namespace refactor::graph {
             std::vector<NewEdge> newInputs(inputs.size());
             std::transform(inputs.begin(), inputs.end(), newInputs.begin(),
                            [&newGraphTopo](auto const &input) { return newGraphTopo.addEdge(input.info()); });
+            logd("Subgraph/extract: Align {} inputs for node {}", inputs.size(), node.index());
             // 创建子图节点
             auto newNode = newGraphTopo.addNode(
                 std::move(node.info().value),
@@ -34,8 +36,10 @@ namespace refactor::graph {
                 std::vector<Cell<EdgeInfo>>(node.outputs().size(), EdgeInfo{}));
             // 对齐子图输出
             std::vector<NewEdge> newOutputs(node.outputs().size());
-            std::transform(node.outputs().begin(), node.outputs().end(), newOutputs.begin(),
-                           [&newNode](auto const &output) { return newNode[output.index()]; });
+            for (size_t i = 0; i < newOutputs.size(); ++i) {
+                newOutputs[i] = newNode[i];
+            }
+            logd("Subgraph/extract: Align {} outputs for node {}", newOutputs.size(), node.index());
             for (auto const &edge : newOutputs) {
                 newGraphTopo.markOutput(edge);
             }
@@ -43,10 +47,10 @@ namespace refactor::graph {
             auto graph = std::make_shared<GraphMut>(std::move(newGraphTopo));
             graph->fillEdgeInfo();
             {// 验证子图推理
-                auto outputs = node.outputs();
+                auto outputs_ = node.outputs();
                 auto newOutputs_ = graph->topo().globalOutputs();
                 for (size_t i = 0; i < newOutputs.size(); ++i) {
-                    ASSERT(outputs[i].info().value == newOutputs_[i].info().value,
+                    ASSERT(outputs_[i].info().value == newOutputs_[i].info().value,
                            "Infered input info mismatch");
                 }
             }
@@ -110,7 +114,7 @@ namespace refactor::graph {
                     std::transform(outputs.begin(), outputs.end(), std::back_inserter(newOutputs),
                                    [](auto const &output) { return std::move(output.info().value); });
                     // 添加算子
-                    auto newNode = newTopo.addNode(std::move(node.info().value), std::move(newInputs), std::move(newOutputs));
+                    auto newNode = newTopo.addNode(std::move(node_.info().value), std::move(newInputs), std::move(newOutputs));
                     // 对齐算子输出
                     for (auto i = 0; i < outputs.size(); ++i) { inner2new.insert({outputs[i], newNode[i]}); }
                 }
@@ -133,6 +137,7 @@ namespace refactor::graph {
                            [&old2new](auto const &output) { return old2new[output]; });
             newTopo.markOutput(newOutputs);
         }
+        logi("Graph reduced.");
         _topo = GraphTopoSearcher(std::move(newTopo));
     }
 
