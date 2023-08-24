@@ -18,9 +18,7 @@ namespace refactor::transformation {
 
     public:
         explicit ConvTransformer(graph::GraphMut &&graph);
-
         void transform();
-        void reduce();
     };
 }// namespace refactor::transformation
 

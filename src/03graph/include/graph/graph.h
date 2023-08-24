@@ -22,7 +22,16 @@ namespace refactor::graph {
         GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&);
         seacher_t const &topo() const;
 
+        /// @brief 填充边信息。
         void fillEdgeInfo();
+
+        /// @brief 萃取子图。
+        /// @param 每个要提取的子图包含的节点。
+        /// @return 提取到的子图节点。
+        std::vector<seacher_t::Node> extract(std::vector<std::vector<seacher_t::Node>> const &);
+
+        /// @brief 内联子图。
+        void reduce();
 
         GraphTopo<NodeInfo, EdgeInfo> intoGraphTopo();
     };
