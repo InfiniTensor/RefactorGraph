@@ -48,7 +48,7 @@ namespace refactor::graph {
             graph->fillEdgeInfo();
             {// 验证子图推理
                 auto outputs_ = node.outputs();
-                auto newOutputs_ = graph->topo().globalOutputs();
+                auto newOutputs_ = graph->topoMut().globalOutputs();
                 for (size_t i = 0; i < newOutputs.size(); ++i) {
                     ASSERT(outputs_[i].info().value == newOutputs_[i].info().value,
                            "Infered input info mismatch");
@@ -93,12 +93,12 @@ namespace refactor::graph {
 
                 {// 对齐子图输入
                     auto const &inputs = node.inputs();
-                    auto innerInputs = subgraph->topo().globalInputs();
+                    auto innerInputs = subgraph->topoMut().globalInputs();
                     for (size_t i = 0; i < inputs.size(); ++i) {
                         inner2new[innerInputs[i]] = old2new[inputs[i]];
                     }
                 }
-                for (auto const &node_ : subgraph->topo().nodes()) {
+                for (auto const &node_ : subgraph->topoMut().nodes()) {
                     // 克隆子图算子
                     // 子图算子的输出不会被用在子图之外，所以不需要对齐到新图
 
@@ -120,7 +120,7 @@ namespace refactor::graph {
                 }
                 {// 对齐子图输出
                     auto outputs = node.outputs();
-                    auto innerOutputs = subgraph->topo().globalOutputs();
+                    auto innerOutputs = subgraph->topoMut().globalOutputs();
                     for (size_t i = 0; i < outputs.size(); ++i) {
                         old2new[outputs[i]] = inner2new[innerOutputs[i]];
                     }

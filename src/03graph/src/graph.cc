@@ -17,6 +17,9 @@ namespace refactor::graph {
 
     void putInfo(Node const &node, InferResult infered) {
         //TODO
+        if (infered.isErr()) {
+            throw infered.unwrapErr();
+        }
         auto infered_ = infered.unwrap();
         auto const outputs = node.outputs();
         if (infered_.size() < outputs.size()) {
@@ -31,7 +34,7 @@ namespace refactor::graph {
     GraphMut::GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&topo)
         : _topo(std::forward<GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>>>(topo)) {}
 
-    auto GraphMut::topo() const -> seacher_t const & {
+    auto GraphMut::topoMut() const -> seacher_t const & {
         return _topo;
     }
 
@@ -140,6 +143,15 @@ namespace refactor::graph {
                         training = it->second.int_() != 0;
                     }
                     putInfo(node, inferBatchNormalization(info, training));
+                } break;
+                case OpType::Transpose: {
+                    auto const &attributes = node.info().value.operator_().attributes;
+                    ShapeOrNot perms = std::nullopt;
+                    if (auto it = attributes.find("perm"); it != attributes.end()) {
+                        auto const &val = it->second.ints();
+                        perms = Shape(val.begin(), val.end());
+                    }
+                    putInfo(node, inferTranspose(info, std::move(perms)));
                 } break;
                 default:
                     break;

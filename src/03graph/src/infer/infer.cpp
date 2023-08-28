@@ -365,4 +365,37 @@ namespace refactor::graph {
         }
     }
 
+    InferResult inferTranspose(Edges inputs, ShapeOrNot perms) {
+        if (inputs.size() != 1) {
+            return Err(InferError(ERROR_MSG("Input size error")));
+        } else if (!inputs[0].isTensor()) {
+            return Err(InferError(ERROR_MSG("Invalid input edge type")));
+        } else if (!isIeee754DataType(inputs[0].tensor().dataType)) {
+            return Err(InferError(ERROR_MSG("Input data type not support")));
+        } else {
+            auto input = inputs[0].tensor();
+            int rank = input.shape.size();
+            Shape ans(rank);
+            Shape perm;
+            //TODO: initialize is right or wrong here
+            if (perms.has_value()) {
+                perm = perms.value();
+            } else {
+                for (int i = 0; i < rank; ++i) {
+                    perm[i] = i;
+                }
+            }
+            if (rank != perm.size()) {
+                return Err(InferError(ERROR_MSG("perm size not equal to rank")));
+            }
+            for (int i = 0; i < rank; ++i) {
+                if (perm[i] >= rank) {
+                    return Err(InferError(ERROR_MSG("perm bigger than rank")));
+                }
+                ans[i] = input.shape[perm[i]];
+            }
+            return Ok(Edges{EdgeInfo{Tensor{input.dataType, std::move(ans)}}});
+        }
+    }
+
 }// namespace refactor::graph

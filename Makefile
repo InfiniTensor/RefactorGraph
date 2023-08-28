@@ -21,3 +21,4 @@ test-all:
 	./build/$(TYPE)/src/01graph_topo/graph_topo_test
 # ./build/$(TYPE)/src/02common/common_test
 	./build/$(TYPE)/src/03graph/graph_test
+	./build/$(TYPE)/src/04transformation/transformation_test

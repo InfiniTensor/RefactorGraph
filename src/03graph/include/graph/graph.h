@@ -20,7 +20,7 @@ namespace refactor::graph {
 
     public:
         GraphMut(GraphTopo<Cell<NodeInfo>, Cell<EdgeInfo>> &&);
-        seacher_t const &topo() const;
+        seacher_t const &topoMut() const;
 
         /// @brief 填充边信息。
         void fillEdgeInfo();
