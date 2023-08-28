@@ -269,7 +269,7 @@ GraphTopo<NodeInfo, EdgeInfo>::addNode(
         });
     }
     // 添加节点产生的边。
-    nodes.reserve(nodes.size() + outputs.size());
+    edges.reserve(edges.size() + outputs.size());
     for (auto &edge : outputs) {
         edges.push_back({std::move(edge), {-1}, {-1}});
     }
