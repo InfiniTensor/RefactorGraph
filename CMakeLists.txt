@@ -40,15 +40,15 @@ add_subdirectory(src/00common)
 include_directories(src/01graph_topo/include)
 add_subdirectory(src/01graph_topo)
 
-include_directories(src/02computation/include)
-add_subdirectory(src/02computation)
+# include_directories(src/02computation/include)
+# add_subdirectory(src/02computation)
 
-include_directories(src/03transformation/include)
-add_subdirectory(src/03transformation)
+# include_directories(src/03transformation/include)
+# add_subdirectory(src/03transformation)
 
 include_directories(src/kernel_library/include)
 add_subdirectory(src/kernel_library)
 
-add_executable(refactor_graph src/main.cpp)
-target_link_libraries(refactor_graph common kernel_library graph ${BACKWARD_ENABLE})
-add_backward(refactor_graph)
+# add_executable(refactor_graph src/main.cpp)
+# target_link_libraries(refactor_graph common kernel_library graph ${BACKWARD_ENABLE})
+# add_backward(refactor_graph)

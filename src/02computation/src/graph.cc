@@ -17,6 +17,9 @@ namespace refactor::graph {
 
     void putInfo(Node const &node, InferResult infered) {
         //TODO
+        if (infered.isErr()) {
+            infered.unwrapErr()
+        }
         auto infered_ = infered.unwrap();
         auto const outputs = node.outputs();
         if (infered_.size() < outputs.size()) {
