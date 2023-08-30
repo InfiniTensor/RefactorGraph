@@ -2,6 +2,16 @@
 
 [文档](/docs/index.md)
 
+## 构建
+```
+git clone --recursive-submodules git@github.com:InfiniTensor/RefactorGraph.git 
+cd RefactorGraph
+make build
+```
+
+- 测试：`make test-all`
+- 格式化：`make format`
+
 ## 依赖
 
 - [fmt 10.1.0](https://github.com/fmtlib/fmt/releases/tag/10.1.0)
