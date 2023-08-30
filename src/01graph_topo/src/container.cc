@@ -28,4 +28,21 @@ namespace refactor::graph_topo {
         return *this;
     }
 
+    GraphTopo GraphTopo::__withGlobalInputs(size_t globalInputsCount) {
+        GraphTopo ans;
+        ans._impl->_globalInputsCount = globalInputsCount;
+        return ans;
+    }
+    void GraphTopo::__addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount) {
+        _impl->_nodes.push_back({newLocalEdgesCount, inputs.size(), outputsCount});
+        for (auto const &edge : inputs) {
+            _impl->_connections.push_back(OutputEdge{edge});
+        }
+    }
+    void GraphTopo::__setGlobalOutputs(std::vector<size_t> outputs) {
+        for (auto const &edge : outputs) {
+            _impl->_connections.push_back(OutputEdge{edge});
+        }
+    }
+
 }// namespace refactor::graph_topo
