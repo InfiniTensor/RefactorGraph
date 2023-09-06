@@ -40,8 +40,8 @@ namespace refactor::graph_topo {
               _nodes(graph._impl->_nodes.size()),
               _edges() {
 
-            auto nodesCount = graph._impl->_nodes.size();
-            auto globalInputsCount = graph._impl->_globalInputsCount;
+            auto nodesCount = _nodes.size();
+            auto globalInputsCount = _globalInputs.size();
 
             auto passConnections = 0;
 
@@ -56,6 +56,10 @@ namespace refactor::graph_topo {
                     _edges.push_back({EXTERNAL, {}});
                 }
                 for (size_t _ = 0; _ < node._outputsCount; ++_) {
+                    _nodes[nodeIdx]._outputs.push_back(_edges.size());
+                    _edges.push_back({nodeIdx, {}});
+                }
+                for (size_t _ = 0; _ < node._inputsCount; ++_) {
                     auto edgeIdx = graph._impl->_connections[passConnections++]._edgeIdx;
                     auto &edge = _edges[edgeIdx];
 
@@ -67,17 +71,17 @@ namespace refactor::graph_topo {
                         _nodes[edge._source]._successors.insert(nodeIdx);
                     }
                 }
-                auto const &connections = graph._impl->_connections;
-                for (auto output = connections.begin() + passConnections; output != connections.end(); ++output) {
-                    auto edgeIdx = output->_edgeIdx;
-                    auto &edge = _edges[edgeIdx];
+            }
+            auto const &connections = graph._impl->_connections;
+            for (auto output = connections.begin() + passConnections; output != connections.end(); ++output) {
+                auto edgeIdx = output->_edgeIdx;
+                auto &edge = _edges[edgeIdx];
 
-                    _globalOutputs.push_back(edgeIdx);
-                    edge._targets.insert(EXTERNAL);
+                _globalOutputs.push_back(edgeIdx);
+                edge._targets.insert(EXTERNAL);
 
-                    if (edge._source != EXTERNAL) {
-                        _nodes[edge._source]._successors.insert(EXTERNAL);
-                    }
+                if (edge._source != EXTERNAL) {
+                    _nodes[edge._source]._successors.insert(EXTERNAL);
                 }
             }
         }
