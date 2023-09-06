@@ -8,11 +8,6 @@
 
 namespace refactor::graph_topo {
 
-    using Node = int;
-    using NodeKey = int;
-    using Edge = int;
-    using EdgeKey = int;
-
     template<class Node, class Edge>
     struct Graph {
         GraphTopo topology;
