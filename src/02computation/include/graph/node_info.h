@@ -39,6 +39,9 @@ namespace refactor::graph {
 
         bool operator==(Operator const &) const;
         bool operator!=(Operator const &) const;
+
+        Attribute const &attribute(const char *) const;
+        Attribute const &attribute(const char *, Attribute const &default_) const;
     };
 
     struct Subgraph {

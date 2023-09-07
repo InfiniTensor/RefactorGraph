@@ -56,8 +56,6 @@ namespace refactor::graph {
                 return inferMax(node, std::move(inputs));
             case OpType::Transpose:
                 return inferTranspose(node, std::move(inputs));
-            case OpType::ConstantOfShape:
-                return inferConstantOfShape(node, std::move(inputs));
             case OpType::Expand:
                 return inferExpand(node, std::move(inputs));
 

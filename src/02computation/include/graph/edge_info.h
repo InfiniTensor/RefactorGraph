@@ -26,7 +26,7 @@ namespace refactor::graph {
     /// @brief 内存块。
     struct Blob {
         /// @brief ! NOTICE 指针必须非空。
-        void *data;
+        void *ptr;
 
         explicit Blob(void *);
         Blob(Blob const &) = delete;

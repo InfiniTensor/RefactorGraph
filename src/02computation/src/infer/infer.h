@@ -37,7 +37,6 @@ namespace refactor::graph {
     InferResult inferUnsqueeze(NodeInfo const &, Edges);
     InferResult inferMax(NodeInfo const &, Edges);
     InferResult inferTranspose(NodeInfo const &, Edges);
-    InferResult inferConstantOfShape(NodeInfo const &, Edges);
     InferResult inferExpand(NodeInfo const &, Edges);
 
     using ShapeResult = Result<Shape, std::string>;

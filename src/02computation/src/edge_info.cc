@@ -25,8 +25,8 @@ namespace refactor::graph {
     int64_t DimExpr::value() const { return std::get<int64_t>(expr); }
     std::string const &DimExpr::variable() const { return std::get<std::string>(expr); }
 
-    Blob::Blob(void *data_) : data(data_) {}
-    Blob::~Blob() { std::free(data); }
+    Blob::Blob(void *ptr_) : ptr(ptr_) {}
+    Blob::~Blob() { std::free(ptr); }
 
     Tensor::Tensor(common::DataType dt_, Shape shape_, std::shared_ptr<Blob> data_)
         : dataType(dt_),

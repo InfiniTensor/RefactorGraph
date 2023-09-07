@@ -52,6 +52,18 @@ namespace refactor::graph {
         return !operator==(rhs);
     }
 
+    Attribute const &Operator::attribute(const char *name) const {
+        return attributes.at(name);
+    }
+
+    Attribute const &Operator::attribute(const char *name, Attribute const &default_) const {
+        if (auto it = attributes.find(name); it != attributes.end()) {
+            return it->second;
+        } else {
+            return default_;
+        }
+    }
+
     bool Subgraph::operator==(Subgraph const &rhs) const {
         return false;
     }
