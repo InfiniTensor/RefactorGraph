@@ -23,14 +23,30 @@ namespace refactor::graph {
 
     using Shape = absl::InlinedVector<DimExpr, 4>;
 
+    /// @brief 内存块。
+    struct Blob {
+        /// @brief ! NOTICE 指针必须非空。
+        void *data;
+
+        explicit Blob(void *);
+        Blob(Blob const &) = delete;
+        Blob(Blob &&) = delete;
+
+        ~Blob();
+    };
+
     /// @brief 张量边。
     struct Tensor {
         common::DataType dataType;
         Shape shape;
-        std::shared_ptr<uint8_t *> data;
+        std::shared_ptr<Blob> data;
+
+        Tensor(common::DataType, Shape, std::shared_ptr<Blob> = nullptr);
 
         bool operator==(Tensor const &) const;
         bool operator!=(Tensor const &) const;
+
+        bool hasData() const;
     };
 
 }// namespace refactor::graph

@@ -18,13 +18,27 @@ namespace refactor::graph {
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
     InferResult inferUnary(NodeInfo const &, Edges);
-    //     InferResult inferArithmetic(Edges, common::OpType opType);
-    //     InferResult inferGemm(Edges, bool transA, bool transB);
-    //     InferResult inferConv(Edges, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides);
-    //     InferResult inferPool(Edges, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides);
-    //     InferResult inferGlobalPool(Edges);
-    //     InferResult inferReshape(Edges);
-    //     InferResult inferBatchNormalization(Edges, bool training);
+    InferResult inferArithmetic(NodeInfo const &, Edges);
+    InferResult inferGemm(NodeInfo const &, Edges);
+    InferResult inferMatMul(NodeInfo const &, Edges);
+    InferResult inferReshape(NodeInfo const &, Edges);
+    InferResult inferCumSum(NodeInfo const &, Edges);
+    InferResult inferSlice(NodeInfo const &, Edges);
+    InferResult inferShape(NodeInfo const &, Edges);
+    InferResult inferWhere(NodeInfo const &, Edges);
+    InferResult inferSqueeze(NodeInfo const &, Edges);
+    InferResult inferEqual(NodeInfo const &, Edges);
+    InferResult inferSoftmax(NodeInfo const &, Edges);
+    InferResult inferPow(NodeInfo const &, Edges);
+    InferResult inferReduce(NodeInfo const &, Edges);
+    InferResult inferConcat(NodeInfo const &, Edges);
+    InferResult inferGather(NodeInfo const &, Edges);
+    InferResult inferCast(NodeInfo const &, Edges);
+    InferResult inferUnsqueeze(NodeInfo const &, Edges);
+    InferResult inferMax(NodeInfo const &, Edges);
+    InferResult inferTranspose(NodeInfo const &, Edges);
+    InferResult inferConstantOfShape(NodeInfo const &, Edges);
+    InferResult inferExpand(NodeInfo const &, Edges);
 
     using ShapeResult = Result<Shape, std::string>;
 
