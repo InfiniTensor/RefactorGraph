@@ -1,18 +1,14 @@
-﻿#ifndef INFER_H
-#define INFER_H
+﻿#ifndef GRAPH_INFER_H
+#define GRAPH_INFER_H
 
-#include "common/op_type.h"
-#include "graph/edge_info.h"
-#include <optional>
+#include "common/error_handler.h"
+#include "graph/graph.h"
 #include <result.h>
-#include <stdexcept>
-#include <string>
-#include <vector>
 
 namespace refactor::graph {
 
-    using Edges = std::vector<EdgeInfo>;
     using ShapeOrNot = std::optional<Shape>;
+    using Edges = std::vector<Edge>;
 
     struct InferError : public std::runtime_error {
         explicit InferError(std::string &&msg);
@@ -21,14 +17,14 @@ namespace refactor::graph {
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
-    InferResult inferUnary(Edges, bool(common::DataType));
-    InferResult inferArithmetic(Edges, common::OpType opType);
-    InferResult inferGemm(Edges, bool transA, bool transB);
-    InferResult inferConv(Edges, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides);
-    InferResult inferPool(Edges, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides);
-    InferResult inferGlobalPool(Edges);
-    InferResult inferReshape(Edges);
-    InferResult inferBatchNormalization(Edges, bool training);
+    InferResult inferUnary(NodeInfo const &, Edges);
+    //     InferResult inferArithmetic(Edges, common::OpType opType);
+    //     InferResult inferGemm(Edges, bool transA, bool transB);
+    //     InferResult inferConv(Edges, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides);
+    //     InferResult inferPool(Edges, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides);
+    //     InferResult inferGlobalPool(Edges);
+    //     InferResult inferReshape(Edges);
+    //     InferResult inferBatchNormalization(Edges, bool training);
 
     using ShapeResult = Result<Shape, std::string>;
 
@@ -58,4 +54,4 @@ namespace refactor::graph {
 
 }// namespace refactor::graph
 
-#endif// INFER_H
+#endif// GRAPH_INFER_H

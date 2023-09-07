@@ -143,13 +143,13 @@ namespace refactor::graph_topo {
     Searcher::Node::Node(Searcher const *internal, size_t idx) : _internal(internal), _idx(idx) {}
     Searcher::Edge::Edge(Searcher const *internal, size_t idx) : _internal(internal), _idx(idx) {}
     bool Searcher::Node::operator==(Node const &rhs) const { return _internal == rhs._internal && _idx == rhs._idx; }
-    bool Searcher::Node::operator!=(Node const &rhs) const { return !operator==(rhs); }
+    bool Searcher::Node::operator!=(Node const &rhs) const { return _internal == rhs._internal && _idx != rhs._idx; }
     bool Searcher::Node::operator<(Node const &rhs) const { return _internal == rhs._internal && _idx < rhs._idx; }
     bool Searcher::Node::operator>(Node const &rhs) const { return _internal == rhs._internal && _idx > rhs._idx; }
     bool Searcher::Node::operator<=(Node const &rhs) const { return _internal == rhs._internal && _idx <= rhs._idx; }
     bool Searcher::Node::operator>=(Node const &rhs) const { return _internal == rhs._internal && _idx >= rhs._idx; }
     bool Searcher::Edge::operator==(Edge const &rhs) const { return _internal == rhs._internal && _idx == rhs._idx; }
-    bool Searcher::Edge::operator!=(Edge const &rhs) const { return !operator==(rhs); }
+    bool Searcher::Edge::operator!=(Edge const &rhs) const { return _internal == rhs._internal && _idx != rhs._idx; }
     bool Searcher::Edge::operator<(Edge const &rhs) const { return _internal == rhs._internal && _idx < rhs._idx; }
     bool Searcher::Edge::operator>(Edge const &rhs) const { return _internal == rhs._internal && _idx > rhs._idx; }
     bool Searcher::Edge::operator<=(Edge const &rhs) const { return _internal == rhs._internal && _idx <= rhs._idx; }
@@ -217,13 +217,13 @@ namespace refactor::graph_topo {
     Searcher::Nodes::Iterator::Iterator(Searcher const *internal, size_t idx) : _internal(internal), _idx(idx) {}
     Searcher::Edges::Iterator::Iterator(Searcher const *internal, size_t idx) : _internal(internal), _idx(idx) {}
     bool Searcher::Nodes::Iterator::operator==(Iterator const &rhs) const { return _internal == rhs._internal && _idx == rhs._idx; }
-    bool Searcher::Nodes::Iterator::operator!=(Iterator const &rhs) const { return !operator==(rhs); }
+    bool Searcher::Nodes::Iterator::operator!=(Iterator const &rhs) const { return _internal == rhs._internal && _idx != rhs._idx; }
     bool Searcher::Nodes::Iterator::operator<(Iterator const &rhs) const { return _internal == rhs._internal && _idx < rhs._idx; }
     bool Searcher::Nodes::Iterator::operator>(Iterator const &rhs) const { return _internal == rhs._internal && _idx > rhs._idx; }
     bool Searcher::Nodes::Iterator::operator<=(Iterator const &rhs) const { return _internal == rhs._internal && _idx <= rhs._idx; }
     bool Searcher::Nodes::Iterator::operator>=(Iterator const &rhs) const { return _internal == rhs._internal && _idx >= rhs._idx; }
     bool Searcher::Edges::Iterator::operator==(Iterator const &rhs) const { return _internal == rhs._internal && _idx == rhs._idx; }
-    bool Searcher::Edges::Iterator::operator!=(Iterator const &rhs) const { return !operator==(rhs); }
+    bool Searcher::Edges::Iterator::operator!=(Iterator const &rhs) const { return _internal == rhs._internal && _idx != rhs._idx; }
     bool Searcher::Edges::Iterator::operator<(Iterator const &rhs) const { return _internal == rhs._internal && _idx < rhs._idx; }
     bool Searcher::Edges::Iterator::operator>(Iterator const &rhs) const { return _internal == rhs._internal && _idx > rhs._idx; }
     bool Searcher::Edges::Iterator::operator<=(Iterator const &rhs) const { return _internal == rhs._internal && _idx <= rhs._idx; }

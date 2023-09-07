@@ -22,6 +22,32 @@ namespace refactor::graph_topo {
         GraphTopo &operator=(GraphTopo const &);
         GraphTopo &operator=(GraphTopo &&) noexcept;
 
+        struct NodeRef {
+            size_t idx;
+            std ::vector<size_t> inputs, outputs;
+        };
+
+        class Iterator {
+            GraphTopo const *_internal;
+            size_t _idx, _passConnections, _passEdges;
+
+        public:
+            static Iterator begin(GraphTopo const *);
+            static Iterator end(GraphTopo const *);
+            bool operator==(Iterator const &) const;
+            bool operator!=(Iterator const &) const;
+            bool operator<(Iterator const &) const;
+            bool operator>(Iterator const &) const;
+            bool operator<=(Iterator const &) const;
+            bool operator>=(Iterator const &) const;
+            Iterator &operator++();
+            NodeRef operator*() const;
+        };
+
+        Iterator begin() const;
+        Iterator end() const;
+        size_t size() const;
+
         static GraphTopo __withGlobalInputs(size_t globalInputsCount);
         void __addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount);
         void __setGlobalOutputs(std::vector<size_t> outputs);
