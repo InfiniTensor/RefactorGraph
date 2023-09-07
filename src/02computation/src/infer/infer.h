@@ -34,7 +34,6 @@ namespace refactor::graph {
     InferResult inferConcat(NodeInfo const &, Edges);
     InferResult inferGather(NodeInfo const &, Edges);
     InferResult inferCast(NodeInfo const &, Edges);
-    InferResult inferUnsqueeze(NodeInfo const &, Edges);
     InferResult inferMax(NodeInfo const &, Edges);
     InferResult inferTranspose(NodeInfo const &, Edges);
     InferResult inferExpand(NodeInfo const &, Edges);

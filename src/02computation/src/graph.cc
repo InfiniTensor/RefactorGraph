@@ -32,6 +32,7 @@ namespace refactor::graph {
             case OpType::Where:
                 return inferWhere(node, std::move(inputs));
             case OpType::Squeeze:
+            case OpType::Unsqueeze:
                 return inferSqueeze(node, std::move(inputs));
             case OpType::Equal:
                 return inferEqual(node, std::move(inputs));
@@ -50,8 +51,6 @@ namespace refactor::graph {
                 return inferGather(node, std::move(inputs));
             case OpType::Cast:
                 return inferCast(node, std::move(inputs));
-            case OpType::Unsqueeze:
-                return inferUnsqueeze(node, std::move(inputs));
             case OpType::Max:
                 return inferMax(node, std::move(inputs));
             case OpType::Transpose:

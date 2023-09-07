@@ -367,10 +367,58 @@ namespace refactor::graph {
     }
 
     InferResult inferSqueeze(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 1) {
+        if (inputs.size() != 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto const &data = inputs[0];
+            auto const &axes = inputs[1];
+            if (axes->dataType != DataType::I64 || axes->shape.size() != 1) {
+                return Err(InferError(ERROR_MSG("Axes not support")));
+            }
+            auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
+            std::vector<int64_t> axes__(axes_, axes_ + axes->shape[0].value());
+            for (auto &i : axes__) {
+                if (i < 0) {
+                    i += data->shape.size();
+                }
+            }
+            std::sort(axes__.begin(), axes__.end());
+            Shape ans;
+            switch (node.operator_().opType.underlying()) {
+                case OpType::Squeeze: {
+                    auto len = data->shape.size();
+                    auto itx = data->shape.begin();
+                    auto ity = axes__.begin();
+                    ans = Shape(len, DimExpr(1));
+                    for (auto i = 0; i < len; ++i) {
+                        if (i != *ity) {
+                            ans[i] = *itx++;
+                        } else {
+                            ASSERT(*itx++ == DimExpr(1), "Unsqueeze error");
+                            ity++;
+                        }
+                    }
+                } break;
+
+                case OpType::Unsqueeze: {
+                    auto len = data->shape.size() + axes__.size();
+                    auto itx = data->shape.begin();
+                    auto ity = axes__.begin();
+                    ans = Shape(len, DimExpr(1));
+                    for (size_t i = 0; i < len; ++i) {
+                        if (i != *ity) {
+                            ans[i] = *itx++;
+                        } else {
+                            ans[i] = DimExpr(1);
+                            ity++;
+                        }
+                    }
+                } break;
+
+                default:
+                    RUNTIME_ERROR("Unreachable");
+            }
+            return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
         }
     }
 
@@ -378,7 +426,17 @@ namespace refactor::graph {
         if (inputs.size() != 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto const &a = inputs[0];
+            auto const &b = inputs[1];
+            if (a->dataType != b->dataType) {
+                return Err(InferError(ERROR_MSG("Input data type not support")));
+            }
+            auto ans = multidirBroadcast({a->shape, b->shape});
+            if (ans.isErr()) {
+                return Err(InferError(ERROR_MSG(ans.unwrapErr())));
+            } else {
+                return Ok(Edges{std::make_shared<Tensor>(DataType::Bool, ans.unwrap())});
+            }
         }
     }
 
@@ -394,7 +452,17 @@ namespace refactor::graph {
         if (inputs.size() != 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto const &a = inputs[0];
+            auto const &b = inputs[1];
+            if (!isSignedDataType(a->dataType) || !isNumbericDataType(b->dataType)) {
+                return Err(InferError(ERROR_MSG("Input data type not support")));
+            }
+            auto ans = multidirBroadcast({a->shape, b->shape});
+            if (ans.isErr()) {
+                return Err(InferError(ERROR_MSG(ans.unwrapErr())));
+            } else {
+                return Ok(Edges{std::make_shared<Tensor>(a->dataType, ans.unwrap())});
+            }
         }
     }
 
@@ -430,14 +498,6 @@ namespace refactor::graph {
         }
     }
 
-    InferResult inferUnsqueeze(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 1) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
-        }
-    }
-
     InferResult inferMax(NodeInfo const &node, Edges inputs) {
         if (inputs.size() != 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
@@ -447,10 +507,25 @@ namespace refactor::graph {
     }
 
     InferResult inferTranspose(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
+        if (inputs.size() != 1) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto const &data = inputs[0];
+            auto const &attrs = node.operator_().attributes;
+            if (auto it = attrs.find("perm"); it != attrs.end()) {
+                auto const &perm = it->second.ints();
+                if (perm.size() != data->shape.size()) {
+                    return Err(InferError(ERROR_MSG("Input shape not support")));
+                }
+                Shape ans;
+                for (auto i : perm) {
+                    ans.emplace_back(data->shape[i]);
+                }
+                return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
+            } else {
+                Shape ans(data->shape.rbegin(), data->shape.rend());
+                return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
+            }
         }
     }
 
@@ -463,7 +538,6 @@ namespace refactor::graph {
     }
 
 }// namespace refactor::graph
-
 
 //     InferResult inferConv(Edges inputs, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides) {
 //         if (inputs.size() != 2 && inputs.size() != 3) {

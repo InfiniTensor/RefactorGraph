@@ -41,6 +41,9 @@ namespace refactor::common {
     /// @brief 判断是否浮点数数据类型。
     bool isFloatDataType(DataType);
 
+    /// @brief 判断是否有符号数据类型。Pow 算子使用这类类型。
+    bool isSignedDataType(DataType);
+
     /// @brief 判断是否数字数据类型。
     bool isNumbericDataType(DataType);
 

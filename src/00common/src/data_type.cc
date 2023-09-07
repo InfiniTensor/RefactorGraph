@@ -33,6 +33,12 @@ namespace refactor::common {
         return set.find(dt) != set.end();
     }
 
+    bool isSignedDataType(DataType dt) {
+        static const std::unordered_set<DataType> set{
+            DataType::F32, DataType::I32, DataType::I64, DataType::FP16, DataType::F64, DataType::BF16};
+        return set.find(dt) != set.end();
+    }
+
     bool isNumbericDataType(DataType dt) {
         static const std::unordered_set<DataType> set{
             DataType::F32, DataType::U8, DataType::I8, DataType::U16, DataType::I16, DataType::I32,
