@@ -125,6 +125,7 @@ namespace refactor::graph {
                     }
                     break;
                 case OpType::Tanh:
+                case OpType::Sqrt:
                     if (!isFloatDataType(dataType)) {
                         return Err(InferError(ERROR_MSG("Data type not support")));
                     }
@@ -565,39 +566,122 @@ namespace refactor::graph {
         } else if (!isNumbericDataType(inputs[0]->dataType)) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto keepdims = node.operator_().attribute("keepdims", {1}).int_();
+            if (inputs.size() == 2) {
+                auto const &shape = inputs[0]->shape;
+                auto const &axes = inputs[1];
+                if (axes->dataType != DataType::I64 ||
+                    axes->shape.size() != 1 ||
+                    !axes->hasData()) {
+                    return Err(InferError(ERROR_MSG("Axes not support")));
+                }
+                auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
+                auto axesCount = axes->shape[0].value();
+                std::unordered_set<int64_t> axes__;
+                for (size_t i = 0; i < axesCount; ++i) {
+                    auto axis = axes_[i];
+                    axes__.insert(axis < 0 ? axis + shape.size() : axis);
+                }
+                Shape ans;
+                for (size_t i = 0; i < shape.size(); ++i) {
+                    if (axes__.find(i) == axes__.end()) {
+                        ans.emplace_back(shape[i]);
+                    } else if (keepdims) {
+                        ans.emplace_back(1);
+                    }
+                }
+                return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
+            } else if (node.operator_().attribute("noop_with_empty_axes", {0}).int_() != 0) {
+                return Ok(Edges{std::move(inputs[0])});
+            } else if (keepdims) {
+                return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, Shape(inputs[0]->shape.size(), DimExpr(1)))});
+            } else {
+                return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, Shape{})});
+            }
         }
     }
 
     InferResult inferConcat(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
+        if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto shape = inputs[0]->shape;
+            auto dataType = inputs[0]->dataType;
+            auto axis = node.operator_().attribute("axis").int_();
+            for (auto it = inputs.begin() + 1; it != inputs.end(); ++it) {
+                auto const &input = *it;
+                if (input->dataType != dataType) {
+                    return Err(InferError(ERROR_MSG("Input data type not support")));
+                }
+                if (input->shape.size() != shape.size()) {
+                    return Err(InferError(ERROR_MSG("Input shape not support")));
+                }
+                for (size_t i = 0; i < shape.size(); ++i) {
+                    if (i == axis) {
+                        shape[i] = DimExpr(shape[i].value() + input->shape[i].value());
+                    } else if (shape[i] != input->shape[i]) {
+                        return Err(InferError(ERROR_MSG("Input shape not support")));
+                    }
+                }
+            }
+            return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(shape))});
         }
     }
 
     InferResult inferGather(NodeInfo const &node, Edges inputs) {
         if (inputs.size() != 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
+        } else if (inputs[1]->dataType != DataType::I32 && inputs[1]->dataType != DataType::I64) {
+            return Err(InferError(ERROR_MSG("Input data type not support")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto const r = inputs[0]->shape.size();
+            auto const q = inputs[1]->shape.size();
+            auto axis = node.operator_().attribute("axis", {0}).int_();
+            if (axis < 0) {
+                axis += r;
+            }
+            if (axis < 0 || r <= axis) {
+                return Err(InferError(ERROR_MSG("Input shape not support")));
+            }
+            Shape ans(q + r - 1, DimExpr(1));
+            for (size_t i = 0; i < q; ++i) {
+                ans[i] = inputs[1]->shape[i];
+            }
+            for (size_t j = 0; j < r; ++j) {
+                ans[q + j] = inputs[0]->shape[j];
+            }
+            return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
         }
     }
 
     InferResult inferCast(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
+        if (inputs.size() != 1) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto to = static_cast<DataType>(node.operator_().attribute("to").int_());
+            return Ok(Edges{std::make_shared<Tensor>(to, inputs[0]->shape)});
         }
     }
 
     InferResult inferMax(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
+        if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            std::vector<Shape> shapes;
+            shapes.reserve(inputs.size());
+            auto dataType = inputs[0]->dataType;
+            for (auto &input : inputs) {
+                if (input->dataType != dataType) {
+                    return Err(InferError(ERROR_MSG("Input data type not support")));
+                }
+                shapes.emplace_back(std::move(input->shape));
+            }
+            auto shape = multidirBroadcast(shapes);
+            if (shape.isErr()) {
+                return Err(InferError(ERROR_MSG(shape.unwrapErr())));
+            } else {
+                return Ok(Edges{std::make_shared<Tensor>(dataType, shape.unwrap())});
+            }
         }
     }
 
@@ -627,8 +711,21 @@ namespace refactor::graph {
     InferResult inferExpand(NodeInfo const &node, Edges inputs) {
         if (inputs.size() != 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
+        } else if (inputs[1]->dataType != DataType::I64 ||
+                   inputs[1]->shape.size() != 1 ||
+                   !inputs[1]->hasData()) {
+            return Err(InferError(ERROR_MSG("Shape not support")));
         } else {
-            return Err(InferError(ERROR_MSG("Not implemented")));
+            auto const &data = inputs[0];
+            auto const &shape = inputs[1];
+            auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
+            Shape shape__(shape_, shape_ + shape->shape[0].value());
+            auto res = multidirBroadcast({data->shape, shape__});
+            if (res.isErr()) {
+                return Err(InferError(ERROR_MSG(res.unwrapErr())));
+            } else {
+                return Ok(Edges{std::make_shared<Tensor>(data->dataType, res.unwrap())});
+            }
         }
     }
 
