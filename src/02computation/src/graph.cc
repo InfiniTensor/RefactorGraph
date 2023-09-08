@@ -7,8 +7,8 @@ using namespace refactor::common;
 
 namespace refactor::graph {
 
-    InferResult infer(NodeInfo const &node, Edges inputs) {
-        switch (node.operator_().opType.underlying()) {
+    InferResult infer(Operator const &node, Edges inputs) {
+        switch (node.opType.underlying()) {
             case OpType::Relu:
             case OpType::Sqrt:
                 return inferUnary(node, std::move(inputs));
@@ -68,7 +68,7 @@ namespace refactor::graph {
             std::vector<Edge> inputs_(inputs.size());
             std::transform(inputs.begin(), inputs.end(), inputs_.begin(),
                            [this](size_t idx) { return _internal.edges[idx]; });
-            auto infered = infer(_internal.nodes[nodeIdx], std::move(inputs_));
+            auto infered = infer(_internal.nodes[nodeIdx]->operator_(), std::move(inputs_));
             if (infered.isErr()) {
                 throw infered.unwrapErr();
             } else {

@@ -17,26 +17,26 @@ namespace refactor::graph {
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
-    InferResult inferUnary(NodeInfo const &, Edges);
-    InferResult inferArithmetic(NodeInfo const &, Edges);
-    InferResult inferGemm(NodeInfo const &, Edges);
-    InferResult inferMatMul(NodeInfo const &, Edges);
-    InferResult inferReshape(NodeInfo const &, Edges);
-    InferResult inferCumSum(NodeInfo const &, Edges);
-    InferResult inferSlice(NodeInfo const &, Edges);
-    InferResult inferShape(NodeInfo const &, Edges);
-    InferResult inferWhere(NodeInfo const &, Edges);
-    InferResult inferSqueeze(NodeInfo const &, Edges);
-    InferResult inferEqual(NodeInfo const &, Edges);
-    InferResult inferSoftmax(NodeInfo const &, Edges);
-    InferResult inferPow(NodeInfo const &, Edges);
-    InferResult inferReduce(NodeInfo const &, Edges);
-    InferResult inferConcat(NodeInfo const &, Edges);
-    InferResult inferGather(NodeInfo const &, Edges);
-    InferResult inferCast(NodeInfo const &, Edges);
-    InferResult inferMax(NodeInfo const &, Edges);
-    InferResult inferTranspose(NodeInfo const &, Edges);
-    InferResult inferExpand(NodeInfo const &, Edges);
+    InferResult inferUnary(Operator const &, Edges);
+    InferResult inferArithmetic(Operator const &, Edges);
+    InferResult inferGemm(Operator const &, Edges);
+    InferResult inferMatMul(Operator const &, Edges);
+    InferResult inferReshape(Operator const &, Edges);
+    InferResult inferCumSum(Operator const &, Edges);
+    InferResult inferSlice(Operator const &, Edges);
+    InferResult inferShape(Operator const &, Edges);
+    InferResult inferWhere(Operator const &, Edges);
+    InferResult inferSqueeze(Operator const &, Edges);
+    InferResult inferEqual(Operator const &, Edges);
+    InferResult inferSoftmax(Operator const &, Edges);
+    InferResult inferPow(Operator const &, Edges);
+    InferResult inferReduce(Operator const &, Edges);
+    InferResult inferConcat(Operator const &, Edges);
+    InferResult inferGather(Operator const &, Edges);
+    InferResult inferCast(Operator const &, Edges);
+    InferResult inferMax(Operator const &, Edges);
+    InferResult inferTranspose(Operator const &, Edges);
+    InferResult inferExpand(Operator const &, Edges);
 
     using ShapeResult = Result<Shape, std::string>;
 

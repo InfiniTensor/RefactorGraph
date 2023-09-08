@@ -8,10 +8,11 @@
 
 namespace refactor::graph {
 
+    using Node = std::shared_ptr<NodeInfo>;
     using Edge = std::shared_ptr<Tensor>;
 
     class Graph {
-        graph_topo::Graph<NodeInfo, Edge> _internal;
+        graph_topo::Graph<Node, Edge> _internal;
 
     public:
         void fillEdgeInfo();
