@@ -54,7 +54,7 @@ namespace refactor::common {
     size_t dataTypeSize(DataType dt) {
 #define RETURN_SIZE(TYPE) \
     case DataType::TYPE:  \
-        return sizeof(primitive_t<DataType::TYPE>)
+        return sizeof(primitive_t<DataType::TYPE>::type)
 
         switch (dt) {
             RETURN_SIZE(F32);
