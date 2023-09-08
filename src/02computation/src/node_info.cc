@@ -18,6 +18,8 @@ namespace refactor::graph {
                 CASE(3);
                 CASE(4);
                 CASE(5);
+                CASE(6);
+                CASE(7);
                 default:
                     RUNTIME_ERROR("Unreachable");
             }
@@ -29,7 +31,7 @@ namespace refactor::graph {
     }
 
 #define CONVERT(TYPE, NAME)                        \
-    TYPE Attribute::NAME() const {                 \
+    TYPE const &Attribute::NAME() const {          \
         if (std::holds_alternative<TYPE>(value)) { \
             return std::get<TYPE>(value);          \
         } else {                                   \
@@ -41,8 +43,10 @@ namespace refactor::graph {
     CONVERT(Ints, ints)
     CONVERT(Float, float_)
     CONVERT(Floats, floats)
-    CONVERT(String, string_)
+    CONVERT(String, string)
     CONVERT(Strings, strings)
+    CONVERT(Tensor_, tensor)
+    CONVERT(Tensors, tensors)
 #undef CONVERT
 
     bool Operator::operator==(Operator const &rhs) const {
