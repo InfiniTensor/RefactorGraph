@@ -75,7 +75,10 @@ namespace refactor::graph {
             for (auto i = 0; i < inputs.size(); ++i) {
                 auto ptr = (inputs_[i] = _internal.edges[inputs[i]]).get();
                 if (unknownEdges.find(ptr) != unknownEdges.end()) {
-                    continue;// 有入边未知，跳过节点
+                    // 有入边未知，其出边加入未知边，然后跳过节点
+                    std::transform(outputs.begin(), outputs.end(), std::inserter(unknownEdges, unknownEdges.end()),
+                                   [this](auto output) { return _internal.edges[output].get(); });
+                    continue;
                 }
             }
             // 推导
@@ -85,9 +88,8 @@ namespace refactor::graph {
                 auto error = infered.unwrapErr();
                 if (std::holds_alternative<UnknownVariable>(error.value)) {
                     unknownVariables.insert(std::get<UnknownVariable>(error.value).name);
-                    for (auto i = 0; i < outputs.size(); ++i) {
-                        unknownEdges.insert(_internal.edges[outputs[i]].get());
-                    }
+                    std::transform(outputs.begin(), outputs.end(), std::inserter(unknownEdges, unknownEdges.end()),
+                                   [this](auto output) { return _internal.edges[output].get(); });
                 } else {
                     throw error;
                 }
