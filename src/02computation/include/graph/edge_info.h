@@ -47,6 +47,8 @@ namespace refactor::graph {
         bool operator!=(Tensor const &) const;
 
         bool hasData() const;
+        size_t elementsSize() const;
+        size_t bytesSize() const;
     };
 
 }// namespace refactor::graph

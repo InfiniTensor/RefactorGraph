@@ -50,6 +50,11 @@ namespace refactor::common {
     /// @brief 判断是否布尔数据类型。
     bool isBool(DataType);
 
+    /// @brief 计算数据类型的字节数。
+    /// @param param1 数据类型。
+    /// @return 字节数。
+    size_t dataTypeSize(DataType);
+
     template<DataType t>
     struct primitive_t;
 

@@ -1,4 +1,5 @@
 ﻿#include "common/data_type.h"
+#include "common/error_handler.h"
 #include <fmt/core.h>
 #include <unordered_set>
 
@@ -49,4 +50,31 @@ namespace refactor::common {
     bool isBool(DataType dt) {
         return dt == DataType::Bool;
     }
+
+    size_t dataTypeSize(DataType dt) {
+#define RETURN_SIZE(TYPE) \
+    case DataType::TYPE:  \
+        return sizeof(primitive_t<DataType::TYPE>)
+
+        switch (dt) {
+            RETURN_SIZE(F32);
+            RETURN_SIZE(U8);
+            RETURN_SIZE(I8);
+            RETURN_SIZE(U16);
+            RETURN_SIZE(I16);
+            RETURN_SIZE(I32);
+            RETURN_SIZE(I64);
+            RETURN_SIZE(Bool);
+            RETURN_SIZE(FP16);
+            RETURN_SIZE(F64);
+            RETURN_SIZE(U32);
+            RETURN_SIZE(U64);
+            RETURN_SIZE(Complex64);
+            RETURN_SIZE(Complex128);
+            RETURN_SIZE(BF16);
+            default:
+                RUNTIME_ERROR("Unreachable");
+        }
+    }
+
 }// namespace refactor::common

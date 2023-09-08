@@ -1,5 +1,6 @@
 ﻿#include "graph/edge_info.h"
 #include "common/error_handler.h"
+#include <numeric>
 
 namespace refactor::graph {
 
@@ -39,5 +40,12 @@ namespace refactor::graph {
     }
     bool Tensor::operator!=(Tensor const &rhs) const { return !operator==(rhs); }
     bool Tensor::hasData() const { return data.get(); }
+    size_t Tensor::elementsSize() const {
+        return std::accumulate(shape.begin(), shape.end(), 1,
+                               [](auto acc, auto const &it) { return acc * it.value(); });
+    }
+    size_t Tensor::bytesSize() const {
+        return common::dataTypeSize(dataType) * elementsSize();
+    }
 
 }// namespace refactor::graph
