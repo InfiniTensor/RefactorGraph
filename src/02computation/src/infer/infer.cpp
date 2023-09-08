@@ -96,10 +96,13 @@ namespace refactor::graph {
     InferError::InferError(std::string &&msg)
         : std::runtime_error(std::forward<std::string>(msg)) {}
 
+#define EXPECT_SIZE(N)                                         \
+    if (inputs.size() != (N)) {                                \
+        return Err(InferError(ERROR_MSG("Input size error"))); \
+    } else
+
     InferResult inferUnary(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 1) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(1) {
             auto dataType = inputs[0]->dataType;
             switch (node.operator_().opType.underlying()) {
                 case OpType::Abs:
@@ -138,9 +141,7 @@ namespace refactor::graph {
     }
 
     InferResult inferArithmetic(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(2) {
             auto dataType = inputs[0]->dataType;
             if (!isNumbericDataType(dataType) || inputs[1]->dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Data type not support")));
@@ -156,7 +157,7 @@ namespace refactor::graph {
     }
 
     InferResult inferGemm(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2 && inputs.size() != 3) {
+        if (auto size = inputs.size(); size < 2 || 3 < size) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
             auto const &a = inputs[0];
@@ -203,9 +204,7 @@ namespace refactor::graph {
     }
 
     InferResult inferMatMul(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
             auto dataType = a->dataType;
@@ -258,12 +257,12 @@ namespace refactor::graph {
     }
 
     InferResult inferReshape(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else if (!inputs[1]->hasData()) {
-            return Err(InferError(ERROR_MSG("Shape must be constant")));
-        } else if (inputs[1]->dataType != DataType::I64 || inputs[1]->shape.size() > 1) {
-            return Err(InferError(ERROR_MSG("Shape must be 1D int64 tensor")));
+        EXPECT_SIZE(2)
+        if (auto shape = inputs[1];
+            shape->dataType != DataType::I64 ||
+            shape->shape.size() != 1 ||
+            !shape->hasData()) {
+            return Err(InferError(ERROR_MSG("Shape not support")));
         } else {
             auto const &input = inputs[0]->shape;
             auto shapeValue = reinterpret_cast<int64_t *>(inputs[1]->data->ptr);
@@ -305,9 +304,8 @@ namespace refactor::graph {
     }
 
     InferResult inferCumSum(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else if (!inputs[1]->shape.empty()) {
+        EXPECT_SIZE(2)
+        if (!inputs[1]->shape.empty()) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         } else if (!isNumbericDataType(inputs[0]->dataType) ||
                    (inputs[1]->dataType != DataType::I64 &&
@@ -412,9 +410,7 @@ namespace refactor::graph {
     }
 
     InferResult inferShape(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 1) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(1) {
             auto attrs = node.operator_().attributes;
             auto start = node.operator_().attribute("start", {0}).int_(),
                  end = node.operator_().attribute("end", {-1}).int_();
@@ -437,9 +433,7 @@ namespace refactor::graph {
     }
 
     InferResult inferWhere(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 3) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(3) {
             auto const &condition = inputs[0];
             auto const &x = inputs[1];
             auto const &y = inputs[2];
@@ -459,9 +453,7 @@ namespace refactor::graph {
     }
 
     InferResult inferSqueeze(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(2) {
             auto const &data = inputs[0];
             auto const &axes = inputs[1];
             if (axes->dataType != DataType::I64 || axes->shape.size() != 1) {
@@ -515,9 +507,7 @@ namespace refactor::graph {
     }
 
     InferResult inferEqual(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
             if (a->dataType != b->dataType) {
@@ -533,9 +523,8 @@ namespace refactor::graph {
     }
 
     InferResult inferSoftmax(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 1) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else if (!isIeee754DataType(inputs[0]->dataType)) {
+        EXPECT_SIZE(1)
+        if (!isIeee754DataType(inputs[0]->dataType)) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         } else {
             return Ok(std::move(inputs));
@@ -543,9 +532,7 @@ namespace refactor::graph {
     }
 
     InferResult inferPow(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
             if (!isSignedDataType(a->dataType) || !isNumbericDataType(b->dataType)) {
@@ -629,9 +616,8 @@ namespace refactor::graph {
     }
 
     InferResult inferGather(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else if (inputs[1]->dataType != DataType::I32 && inputs[1]->dataType != DataType::I64) {
+        EXPECT_SIZE(2)
+        if (inputs[1]->dataType != DataType::I32 && inputs[1]->dataType != DataType::I64) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         } else {
             auto const r = inputs[0]->shape.size();
@@ -655,9 +641,7 @@ namespace refactor::graph {
     }
 
     InferResult inferCast(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 1) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(1) {
             auto to = static_cast<DataType>(node.operator_().attribute("to").int_());
             return Ok(Edges{std::make_shared<Tensor>(to, inputs[0]->shape)});
         }
@@ -686,9 +670,7 @@ namespace refactor::graph {
     }
 
     InferResult inferTranspose(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 1) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
+        EXPECT_SIZE(1) {
             auto const &data = inputs[0];
             auto const &attrs = node.operator_().attributes;
             if (auto it = attrs.find("perm"); it != attrs.end()) {
@@ -709,11 +691,10 @@ namespace refactor::graph {
     }
 
     InferResult inferExpand(NodeInfo const &node, Edges inputs) {
-        if (inputs.size() != 2) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else if (inputs[1]->dataType != DataType::I64 ||
-                   inputs[1]->shape.size() != 1 ||
-                   !inputs[1]->hasData()) {
+        EXPECT_SIZE(2)
+        if (inputs[1]->dataType != DataType::I64 ||
+            inputs[1]->shape.size() != 1 ||
+            !inputs[1]->hasData()) {
             return Err(InferError(ERROR_MSG("Shape not support")));
         } else {
             auto const &data = inputs[0];
