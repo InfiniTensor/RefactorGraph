@@ -15,6 +15,7 @@ namespace refactor::graph {
         graph_topo::Graph<Node, Edge> _internal;
 
     public:
+        explicit Graph(graph_topo::Graph<Node, Edge> &&);
         void fillEdgeInfo();
     };
 

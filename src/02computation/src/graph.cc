@@ -4,8 +4,10 @@
 #include "infer/infer.h"
 
 using namespace refactor::common;
-
 namespace refactor::graph {
+
+    Graph::Graph(graph_topo::Graph<Node, Edge> &&internal)
+        : _internal(std::forward<graph_topo::Graph<Node, Edge>>(internal)) {}
 
     InferResult infer(Operator const &node, Edges inputs) {
         switch (node.opType.underlying()) {
