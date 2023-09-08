@@ -10,8 +10,15 @@ namespace refactor::graph {
     using ShapeOrNot = std::optional<Shape>;
     using Edges = std::vector<Edge>;
 
+    struct FatalError {};
+    struct UnknownVariable {
+        std::string name;
+    };
     struct InferError : public std::runtime_error {
-        explicit InferError(std::string &&msg);
+        std::variant<FatalError, UnknownVariable> value;
+
+        explicit InferError(std::string &&);
+        explicit InferError(UnknownVariable &&);
     };
     using InferResult = Result<Edges, InferError>;
 

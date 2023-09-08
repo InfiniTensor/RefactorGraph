@@ -16,7 +16,7 @@ namespace refactor::graph {
 
     public:
         explicit Graph(graph_topo::Graph<Node, Edge> &&);
-        void fillEdgeInfo();
+        std::unordered_set<std::string> fillEdgeInfo();
     };
 
 }// namespace refactor::graph

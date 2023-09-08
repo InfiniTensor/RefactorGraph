@@ -94,12 +94,24 @@ namespace refactor::graph {
     // }
 
     InferError::InferError(std::string &&msg)
-        : std::runtime_error(std::forward<std::string>(msg)) {}
+        : value(FatalError{}),
+          std::runtime_error(std::forward<std::string>(msg)) {}
+    InferError::InferError(UnknownVariable &&variable)
+        : std::runtime_error(fmt::format("Unknown variable: {}", variable.name)),
+          value(std::forward<UnknownVariable>(variable)) {}
 
 #define EXPECT_SIZE(N)                                         \
     if (inputs.size() != (N)) {                                \
         return Err(InferError(ERROR_MSG("Input size error"))); \
     } else
+
+#define EXPECT_VAL(DIM, VAL)                                       \
+    int64_t VAL;                                                   \
+    if ((DIM).isValue()) {                                         \
+        VAL = (DIM).value();                                       \
+    } else {                                                       \
+        return Err(InferError(UnknownVariable{(DIM).variable()})); \
+    }
 
     InferResult inferUnary(Operator const &node, Edges inputs) {
         EXPECT_SIZE(1) {
@@ -170,24 +182,29 @@ namespace refactor::graph {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
 
+            EXPECT_VAL(a->shape[0], a0)
+            EXPECT_VAL(a->shape[1], a1)
+            EXPECT_VAL(b->shape[0], b0)
+            EXPECT_VAL(b->shape[1], b1)
+
             size_t m, n, k;
             if (node.attribute("transA", {0}).int_() == 0) {
-                m = a->shape[0].value();
-                k = a->shape[1].value();
+                m = a0;
+                k = a1;
             } else {
-                m = a->shape[1].value();
-                k = a->shape[0].value();
+                m = a1;
+                k = a0;
             }
             if (node.attribute("transB", {0}).int_() == 0) {
-                if (b->shape[0].value() != k) {
+                if (b0 != k) {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
-                n = b->shape[1].value();
+                n = b1;
             } else {
-                if (b->shape[1].value() != k) {
+                if (b1 != k) {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
-                n = b->shape[0].value();
+                n = b0;
             }
             Shape ans;
             if (inputs.size() == 3) {
@@ -266,7 +283,8 @@ namespace refactor::graph {
         } else {
             auto const &input = inputs[0]->shape;
             auto shapeValue = reinterpret_cast<int64_t *>(inputs[1]->data->ptr);
-            Shape ans(inputs[1]->shape[0].value(), DimExpr(1));
+            EXPECT_VAL(inputs[1]->shape[0], rank)
+            Shape ans(rank, DimExpr(1));
             auto pos_1 = -1;
             for (auto i = 0; i < ans.size(); ++i) {
                 switch (shapeValue[i]) {
@@ -288,15 +306,22 @@ namespace refactor::graph {
                         break;
                 }
             }
-            auto old = std::accumulate(input.begin(), input.end(), 1, [](auto const &acc, auto const &d) { return acc * d.value(); });
-            auto now = std::accumulate(ans.begin(), ans.end(), 1, [](auto const &acc, auto const &d) { return acc * d.value(); });
+            size_t old_ = 1, new_ = 1;
+            for (auto const &d : input) {
+                EXPECT_VAL(d, v)
+                old_ *= v;
+            }
+            for (auto const &d : ans) {
+                EXPECT_VAL(d, v)
+                new_ *= v;
+            }
             if (pos_1 != -1) {
-                if (old % now != 0) {
+                if (old_ % new_ != 0) {
                     return Err(InferError(ERROR_MSG("Invalid shape variable")));
                 } else {
-                    ans[pos_1] = DimExpr(old / now);
+                    ans[pos_1] = DimExpr(old_ / new_);
                 }
-            } else if (old != now) {
+            } else if (old_ != new_) {
                 return Err(InferError(ERROR_MSG("Invalid shape variable")));
             }
             return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
@@ -333,10 +358,10 @@ namespace refactor::graph {
             if (starts_->shape.size() != 1) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            auto rank = starts_->shape[0].value();
-            if (ends_->shape.size() != 1 || ends_->shape[0].value() != rank) {
+            if (ends_->shape != starts_->shape) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
+            EXPECT_VAL(starts_->shape[0], rank)
             if (data->shape.size() != rank) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
@@ -387,7 +412,7 @@ namespace refactor::graph {
                 if (axis < 0) {
                     axis += rank;
                 }
-                auto dim = data->shape[axis].value();
+                EXPECT_VAL(data->shape[axis], dim)
                 if (start < 0) {
                     start += dim;
                 }
@@ -421,7 +446,8 @@ namespace refactor::graph {
             auto ans = inputs[0]->shape;
             auto blob = std::make_shared<Blob>(new int64_t[ans.size()]);
             for (auto i = 0; i < ans.size(); ++i) {
-                reinterpret_cast<int64_t *>(blob->ptr)[i] = ans[i].value();
+                EXPECT_VAL(ans[i], v)
+                reinterpret_cast<int64_t *>(blob->ptr)[i] = v;
             }
             return Ok(Edges{
                 std::make_shared<Tensor>(
@@ -460,7 +486,8 @@ namespace refactor::graph {
                 return Err(InferError(ERROR_MSG("Axes not support")));
             }
             auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
-            std::vector<int64_t> axes__(axes_, axes_ + axes->shape[0].value());
+            EXPECT_VAL(axes->shape[0], axesSize)
+            std::vector<int64_t> axes__(axes_, axes_ + axesSize);
             for (auto &i : axes__) {
                 if (i < 0) {
                     i += data->shape.size();
@@ -563,9 +590,9 @@ namespace refactor::graph {
                     return Err(InferError(ERROR_MSG("Axes not support")));
                 }
                 auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
-                auto axesCount = axes->shape[0].value();
+                EXPECT_VAL(axes->shape[0], axesSize)
                 std::unordered_set<int64_t> axes__;
-                for (size_t i = 0; i < axesCount; ++i) {
+                for (size_t i = 0; i < axesSize; ++i) {
                     auto axis = axes_[i];
                     axes__.insert(axis < 0 ? axis + shape.size() : axis);
                 }
@@ -605,7 +632,9 @@ namespace refactor::graph {
                 }
                 for (size_t i = 0; i < shape.size(); ++i) {
                     if (i == axis) {
-                        shape[i] = DimExpr(shape[i].value() + input->shape[i].value());
+                        EXPECT_VAL(shape[i], a)
+                        EXPECT_VAL(input->shape[i], b)
+                        shape[i] = DimExpr(a + b);
                     } else if (shape[i] != input->shape[i]) {
                         return Err(InferError(ERROR_MSG("Input shape not support")));
                     }
@@ -700,7 +729,8 @@ namespace refactor::graph {
             auto const &data = inputs[0];
             auto const &shape = inputs[1];
             auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
-            Shape shape__(shape_, shape_ + shape->shape[0].value());
+            EXPECT_VAL(shape->shape[0], shapeSize)
+            Shape shape__(shape_, shape_ + shapeSize);
             auto res = multidirBroadcast({data->shape, shape__});
             if (res.isErr()) {
                 return Err(InferError(ERROR_MSG(res.unwrapErr())));

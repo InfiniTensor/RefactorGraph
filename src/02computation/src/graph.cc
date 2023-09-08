@@ -65,15 +65,34 @@ namespace refactor::graph {
         }
     }
 
-    void Graph::fillEdgeInfo() {
+    std::unordered_set<std::string> Graph::fillEdgeInfo() {
+        std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
+        std::unordered_set<void *> unknownEdges;         // 未知边，有入边未知的节点无法推导。
+        // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
+            // 构造入边
             std::vector<Edge> inputs_(inputs.size());
-            std::transform(inputs.begin(), inputs.end(), inputs_.begin(),
-                           [this](size_t idx) { return _internal.edges[idx]; });
+            for (auto i = 0; i < inputs.size(); ++i) {
+                auto ptr = (inputs_[i] = _internal.edges[inputs[i]]).get();
+                if (unknownEdges.find(ptr) != unknownEdges.end()) {
+                    continue;// 有入边未知，跳过节点
+                }
+            }
+            // 推导
             auto infered = infer(_internal.nodes[nodeIdx]->operator_(), std::move(inputs_));
             if (infered.isErr()) {
-                throw infered.unwrapErr();
+                // 推导失败，记录未知变量和边
+                auto error = infered.unwrapErr();
+                if (std::holds_alternative<UnknownVariable>(error.value)) {
+                    unknownVariables.insert(std::get<UnknownVariable>(error.value).name);
+                    for (auto i = 0; i < outputs.size(); ++i) {
+                        unknownEdges.insert(_internal.edges[outputs[i]].get());
+                    }
+                } else {
+                    throw error;
+                }
             } else {
+                // 推导成功，填充边信息
                 auto infered_ = infered.unwrap();
                 if (infered_.size() < outputs.size()) {
                     OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
@@ -84,6 +103,7 @@ namespace refactor::graph {
                 }
             }
         }
+        return unknownVariables;
     }
 
 }// namespace refactor::graph
