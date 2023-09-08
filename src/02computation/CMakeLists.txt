@@ -3,7 +3,7 @@ project(graph)
 
 file(GLOB_RECURSE GRAPH_SRC src/*.cc src/*.cpp)
 add_library(graph ${LIBRARY_TYPE} ${GRAPH_SRC})
-target_link_libraries(graph PUBLIC common)
+target_link_libraries(graph PUBLIC common graph_topo)
 
 # file(GLOB_RECURSE GRAPH_TEST test/*.cpp)
 # add_executable(graph_test ${GRAPH_TEST})
