@@ -2,7 +2,8 @@
 #define GRAPH_INFER_H
 
 #include "common/error_handler.h"
-#include "computation/graph.h"
+#include "computation/operator.h"
+#include <optional>
 
 namespace refactor::computation {
 

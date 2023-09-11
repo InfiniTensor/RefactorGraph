@@ -1,5 +1,6 @@
 ﻿#include "infer.h"
 #include <numeric>
+#include <unordered_set>
 #include <vector>
 
 using namespace refactor::common;

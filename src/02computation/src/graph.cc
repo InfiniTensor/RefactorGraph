@@ -1,7 +1,6 @@
 ﻿#include "computation/graph.h"
 #include "common/error_handler.h"
 #include "computation/tensor.h"
-#include "infer/infer.h"
 
 using namespace refactor::common;
 namespace refactor::computation {
