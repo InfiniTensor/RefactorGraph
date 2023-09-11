@@ -1,11 +1,10 @@
 ﻿#include "infer.h"
-#include "common/op_type.h"
 #include <numeric>
 #include <vector>
 
 using namespace refactor::common;
 
-namespace refactor::graph {
+namespace refactor::computation {
 
     ShapeResult multidirBroadcast(std::vector<Shape> const &inputs) {
         using Iter = std::reverse_iterator<Shape::const_iterator>;
@@ -116,38 +115,38 @@ namespace refactor::graph {
     InferResult inferUnary(Operator const &node, Edges inputs) {
         EXPECT_SIZE(1) {
             auto dataType = inputs[0]->dataType;
-            switch (node.opType.underlying()) {
-                case OpType::Abs:
-                case OpType::Relu:
-                case OpType::PRelu:
-                    if (!isNumbericDataType(dataType)) {
-                        return Err(InferError(ERROR_MSG("Data type not support")));
-                    }
-                    break;
-                case OpType::Acos:
-                case OpType::Acosh:
-                case OpType::Asin:
-                case OpType::Asinh:
-                case OpType::Atan:
-                case OpType::Atanh:
-                case OpType::Cos:
-                case OpType::Cosh:
-                case OpType::Sin:
-                case OpType::Sinh:
-                case OpType::Tan:
-                    if (!isIeee754DataType(dataType)) {
-                        return Err(InferError(ERROR_MSG("Data type not support")));
-                    }
-                    break;
-                case OpType::Tanh:
-                case OpType::Sqrt:
-                    if (!isFloatDataType(dataType)) {
-                        return Err(InferError(ERROR_MSG("Data type not support")));
-                    }
-                    break;
-                default:
-                    TODO("Not implemented");
-            }
+            // switch (node.opType.underlying()) {
+            //     case OpType::Abs:
+            //     case OpType::Relu:
+            //     case OpType::PRelu:
+            //         if (!isNumbericDataType(dataType)) {
+            //             return Err(InferError(ERROR_MSG("Data type not support")));
+            //         }
+            //         break;
+            //     case OpType::Acos:
+            //     case OpType::Acosh:
+            //     case OpType::Asin:
+            //     case OpType::Asinh:
+            //     case OpType::Atan:
+            //     case OpType::Atanh:
+            //     case OpType::Cos:
+            //     case OpType::Cosh:
+            //     case OpType::Sin:
+            //     case OpType::Sinh:
+            //     case OpType::Tan:
+            //         if (!isIeee754DataType(dataType)) {
+            //             return Err(InferError(ERROR_MSG("Data type not support")));
+            //         }
+            //         break;
+            //     case OpType::Tanh:
+            //     case OpType::Sqrt:
+            //         if (!isFloatDataType(dataType)) {
+            //             return Err(InferError(ERROR_MSG("Data type not support")));
+            //         }
+            //         break;
+            //     default:
+            //         TODO("Not implemented");
+            // }
             return Ok(std::move(inputs));
         }
     }
@@ -495,40 +494,40 @@ namespace refactor::graph {
             }
             std::sort(axes__.begin(), axes__.end());
             Shape ans;
-            switch (node.opType.underlying()) {
-                case OpType::Squeeze: {
-                    auto len = data->shape.size();
-                    auto itx = data->shape.begin();
-                    auto ity = axes__.begin();
-                    ans = Shape(len, DimExpr(1));
-                    for (auto i = 0; i < len; ++i) {
-                        if (i != *ity) {
-                            ans[i] = *itx++;
-                        } else {
-                            ASSERT(*itx++ == DimExpr(1), "Unsqueeze error");
-                            ity++;
-                        }
-                    }
-                } break;
+            // switch (node.opType.underlying()) {
+            //     case OpType::Squeeze: {
+            //         auto len = data->shape.size();
+            //         auto itx = data->shape.begin();
+            //         auto ity = axes__.begin();
+            //         ans = Shape(len, DimExpr(1));
+            //         for (auto i = 0; i < len; ++i) {
+            //             if (i != *ity) {
+            //                 ans[i] = *itx++;
+            //             } else {
+            //                 ASSERT(*itx++ == DimExpr(1), "Unsqueeze error");
+            //                 ity++;
+            //             }
+            //         }
+            //     } break;
 
-                case OpType::Unsqueeze: {
-                    auto len = data->shape.size() + axes__.size();
-                    auto itx = data->shape.begin();
-                    auto ity = axes__.begin();
-                    ans = Shape(len, DimExpr(1));
-                    for (size_t i = 0; i < len; ++i) {
-                        if (i != *ity) {
-                            ans[i] = *itx++;
-                        } else {
-                            ans[i] = DimExpr(1);
-                            ity++;
-                        }
-                    }
-                } break;
+            //     case OpType::Unsqueeze: {
+            //         auto len = data->shape.size() + axes__.size();
+            //         auto itx = data->shape.begin();
+            //         auto ity = axes__.begin();
+            //         ans = Shape(len, DimExpr(1));
+            //         for (size_t i = 0; i < len; ++i) {
+            //             if (i != *ity) {
+            //                 ans[i] = *itx++;
+            //             } else {
+            //                 ans[i] = DimExpr(1);
+            //                 ity++;
+            //             }
+            //         }
+            //     } break;
 
-                default:
-                    RUNTIME_ERROR("Unreachable");
-            }
+            //     default:
+            //         RUNTIME_ERROR("Unreachable");
+            // }
             return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
         }
     }
@@ -740,7 +739,7 @@ namespace refactor::graph {
         }
     }
 
-}// namespace refactor::graph
+}// namespace refactor::computation
 
 //     InferResult inferConv(Edges inputs, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides) {
 //         if (inputs.size() != 2 && inputs.size() != 3) {

@@ -1,8 +1,8 @@
-﻿#include "graph/node_info.h"
+﻿#include "computation/operator.h"
 #include "common/error_handler.h"
-#include "graph/graph.h"
+#include "computation/graph.h"
 
-namespace refactor::graph {
+namespace refactor::computation {
 
     bool Attribute::operator==(Attribute const &rhs) const {
         if (value.index() != rhs.value.index()) {
@@ -49,6 +49,41 @@ namespace refactor::graph {
     CONVERT(Tensors, tensors)
 #undef CONVERT
 
+    bool OpType::operator==(OpType const &rhs) const { return id == rhs.id; }
+    bool OpType::operator!=(OpType const &rhs) const { return !operator==(rhs); }
+
+    struct Op {
+        const char *name;
+        InferFn inference;
+    };
+
+    struct OpRepo {
+        std::vector<Op> map;
+        std::unordered_map<const char *, size_t> nameMap;
+        std::unordered_map<const char *, InferFn> knownList;
+    } static OP_REPO;
+
+    void OpType::register_(const char *name, InferFn infer) {
+        if (OP_REPO.nameMap.find(name) != OP_REPO.nameMap.end() ||
+            OP_REPO.knownList.find(name) != OP_REPO.knownList.end()) {
+            RUNTIME_ERROR("Operator already registered");
+        }
+        OP_REPO.knownList[name] = infer;
+    }
+    OpType OpType::parse(const char *name) {
+        if (auto it = OP_REPO.nameMap.find(name); it != OP_REPO.nameMap.end()) {
+            return {it->second};
+        } else if (auto it = OP_REPO.knownList.find(name); it != OP_REPO.knownList.end()) {
+            size_t id = OP_REPO.map.size();
+            OP_REPO.map.push_back(Op{name, it->second});
+            OP_REPO.nameMap[name] = id;
+            OP_REPO.knownList.erase(it);
+            return {id};
+        } else {
+            RUNTIME_ERROR("Unknown operator");
+        }
+    }
+
     bool Operator::operator==(Operator const &rhs) const {
         return opType == rhs.opType && attributes == rhs.attributes;
     }
@@ -68,40 +103,8 @@ namespace refactor::graph {
         }
     }
 
-    bool Subgraph::operator==(Subgraph const &rhs) const {
-        return false;
-    }
-    bool Subgraph::operator!=(Subgraph const &rhs) const {
-        return !operator==(rhs);
+    InferResult Operator::infer(Edges inputs) const {
+        return OP_REPO.map.at(opType.id).inference(*this, inputs);
     }
 
-    NodeInfo::NodeInfo(Operator &&op) : info(std::forward<Operator>(op)) {}
-    NodeInfo::NodeInfo(Subgraph &&sg) : info(std::forward<Subgraph>(sg)) {}
-
-    bool NodeInfo::isOperator() const { return std::holds_alternative<Operator>(info); }
-    bool NodeInfo::isSubgraph() const { return std::holds_alternative<Subgraph>(info); }
-
-    Operator &NodeInfo::operator_() { return std::get<Operator>(info); }
-    Operator const &NodeInfo::operator_() const { return std::get<Operator>(info); }
-    Subgraph &NodeInfo::subgraph() { return std::get<Subgraph>(info); }
-    Subgraph const &NodeInfo::subgraph() const { return std::get<Subgraph>(info); }
-
-    bool NodeInfo::operator==(NodeInfo const &rhs) const {
-        if (info.index() != rhs.info.index()) {
-            return false;
-        } else {
-            switch (info.index()) {
-                case 0:
-                    return std::get<0>(info) == std::get<0>(rhs.info);
-                case 1:
-                    return std::get<1>(info) == std::get<1>(rhs.info);
-                default:
-                    RUNTIME_ERROR("Unreachable");
-            }
-        }
-    }
-    bool NodeInfo::operator!=(NodeInfo const &rhs) const {
-        return !operator==(rhs);
-    }
-
-}// namespace refactor::graph
+}// namespace refactor::computation

@@ -1,12 +1,13 @@
-﻿#ifndef EDGE_INFO_H
-#define EDGE_INFO_H
+﻿#ifndef COMPUTATION_TENSOR_H
+#define COMPUTATION_TENSOR_H
 
 #include "absl/container/inlined_vector.h"
 #include "common/data_type.h"
 #include <cstring>
 #include <variant>
 
-namespace refactor::graph {
+namespace refactor::computation {
+
     struct DimExpr {
         std::variant<int64_t, std::string> expr;
 
@@ -51,6 +52,8 @@ namespace refactor::graph {
         size_t bytesSize() const;
     };
 
-}// namespace refactor::graph
+    using Edge = std::shared_ptr<Tensor>;
 
-#endif// EDGE_INFO_H
+}// namespace refactor::computation
+
+#endif// COMPUTATION_TENSOR_H

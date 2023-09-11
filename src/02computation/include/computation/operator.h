@@ -1,15 +1,13 @@
-﻿#ifndef NODE_INFO_H
-#define NODE_INFO_H
+﻿#ifndef COMPUTATION_OPERATOR_H
+#define COMPUTATION_OPERATOR_H
 
-#include "absl/container/inlined_vector.h"
-#include "common/op_type.h"
+#include "infer.h"
+#include "tensor.h"
 #include <memory>
-#include <string>
-#include <unordered_map>
 #include <variant>
+#include <vector>
 
-namespace refactor::graph {
-    class Tensor;
+namespace refactor::computation {
 
     using Int = long long;
     using Ints = std::vector<long long>;
@@ -37,8 +35,21 @@ namespace refactor::graph {
     };
     using Attributes = std::unordered_map<std::string, Attribute>;
 
+    class Operator;
+    using Node = std::shared_ptr<Operator>;
+
+    struct OpType {
+        size_t id;
+
+        bool operator==(OpType const &) const;
+        bool operator!=(OpType const &) const;
+
+        static void register_(const char *, InferFn);
+        static OpType parse(const char *);
+    };
+
     struct Operator {
-        common::OpType opType;
+        OpType opType;
         Attributes attributes;
 
         bool operator==(Operator const &) const;
@@ -46,34 +57,10 @@ namespace refactor::graph {
 
         Attribute const &attribute(const char *) const;
         Attribute const &attribute(const char *, Attribute const &default_) const;
+
+        InferResult infer(Edges) const;
     };
 
-    class GraphMut;
+}// namespace refactor::computation
 
-    struct Subgraph {
-        std::shared_ptr<GraphMut> graph;
-
-        bool operator==(Subgraph const &) const;
-        bool operator!=(Subgraph const &) const;
-    };
-
-    struct NodeInfo {
-        std::variant<Operator, Subgraph> info;
-
-        NodeInfo(Operator &&);
-        NodeInfo(Subgraph &&);
-
-        bool isOperator() const;
-        bool isSubgraph() const;
-
-        Operator &operator_();
-        Operator const &operator_() const;
-        Subgraph &subgraph();
-        Subgraph const &subgraph() const;
-
-        bool operator==(NodeInfo const &) const;
-        bool operator!=(NodeInfo const &) const;
-    };
-}// namespace refactor::graph
-
-#endif// NODE_INFO_H
+#endif// COMPUTATION_OPERATOR_H

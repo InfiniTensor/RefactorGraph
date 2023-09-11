@@ -2,25 +2,11 @@
 #define GRAPH_INFER_H
 
 #include "common/error_handler.h"
-#include "graph/graph.h"
-#include <result.h>
+#include "computation/graph.h"
 
-namespace refactor::graph {
+namespace refactor::computation {
 
     using ShapeOrNot = std::optional<Shape>;
-    using Edges = std::vector<Edge>;
-
-    struct FatalError {};
-    struct UnknownVariable {
-        std::string name;
-    };
-    struct InferError : public std::runtime_error {
-        std::variant<FatalError, UnknownVariable> value;
-
-        explicit InferError(std::string &&);
-        explicit InferError(UnknownVariable &&);
-    };
-    using InferResult = Result<Edges, InferError>;
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
@@ -71,6 +57,6 @@ namespace refactor::graph {
                      ShapeOrNot const &pads,
                      ShapeOrNot const &strides);
 
-}// namespace refactor::graph
+}// namespace refactor::computation
 
 #endif// GRAPH_INFER_H

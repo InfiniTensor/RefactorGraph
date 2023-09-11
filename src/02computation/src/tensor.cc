@@ -1,8 +1,8 @@
-﻿#include "graph/edge_info.h"
-#include "common/error_handler.h"
+﻿#include "common/error_handler.h"
+#include "computation/tensor.h"
 #include <numeric>
 
-namespace refactor::graph {
+namespace refactor::computation {
 
     DimExpr::DimExpr(int64_t val) : expr(val) {}
     DimExpr::DimExpr(std::string &&name) : expr(std::forward<std::string>(name)) {}
@@ -48,4 +48,4 @@ namespace refactor::graph {
         return common::dataTypeSize(dataType) * elementsSize();
     }
 
-}// namespace refactor::graph
+}// namespace refactor::computation

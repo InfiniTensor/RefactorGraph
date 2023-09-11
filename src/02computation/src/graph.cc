@@ -1,69 +1,13 @@
-﻿#include "graph/graph.h"
+﻿#include "computation/graph.h"
 #include "common/error_handler.h"
-#include "graph/edge_info.h"
+#include "computation/tensor.h"
 #include "infer/infer.h"
 
 using namespace refactor::common;
-namespace refactor::graph {
+namespace refactor::computation {
 
     Graph::Graph(graph_topo::Graph<Node, Edge> &&internal)
         : _internal(std::forward<graph_topo::Graph<Node, Edge>>(internal)) {}
-
-    InferResult infer(Operator const &node, Edges inputs) {
-        switch (node.opType.underlying()) {
-            case OpType::Relu:
-            case OpType::Sqrt:
-                return inferUnary(node, std::move(inputs));
-            case OpType::Reshape:
-                return inferReshape(node, std::move(inputs));
-            case OpType::Add:
-            case OpType::Sub:
-            case OpType::Mul:
-            case OpType::Div:
-                return inferArithmetic(node, std::move(inputs));
-            case OpType::Gemm:
-                return inferGemm(node, std::move(inputs));
-            case OpType::MatMul:
-                return inferMatMul(node, std::move(inputs));
-            case OpType::CumSum:
-                return inferCumSum(node, std::move(inputs));
-            case OpType::Slice:
-                return inferSlice(node, std::move(inputs));
-            case OpType::Shape:
-                return inferShape(node, std::move(inputs));
-            case OpType::Where:
-                return inferWhere(node, std::move(inputs));
-            case OpType::Squeeze:
-            case OpType::Unsqueeze:
-                return inferSqueeze(node, std::move(inputs));
-            case OpType::Equal:
-                return inferEqual(node, std::move(inputs));
-            case OpType::Softmax:
-                return inferSoftmax(node, std::move(inputs));
-            case OpType::Pow:
-                return inferPow(node, std::move(inputs));
-            case OpType::ReduceMax:
-            case OpType::ReduceMin:
-            case OpType::ReduceSum:
-            case OpType::ReduceMean:
-                return inferReduce(node, std::move(inputs));
-            case OpType::Concat:
-                return inferConcat(node, std::move(inputs));
-            case OpType::Gather:
-                return inferGather(node, std::move(inputs));
-            case OpType::Cast:
-                return inferCast(node, std::move(inputs));
-            case OpType::Max:
-                return inferMax(node, std::move(inputs));
-            case OpType::Transpose:
-                return inferTranspose(node, std::move(inputs));
-            case OpType::Expand:
-                return inferExpand(node, std::move(inputs));
-
-            default:
-                TODO("Not implemented yet");
-        }
-    }
 
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
@@ -82,7 +26,7 @@ namespace refactor::graph {
                 }
             }
             // 推导
-            auto infered = infer(_internal.nodes[nodeIdx]->operator_(), std::move(inputs_));
+            auto infered = _internal.nodes[nodeIdx]->infer(std::move(inputs_));
             if (infered.isErr()) {
                 // 推导失败，记录未知变量和边
                 auto error = infered.unwrapErr();
@@ -108,4 +52,4 @@ namespace refactor::graph {
         return unknownVariables;
     }
 
-}// namespace refactor::graph
+}// namespace refactor::computation

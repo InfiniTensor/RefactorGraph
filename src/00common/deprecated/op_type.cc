@@ -1,4 +1,4 @@
-﻿#include "common/op_type.h"
+﻿#include "op_type.h"
 
 namespace refactor::common {
     const char *OpType::toString() const {
