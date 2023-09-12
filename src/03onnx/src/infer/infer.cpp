@@ -141,7 +141,7 @@ namespace refactor::computation {
                     return Err(InferError(ERROR_MSG("Data type not support")));
                 }
             } else {
-                TODO("Not implemented");
+                RUNTIME_ERROR(fmt::format("OpType {} not support in unary inference", op.opType.name()));
             }
             return Ok(std::move(inputs));
         }
@@ -517,7 +517,7 @@ namespace refactor::computation {
                     }
                 }
             } else {
-                RUNTIME_ERROR("Unreachable");
+                RUNTIME_ERROR(fmt::format("OpType {} not support in squeeze inference", op.opType.name()));
             }
             return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
         }

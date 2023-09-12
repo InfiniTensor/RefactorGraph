@@ -25,6 +25,15 @@ namespace refactor::computation {
         }
     }
 
+    bool Graph::substitute(const char *name, int64_t value) {
+        if (auto it = _variables.find(name); it != _variables.end()) {
+            it->second->value = value;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
         std::unordered_set<size_t> unknownEdges;         // 未知边，有入边未知的节点无法推导。
@@ -42,7 +51,9 @@ namespace refactor::computation {
                         inputs_ = std::nullopt;
                         break;
                     }
-                    inputs_->push_back(_internal.edges[i]);
+                    auto const &input = _internal.edges[i];
+                    ASSERT(input, "input edge not exist");
+                    inputs_->emplace_back(input);
                 }
             }
             if (!inputs_) { continue; }
