@@ -490,7 +490,7 @@ namespace refactor::computation {
             }
             std::sort(axes__.begin(), axes__.end());
             Shape ans;
-            if (op.opType.name() == "onnx::Squeeze") {
+            if (std::strcmp(op.opType.name(), "onnx::Squeeze") == 0) {
                 auto len = data->shape.size();
                 auto itx = data->shape.begin();
                 auto ity = axes__.begin();
@@ -503,7 +503,7 @@ namespace refactor::computation {
                         ity++;
                     }
                 }
-            } else if (op.opType.name() == "onnx::Unsqueeze") {
+            } else if (std::strcmp(op.opType.name(), "onnx::Unsqueeze") == 0) {
                 auto len = data->shape.size() + axes__.size();
                 auto itx = data->shape.begin();
                 auto ity = axes__.begin();
@@ -640,7 +640,6 @@ namespace refactor::computation {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         } else {
             auto const r = inputs[0]->shape.size();
-            auto const q = inputs[1]->shape.size();
             auto axis = op.attribute("axis", {0}).int_();
             if (axis < 0) {
                 axis += r;
@@ -648,13 +647,10 @@ namespace refactor::computation {
             if (axis < 0 || r <= axis) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            Shape ans(q + r - 1, DimExpr(1));
-            for (size_t i = 0; i < q; ++i) {
-                ans[i] = inputs[1]->shape[i];
-            }
-            for (size_t j = 0; j < r; ++j) {
-                ans[q + j] = inputs[0]->shape[j];
-            }
+            auto ans = inputs[0]->shape;
+            auto const &indices = inputs[1]->shape;
+            ans.erase(ans.begin() + axis);
+            ans.insert(ans.begin() + axis, indices.begin(), indices.end());
             return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
         }
     }

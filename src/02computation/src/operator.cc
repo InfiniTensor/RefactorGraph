@@ -85,7 +85,7 @@ namespace refactor::computation {
             RUNTIME_ERROR(fmt::format("Unknown operator \"{}\"", name));
         }
     }
-    std::string const &OpType::name() const {
+    const char *OpType::name() const {
         return OP_REPO.map.at(id).name;
     }
 
