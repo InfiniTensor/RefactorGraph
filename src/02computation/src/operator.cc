@@ -59,29 +59,34 @@ namespace refactor::computation {
 
     struct OpRepo {
         std::vector<Op> map;
-        std::unordered_map<const char *, size_t> nameMap;
-        std::unordered_map<const char *, InferFn> knownList;
+        std::unordered_map<std::string, size_t> nameMap;
+        std::unordered_map<std::string, InferFn> knownList;
     } static OP_REPO;
 
     void OpType::register_(const char *name, InferFn infer) {
-        if (OP_REPO.nameMap.find(name) != OP_REPO.nameMap.end() ||
-            OP_REPO.knownList.find(name) != OP_REPO.knownList.end()) {
+        std::string name_(name);
+        if (OP_REPO.nameMap.find(name_) != OP_REPO.nameMap.end() ||
+            OP_REPO.knownList.find(name_) != OP_REPO.knownList.end()) {
             RUNTIME_ERROR("Operator already registered");
         }
-        OP_REPO.knownList[name] = infer;
+        OP_REPO.knownList.insert({std::move(name_), infer});
     }
-    OpType OpType::parse(const char *name) {
+    OpType OpType::parse(std::string name) {
         if (auto it = OP_REPO.nameMap.find(name); it != OP_REPO.nameMap.end()) {
             return {it->second};
         } else if (auto it = OP_REPO.knownList.find(name); it != OP_REPO.knownList.end()) {
-            size_t id = OP_REPO.map.size();
-            OP_REPO.map.push_back(Op{name, it->second});
-            OP_REPO.nameMap[name] = id;
+            auto id = OP_REPO.map.size();
+            auto [it_, ok] = OP_REPO.nameMap.insert({std::move(name), id});
+            ASSERT(ok, "unreachable");
+            OP_REPO.map.push_back(Op{it_->first.c_str(), it->second});
             OP_REPO.knownList.erase(it);
             return {id};
         } else {
-            RUNTIME_ERROR("Unknown operator");
+            RUNTIME_ERROR(fmt::format("Unknown operator \"{}\"", name));
         }
+    }
+    const char *OpType::name() const {
+        return OP_REPO.map.at(id).name;
     }
 
     bool Operator::operator==(Operator const &rhs) const {

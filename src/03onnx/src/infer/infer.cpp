@@ -113,46 +113,38 @@ namespace refactor::computation {
         return Err(InferError(UnknownVariable{(DIM).variable()})); \
     }
 
-    InferResult inferUnary(Operator const &node, Edges inputs) {
+    InferResult inferUnary(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1) {
             auto dataType = inputs[0]->dataType;
-            // switch (node.opType.underlying()) {
-            //     case OpType::Abs:
-            //     case OpType::Relu:
-            //     case OpType::PRelu:
-            //         if (!isNumbericDataType(dataType)) {
-            //             return Err(InferError(ERROR_MSG("Data type not support")));
-            //         }
-            //         break;
-            //     case OpType::Acos:
-            //     case OpType::Acosh:
-            //     case OpType::Asin:
-            //     case OpType::Asinh:
-            //     case OpType::Atan:
-            //     case OpType::Atanh:
-            //     case OpType::Cos:
-            //     case OpType::Cosh:
-            //     case OpType::Sin:
-            //     case OpType::Sinh:
-            //     case OpType::Tan:
-            //         if (!isIeee754DataType(dataType)) {
-            //             return Err(InferError(ERROR_MSG("Data type not support")));
-            //         }
-            //         break;
-            //     case OpType::Tanh:
-            //     case OpType::Sqrt:
-            //         if (!isFloatDataType(dataType)) {
-            //             return Err(InferError(ERROR_MSG("Data type not support")));
-            //         }
-            //         break;
-            //     default:
-            //         TODO("Not implemented");
-            // }
+            auto name = op.opType.name();
+            static std::unordered_set<std::string> SET0{"onnx::Abs", "onnx::Relu", "onnx::PRelu"};
+            static std::unordered_set<std::string> SET1{"onnx::Acos", "onnx::Acosh",
+                                                        "onnx::Asin", "onnx::Asinh",
+                                                        "onnx::Atan", "onnx::Atanh",
+                                                        "onnx::Cos", "onnx::Cosh",
+                                                        "onnx::Sin", "onnx::Sinh",
+                                                        "onnx::Tan"};
+            static std::unordered_set<std::string> SET2{"onnx::Tanh", "onnx::Sqrt"};
+            if (SET0.find(name) != SET0.end()) {
+                if (!isNumbericDataType(dataType)) {
+                    return Err(InferError(ERROR_MSG("Data type not support")));
+                }
+            } else if (SET1.find(name) != SET1.end()) {
+                if (!isIeee754DataType(dataType)) {
+                    return Err(InferError(ERROR_MSG("Data type not support")));
+                }
+            } else if (SET2.find(name) != SET2.end()) {
+                if (!isFloatDataType(dataType)) {
+                    return Err(InferError(ERROR_MSG("Data type not support")));
+                }
+            } else {
+                TODO("Not implemented");
+            }
             return Ok(std::move(inputs));
         }
     }
 
-    InferResult inferArithmetic(Operator const &node, Edges inputs) {
+    InferResult inferArithmetic(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2) {
             auto dataType = inputs[0]->dataType;
             if (!isNumbericDataType(dataType) || inputs[1]->dataType != dataType) {
@@ -168,7 +160,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferGemm(Operator const &node, Edges inputs) {
+    InferResult inferGemm(Operator const &op, Edges inputs) {
         if (auto size = inputs.size(); size < 2 || 3 < size) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
@@ -188,14 +180,14 @@ namespace refactor::computation {
             EXPECT_VAL(b->shape[1], b1)
 
             size_t m, n, k;
-            if (node.attribute("transA", {0}).int_() == 0) {
+            if (op.attribute("transA", {0}).int_() == 0) {
                 m = a0;
                 k = a1;
             } else {
                 m = a1;
                 k = a0;
             }
-            if (node.attribute("transB", {0}).int_() == 0) {
+            if (op.attribute("transB", {0}).int_() == 0) {
                 if (b0 != k) {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
@@ -220,7 +212,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferMatMul(Operator const &node, Edges inputs) {
+    InferResult inferMatMul(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
@@ -273,7 +265,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferReshape(Operator const &node, Edges inputs) {
+    InferResult inferReshape(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2)
         if (auto shape = inputs[1];
             shape->dataType != DataType::I64 ||
@@ -328,7 +320,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferCumSum(Operator const &node, Edges inputs) {
+    InferResult inferCumSum(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2)
         if (!inputs[1]->shape.empty()) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
@@ -341,7 +333,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferSlice(Operator const &node, Edges inputs) {
+    InferResult inferSlice(Operator const &op, Edges inputs) {
         if (inputs.size() < 3 || 5 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
@@ -434,11 +426,11 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferShape(Operator const &node, Edges inputs) {
+    InferResult inferShape(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1) {
-            auto attrs = node.attributes;
-            auto start = node.attribute("start", {0}).int_(),
-                 end = node.attribute("end", {-1}).int_();
+            auto attrs = op.attributes;
+            auto start = op.attribute("start", {0}).int_(),
+                 end = op.attribute("end", {-1}).int_();
 
             ASSERT(start == 0, "only support start == 0");
             ASSERT(end == -1, "only support end == -1");
@@ -458,7 +450,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferWhere(Operator const &node, Edges inputs) {
+    InferResult inferWhere(Operator const &op, Edges inputs) {
         EXPECT_SIZE(3) {
             auto const &condition = inputs[0];
             auto const &x = inputs[1];
@@ -478,7 +470,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferSqueeze(Operator const &node, Edges inputs) {
+    InferResult inferSqueeze(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2) {
             auto const &data = inputs[0];
             auto const &axes = inputs[1];
@@ -495,45 +487,40 @@ namespace refactor::computation {
             }
             std::sort(axes__.begin(), axes__.end());
             Shape ans;
-            // switch (node.opType.underlying()) {
-            //     case OpType::Squeeze: {
-            //         auto len = data->shape.size();
-            //         auto itx = data->shape.begin();
-            //         auto ity = axes__.begin();
-            //         ans = Shape(len, DimExpr(1));
-            //         for (auto i = 0; i < len; ++i) {
-            //             if (i != *ity) {
-            //                 ans[i] = *itx++;
-            //             } else {
-            //                 ASSERT(*itx++ == DimExpr(1), "Unsqueeze error");
-            //                 ity++;
-            //             }
-            //         }
-            //     } break;
-
-            //     case OpType::Unsqueeze: {
-            //         auto len = data->shape.size() + axes__.size();
-            //         auto itx = data->shape.begin();
-            //         auto ity = axes__.begin();
-            //         ans = Shape(len, DimExpr(1));
-            //         for (size_t i = 0; i < len; ++i) {
-            //             if (i != *ity) {
-            //                 ans[i] = *itx++;
-            //             } else {
-            //                 ans[i] = DimExpr(1);
-            //                 ity++;
-            //             }
-            //         }
-            //     } break;
-
-            //     default:
-            //         RUNTIME_ERROR("Unreachable");
-            // }
+            if (op.opType.name() == "onnx::Squeeze") {
+                auto len = data->shape.size();
+                auto itx = data->shape.begin();
+                auto ity = axes__.begin();
+                ans = Shape(len, DimExpr(1));
+                for (auto i = 0; i < len; ++i) {
+                    if (i != *ity) {
+                        ans[i] = *itx++;
+                    } else {
+                        ASSERT(*itx++ == DimExpr(1), "Unsqueeze error");
+                        ity++;
+                    }
+                }
+            } else if (op.opType.name() == "onnx::Unsqueeze") {
+                auto len = data->shape.size() + axes__.size();
+                auto itx = data->shape.begin();
+                auto ity = axes__.begin();
+                ans = Shape(len, DimExpr(1));
+                for (size_t i = 0; i < len; ++i) {
+                    if (i != *ity) {
+                        ans[i] = *itx++;
+                    } else {
+                        ans[i] = DimExpr(1);
+                        ity++;
+                    }
+                }
+            } else {
+                RUNTIME_ERROR("Unreachable");
+            }
             return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
         }
     }
 
-    InferResult inferEqual(Operator const &node, Edges inputs) {
+    InferResult inferEqual(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
@@ -549,7 +536,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferSoftmax(Operator const &node, Edges inputs) {
+    InferResult inferSoftmax(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1)
         if (!isIeee754DataType(inputs[0]->dataType)) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
@@ -558,7 +545,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferPow(Operator const &node, Edges inputs) {
+    InferResult inferPow(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
@@ -574,13 +561,13 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferReduce(Operator const &node, Edges inputs) {
+    InferResult inferReduce(Operator const &op, Edges inputs) {
         if (inputs.empty() || 2 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else if (!isNumbericDataType(inputs[0]->dataType)) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         } else {
-            auto keepdims = node.attribute("keepdims", {1}).int_();
+            auto keepdims = op.attribute("keepdims", {1}).int_();
             if (inputs.size() == 2) {
                 auto const &shape = inputs[0]->shape;
                 auto const &axes = inputs[1];
@@ -605,7 +592,7 @@ namespace refactor::computation {
                     }
                 }
                 return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
-            } else if (node.attribute("noop_with_empty_axes", {0}).int_() != 0) {
+            } else if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
                 return Ok(Edges{std::move(inputs[0])});
             } else if (keepdims) {
                 return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, Shape(inputs[0]->shape.size(), DimExpr(1)))});
@@ -615,13 +602,13 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferConcat(Operator const &node, Edges inputs) {
+    InferResult inferConcat(Operator const &op, Edges inputs) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
             auto shape = inputs[0]->shape;
             auto dataType = inputs[0]->dataType;
-            auto axis = node.attribute("axis").int_();
+            auto axis = op.attribute("axis").int_();
             for (auto it = inputs.begin() + 1; it != inputs.end(); ++it) {
                 auto const &input = *it;
                 if (input->dataType != dataType) {
@@ -644,14 +631,14 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferGather(Operator const &node, Edges inputs) {
+    InferResult inferGather(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2)
         if (inputs[1]->dataType != DataType::I32 && inputs[1]->dataType != DataType::I64) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         } else {
             auto const r = inputs[0]->shape.size();
             auto const q = inputs[1]->shape.size();
-            auto axis = node.attribute("axis", {0}).int_();
+            auto axis = op.attribute("axis", {0}).int_();
             if (axis < 0) {
                 axis += r;
             }
@@ -669,14 +656,14 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferCast(Operator const &node, Edges inputs) {
+    InferResult inferCast(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1) {
-            auto to = static_cast<DataType>(node.attribute("to").int_());
+            auto to = static_cast<DataType>(op.attribute("to").int_());
             return Ok(Edges{std::make_shared<Tensor>(to, inputs[0]->shape)});
         }
     }
 
-    InferResult inferMax(Operator const &node, Edges inputs) {
+    InferResult inferMax(Operator const &op, Edges inputs) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
@@ -698,10 +685,10 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferTranspose(Operator const &node, Edges inputs) {
+    InferResult inferTranspose(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1) {
             auto const &data = inputs[0];
-            auto const &attrs = node.attributes;
+            auto const &attrs = op.attributes;
             if (auto it = attrs.find("perm"); it != attrs.end()) {
                 auto const &perm = it->second.ints();
                 if (perm.size() != data->shape.size()) {
@@ -719,7 +706,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult inferExpand(Operator const &node, Edges inputs) {
+    InferResult inferExpand(Operator const &op, Edges inputs) {
         EXPECT_SIZE(2)
         if (inputs[1]->dataType != DataType::I64 ||
             inputs[1]->shape.size() != 1 ||
@@ -736,6 +723,44 @@ namespace refactor::computation {
                 return Err(InferError(ERROR_MSG(res.unwrapErr())));
             } else {
                 return Ok(Edges{std::make_shared<Tensor>(data->dataType, res.unwrap())});
+            }
+        }
+    }
+
+    InferResult inferConstantOfShape(Operator const &op, Edges inputs) {
+        EXPECT_SIZE(1)
+        if (auto shape = inputs[0];
+            shape->dataType != DataType::I64 ||
+            shape->shape.size() != 1 ||
+            !shape->hasData()) {
+            return Err(InferError(ERROR_MSG("Shape not support")));
+        } else {
+            auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
+            EXPECT_VAL(inputs[0]->shape[0], shapeSize)
+            Shape ans(shapeSize, DimExpr(1));
+            size_t size = 1;
+            for (auto i = 0; i < shapeSize; ++i) {
+                auto d = shape_[i];
+                ans[i] = DimExpr(d);
+                size *= d;
+            }
+            if (auto it = op.attributes.find("value"); it != op.attributes.end()) {
+                auto const &value = it->second.tensor();
+                ASSERT(value->hasData(), "ConstantOfShape value must have data");
+                ASSERT(value->shape.size() == 1 && value->shape[0] == DimExpr(1), "ConstantOfShape value must be scalar");
+                auto dataType = value->dataType;
+                auto eleSize = dataTypeSize(dataType);
+                auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
+                for (auto i = 0; i < size; ++i) {
+                    std::memcpy(reinterpret_cast<uint8_t *>(blob->ptr) + i * eleSize, value->data->ptr, eleSize);
+                }
+                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(ans), std::move(blob))});
+            } else {
+                auto dataType = DataType::F32;
+                auto eleSize = dataTypeSize(dataType);
+                auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
+                std::memset(blob->ptr, 0, size * eleSize);
+                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(ans), std::move(blob))});
             }
         }
     }

@@ -31,6 +31,7 @@ namespace refactor::computation {
     InferResult inferMax(Operator const &, Edges);
     InferResult inferTranspose(Operator const &, Edges);
     InferResult inferExpand(Operator const &, Edges);
+    InferResult inferConstantOfShape(Operator const &, Edges);
 
     using ShapeResult = Result<Shape, std::string>;
 

@@ -45,7 +45,9 @@ namespace refactor::computation {
         bool operator!=(OpType const &) const;
 
         static void register_(const char *, InferFn);
-        static OpType parse(const char *);
+        static OpType parse(std::string);
+
+        const char *name() const;
     };
 
     struct Operator {

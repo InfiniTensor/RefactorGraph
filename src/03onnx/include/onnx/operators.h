@@ -3,6 +3,8 @@
 
 namespace refactor::onnx {
 
+    void register_();
+
 }// namespace refactor::onnx
 
 #endif// ONNX_OPERATORS_H
