@@ -85,6 +85,14 @@ namespace refactor::computation {
             RUNTIME_ERROR(fmt::format("Unknown operator \"{}\"", name));
         }
     }
+    std::optional<OpType> OpType::tryParse(const char *name) {
+        if (auto it = OP_REPO.nameMap.find(name); it != OP_REPO.nameMap.end()) {
+            return {{it->second}};
+        } else {
+            return std::nullopt;
+        }
+    }
+
     const char *OpType::name() const {
         return OP_REPO.map.at(id).name;
     }

@@ -46,6 +46,7 @@ namespace refactor::computation {
 
         static void register_(const char *, InferFn);
         static OpType parse(std::string);
+        static std::optional<OpType> tryParse(const char *);
 
         const char *name() const;
     };
