@@ -105,35 +105,38 @@ namespace refactor::computation {
         return Err(InferError(ERROR_MSG("Input size error"))); \
     } else
 
-#define EXPECT_VAL(DIM, VAL)                                       \
-    int64_t VAL;                                                   \
-    if ((DIM).isValue()) {                                         \
-        VAL = (DIM).value();                                       \
-    } else {                                                       \
-        return Err(InferError(UnknownVariable{(DIM).variable()})); \
+#define EXPECT_VAL(DIM, VAL)                                             \
+    int64_t VAL;                                                         \
+    if ((DIM).isValue()) {                                               \
+        VAL = (DIM).value();                                             \
+    } else if (auto __v = (DIM).variable()->value; __v) {                \
+        VAL = *__v;                                                      \
+    } else {                                                             \
+        return Err(InferError(UnknownVariable{(DIM.variable()->name)})); \
     }
 
     InferResult inferUnary(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1) {
             auto dataType = inputs[0]->dataType;
             auto name = op.opType.name();
-            static std::unordered_set<std::string> SET0{"onnx::Abs", "onnx::Relu", "onnx::PRelu"};
-            static std::unordered_set<std::string> SET1{"onnx::Acos", "onnx::Acosh",
-                                                        "onnx::Asin", "onnx::Asinh",
-                                                        "onnx::Atan", "onnx::Atanh",
-                                                        "onnx::Cos", "onnx::Cosh",
-                                                        "onnx::Sin", "onnx::Sinh",
-                                                        "onnx::Tan"};
-            static std::unordered_set<std::string> SET2{"onnx::Tanh", "onnx::Sqrt"};
-            if (SET0.find(name) != SET0.end()) {
+            static std::unordered_set<std::string> const SET[]{
+                {"onnx::Abs", "onnx::Relu", "onnx::PRelu"},
+                {"onnx::Acos", "onnx::Acosh",
+                 "onnx::Asin", "onnx::Asinh",
+                 "onnx::Atan", "onnx::Atanh",
+                 "onnx::Cos", "onnx::Cosh",
+                 "onnx::Sin", "onnx::Sinh",
+                 "onnx::Tan"},
+                {"onnx::Tanh", "onnx::Sqrt"}};
+            if (SET[0].find(name) != SET[0].end()) {
                 if (!isNumbericDataType(dataType)) {
                     return Err(InferError(ERROR_MSG("Data type not support")));
                 }
-            } else if (SET1.find(name) != SET1.end()) {
+            } else if (SET[1].find(name) != SET[1].end()) {
                 if (!isIeee754DataType(dataType)) {
                     return Err(InferError(ERROR_MSG("Data type not support")));
                 }
-            } else if (SET2.find(name) != SET2.end()) {
+            } else if (SET[2].find(name) != SET[2].end()) {
                 if (!isFloatDataType(dataType)) {
                     return Err(InferError(ERROR_MSG("Data type not support")));
                 }

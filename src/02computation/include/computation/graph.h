@@ -8,9 +8,11 @@ namespace refactor::computation {
 
     class Graph {
         graph_topo::Graph<Node, Edge> _internal;
+        std::unordered_map<std::string, DimVariable> _variables;
 
     public:
         explicit Graph(graph_topo::Graph<Node, Edge> &&);
+        void collectVariables();
         std::unordered_set<std::string> fillEdgeInfo();
     };
 

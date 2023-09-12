@@ -8,18 +8,29 @@
 
 namespace refactor::computation {
 
+    struct DimVariableInternal {
+        std::string name;
+        std::optional<int64_t> value;
+
+        explicit DimVariableInternal(
+            std::string,
+            std::optional<int64_t> = std::nullopt);
+    };
+
+    using DimVariable = std::shared_ptr<DimVariableInternal>;
+
     struct DimExpr {
-        std::variant<int64_t, std::string> expr;
+        std::variant<int64_t, DimVariable> expr;
 
         bool operator==(DimExpr const &) const;
         bool operator!=(DimExpr const &) const;
 
         explicit DimExpr(int64_t);
-        explicit DimExpr(std::string &&);
+        explicit DimExpr(std::string);
         bool isValue() const;
         bool isVariable() const;
         int64_t value() const;
-        std::string const &variable() const;
+        DimVariable variable() const;
     };
 
     using Shape = absl::InlinedVector<DimExpr, 4>;

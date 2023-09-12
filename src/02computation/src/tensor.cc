@@ -1,11 +1,16 @@
-﻿#include "common/error_handler.h"
-#include "computation/tensor.h"
+﻿#include "computation/tensor.h"
+#include "common/error_handler.h"
 #include <numeric>
 
 namespace refactor::computation {
 
+    DimVariableInternal::DimVariableInternal(std::string name_, std::optional<int64_t> value_)
+        : name(std::move(name_)), value(value_) {}
+
     DimExpr::DimExpr(int64_t val) : expr(val) {}
-    DimExpr::DimExpr(std::string &&name) : expr(std::forward<std::string>(name)) {}
+    DimExpr::DimExpr(std::string name)
+        : expr(std::make_shared<DimVariableInternal>(std::move(name))) {}
+
     bool DimExpr::operator==(DimExpr const &rhs) const {
         if (expr.index() != rhs.expr.index()) {
             return false;
@@ -22,9 +27,9 @@ namespace refactor::computation {
     }
     bool DimExpr::operator!=(DimExpr const &rhs) const { return !operator==(rhs); }
     bool DimExpr::isValue() const { return std::holds_alternative<int64_t>(expr); }
-    bool DimExpr::isVariable() const { return std::holds_alternative<std::string>(expr); }
+    bool DimExpr::isVariable() const { return std::holds_alternative<DimVariable>(expr); }
     int64_t DimExpr::value() const { return std::get<int64_t>(expr); }
-    std::string const &DimExpr::variable() const { return std::get<std::string>(expr); }
+    DimVariable DimExpr::variable() const { return std::get<DimVariable>(expr); }
 
     Blob::Blob(void *ptr_) : ptr(ptr_) {}
     Blob::~Blob() { std::free(ptr); }

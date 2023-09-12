@@ -7,7 +7,23 @@ using namespace refactor::common;
 namespace refactor::computation {
 
     Graph::Graph(graph_topo::Graph<Node, Edge> &&internal)
-        : _internal(std::forward<graph_topo::Graph<Node, Edge>>(internal)) {}
+        : _internal(std::forward<graph_topo::Graph<Node, Edge>>(internal)),
+          _variables() {
+        collectVariables();
+    }
+
+    void Graph::collectVariables() {
+        for (auto const &edge : _internal.edges) {
+            if (edge) {
+                for (auto const &dim : edge->shape) {
+                    if (dim.isVariable()) {
+                        auto const &var = dim.variable();
+                        _variables.try_emplace(var->name, var);
+                    }
+                }
+            }
+        }
+    }
 
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
