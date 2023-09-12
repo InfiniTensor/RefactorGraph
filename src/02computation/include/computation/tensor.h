@@ -29,6 +29,7 @@ namespace refactor::computation {
         explicit DimExpr(std::string);
         bool isValue() const;
         bool isVariable() const;
+        bool hasValue() const;
         int64_t value() const;
         DimVariable variable() const;
     };

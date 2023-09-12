@@ -28,7 +28,8 @@ namespace refactor::computation {
     bool DimExpr::operator!=(DimExpr const &rhs) const { return !operator==(rhs); }
     bool DimExpr::isValue() const { return std::holds_alternative<int64_t>(expr); }
     bool DimExpr::isVariable() const { return std::holds_alternative<DimVariable>(expr); }
-    int64_t DimExpr::value() const { return std::get<int64_t>(expr); }
+    bool DimExpr::hasValue() const { return isValue() || variable()->value; }
+    int64_t DimExpr::value() const { return isValue() ? std::get<int64_t>(expr) : variable()->value.value(); }
     DimVariable DimExpr::variable() const { return std::get<DimVariable>(expr); }
 
     Blob::Blob(void *ptr_) : ptr(ptr_) {}
