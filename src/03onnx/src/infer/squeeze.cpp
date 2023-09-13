@@ -20,8 +20,7 @@ namespace refactor::onnx {
             }
             std::sort(axes__.begin(), axes__.end());
             Shape output;
-            auto opType = op.opType.name();
-            if (opType == "onnx::Squeeze") {
+            if (op.opType.is("onnx::Squeeze")) {
                 auto len = data->shape.size();
                 auto itx = data->shape.begin();
                 auto ity = axes__.begin();
@@ -34,7 +33,7 @@ namespace refactor::onnx {
                         ity++;
                     }
                 }
-            } else if (opType == "onnx::Unsqueeze") {
+            } else if (op.opType.is("onnx::Unsqueeze")) {
                 auto len = data->shape.size() + axes__.size();
                 auto itx = data->shape.begin();
                 auto ity = axes__.begin();
@@ -48,7 +47,7 @@ namespace refactor::onnx {
                     }
                 }
             } else {
-                RUNTIME_ERROR(fmt::format("{} not support in squeeze inference", opType));
+                RUNTIME_ERROR(fmt::format("{} not support in squeeze inference", op.opType.name()));
             }
             // fmt::println("{} passed its data", opType);
             return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});

@@ -52,6 +52,7 @@ namespace refactor::computation {
         static std::optional<OpType> tryParse(const char *);
 
         std::string_view name() const;
+        bool is(std::string_view) const;
     };
 
     struct Operator {

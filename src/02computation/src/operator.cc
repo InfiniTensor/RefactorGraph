@@ -96,6 +96,9 @@ namespace refactor::computation {
     std::string_view OpType::name() const {
         return OP_REPO.map.at(id).name;
     }
+    bool OpType::is(std::string_view rhs) const {
+        return OP_REPO.map.at(id).name == rhs;
+    }
 
     bool Operator::operator==(Operator const &rhs) const {
         return opType == rhs.opType && attributes == rhs.attributes;

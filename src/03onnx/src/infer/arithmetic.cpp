@@ -25,19 +25,18 @@ namespace refactor::onnx {
             auto eleSize = dataTypeSize(dataType);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<uint64_t *>(blob->ptr);
-            auto opType = op.opType.name();
-            fmt::print("( {} dst<{}> = ", opType, size);
+            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = buildIndices(shape, i);
                 auto a_ = *reinterpret_cast<int64_t *>(locate(*a, indices)),
                      b_ = *reinterpret_cast<int64_t *>(locate(*b, indices));
-                if (opType == "onnx::Add") {
+                if (op.opType.is("onnx::Add")) {
                     dst[i] = a_ + b_;
-                } else if (opType == "onnx::Sub") {
+                } else if (op.opType.is("onnx::Sub")) {
                     dst[i] = a_ - b_;
-                } else if (opType == "onnx::Mul") {
+                } else if (op.opType.is("onnx::Mul")) {
                     dst[i] = a_ * b_;
-                } else if (opType == "onnx::Div") {
+                } else if (op.opType.is("onnx::Div")) {
                     dst[i] = a_ / b_;
                 } else {
                     return Err(InferError(ERROR_MSG("OpType not support")));

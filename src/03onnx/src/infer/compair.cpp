@@ -25,21 +25,20 @@ namespace refactor::onnx {
             auto eleSize = dataTypeSize(DataType::Bool);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<bool *>(blob->ptr);
-            auto opType = op.opType.name();
-            fmt::print("( {} dst<{}> = ", opType, size);
+            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = buildIndices(shape, i);
                 auto a_ = *reinterpret_cast<int64_t *>(locate(*a, indices)),
                      b_ = *reinterpret_cast<int64_t *>(locate(*b, indices));
-                if (opType == "onnx::Equal") {
+                if (op.opType.is("onnx::Equal")) {
                     dst[i] = a_ == b_;
-                } else if (opType == "onnx::Greater") {
+                } else if (op.opType.is("onnx::Greater")) {
                     dst[i] = a_ > b_;
-                } else if (opType == "onnx::GreaterOrEqual") {
+                } else if (op.opType.is("onnx::GreaterOrEqual")) {
                     dst[i] = a_ >= b_;
-                } else if (opType == "onnx::Less") {
+                } else if (op.opType.is("onnx::Less")) {
                     dst[i] = a_ < b_;
-                } else if (opType == "onnx::LessOrEqual") {
+                } else if (op.opType.is("onnx::LessOrEqual")) {
                     dst[i] = a_ <= b_;
                 } else {
                     return Err(InferError(ERROR_MSG("OpType not support")));
