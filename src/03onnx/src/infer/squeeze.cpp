@@ -7,7 +7,7 @@ namespace refactor::onnx {
         EXPECT_SIZE(2) {
             auto const &data = inputs[0];
             auto const &axes = inputs[1];
-            if (axes->dataType != DataType::I64 || axes->shape.size() != 1) {
+            if (axes->dataType != DataType::I64 || axes->shape.size() != 1 || !axes->hasData()) {
                 return Err(InferError(ERROR_MSG("Axes not support")));
             }
             auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
@@ -19,37 +19,39 @@ namespace refactor::onnx {
                 }
             }
             std::sort(axes__.begin(), axes__.end());
-            Shape ans;
-            if (op.opType.name() == "onnx::Squeeze") {
+            Shape output;
+            auto opType = op.opType.name();
+            if (opType == "onnx::Squeeze") {
                 auto len = data->shape.size();
                 auto itx = data->shape.begin();
                 auto ity = axes__.begin();
-                ans = Shape(len, DimExpr(1));
+                output = Shape(len, DimExpr(1));
                 for (auto i = 0; i < len; ++i) {
                     if (i != *ity) {
-                        ans[i] = *itx++;
+                        output[i] = *itx++;
                     } else {
                         ASSERT(*itx++ == DimExpr(1), "Unsqueeze error");
                         ity++;
                     }
                 }
-            } else if (op.opType.name() == "onnx::Unsqueeze") {
+            } else if (opType == "onnx::Unsqueeze") {
                 auto len = data->shape.size() + axes__.size();
                 auto itx = data->shape.begin();
                 auto ity = axes__.begin();
-                ans = Shape(len, DimExpr(1));
+                output = Shape(len, DimExpr(1));
                 for (size_t i = 0; i < len; ++i) {
                     if (i != *ity) {
-                        ans[i] = *itx++;
+                        output[i] = *itx++;
                     } else {
-                        ans[i] = DimExpr(1);
+                        output[i] = DimExpr(1);
                         ity++;
                     }
                 }
             } else {
-                RUNTIME_ERROR(fmt::format("OpType {} not support in squeeze inference", op.opType.name()));
+                RUNTIME_ERROR(fmt::format("{} not support in squeeze inference", opType));
             }
-            return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
+            fmt::println("{} passed its data", opType);
+            return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
         }
     }
 }// namespace refactor::onnx

@@ -533,36 +533,6 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferConcat(Operator const &op, Edges inputs) {
-        if (inputs.empty()) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
-            auto shape = inputs[0]->shape;
-            auto dataType = inputs[0]->dataType;
-            auto axis = op.attribute("axis").int_();
-            for (auto it = inputs.begin() + 1; it != inputs.end(); ++it) {
-                auto const &input = *it;
-                if (input->dataType != dataType) {
-                    return Err(InferError(ERROR_MSG("Input data type not support")));
-                }
-                if (input->shape.size() != shape.size()) {
-                    return Err(InferError(ERROR_MSG("Input shape not support")));
-                }
-                for (size_t i = 0; i < shape.size(); ++i) {
-                    if (i == axis) {
-                        EXPECT_VAL(shape[i], a)
-                        EXPECT_VAL(input->shape[i], b)
-                        shape[i] = DimExpr(a + b);
-                    } else if (shape[i] != input->shape[i]) {
-                        return Err(InferError(ERROR_MSG("Input shape not support")));
-                    }
-                }
-            }
-            return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(shape))});
-        }
-    }
-
-
     InferResult inferCast(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1) {
             auto to = static_cast<DataType>(op.attribute("to").int_());

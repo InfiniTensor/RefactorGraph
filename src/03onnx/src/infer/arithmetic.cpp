@@ -61,7 +61,7 @@ namespace refactor::onnx {
                     } else {
                         return Err(InferError(ERROR_MSG("OpType not support")));
                     }
-                    fmt::print("{} ", opType, i, dst[i]);
+                    fmt::print("{} ", dst[i]);
                 }
                 fmt::println(")");
                 return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
