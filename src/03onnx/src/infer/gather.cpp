@@ -41,17 +41,7 @@ namespace refactor::onnx {
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
 
             for (size_t i = 0; i < size; ++i) {
-                std::vector<int64_t> indices(ssz);
-                {
-                    auto zi = i;
-                    auto it = indices.rbegin();
-                    for (auto d : sZ) {
-                        auto div = std::div(zi, d);
-                        *it++ = div.rem;
-                        zi = div.quot;
-                    }
-                }
-
+                auto indices = buildIndices(sZ, i);
 
                 size_t ii = 0, mul = 1;
                 for (size_t j = 0; j < q; ++j) {

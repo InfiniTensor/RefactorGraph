@@ -74,6 +74,7 @@ namespace refactor::onnx {
 
     bool shouldCalculate(Edges const &inputs, Shape const &output);
     std::pair<absl::InlinedVector<int64_t, 4>, size_t> shape_size(Shape const &shape);
+    absl::InlinedVector<int64_t, 4> buildIndices(absl::InlinedVector<int64_t, 4> const &shape, size_t i);
 
 }// namespace refactor::onnx
 

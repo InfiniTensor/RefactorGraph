@@ -38,16 +38,8 @@ namespace refactor::onnx {
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
             for (size_t i = 0; i < size; ++i) {
-                std::vector<int64_t> indices(size);
-                {
-                    auto zi = i;
-                    auto it = indices.rbegin();
-                    for (auto d : shape) {
-                        auto div = std::div(zi, d);
-                        *it++ = div.rem;
-                        zi = div.quot;
-                    }
-                }
+                auto indices = buildIndices(shape, i);
+
                 size_t k = 0;
                 size_t axis_ = shape[axis];
                 for (; k < inputs.size(); ++k) {

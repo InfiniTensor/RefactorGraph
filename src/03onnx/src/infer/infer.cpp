@@ -109,6 +109,17 @@ namespace refactor::onnx {
         return {std::move(ans), size};
     }
 
+    absl::InlinedVector<int64_t, 4> buildIndices(absl::InlinedVector<int64_t, 4> const &shape, size_t i) {
+        absl::InlinedVector<int64_t, 4> indices(shape.size());
+        auto it = indices.rbegin();
+        for (auto d : shape) {
+            auto div = std::div(i, d);
+            *it++ = div.rem;
+            i = div.quot;
+        }
+        return indices;
+    }
+
     InferResult inferUnary(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1) {
             auto dataType = inputs[0]->dataType;
@@ -451,21 +462,6 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferEqual(Operator const &op, Edges inputs) {
-        EXPECT_SIZE(2) {
-            auto const &a = inputs[0];
-            auto const &b = inputs[1];
-            if (a->dataType != b->dataType) {
-                return Err(InferError(ERROR_MSG("Input data type not support")));
-            }
-            auto ans = multidirBroadcast({a->shape, b->shape});
-            if (ans.isErr()) {
-                return Err(InferError(ERROR_MSG(ans.unwrapErr())));
-            } else {
-                return Ok(Edges{std::make_shared<Tensor>(DataType::Bool, ans.unwrap())});
-            }
-        }
-    }
 
     InferResult inferSoftmax(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1)
@@ -603,45 +599,6 @@ namespace refactor::onnx {
             }
         }
     }
-
-    InferResult inferConstantOfShape(Operator const &op, Edges inputs) {
-        EXPECT_SIZE(1)
-        if (auto shape = inputs[0];
-            shape->dataType != DataType::I64 ||
-            shape->shape.size() != 1 ||
-            !shape->hasData()) {
-            return Err(InferError(ERROR_MSG("Shape not support")));
-        } else {
-            auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
-            EXPECT_VAL(inputs[0]->shape[0], shapeSize)
-            Shape ans(shapeSize, DimExpr(1));
-            size_t size = 1;
-            for (auto i = 0; i < shapeSize; ++i) {
-                auto d = shape_[i];
-                ans[i] = DimExpr(d);
-                size *= d;
-            }
-            if (auto it = op.attributes.find("value"); it != op.attributes.end()) {
-                auto const &value = it->second.tensor();
-                ASSERT(value->hasData(), "ConstantOfShape value must have data");
-                ASSERT(value->shape.size() == 1 && value->shape[0] == DimExpr(1), "ConstantOfShape value must be scalar");
-                auto dataType = value->dataType;
-                auto eleSize = dataTypeSize(dataType);
-                auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-                for (auto i = 0; i < size; ++i) {
-                    std::memcpy(reinterpret_cast<uint8_t *>(blob->ptr) + i * eleSize, value->data->ptr, eleSize);
-                }
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(ans), std::move(blob))});
-            } else {
-                auto dataType = DataType::F32;
-                auto eleSize = dataTypeSize(dataType);
-                auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-                std::memset(blob->ptr, 0, size * eleSize);
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(ans), std::move(blob))});
-            }
-        }
-    }
-
 }// namespace refactor::onnx
 
 //     InferResult inferConv(Edges inputs, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides) {

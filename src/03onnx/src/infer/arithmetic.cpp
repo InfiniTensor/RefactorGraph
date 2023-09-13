@@ -26,16 +26,7 @@ namespace refactor::onnx {
                 auto opType = op.opType.name();
                 fmt::print("{} dst[{}] = ( ", opType, size);
                 for (size_t i = 0; i < size; ++i) {
-                    absl::InlinedVector<int64_t, 4> indices(ss);
-                    {
-                        auto ii = i;
-                        auto it = indices.rbegin();
-                        for (auto d : shape) {
-                            auto div = std::div(ii, d);
-                            *it++ = div.rem;
-                            ii = div.quot;
-                        }
-                    }
+                    auto indices = buildIndices(shape, i);
                     auto getter = [&indices](Edge const &input) -> int64_t {
                         auto it0 = indices.rbegin(),
                              end0 = indices.rend();
