@@ -2,8 +2,6 @@
 #include "computation/operator.h"
 #include "infer/infer.h"
 
-using namespace refactor::computation;
-
 namespace refactor::onnx {
 
     void register_() {

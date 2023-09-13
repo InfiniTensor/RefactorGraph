@@ -16,8 +16,8 @@ namespace refactor::computation {
     struct InferError : public std::runtime_error {
         std::variant<FatalError, UnknownVariable> value;
 
-        explicit InferError(std::string &&);
-        explicit InferError(UnknownVariable &&);
+        explicit InferError(std::string);
+        explicit InferError(UnknownVariable);
     };
     using InferResult = Result<Edges, InferError>;
     using InferFn = InferResult (*)(Operator const &, Edges);

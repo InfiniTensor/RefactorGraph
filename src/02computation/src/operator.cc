@@ -53,7 +53,7 @@ namespace refactor::computation {
     bool OpType::operator!=(OpType const &rhs) const { return !operator==(rhs); }
 
     struct Op {
-        const char *name;
+        std::string_view name;
         InferFn inference;
     };
 
@@ -78,7 +78,7 @@ namespace refactor::computation {
             auto id = OP_REPO.map.size();
             auto [it_, ok] = OP_REPO.nameMap.insert({std::move(name), id});
             ASSERT(ok, "unreachable");
-            OP_REPO.map.push_back(Op{it_->first.c_str(), it->second});
+            OP_REPO.map.push_back(Op{it_->first, it->second});
             OP_REPO.knownList.erase(it);
             return {id};
         } else {
@@ -93,7 +93,7 @@ namespace refactor::computation {
         }
     }
 
-    const char *OpType::name() const {
+    std::string_view OpType::name() const {
         return OP_REPO.map.at(id).name;
     }
 

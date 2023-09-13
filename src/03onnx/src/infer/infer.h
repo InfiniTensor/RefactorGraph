@@ -5,8 +5,8 @@
 #include "computation/operator.h"
 #include <optional>
 
-namespace refactor::computation {
-
+namespace refactor::onnx {
+    using namespace computation;
     using ShapeOrNot = std::optional<Shape>;
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
@@ -59,6 +59,22 @@ namespace refactor::computation {
                      ShapeOrNot const &pads,
                      ShapeOrNot const &strides);
 
-}// namespace refactor::computation
+#define EXPECT_SIZE(N)                                         \
+    if (inputs.size() != (N)) {                                \
+        return Err(InferError(ERROR_MSG("Input size error"))); \
+    } else
+
+#define EXPECT_VAL(DIM, VAL)                                             \
+    int64_t VAL;                                                         \
+    if ((DIM).hasValue()) {                                              \
+        VAL = (DIM).value();                                             \
+    } else {                                                             \
+        return Err(InferError(UnknownVariable{(DIM.variable()->name)})); \
+    }
+
+    bool shouldCalculate(Edges const &inputs, Shape const &output);
+    std::pair<absl::InlinedVector<int64_t, 4>, size_t> shape_size(Shape const &shape);
+
+}// namespace refactor::onnx
 
 #endif// GRAPH_INFER_H
