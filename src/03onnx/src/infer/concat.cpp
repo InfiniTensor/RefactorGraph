@@ -41,12 +41,12 @@ namespace refactor::onnx {
                 auto indices = buildIndices(shape, i);
 
                 size_t k = 0;
-                size_t axis_ = shape[axis];
-                for (; k < inputs.size(); ++k) {
+                for (auto axis_ = indices[axis]; k < inputs.size(); ++k) {
                     auto axis__ = inputs[k]->shape[axis].value();
-                    if (axis_ > axis__) {
+                    if (axis_ >= axis__) {
                         axis_ -= axis__;
                     } else {
+                        indices[axis] = axis_;
                         break;
                     }
                 }
@@ -58,7 +58,6 @@ namespace refactor::onnx {
                 }
                 auto input = reinterpret_cast<uint8_t *>(inputs[k]->data->ptr);
                 std::copy_n(input + ii * eleSize, eleSize, dst + i * eleSize);
-                // fmt::println("concat copies {} bytes", eleSize);
             }
             return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
         }

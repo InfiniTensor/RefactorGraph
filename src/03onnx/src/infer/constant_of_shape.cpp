@@ -5,18 +5,18 @@ namespace refactor::onnx {
 
     InferResult inferConstantOfShape(Operator const &op, Edges inputs) {
         EXPECT_SIZE(1)
-        if (auto shape = inputs[0];
-            shape->dataType != DataType::I64 ||
-            shape->shape.size() != 1 ||
-            !shape->hasData()) {
+        if (auto input = inputs[0];
+            input->dataType != DataType::I64 ||
+            input->shape.size() != 1 ||
+            !input->hasData()) {
             return Err(InferError(ERROR_MSG("Shape not support")));
         } else {
-            auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
-            EXPECT_VAL(inputs[0]->shape[0], shapeSize)
+            EXPECT_VAL(input->shape[0], shapeSize)
             Shape ans(shapeSize, DimExpr(1));
             size_t size = 1;
+            auto shape = reinterpret_cast<int64_t *>(input->data->ptr);
             for (auto i = 0; i < shapeSize; ++i) {
-                auto d = shape_[i];
+                auto d = shape[i];
                 ans[i] = DimExpr(d);
                 size *= d;
             }

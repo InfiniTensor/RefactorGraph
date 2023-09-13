@@ -285,12 +285,11 @@ namespace refactor::onnx {
             for (auto i = 0; i < ans.size(); ++i) {
                 switch (shapeValue[i]) {
                     case -1:
-                        if (pos_1 == -1) {
+                        if (pos_1 != -1) {
                             return Err(InferError(ERROR_MSG("Invalid shape variable")));
-                        } else {
-                            pos_1 = i;
-                            break;
                         }
+                        pos_1 = i;
+                        break;
                     case 0:
                         if (i >= input.size()) {
                             return Err(InferError(ERROR_MSG("Invalid shape variable")));
