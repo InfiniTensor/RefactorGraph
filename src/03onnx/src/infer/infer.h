@@ -21,7 +21,7 @@ namespace refactor::onnx {
     InferResult inferShape(Operator const &, Tensors);
     InferResult inferWhere(Operator const &, Tensors);
     InferResult inferSqueeze(Operator const &, Tensors);
-    InferResult inferEqual(Operator const &, Tensors);
+    InferResult inferCompair(Operator const &, Tensors);
     InferResult inferSoftmax(Operator const &, Tensors);
     InferResult inferPow(Operator const &, Tensors);
     InferResult inferReduce(Operator const &, Tensors);
@@ -73,9 +73,11 @@ namespace refactor::onnx {
     }
 
     bool shouldCalculate(Tensors const &inputs, Shape const &output);
-    std::pair<absl::InlinedVector<int64_t, 4>, size_t> shape_size(Shape const &shape);
-    absl::InlinedVector<int64_t, 4> buildIndices(absl::InlinedVector<int64_t, 4> const &shape, size_t i);
 
+    using Indices = absl::InlinedVector<int64_t, 4>;
+    std::pair<Indices, size_t> shape_size(Shape const &shape);
+    Indices buildIndices(Indices const &shape, size_t i);
+    void *locate(Tensor const &tensor, Indices const &indices);
 }// namespace refactor::onnx
 
 #endif// GRAPH_INFER_H

@@ -58,6 +58,9 @@ namespace refactor::computation {
         : dataType(dt_),
           shape(std::move(shape_)),
           data(std::move(data_)) {}
+    std::shared_ptr<Tensor> Tensor::share(common::DataType dt, Shape shape, std::shared_ptr<Blob> data) {
+        return std::make_shared<Tensor>(dt, std::move(shape), std::move(data));
+    }
     bool Tensor::operator==(Tensor const &rhs) const {
         return dataType == rhs.dataType &&
                shape == rhs.shape &&

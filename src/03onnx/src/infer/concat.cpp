@@ -57,7 +57,7 @@ namespace refactor::onnx {
                     mul *= inputs[k]->shape[j_].value();
                 }
                 auto input = reinterpret_cast<uint8_t *>(inputs[k]->data->ptr);
-                std::copy_n(input + ii * eleSize, eleSize, dst + i * eleSize);
+                std::memcpy(dst + i * eleSize, input + ii * eleSize, eleSize);
             }
             return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
         }

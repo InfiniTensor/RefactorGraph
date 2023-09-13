@@ -29,24 +29,10 @@ namespace refactor::onnx {
             auto eleSize = dataTypeSize(dataType);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
-            auto src = reinterpret_cast<uint8_t *>(data->data->ptr);
-            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
-                auto indices = buildIndices(shape___, i);
-                auto it0 = indices.rbegin(),
-                     end0 = indices.rend();
-                auto it1 = data->shape.rbegin(),
-                     end1 = data->shape.rend();
-                size_t ii = 0, mul = 1;
-                while (it0 != end0 && it1 != end1) {
-                    ii += *it0++ * mul;
-                    mul *= it1++->value();
-                }
-                std::copy_n(src + ii * eleSize, eleSize, dst);
-                dst += eleSize;
-                fmt::print("{} ", ii);
+                auto src = locate(*data, buildIndices(shape___, i));
+                std::memcpy(dst + i * eleSize, src, eleSize);
             }
-            fmt::print(")");
             return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
         }
     }

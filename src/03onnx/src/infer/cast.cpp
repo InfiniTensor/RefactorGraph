@@ -5,9 +5,9 @@ namespace refactor::onnx {
 
     InferResult inferCast(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
-            auto to = static_cast<DataType>(op.attribute("to").int_());
             auto const &input = inputs[0];
             auto output = input->shape;
+            auto to = static_cast<DataType>(op.attribute("to").int_());
             if (!shouldCalculate(inputs, output)) {
                 return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output))});
             }

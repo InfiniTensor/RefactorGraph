@@ -61,7 +61,7 @@ namespace refactor::onnx {
                         ii += indices_[j_] * mul;
                         mul *= data->shape[j_].value();
                     }
-                    std::copy_n(src + ii * eleSize, eleSize, dst + i * eleSize);
+                    std::memcpy(dst + i * eleSize, src + ii * eleSize, eleSize);
                 }
                 // fmt::println("gather copies {} bytes", eleSize);
             }

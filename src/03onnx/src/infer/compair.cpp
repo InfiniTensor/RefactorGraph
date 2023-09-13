@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferEqual(Operator const &op, Tensors inputs) {
+    InferResult inferCompair(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
@@ -16,34 +16,34 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG(res.unwrapErr())));
             }
 
-            auto dataType = a->dataType;
             auto output = std::move(res.unwrap());
-            if (!shouldCalculate(inputs, output) || dataType != DataType::I64) {
-                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
+            if (!shouldCalculate(inputs, output) || a->dataType != DataType::I64) {
+                return Ok(Tensors{std::make_shared<Tensor>(a->dataType, std::move(output))});
             }
 
             auto [shape, size] = shape_size(output);
-            auto eleSize = dataTypeSize(dataType);
+            auto eleSize = dataTypeSize(DataType::Bool);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<bool *>(blob->ptr);
-            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
+            auto opType = op.opType.name();
+            fmt::print("( {} dst<{}> = ", opType, size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = buildIndices(shape, i);
-                auto getter = [&indices](Tensor const &input) -> int64_t {
-                    auto it0 = indices.rbegin(),
-                         end0 = indices.rend();
-                    auto it1 = input.shape.rbegin(),
-                         end1 = input.shape.rend();
-                    size_t ii = 0, mul = 1;
-                    while (it0 != end0 && it1 != end1) {
-                        ii += *it0++ * mul;
-                        mul *= it1++->value();
-                    }
-                    return reinterpret_cast<int64_t *>(input.data->ptr)[ii];
-                };
-
-                auto a = getter(*inputs[0]), b = getter(*inputs[1]);
-                dst[i] = a == b;
+                auto a_ = *reinterpret_cast<int64_t *>(locate(*a, indices)),
+                     b_ = *reinterpret_cast<int64_t *>(locate(*b, indices));
+                if (opType == "onnx::Equal") {
+                    dst[i] = a_ == b_;
+                } else if (opType == "onnx::Greater") {
+                    dst[i] = a_ > b_;
+                } else if (opType == "onnx::GreaterOrEqual") {
+                    dst[i] = a_ >= b_;
+                } else if (opType == "onnx::Less") {
+                    dst[i] = a_ < b_;
+                } else if (opType == "onnx::LessOrEqual") {
+                    dst[i] = a_ <= b_;
+                } else {
+                    return Err(InferError(ERROR_MSG("OpType not support")));
+                }
                 fmt::print("{} ", dst[i]);
             }
             fmt::print(")");

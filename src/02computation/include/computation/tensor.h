@@ -57,6 +57,7 @@ namespace refactor::computation {
         std::shared_ptr<Blob> data;
 
         Tensor(common::DataType, Shape, std::shared_ptr<Blob> = nullptr);
+        static std::shared_ptr<Tensor> share(common::DataType, Shape, std::shared_ptr<Blob> = nullptr);
 
         bool operator==(Tensor const &) const;
         bool operator!=(Tensor const &) const;

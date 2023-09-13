@@ -109,8 +109,8 @@ namespace refactor::onnx {
                std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
     }
 
-    std::pair<absl::InlinedVector<int64_t, 4>, size_t> shape_size(Shape const &shape) {
-        absl::InlinedVector<int64_t, 4> ans;
+    std::pair<Indices, size_t> shape_size(Shape const &shape) {
+        Indices ans;
         size_t size = 1;
         ans.reserve(shape.size());
         for (auto const &d : shape) {
@@ -121,8 +121,8 @@ namespace refactor::onnx {
         return {std::move(ans), size};
     }
 
-    absl::InlinedVector<int64_t, 4> buildIndices(absl::InlinedVector<int64_t, 4> const &shape, size_t i) {
-        absl::InlinedVector<int64_t, 4> indices(shape.size());
+    Indices buildIndices(Indices const &shape, size_t i) {
+        Indices indices(shape.size());
         auto it = indices.rbegin();
         for (auto d : shape) {
             auto div = std::div(i, d);
@@ -132,304 +132,17 @@ namespace refactor::onnx {
         return indices;
     }
 
-    InferResult inferUnary(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(1) {
-            auto dataType = inputs[0]->dataType;
-            auto name = op.opType.name();
-            static std::unordered_set<std::string_view> const SET[]{
-                {"onnx::Abs", "onnx::Relu", "onnx::PRelu"},
-                {"onnx::Acos", "onnx::Acosh",
-                 "onnx::Asin", "onnx::Asinh",
-                 "onnx::Atan", "onnx::Atanh",
-                 "onnx::Cos", "onnx::Cosh",
-                 "onnx::Sin", "onnx::Sinh",
-                 "onnx::Tan"},
-                {"onnx::Tanh", "onnx::Sqrt"}};
-            if (SET[0].find(name) != SET[0].end()) {
-                if (!isNumbericDataType(dataType)) {
-                    return Err(InferError(ERROR_MSG("Data type not support")));
-                }
-            } else if (SET[1].find(name) != SET[1].end()) {
-                if (!isIeee754DataType(dataType)) {
-                    return Err(InferError(ERROR_MSG("Data type not support")));
-                }
-            } else if (SET[2].find(name) != SET[2].end()) {
-                if (!isFloatDataType(dataType)) {
-                    return Err(InferError(ERROR_MSG("Data type not support")));
-                }
-            } else {
-                RUNTIME_ERROR(fmt::format("OpType {} not support in unary inference", op.opType.name()));
-            }
-            return Ok(std::move(inputs));
+    void *locate(Tensor const &tensor, Indices const &indices) {
+        auto it0 = indices.rbegin(),
+             end0 = indices.rend();
+        auto it1 = tensor.shape.rbegin(),
+             end1 = tensor.shape.rend();
+        size_t i = 0, mul = 1;
+        while (it0 != end0 && it1 != end1) {
+            i += *it0++ * mul;
+            mul *= it1++->value();
         }
-    }
-
-    InferResult inferGemm(Operator const &op, Tensors inputs) {
-        if (auto size = inputs.size(); size < 2 || 3 < size) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
-            auto const &a = inputs[0];
-            auto const &b = inputs[1];
-            auto dataType = a->dataType;
-            if (!isNumbericDataType(dataType) || b->dataType != dataType) {
-                return Err(InferError(ERROR_MSG("Input data type not support")));
-            }
-            if (a->shape.size() != 2 || b->shape.size() != 2) {
-                return Err(InferError(ERROR_MSG("Input shape not support")));
-            }
-
-            EXPECT_VAL(a->shape[0], a0)
-            EXPECT_VAL(a->shape[1], a1)
-            EXPECT_VAL(b->shape[0], b0)
-            EXPECT_VAL(b->shape[1], b1)
-
-            size_t m, n, k;
-            if (op.attribute("transA", {0}).int_() == 0) {
-                m = a0;
-                k = a1;
-            } else {
-                m = a1;
-                k = a0;
-            }
-            if (op.attribute("transB", {0}).int_() == 0) {
-                if (b0 != k) {
-                    return Err(InferError(ERROR_MSG("Input shape not support")));
-                }
-                n = b1;
-            } else {
-                if (b1 != k) {
-                    return Err(InferError(ERROR_MSG("Input shape not support")));
-                }
-                n = b0;
-            }
-            Shape ans;
-            if (inputs.size() == 3) {
-                auto c = inputs[2];
-                if (c->dataType != dataType) {
-                    return Err(InferError(ERROR_MSG("Input data type not support")));
-                }
-                if (c->shape.size() != 2 || !unidirBroadcast(Shape{DimExpr(m), DimExpr(n)}, c->shape)) {
-                    return Err(InferError(ERROR_MSG("Input shape not support")));
-                }
-            }
-            return Ok(Tensors{std::make_shared<Tensor>(dataType, Shape{DimExpr(m), DimExpr(n)})});
-        }
-    }
-
-    InferResult inferMatMul(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(2) {
-            auto const &a = inputs[0];
-            auto const &b = inputs[1];
-            auto dataType = a->dataType;
-            if (!isNumbericDataType(dataType) || b->dataType != dataType) {
-                return Err(InferError(ERROR_MSG("Input data type not support")));
-            }
-            auto sa = a->shape, sb = b->shape;
-            switch (sa.size()) {
-                case 1:
-                    sa.insert(sa.begin(), DimExpr(1));
-                    break;
-                case 0:
-                    return Err(InferError(ERROR_MSG("Input shape not support")));
-                default:
-                    break;
-            }
-            switch (sb.size()) {
-                case 1:
-                    sb.emplace_back(1);
-                    break;
-                case 0:
-                    return Err(InferError(ERROR_MSG("Input shape not support")));
-                default:
-                    break;
-            }
-            auto k = *sa.rbegin();
-            sa.pop_back();
-            auto m = *sa.rbegin();
-            sa.pop_back();
-            auto n = *sb.rbegin();
-            sb.pop_back();
-            if (k != *sb.rbegin()) {
-                return Err(InferError(ERROR_MSG("Input shape not support")));
-            }
-            sb.pop_back();
-            if (!sa.empty() || !sb.empty()) {
-                auto res = multidirBroadcast({sa, sb});
-                if (res.isErr()) {
-                    return Err(InferError(ERROR_MSG(res.unwrapErr())));
-                } else {
-                    auto shape = res.unwrap();
-                    shape.emplace_back(m);
-                    shape.emplace_back(n);
-                    return Ok(Tensors{std::make_shared<Tensor>(dataType, shape)});
-                }
-            } else {
-                return Ok(Tensors{std::make_shared<Tensor>(dataType, Shape{m, n})});
-            }
-        }
-    }
-
-    InferResult inferReshape(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(2)
-        if (auto shape = inputs[1];
-            shape->dataType != DataType::I64 ||
-            shape->shape.size() != 1 ||
-            !shape->hasData()) {
-            return Err(InferError(ERROR_MSG("Shape not support")));
-        } else {
-            auto const &input = inputs[0]->shape;
-            auto shapeValue = reinterpret_cast<int64_t *>(inputs[1]->data->ptr);
-            EXPECT_VAL(inputs[1]->shape[0], rank)
-            Shape ans(rank, DimExpr(1));
-            auto pos_1 = -1;
-            for (auto i = 0; i < ans.size(); ++i) {
-                switch (shapeValue[i]) {
-                    case -1:
-                        if (pos_1 != -1) {
-                            return Err(InferError(ERROR_MSG("Invalid shape variable")));
-                        }
-                        pos_1 = i;
-                        break;
-                    case 0:
-                        if (i >= input.size()) {
-                            return Err(InferError(ERROR_MSG("Invalid shape variable")));
-                        }
-                        ans[i] = input[i];
-                        break;
-                    default:
-                        ans[i] = DimExpr(shapeValue[i]);
-                        break;
-                }
-            }
-            size_t old_ = 1, new_ = 1;
-            for (auto const &d : input) {
-                EXPECT_VAL(d, v)
-                old_ *= v;
-            }
-            for (auto const &d : ans) {
-                EXPECT_VAL(d, v)
-                new_ *= v;
-            }
-            if (pos_1 != -1) {
-                if (old_ % new_ != 0) {
-                    return Err(InferError(ERROR_MSG("Invalid shape variable")));
-                } else {
-                    ans[pos_1] = DimExpr(old_ / new_);
-                }
-            } else if (old_ != new_) {
-                return Err(InferError(ERROR_MSG("Invalid shape variable")));
-            }
-            return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
-        }
-    }
-
-    InferResult inferSoftmax(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(1)
-        if (!isIeee754DataType(inputs[0]->dataType)) {
-            return Err(InferError(ERROR_MSG("Input data type not support")));
-        } else {
-            return Ok(std::move(inputs));
-        }
-    }
-
-    InferResult inferPow(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(2) {
-            auto const &a = inputs[0];
-            auto const &b = inputs[1];
-            if (!isSignedDataType(a->dataType) || !isNumbericDataType(b->dataType)) {
-                return Err(InferError(ERROR_MSG("Input data type not support")));
-            }
-            auto ans = multidirBroadcast({a->shape, b->shape});
-            if (ans.isErr()) {
-                return Err(InferError(ERROR_MSG(ans.unwrapErr())));
-            } else {
-                return Ok(Tensors{std::make_shared<Tensor>(a->dataType, ans.unwrap())});
-            }
-        }
-    }
-
-    InferResult inferReduce(Operator const &op, Tensors inputs) {
-        if (inputs.empty() || 2 < inputs.size()) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else if (!isNumbericDataType(inputs[0]->dataType)) {
-            return Err(InferError(ERROR_MSG("Input data type not support")));
-        } else {
-            auto keepdims = op.attribute("keepdims", {1}).int_();
-            if (inputs.size() == 2) {
-                auto const &shape = inputs[0]->shape;
-                auto const &axes = inputs[1];
-                if (axes->dataType != DataType::I64 ||
-                    axes->shape.size() != 1 ||
-                    !axes->hasData()) {
-                    return Err(InferError(ERROR_MSG("Axes not support")));
-                }
-                auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
-                EXPECT_VAL(axes->shape[0], axesSize)
-                std::unordered_set<int64_t> axes__;
-                for (size_t i = 0; i < axesSize; ++i) {
-                    auto axis = axes_[i];
-                    axes__.insert(axis < 0 ? axis + shape.size() : axis);
-                }
-                Shape ans;
-                for (size_t i = 0; i < shape.size(); ++i) {
-                    if (axes__.find(i) == axes__.end()) {
-                        ans.emplace_back(shape[i]);
-                    } else if (keepdims) {
-                        ans.emplace_back(1);
-                    }
-                }
-                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
-            } else if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
-                return Ok(Tensors{std::move(inputs[0])});
-            } else if (keepdims) {
-                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, Shape(inputs[0]->shape.size(), DimExpr(1)))});
-            } else {
-                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, Shape{})});
-            }
-        }
-    }
-
-    InferResult inferMax(Operator const &op, Tensors inputs) {
-        if (inputs.empty()) {
-            return Err(InferError(ERROR_MSG("Input size error")));
-        } else {
-            std::vector<Shape> shapes;
-            shapes.reserve(inputs.size());
-            auto dataType = inputs[0]->dataType;
-            for (auto &input : inputs) {
-                if (input->dataType != dataType) {
-                    return Err(InferError(ERROR_MSG("Input data type not support")));
-                }
-                shapes.emplace_back(std::move(input->shape));
-            }
-            auto shape = multidirBroadcast(shapes);
-            if (shape.isErr()) {
-                return Err(InferError(ERROR_MSG(shape.unwrapErr())));
-            } else {
-                return Ok(Tensors{std::make_shared<Tensor>(dataType, shape.unwrap())});
-            }
-        }
-    }
-
-    InferResult inferTranspose(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(1) {
-            auto const &data = inputs[0];
-            auto const &attrs = op.attributes;
-            if (auto it = attrs.find("perm"); it != attrs.end()) {
-                auto const &perm = it->second.ints();
-                if (perm.size() != data->shape.size()) {
-                    return Err(InferError(ERROR_MSG("Input shape not support")));
-                }
-                Shape ans;
-                for (auto i : perm) {
-                    ans.emplace_back(data->shape[i]);
-                }
-                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(ans))});
-            } else {
-                Shape ans(data->shape.rbegin(), data->shape.rend());
-                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(ans))});
-            }
-        }
+        return reinterpret_cast<uint8_t *>(tensor.data->ptr) + i * dataTypeSize(tensor.dataType);
     }
 }// namespace refactor::onnx
 
