@@ -378,13 +378,6 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferCast(Operator const &op, Edges inputs) {
-        EXPECT_SIZE(1) {
-            auto to = static_cast<DataType>(op.attribute("to").int_());
-            return Ok(Edges{std::make_shared<Tensor>(to, inputs[0]->shape)});
-        }
-    }
-
     InferResult inferMax(Operator const &op, Edges inputs) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
