@@ -56,10 +56,11 @@ namespace refactor::computation {
                 }
             }
             if (!inputs_) { continue; }
-            fmt::print("nodes[{}] = {}", nodeIdx, _internal.nodes[nodeIdx].op->opType.name());
+            auto const &node = _internal.nodes[nodeIdx];
+            fmt::print("nodes[{}] = {}({})", nodeIdx, node.name, node.op->opType.name());
 
             // 推导
-            auto infered = _internal.nodes[nodeIdx].op->infer(std::move(*inputs_));
+            auto infered = node.op->infer(std::move(*inputs_));
             if (infered.isErr()) {
                 fmt::println(", inference failed");
                 // 推导失败，记录未知变量和边
