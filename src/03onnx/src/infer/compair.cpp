@@ -26,7 +26,7 @@ namespace refactor::onnx {
             auto eleSize = dataTypeSize(dataType);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<bool *>(blob->ptr);
-            fmt::print("( {} dst[{}] = ", op.opType.name(), size);
+            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = buildIndices(shape, i);
                 auto getter = [&indices](Edge const &input) -> int64_t {

@@ -1,4 +1,5 @@
 ﻿#include "infer.h"
+#include <unordered_set>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -23,25 +24,20 @@ namespace refactor::onnx {
             if (ends_->shape != starts_->shape) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            EXPECT_VAL(starts_->shape[0], rank)
-            if (data->shape.size() != rank) {
+            auto rank = data->shape.size();
+            EXPECT_VAL(starts_->shape[0], rankParam)
+            if (rank < rankParam) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
             if (!starts_->hasData() || !ends_->hasData()) {
                 return Err(InferError(ERROR_MSG("Starts and ends must be constant")));
             }
-            int64_t *starts = reinterpret_cast<int64_t *>(starts_->data->ptr),
-                    *ends = reinterpret_cast<int64_t *>(ends_->data->ptr),
-                    *axes = nullptr,
-                    *steps = nullptr;
-            std::vector<int64_t> axes__, steps__;
-            if (inputs.size() < 4) {
-                axes__.resize(rank);
-                axes = axes__.data();
-                for (int64_t i = 0; i < rank; ++i) {
-                    axes[i] = i;
-                }
-            } else {
+            int64_t const *const starts = reinterpret_cast<int64_t *>(starts_->data->ptr);
+            int64_t const *const ends = reinterpret_cast<int64_t *>(ends_->data->ptr);
+            int64_t const *axes = nullptr,
+                          *steps = nullptr;
+            std::vector<int64_t> steps__;
+            if (inputs.size() >= 4) {
                 auto const &axes_ = inputs[3];
                 if (axes_->dataType != tint || axes_->shape != starts_->shape) {
                     return Err(InferError(ERROR_MSG("Axes not support")));
@@ -51,10 +47,7 @@ namespace refactor::onnx {
                 }
                 axes = reinterpret_cast<int64_t *>(axes_->data->ptr);
             }
-            if (inputs.size() < 5) {
-                steps__.resize(rank, 1);
-                steps = steps__.data();
-            } else {
+            if (inputs.size() == 5) {
                 auto const &steps_ = inputs[4];
                 if (steps_->dataType != tint || steps_->shape != starts_->shape) {
                     return Err(InferError(ERROR_MSG("Steps not support")));
@@ -64,16 +57,20 @@ namespace refactor::onnx {
                 }
                 steps = reinterpret_cast<int64_t *>(steps_->data->ptr);
             }
-
+            std::unordered_set<int64_t> axes_set;
+            for (size_t i = 0; i < rank; ++i) { axes_set.insert(i); }
             Shape ans(rank, DimExpr(1));
-            for (size_t i = 0; i < rank; ++i) {
-                auto axis = axes[i];
-                auto start = starts[i];
-                auto end = ends[i];
-                auto step = steps[i];
+            for (size_t i = 0; i < rankParam; ++i) {
+                auto axis = axes ? axes[i] : i;
                 if (axis < 0) {
                     axis += rank;
                 }
+                if (!axes_set.erase(axis)) {
+                    return Err(InferError(ERROR_MSG("Axes not support")));
+                }
+                auto start = starts[i];
+                auto end = ends[i];
+                auto step = steps ? steps[i] : 1;
                 EXPECT_VAL(data->shape[axis], dim)
                 if (start < 0) {
                     start += dim;
@@ -81,8 +78,30 @@ namespace refactor::onnx {
                 if (end < 0) {
                     end += dim;
                 }
-                if (start < 0 || dim <= start || end < 0 || dim < end) {
-                    return Err(InferError(ERROR_MSG("Input shape not support")));
+                if (step > 0) {
+                    if (start < 0) {
+                        start = 0;
+                    } else if (start > dim) {
+                        start = dim;
+                    }
+                    if (end < 0) {
+                        end = 0;
+                    } else if (end > dim) {
+                        end = dim;
+                    }
+                } else if (step < 0) {
+                    if (start < 0) {
+                        start = 0;
+                    } else if (start > dim - 1) {
+                        start = dim - 1;
+                    }
+                    if (end < -1) {
+                        end = -1;
+                    } else if (end > dim - 1) {
+                        end = dim - 1;
+                    }
+                } else {
+                    return Err(InferError(ERROR_MSG("Step not support")));
                 }
                 if (step > 0) {
                     ans[axis] = DimExpr((end - start + step - 1) / step);
@@ -91,6 +110,9 @@ namespace refactor::onnx {
                 } else {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
+            }
+            for (auto axis : axes_set) {
+                ans[axis] = data->shape[axis];
             }
             return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
         }

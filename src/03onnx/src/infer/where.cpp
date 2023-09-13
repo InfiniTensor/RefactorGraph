@@ -31,7 +31,7 @@ namespace refactor::onnx {
             auto srcC = reinterpret_cast<bool *>(condition->data->ptr);
             auto srcX = reinterpret_cast<uint8_t *>(x->data->ptr);
             auto srcY = reinterpret_cast<uint8_t *>(y->data->ptr);
-            fmt::print("( {} dst[{}] = ", op.opType.name(), size);
+            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = buildIndices(shape, i);
                 auto ptr = [&indices](Edge const &input) -> uint8_t * {
