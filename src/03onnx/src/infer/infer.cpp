@@ -104,7 +104,7 @@ namespace refactor::onnx {
     //     return Ok(ans);
     // }
 
-    bool shouldCalculate(Edges const &inputs, Shape const &output) {
+    bool shouldCalculate(Tensors const &inputs, Shape const &output) {
         return std::all_of(inputs.begin(), inputs.end(), [](auto const &input) { return input->hasData(); }) &&
                std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
     }
@@ -132,7 +132,7 @@ namespace refactor::onnx {
         return indices;
     }
 
-    InferResult inferUnary(Operator const &op, Edges inputs) {
+    InferResult inferUnary(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
             auto dataType = inputs[0]->dataType;
             auto name = op.opType.name();
@@ -164,7 +164,7 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferGemm(Operator const &op, Edges inputs) {
+    InferResult inferGemm(Operator const &op, Tensors inputs) {
         if (auto size = inputs.size(); size < 2 || 3 < size) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
@@ -212,11 +212,11 @@ namespace refactor::onnx {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
             }
-            return Ok(Edges{std::make_shared<Tensor>(dataType, Shape{DimExpr(m), DimExpr(n)})});
+            return Ok(Tensors{std::make_shared<Tensor>(dataType, Shape{DimExpr(m), DimExpr(n)})});
         }
     }
 
-    InferResult inferMatMul(Operator const &op, Edges inputs) {
+    InferResult inferMatMul(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
@@ -261,15 +261,15 @@ namespace refactor::onnx {
                     auto shape = res.unwrap();
                     shape.emplace_back(m);
                     shape.emplace_back(n);
-                    return Ok(Edges{std::make_shared<Tensor>(dataType, shape)});
+                    return Ok(Tensors{std::make_shared<Tensor>(dataType, shape)});
                 }
             } else {
-                return Ok(Edges{std::make_shared<Tensor>(dataType, Shape{m, n})});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, Shape{m, n})});
             }
         }
     }
 
-    InferResult inferReshape(Operator const &op, Edges inputs) {
+    InferResult inferReshape(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2)
         if (auto shape = inputs[1];
             shape->dataType != DataType::I64 ||
@@ -319,11 +319,11 @@ namespace refactor::onnx {
             } else if (old_ != new_) {
                 return Err(InferError(ERROR_MSG("Invalid shape variable")));
             }
-            return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
+            return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
         }
     }
 
-    InferResult inferSoftmax(Operator const &op, Edges inputs) {
+    InferResult inferSoftmax(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1)
         if (!isIeee754DataType(inputs[0]->dataType)) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
@@ -332,7 +332,7 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferPow(Operator const &op, Edges inputs) {
+    InferResult inferPow(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
@@ -343,12 +343,12 @@ namespace refactor::onnx {
             if (ans.isErr()) {
                 return Err(InferError(ERROR_MSG(ans.unwrapErr())));
             } else {
-                return Ok(Edges{std::make_shared<Tensor>(a->dataType, ans.unwrap())});
+                return Ok(Tensors{std::make_shared<Tensor>(a->dataType, ans.unwrap())});
             }
         }
     }
 
-    InferResult inferReduce(Operator const &op, Edges inputs) {
+    InferResult inferReduce(Operator const &op, Tensors inputs) {
         if (inputs.empty() || 2 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else if (!isNumbericDataType(inputs[0]->dataType)) {
@@ -378,18 +378,18 @@ namespace refactor::onnx {
                         ans.emplace_back(1);
                     }
                 }
-                return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
+                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
             } else if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
-                return Ok(Edges{std::move(inputs[0])});
+                return Ok(Tensors{std::move(inputs[0])});
             } else if (keepdims) {
-                return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, Shape(inputs[0]->shape.size(), DimExpr(1)))});
+                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, Shape(inputs[0]->shape.size(), DimExpr(1)))});
             } else {
-                return Ok(Edges{std::make_shared<Tensor>(inputs[0]->dataType, Shape{})});
+                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, Shape{})});
             }
         }
     }
 
-    InferResult inferMax(Operator const &op, Edges inputs) {
+    InferResult inferMax(Operator const &op, Tensors inputs) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
@@ -406,12 +406,12 @@ namespace refactor::onnx {
             if (shape.isErr()) {
                 return Err(InferError(ERROR_MSG(shape.unwrapErr())));
             } else {
-                return Ok(Edges{std::make_shared<Tensor>(dataType, shape.unwrap())});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, shape.unwrap())});
             }
         }
     }
 
-    InferResult inferTranspose(Operator const &op, Edges inputs) {
+    InferResult inferTranspose(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
             auto const &data = inputs[0];
             auto const &attrs = op.attributes;
@@ -424,16 +424,16 @@ namespace refactor::onnx {
                 for (auto i : perm) {
                     ans.emplace_back(data->shape[i]);
                 }
-                return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
+                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(ans))});
             } else {
                 Shape ans(data->shape.rbegin(), data->shape.rend());
-                return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
+                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(ans))});
             }
         }
     }
 }// namespace refactor::onnx
 
-//     InferResult inferConv(Edges inputs, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides) {
+//     InferResult inferConv(Tensors inputs, ShapeOrNot dilations, ShapeOrNot pads, ShapeOrNot strides) {
 //         if (inputs.size() != 2 && inputs.size() != 3) {
 //             return Err(InferError(ERROR_MSG("Input size error")));
 //         } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
@@ -476,12 +476,12 @@ namespace refactor::onnx {
 //                 ans[1] = kernel.shape[0] * (input.shape[1] / kernel.shape[1]);
 //                 auto pool__ = pool_.unwrap();
 //                 std::copy(pool__.begin(), pool__.end(), ans.begin() + 2);
-//                 return Ok(Edges{EdgeInfo{Tensor{dataType, std::move(ans)}}});
+//                 return Ok(Tensors{EdgeInfo{Tensor{dataType, std::move(ans)}}});
 //             }
 //         }
 //     }
 
-//     InferResult inferPool(Edges inputs, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides) {
+//     InferResult inferPool(Tensors inputs, ShapeOrNot dilations, Shape kernelShape, ShapeOrNot pads, ShapeOrNot strides) {
 //         if (inputs.size() != 1) {
 //             return Err(InferError(ERROR_MSG("Input size error")));
 //         } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
@@ -507,12 +507,12 @@ namespace refactor::onnx {
 //                 ans[1] = input.shape[1];
 //                 auto pool__ = pool_.unwrap();
 //                 std::copy(pool__.begin(), pool__.end(), ans.begin() + 2);
-//                 return Ok(Edges{EdgeInfo{Tensor{dataType, std::move(ans)}}});
+//                 return Ok(Tensors{EdgeInfo{Tensor{dataType, std::move(ans)}}});
 //             }
 //         }
 //     }
 
-//     InferResult inferGlobalPool(Edges inputs) {
+//     InferResult inferGlobalPool(Tensors inputs) {
 //         if (inputs.size() != 1) {
 //             return Err(InferError(ERROR_MSG("Input size error")));
 //         } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
@@ -529,11 +529,11 @@ namespace refactor::onnx {
 //             Shape ans(dim, 1);
 //             ans[0] = input.shape[0];
 //             ans[1] = input.shape[1];
-//             return Ok(Edges{EdgeInfo{Tensor{input.dataType, std::move(ans)}}});
+//             return Ok(Tensors{EdgeInfo{Tensor{input.dataType, std::move(ans)}}});
 //         }
 //     }
 
-//     InferResult inferBatchNormalization(Edges inputs, bool training) {
+//     InferResult inferBatchNormalization(Tensors inputs, bool training) {
 //         if (inputs.size() != 5) {
 //             return Err(InferError(ERROR_MSG("Input size error")));
 //         } else if (std::any_of(inputs.begin(), inputs.end(), [](auto const &edge) { return !edge.isTensor(); })) {
@@ -552,7 +552,7 @@ namespace refactor::onnx {
 //                 return Err(InferError(ERROR_MSG("Input shape not support")));
 //             }
 //             if (!training) {
-//                 return Ok(Edges{std::move(input)});
+//                 return Ok(Tensors{std::move(input)});
 //             } else {
 //                 return Err(InferError(ERROR_MSG("Not implemented")));
 //             }

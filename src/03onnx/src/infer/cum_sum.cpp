@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferCumSum(Operator const &op, Edges inputs) {
+    InferResult inferCumSum(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2)
         if (!inputs[1]->shape.empty()) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
@@ -12,7 +12,7 @@ namespace refactor::onnx {
                     inputs[1]->dataType != DataType::I32)) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         } else {
-            return Ok(Edges{std::move(inputs[0])});
+            return Ok(Tensors{std::move(inputs[0])});
         }
     }
 }// namespace refactor::onnx

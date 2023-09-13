@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferExpand(Operator const &op, Edges inputs) {
+    InferResult inferExpand(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2)
         if (inputs[1]->dataType != DataType::I64 ||
             inputs[1]->shape.size() != 1 ||
@@ -22,7 +22,7 @@ namespace refactor::onnx {
             auto dataType = data->dataType;
             auto output = std::move(res.unwrap());
             if (!shouldCalculate(inputs, output)) {
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output))});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
             }
 
             auto [shape___, size] = shape_size(output);
@@ -47,7 +47,7 @@ namespace refactor::onnx {
                 fmt::print("{} ", ii);
             }
             fmt::print(")");
-            return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
         }
     }
 }// namespace refactor::onnx

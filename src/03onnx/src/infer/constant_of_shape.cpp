@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferConstantOfShape(Operator const &op, Edges inputs) {
+    InferResult inferConstantOfShape(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1)
         if (auto input = inputs[0];
             input->dataType != DataType::I64 ||
@@ -30,13 +30,13 @@ namespace refactor::onnx {
                 for (auto i = 0; i < size; ++i) {
                     std::memcpy(reinterpret_cast<uint8_t *>(blob->ptr) + i * eleSize, value->data->ptr, eleSize);
                 }
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(ans), std::move(blob))});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(ans), std::move(blob))});
             } else {
                 auto dataType = DataType::F32;
                 auto eleSize = dataTypeSize(dataType);
                 auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
                 std::memset(blob->ptr, 0, size * eleSize);
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(ans), std::move(blob))});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(ans), std::move(blob))});
             }
         }
     }

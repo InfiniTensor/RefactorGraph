@@ -11,27 +11,27 @@ namespace refactor::onnx {
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
-    InferResult inferUnary(Operator const &, Edges);
-    InferResult inferArithmetic(Operator const &, Edges);
-    InferResult inferGemm(Operator const &, Edges);
-    InferResult inferMatMul(Operator const &, Edges);
-    InferResult inferReshape(Operator const &, Edges);
-    InferResult inferCumSum(Operator const &, Edges);
-    InferResult inferSlice(Operator const &, Edges);
-    InferResult inferShape(Operator const &, Edges);
-    InferResult inferWhere(Operator const &, Edges);
-    InferResult inferSqueeze(Operator const &, Edges);
-    InferResult inferEqual(Operator const &, Edges);
-    InferResult inferSoftmax(Operator const &, Edges);
-    InferResult inferPow(Operator const &, Edges);
-    InferResult inferReduce(Operator const &, Edges);
-    InferResult inferConcat(Operator const &, Edges);
-    InferResult inferGather(Operator const &, Edges);
-    InferResult inferCast(Operator const &, Edges);
-    InferResult inferMax(Operator const &, Edges);
-    InferResult inferTranspose(Operator const &, Edges);
-    InferResult inferExpand(Operator const &, Edges);
-    InferResult inferConstantOfShape(Operator const &, Edges);
+    InferResult inferUnary(Operator const &, Tensors);
+    InferResult inferArithmetic(Operator const &, Tensors);
+    InferResult inferGemm(Operator const &, Tensors);
+    InferResult inferMatMul(Operator const &, Tensors);
+    InferResult inferReshape(Operator const &, Tensors);
+    InferResult inferCumSum(Operator const &, Tensors);
+    InferResult inferSlice(Operator const &, Tensors);
+    InferResult inferShape(Operator const &, Tensors);
+    InferResult inferWhere(Operator const &, Tensors);
+    InferResult inferSqueeze(Operator const &, Tensors);
+    InferResult inferEqual(Operator const &, Tensors);
+    InferResult inferSoftmax(Operator const &, Tensors);
+    InferResult inferPow(Operator const &, Tensors);
+    InferResult inferReduce(Operator const &, Tensors);
+    InferResult inferConcat(Operator const &, Tensors);
+    InferResult inferGather(Operator const &, Tensors);
+    InferResult inferCast(Operator const &, Tensors);
+    InferResult inferMax(Operator const &, Tensors);
+    InferResult inferTranspose(Operator const &, Tensors);
+    InferResult inferExpand(Operator const &, Tensors);
+    InferResult inferConstantOfShape(Operator const &, Tensors);
 
     using ShapeResult = Result<Shape, std::string>;
 
@@ -72,7 +72,7 @@ namespace refactor::onnx {
         return Err(InferError(UnknownVariable{(DIM.variable()->name)})); \
     }
 
-    bool shouldCalculate(Edges const &inputs, Shape const &output);
+    bool shouldCalculate(Tensors const &inputs, Shape const &output);
     std::pair<absl::InlinedVector<int64_t, 4>, size_t> shape_size(Shape const &shape);
     absl::InlinedVector<int64_t, 4> buildIndices(absl::InlinedVector<int64_t, 4> const &shape, size_t i);
 

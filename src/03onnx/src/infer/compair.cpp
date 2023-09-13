@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferEqual(Operator const &op, Edges inputs) {
+    InferResult inferEqual(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
@@ -19,7 +19,7 @@ namespace refactor::onnx {
             auto dataType = a->dataType;
             auto output = std::move(res.unwrap());
             if (!shouldCalculate(inputs, output) || dataType != DataType::I64) {
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output))});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
             }
 
             auto [shape, size] = shape_size(output);
@@ -29,25 +29,25 @@ namespace refactor::onnx {
             fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = buildIndices(shape, i);
-                auto getter = [&indices](Edge const &input) -> int64_t {
+                auto getter = [&indices](Tensor const &input) -> int64_t {
                     auto it0 = indices.rbegin(),
                          end0 = indices.rend();
-                    auto it1 = input->shape.rbegin(),
-                         end1 = input->shape.rend();
+                    auto it1 = input.shape.rbegin(),
+                         end1 = input.shape.rend();
                     size_t ii = 0, mul = 1;
                     while (it0 != end0 && it1 != end1) {
                         ii += *it0++ * mul;
                         mul *= it1++->value();
                     }
-                    return reinterpret_cast<int64_t *>(input->data->ptr)[ii];
+                    return reinterpret_cast<int64_t *>(input.data->ptr)[ii];
                 };
 
-                auto a = getter(inputs[0]), b = getter(inputs[1]);
+                auto a = getter(*inputs[0]), b = getter(*inputs[1]);
                 dst[i] = a == b;
                 fmt::print("{} ", dst[i]);
             }
             fmt::print(")");
-            return Ok(Edges{std::make_shared<Tensor>(DataType::Bool, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::make_shared<Tensor>(DataType::Bool, std::move(output), std::move(blob))});
         }
     }
 }// namespace refactor::onnx

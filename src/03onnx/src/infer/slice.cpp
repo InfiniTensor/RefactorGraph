@@ -4,7 +4,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferSlice(Operator const &op, Edges inputs) {
+    InferResult inferSlice(Operator const &op, Tensors inputs) {
         if (inputs.size() < 3 || 5 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
@@ -114,7 +114,7 @@ namespace refactor::onnx {
             for (auto axis : axes_set) {
                 ans[axis] = data->shape[axis];
             }
-            return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
+            return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(ans))});
         }
     }
 }// namespace refactor::onnx

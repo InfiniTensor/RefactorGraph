@@ -36,7 +36,10 @@ namespace refactor::computation {
     using Attributes = std::unordered_map<std::string, Attribute>;
 
     class Operator;
-    using Node = std::shared_ptr<Operator>;
+    struct Node {
+        std::shared_ptr<Operator> op;
+        std::string name;
+    };
 
     struct OpType {
         size_t id;
@@ -61,7 +64,7 @@ namespace refactor::computation {
         Attribute const &attribute(const char *) const;
         Attribute const &attribute(const char *, Attribute const &default_) const;
 
-        InferResult infer(Edges) const;
+        InferResult infer(Tensors) const;
     };
 
 }// namespace refactor::computation

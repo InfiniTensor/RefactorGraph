@@ -116,7 +116,7 @@ namespace refactor::computation {
         }
     }
 
-    InferResult Operator::infer(Edges inputs) const {
+    InferResult Operator::infer(Tensors inputs) const {
         return OP_REPO.map.at(opType.id).inference(*this, inputs);
     }
 

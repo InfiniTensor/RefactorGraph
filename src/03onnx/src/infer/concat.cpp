@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferConcat(Operator const &op, Edges inputs) {
+    InferResult inferConcat(Operator const &op, Tensors inputs) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
@@ -30,7 +30,7 @@ namespace refactor::onnx {
                 }
             }
             if (!shouldCalculate(inputs, output)) {
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output))});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
             }
 
             auto [shape, size] = shape_size(output);
@@ -59,7 +59,7 @@ namespace refactor::onnx {
                 auto input = reinterpret_cast<uint8_t *>(inputs[k]->data->ptr);
                 std::copy_n(input + ii * eleSize, eleSize, dst + i * eleSize);
             }
-            return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
         }
     }
 }// namespace refactor::onnx

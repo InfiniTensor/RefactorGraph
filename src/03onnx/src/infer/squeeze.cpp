@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferSqueeze(Operator const &op, Edges inputs) {
+    InferResult inferSqueeze(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2) {
             auto const &data = inputs[0];
             auto const &axes = inputs[1];
@@ -51,7 +51,7 @@ namespace refactor::onnx {
                 RUNTIME_ERROR(fmt::format("{} not support in squeeze inference", opType));
             }
             // fmt::println("{} passed its data", opType);
-            return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
+            return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
         }
     }
 }// namespace refactor::onnx

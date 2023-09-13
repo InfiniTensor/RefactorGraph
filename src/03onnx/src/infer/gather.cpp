@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferGather(Operator const &op, Edges inputs) {
+    InferResult inferGather(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2)
         if (inputs[1]->dataType != DataType::I32 && inputs[1]->dataType != DataType::I64) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
@@ -24,7 +24,7 @@ namespace refactor::onnx {
             output.erase(output.begin() + axis);
             output.insert(output.begin() + axis, indices->shape.begin(), indices->shape.end());
             if (!shouldCalculate(inputs, output)) {
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output))});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
             }
 
             auto const ssz = output.size();
@@ -66,7 +66,7 @@ namespace refactor::onnx {
                 // fmt::println("gather copies {} bytes", eleSize);
             }
 
-            return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
         }
     }
 

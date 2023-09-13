@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferShape(Operator const &op, Edges inputs) {
+    InferResult inferShape(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
             auto attrs = op.attributes;
             auto start = op.attribute("start", {0}).int_(),
@@ -18,7 +18,7 @@ namespace refactor::onnx {
                 EXPECT_VAL(ans[i], v)
                 reinterpret_cast<int64_t *>(blob->ptr)[i] = v;
             }
-            return Ok(Edges{
+            return Ok(Tensors{
                 std::make_shared<Tensor>(
                     DataType::I64,
                     Shape{DimExpr(ans.size())},

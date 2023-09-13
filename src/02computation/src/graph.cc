@@ -14,8 +14,8 @@ namespace refactor::computation {
 
     void Graph::collectVariables() {
         for (auto const &edge : _internal.edges) {
-            if (edge) {
-                for (auto const &dim : edge->shape) {
+            if (edge.tensor) {
+                for (auto const &dim : edge.tensor->shape) {
                     if (dim.isVariable()) {
                         auto const &var = dim.variable();
                         _variables.try_emplace(var->name, var);
@@ -40,7 +40,7 @@ namespace refactor::computation {
         // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
             // 构造入边
-            std::optional<std::vector<Edge>> inputs_(std::in_place);
+            std::optional<std::vector<std::shared_ptr<Tensor>>> inputs_(std::in_place);
             {
                 inputs_->reserve(inputs.size());
                 for (auto i : inputs) {
@@ -50,16 +50,16 @@ namespace refactor::computation {
                         inputs_ = std::nullopt;
                         break;
                     }
-                    auto const &input = _internal.edges[i];
+                    auto const &input = _internal.edges[i].tensor;
                     ASSERT(input, "input edge not exist");
                     inputs_->emplace_back(input);
                 }
             }
             if (!inputs_) { continue; }
-            fmt::print("nodes[{}] = {}", nodeIdx, _internal.nodes[nodeIdx]->opType.name());
+            fmt::print("nodes[{}] = {}", nodeIdx, _internal.nodes[nodeIdx].op->opType.name());
 
             // 推导
-            auto infered = _internal.nodes[nodeIdx]->infer(std::move(*inputs_));
+            auto infered = _internal.nodes[nodeIdx].op->infer(std::move(*inputs_));
             if (infered.isErr()) {
                 fmt::println(", inference failed");
                 // 推导失败，记录未知变量和边
@@ -76,13 +76,13 @@ namespace refactor::computation {
                 if (infered_.size() < outputs.size()) {
                     OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
                 } else {
-                    fmt::print(", outputs = ( ", nodeIdx, _internal.nodes[nodeIdx]->opType.name());
-                    for (auto const &edge : infered_) {
-                        fmt::print("{} ", shapeFormat(edge->shape));
+                    fmt::print(", outputs = ( ");
+                    for (auto const &tensor : infered_) {
+                        fmt::print("{} ", shapeFormat(tensor->shape));
                     }
                     fmt::println(")");
                     for (auto i = 0; i < outputs.size(); ++i) {
-                        _internal.edges[outputs[i]] = infered_[i];
+                        _internal.edges[outputs[i]].tensor = std::move(infered_[i]);
                     }
                 }
             }

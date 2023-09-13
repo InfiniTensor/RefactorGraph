@@ -66,7 +66,10 @@ namespace refactor::computation {
         size_t bytesSize() const;
     };
 
-    using Edge = std::shared_ptr<Tensor>;
+    struct Edge {
+        std::shared_ptr<Tensor> tensor;
+        std::string name;
+    };
 
 }// namespace refactor::computation
 

@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferArithmetic(Operator const &op, Edges inputs) {
+    InferResult inferArithmetic(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2) {
             auto dataType = inputs[0]->dataType;
             if (!isNumbericDataType(dataType) || inputs[1]->dataType != dataType) {
@@ -15,7 +15,7 @@ namespace refactor::onnx {
                 }
                 auto output = std::move(res.unwrap());
                 if (!shouldCalculate(inputs, output) || dataType != DataType::I64) {
-                    return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output))});
+                    return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
                 }
 
                 auto ss = output.size();
@@ -27,20 +27,20 @@ namespace refactor::onnx {
                 fmt::print("( {} dst<{}> = ", opType, size);
                 for (size_t i = 0; i < size; ++i) {
                     auto indices = buildIndices(shape, i);
-                    auto getter = [&indices](Edge const &input) -> int64_t {
+                    auto getter = [&indices](Tensor const &input) -> int64_t {
                         auto it0 = indices.rbegin(),
                              end0 = indices.rend();
-                        auto it1 = input->shape.rbegin(),
-                             end1 = input->shape.rend();
+                        auto it1 = input.shape.rbegin(),
+                             end1 = input.shape.rend();
                         size_t ii = 0, mul = 1;
                         while (it0 != end0 && it1 != end1) {
                             ii += *it0++ * mul;
                             mul *= it1++->value();
                         }
-                        return reinterpret_cast<int64_t *>(input->data->ptr)[ii];
+                        return reinterpret_cast<int64_t *>(input.data->ptr)[ii];
                     };
 
-                    auto a = getter(inputs[0]), b = getter(inputs[1]);
+                    auto a = getter(*inputs[0]), b = getter(*inputs[1]);
                     if (opType == "onnx::Add") {
                         dst[i] = a + b;
                     } else if (opType == "onnx::Sub") {
@@ -55,7 +55,7 @@ namespace refactor::onnx {
                     fmt::print("{} ", dst[i]);
                 }
                 fmt::print(")");
-                return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
+                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
             }
         }
     }

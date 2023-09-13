@@ -8,6 +8,7 @@ namespace refactor::computation {
 
     class Operator;
     using Edges = std::vector<Edge>;
+    using Tensors = std::vector<std::shared_ptr<Tensor>>;
 
     struct FatalError {};
     struct UnknownVariable {
@@ -19,8 +20,8 @@ namespace refactor::computation {
         explicit InferError(std::string);
         explicit InferError(UnknownVariable);
     };
-    using InferResult = Result<Edges, InferError>;
-    using InferFn = InferResult (*)(Operator const &, Edges);
+    using InferResult = Result<Tensors, InferError>;
+    using InferFn = InferResult (*)(Operator const &, Tensors);
 
 }// namespace refactor::computation
 
