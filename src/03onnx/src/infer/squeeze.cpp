@@ -50,7 +50,7 @@ namespace refactor::onnx {
             } else {
                 RUNTIME_ERROR(fmt::format("{} not support in squeeze inference", opType));
             }
-            fmt::println("{} passed its data", opType);
+            // fmt::println("{} passed its data", opType);
             return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
         }
     }

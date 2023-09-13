@@ -36,6 +36,8 @@ namespace refactor::computation {
 
     using Shape = absl::InlinedVector<DimExpr, 4>;
 
+    std::string shapeFormat(Shape const &);
+
     /// @brief 内存块。
     struct Blob {
         /// @brief ! NOTICE 指针必须非空。

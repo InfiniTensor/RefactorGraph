@@ -24,6 +24,43 @@ namespace refactor::common {
         }
     }
 
+    std::string_view dataTypeName(DataType dt) {
+        switch (dt) {
+            case DataType::F32:
+                return "F32";
+            case DataType::U8:
+                return "U8 ";
+            case DataType::I8:
+                return "I8 ";
+            case DataType::U16:
+                return "U16";
+            case DataType::I16:
+                return "I16";
+            case DataType::I32:
+                return "I32";
+            case DataType::I64:
+                return "I64";
+            case DataType::Bool:
+                return "Bool";
+            case DataType::FP16:
+                return "FP16";
+            case DataType::F64:
+                return "F64";
+            case DataType::U32:
+                return "U32";
+            case DataType::U64:
+                return "U64";
+            case DataType::Complex64:
+                return "Complex64";
+            case DataType::Complex128:
+                return "Complex128";
+            case DataType::BF16:
+                return "BF16";
+            default:
+                RUNTIME_ERROR("Unreachable");
+        }
+    }
+
     bool isIeee754DataType(DataType dt) {
         static const std::unordered_set<DataType> set{DataType::F32, DataType::FP16, DataType::F64};
         return set.find(dt) != set.end();

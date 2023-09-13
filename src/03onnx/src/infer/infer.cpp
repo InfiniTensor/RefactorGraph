@@ -15,18 +15,30 @@ namespace refactor::onnx {
         }
         Shape ans;
         while (true) {
-            std::unordered_set<size_t> dims;
-            for (auto &[begin, end] : iters) {
-                if (begin != end) {
-                    dims.insert(begin++->value());
+            std::optional<DimExpr> dim = std::nullopt;
+            for (size_t i = 0; i < iters.size();) {
+                if (iters[i].first != iters[i].second) {
+                    auto new_ = *iters[i].first++;
+                    if (!dim || *dim == DimExpr(1)) {
+                        dim = std::move(new_);
+                    } else if (new_ != DimExpr(1) && new_ != *dim) {
+                        fmt::print("Shape broadcast failed: ");
+                        for (auto const &input : inputs) {
+                            fmt::print("{} ", shapeFormat(input));
+                        }
+                        fmt::println("");
+                        return Err(ERROR_MSG("Shape broadcast failed"));
+                    }
+                    ++i;
+                } else {
+                    std::swap(iters[i], iters.back());
+                    iters.pop_back();
                 }
             }
-            if (dims.size() == 0) {
-                break;
-            } else if (dims.size() == 1 || (dims.size() == 2 && dims.erase(1) == 1)) {
-                ans.emplace_back(*dims.begin());
+            if (dim) {
+                ans.emplace_back(std::move(*dim));
             } else {
-                return Err(ERROR_MSG("Shape broadcast failed"));
+                break;
             }
         }
         std ::reverse(ans.begin(), ans.end());
@@ -417,27 +429,6 @@ namespace refactor::onnx {
             } else {
                 Shape ans(data->shape.rbegin(), data->shape.rend());
                 return Ok(Edges{std::make_shared<Tensor>(data->dataType, std::move(ans))});
-            }
-        }
-    }
-
-    InferResult inferExpand(Operator const &op, Edges inputs) {
-        EXPECT_SIZE(2)
-        if (inputs[1]->dataType != DataType::I64 ||
-            inputs[1]->shape.size() != 1 ||
-            !inputs[1]->hasData()) {
-            return Err(InferError(ERROR_MSG("Shape not support")));
-        } else {
-            auto const &data = inputs[0];
-            auto const &shape = inputs[1];
-            auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
-            EXPECT_VAL(shape->shape[0], shapeSize)
-            Shape shape__(shape_, shape_ + shapeSize);
-            auto res = multidirBroadcast({data->shape, shape__});
-            if (res.isErr()) {
-                return Err(InferError(ERROR_MSG(res.unwrapErr())));
-            } else {
-                return Ok(Edges{std::make_shared<Tensor>(data->dataType, res.unwrap())});
             }
         }
     }

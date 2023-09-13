@@ -58,7 +58,7 @@ namespace refactor::onnx {
                 }
                 auto input = reinterpret_cast<uint8_t *>(inputs[k]->data->ptr);
                 std::copy_n(input + ii * eleSize, eleSize, dst + i * eleSize);
-                fmt::println("concat copies {} bytes", eleSize);
+                // fmt::println("concat copies {} bytes", eleSize);
             }
             return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
         }

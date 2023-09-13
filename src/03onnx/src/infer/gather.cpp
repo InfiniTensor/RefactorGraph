@@ -44,7 +44,9 @@ namespace refactor::onnx {
                         ii += indices_[j_] * mul;
                         mul *= indices->shape[j_].value();
                     }
-                    k = reinterpret_cast<int64_t *>(indices->data->ptr)[ii];
+                    k = indices->dataType == DataType::I64
+                            ? reinterpret_cast<int64_t *>(indices->data->ptr)[ii]
+                            : reinterpret_cast<int32_t *>(indices->data->ptr)[ii];
                 }
                 {
                     size_t ii = 0, mul = 1;
@@ -61,7 +63,7 @@ namespace refactor::onnx {
                     }
                     std::copy_n(src + ii * eleSize, eleSize, dst + i * eleSize);
                 }
-                fmt::println("gather copies {} bytes", eleSize);
+                // fmt::println("gather copies {} bytes", eleSize);
             }
 
             return Ok(Edges{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});

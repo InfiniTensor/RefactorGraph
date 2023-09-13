@@ -26,7 +26,7 @@ namespace refactor::onnx {
             auto eleSize = dataTypeSize(dataType);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<bool *>(blob->ptr);
-            fmt::print("{} dst[{}] = ( ", op.opType.name(), size);
+            fmt::print("( {} dst[{}] = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = buildIndices(shape, i);
                 auto getter = [&indices](Edge const &input) -> int64_t {
@@ -46,7 +46,7 @@ namespace refactor::onnx {
                 dst[i] = a == b;
                 fmt::print("{} ", dst[i]);
             }
-            fmt::println(")");
+            fmt::print(")");
             return Ok(Edges{std::make_shared<Tensor>(DataType::Bool, std::move(output), std::move(blob))});
         }
     }

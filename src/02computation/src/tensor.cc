@@ -32,6 +32,25 @@ namespace refactor::computation {
     int64_t DimExpr::value() const { return isValue() ? std::get<int64_t>(expr) : variable()->value.value(); }
     DimVariable DimExpr::variable() const { return std::get<DimVariable>(expr); }
 
+    std::string shapeFormat(Shape const &shape) {
+        std::string ans("Shape{ ");
+        for (auto const &it : shape) {
+            if (it.isValue()) {
+                ans += std::to_string(it.value());
+            } else {
+                auto const &var = it.variable();
+                ans += var->name;
+                if (var->value) {
+                    ans += ":";
+                    ans += std::to_string(*var->value);
+                }
+            }
+            ans += " ";
+        }
+        ans += "}";
+        return ans;
+    }
+
     Blob::Blob(void *ptr_) : ptr(ptr_) {}
     Blob::~Blob() { std::free(ptr); }
 
