@@ -13,12 +13,15 @@ namespace refactor::computation {
     }
 
     void Graph::collectVariables() {
-        for (auto const &edge : _internal.edges) {
+        for (auto &edge : _internal.edges) {
             if (edge.tensor) {
-                for (auto const &dim : edge.tensor->shape) {
+                for (auto &dim : edge.tensor->shape) {
                     if (dim.isVariable()) {
                         auto const &var = dim.variable();
-                        _variables.try_emplace(var->name, var);
+                        auto [it, ok] = _variables.try_emplace(var->name, var);
+                        if (!ok) {// varibales with same name is same variable
+                            dim = DimExpr(it->second);
+                        }
                     }
                 }
             }
@@ -87,6 +90,19 @@ namespace refactor::computation {
                     }
                 }
             }
+        }
+        if (unknownVariables.empty()) {
+            std::unordered_set<std::string> dynamicNodes;
+            for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
+                if (std::any_of(outputs.begin(), outputs.end(), [&](auto i) { return !_internal.edges[i].tensor->hasData(); })) {
+                    fmt::println("dynamic node: {}", _internal.nodes[nodeIdx].name);
+                    dynamicNodes.insert(std::string(_internal.nodes[nodeIdx].op->opType.name()));
+                }
+            }
+            for (auto const &node : dynamicNodes) {
+                fmt::print("{} ", node);
+            }
+            fmt::println("");
         }
         return unknownVariables;
     }

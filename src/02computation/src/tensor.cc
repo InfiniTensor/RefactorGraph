@@ -10,6 +10,8 @@ namespace refactor::computation {
     DimExpr::DimExpr(int64_t val) : expr(val) {}
     DimExpr::DimExpr(std::string name)
         : expr(std::make_shared<DimVariableInternal>(std::move(name))) {}
+    DimExpr::DimExpr(DimVariable var)
+        : expr(std::move(var)) {}
 
     bool DimExpr::operator==(DimExpr const &rhs) const {
         if (expr.index() != rhs.expr.index()) {

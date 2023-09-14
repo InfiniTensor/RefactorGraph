@@ -3,6 +3,13 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
+    template<class TS, class TD>
+    void castData(void *src, void *dst, size_t size) {
+        auto src_ = reinterpret_cast<TS *>(src);
+        auto dst_ = reinterpret_cast<TD *>(dst);
+        std::transform(src_, src_ + size, dst_, [](auto x) { return static_cast<TD>(x); });
+    }
+
     InferResult inferCast(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
             auto const &input = inputs[0];
@@ -22,29 +29,29 @@ namespace refactor::onnx {
             switch (from) {
                 case DataType::F32:
                     switch (to) {
-                        case DataType::I64: {
-                            auto dst = reinterpret_cast<int64_t *>(blob->ptr);
-                            auto src = reinterpret_cast<float *>(input->data->ptr);
-                            std::transform(src, src + size, dst, [](auto x) { return static_cast<int64_t>(x); });
+                        case DataType::I64:
+                            castData<float, int64_t>(input->data->ptr, blob->ptr, size);
                             return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
-                        }
+
                         default:
                             break;
                     }
                     break;
 
-                case DataType::I64:
+                case DataType::I64: {
                     switch (to) {
-                        case DataType::F32: {
-                            auto dst = reinterpret_cast<float *>(blob->ptr);
-                            auto src = reinterpret_cast<int64_t *>(input->data->ptr);
-                            std::transform(src, src + size, dst, [](auto x) { return static_cast<float>(x); });
+                        case DataType::F32:
+                            castData<int64_t, float>(input->data->ptr, blob->ptr, size);
                             return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
-                        }
+
+                        case DataType::Bool:
+                            castData<int64_t, bool>(input->data->ptr, blob->ptr, size);
+                            return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
+
                         default:
                             break;
                     }
-                    break;
+                } break;
 
                 default:
                     break;
