@@ -75,8 +75,8 @@ namespace refactor::onnx {
     bool shouldCalculate(Tensors const &inputs, Shape const &output);
 
     using Indices = absl::InlinedVector<int64_t, 4>;
-    std::pair<Indices, size_t> shape_size(Shape const &shape);
-    Indices buildIndices(Indices const &shape, size_t i);
+    size_t sizeOf(Shape const &shape);
+    Indices buildIndices(Shape const &shape, size_t i);
     void *locate(Tensor const &tensor, Indices const &indices);
 }// namespace refactor::onnx
 

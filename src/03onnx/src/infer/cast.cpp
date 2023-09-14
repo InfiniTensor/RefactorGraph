@@ -16,7 +16,7 @@ namespace refactor::onnx {
                 return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), input->data)});
             }
             fmt::print("({} -> {})", dataTypeName(from), dataTypeName(to));
-            auto [shape, size] = shape_size(output);
+            auto size = sizeOf(output);
             auto eleSize = dataTypeSize(to);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             switch (from) {

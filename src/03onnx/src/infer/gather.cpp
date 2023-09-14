@@ -28,14 +28,14 @@ namespace refactor::onnx {
             }
 
             auto const ssz = output.size();
-            auto [sZ, size] = shape_size(output);
+            auto size = sizeOf(output);
             auto eleSize = dataTypeSize(dataType);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto src = reinterpret_cast<uint8_t *>(data->data->ptr);
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
 
             for (size_t i = 0; i < size; ++i) {
-                auto indices_ = buildIndices(sZ, i);
+                auto indices_ = buildIndices(output, i);
                 int64_t k;
                 {
                     size_t ii = 0, mul = 1;

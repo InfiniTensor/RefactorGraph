@@ -21,13 +21,13 @@ namespace refactor::onnx {
                 return Ok(Tensors{Tensor::share(dataType, std::move(output))});
             }
 
-            auto [shape, size] = shape_size(output);
+            auto size = sizeOf(output);
             auto eleSize = dataTypeSize(dataType);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<uint64_t *>(blob->ptr);
             fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
-                auto indices = buildIndices(shape, i);
+                auto indices = buildIndices(output, i);
                 auto a_ = *reinterpret_cast<int64_t *>(locate(*a, indices)),
                      b_ = *reinterpret_cast<int64_t *>(locate(*b, indices));
                 if (op.opType.is("onnx::Add")) {

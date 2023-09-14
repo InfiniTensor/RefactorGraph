@@ -109,23 +109,16 @@ namespace refactor::onnx {
                std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
     }
 
-    std::pair<Indices, size_t> shape_size(Shape const &shape) {
-        Indices ans;
-        size_t size = 1;
-        ans.reserve(shape.size());
-        for (auto const &d : shape) {
-            auto value = d.value();
-            ans.push_back(value);
-            size *= value;
-        }
-        return {std::move(ans), size};
+    size_t sizeOf(Shape const &shape) {
+        return std::accumulate(shape.begin(), shape.end(), 1,
+                               [](auto acc, const auto &d) { return acc * d.value(); });
     }
 
-    Indices buildIndices(Indices const &shape, size_t i) {
+    Indices buildIndices(Shape const &shape, size_t i) {
         Indices indices(shape.size());
         auto it = indices.rbegin();
         for (auto d : shape) {
-            auto div = std::div(i, d);
+            auto div = std::div(i, d.value());
             *it++ = div.rem;
             i = div.quot;
         }
