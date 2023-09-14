@@ -4,15 +4,18 @@ namespace refactor::onnx {
     using namespace refactor::common;
 
     InferResult inferCumSum(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(2)
-        if (!inputs[1]->shape.empty()) {
-            return Err(InferError(ERROR_MSG("Input shape not support")));
-        } else if (!isNumbericDataType(inputs[0]->dataType) ||
-                   (inputs[1]->dataType != DataType::I64 &&
-                    inputs[1]->dataType != DataType::I32)) {
-            return Err(InferError(ERROR_MSG("Input data type not support")));
-        } else {
-            return Ok(Tensors{std::move(inputs[0])});
+        EXPECT_SIZE(2) {
+            auto const &x = inputs[0];
+            auto const &axis = inputs[1];
+            if (!axis->shape.empty()) {
+                return Err(InferError(ERROR_MSG("Input shape not support")));
+            }
+            if (!isNumbericDataType(x->dataType) ||
+                (axis->dataType != DataType::I64 &&
+                 axis->dataType != DataType::I32)) {
+                return Err(InferError(ERROR_MSG("Input data type not support")));
+            }
+            return Ok(Tensors{Tensor::share(x->dataType, x->shape)});
         }
     }
 }// namespace refactor::onnx
