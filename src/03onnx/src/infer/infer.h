@@ -21,6 +21,7 @@ namespace refactor::onnx {
     InferResult inferShape(Operator const &, Tensors);
     InferResult inferWhere(Operator const &, Tensors);
     InferResult inferSqueeze(Operator const &, Tensors);
+    InferResult inferUnsqueeze(Operator const &, Tensors);
     InferResult inferCompair(Operator const &, Tensors);
     InferResult inferSoftmax(Operator const &, Tensors);
     InferResult inferPow(Operator const &, Tensors);

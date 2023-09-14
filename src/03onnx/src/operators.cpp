@@ -27,7 +27,7 @@ namespace refactor::onnx {
         OpType::register_("onnx::Expand", inferExpand);
         OpType::register_("onnx::Where", inferWhere);
         OpType::register_("onnx::Squeeze", inferSqueeze);
-        OpType::register_("onnx::Unsqueeze", inferSqueeze);
+        OpType::register_("onnx::Unsqueeze", inferUnsqueeze);
         OpType::register_("onnx::Equal", inferCompair);
         OpType::register_("onnx::Greater", inferCompair);
         OpType::register_("onnx::GreaterOrEqual", inferCompair);

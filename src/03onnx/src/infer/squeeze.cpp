@@ -1,56 +1,54 @@
 ﻿#include "infer.h"
+#include <unordered_set>
 
 namespace refactor::onnx {
     using namespace refactor::common;
 
     InferResult inferSqueeze(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(2) {
-            auto const &data = inputs[0];
-            auto const &axes = inputs[1];
-            if (axes->dataType != DataType::I64 || axes->shape.size() != 1 || !axes->hasData()) {
-                return Err(InferError(ERROR_MSG("Axes not support")));
-            }
-            auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
-            EXPECT_VAL(axes->shape[0], axesSize)
-            std::vector<int64_t> axes__(axes_, axes_ + axesSize);
-            for (auto &i : axes__) {
-                if (i < 0) {
-                    i += data->shape.size();
-                }
-            }
-            std::sort(axes__.begin(), axes__.end());
-            Shape output;
-            if (op.opType.is("onnx::Squeeze")) {
-                auto len = data->shape.size();
-                auto itx = data->shape.begin();
-                auto ity = axes__.begin();
-                output = Shape(len, DimExpr(1));
-                for (auto i = 0; i < len; ++i) {
-                    if (i != *ity) {
-                        output[i] = *itx++;
-                    } else {
-                        ASSERT(*itx++ == DimExpr(1), "Unsqueeze error");
-                        ity++;
+        switch (inputs.size()) {
+            case 1: {
+                auto const &data = inputs[0];
+                Shape output;
+                for (auto const &dim : data->shape) {
+                    EXPECT_VAL(dim, val)
+                    if (val != 1) {
+                        output.push_back(dim);
                     }
                 }
-            } else if (op.opType.is("onnx::Unsqueeze")) {
-                auto len = data->shape.size() + axes__.size();
-                auto itx = data->shape.begin();
-                auto ity = axes__.begin();
-                output = Shape(len, DimExpr(1));
-                for (size_t i = 0; i < len; ++i) {
-                    if (i != *ity) {
-                        output[i] = *itx++;
+                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
+            }
+            case 2: {
+                auto const &data = inputs[0];
+                auto const &axes = inputs[1];
+                if (axes->dataType != DataType::I64 || axes->shape.size() != 1 || !axes->hasData()) {
+                    return Err(InferError(ERROR_MSG("Axes not support")));
+                }
+                auto rank = data->shape.size();
+                auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
+                EXPECT_VAL(axes->shape[0], axesSize)
+                std::unordered_set<int64_t> axes__;
+                for (auto ptr = axes_; ptr != axes_ + axesSize; ++ptr) {
+                    auto axis = *ptr;
+                    if (axis < 0) {
+                        axis += rank;
+                    }
+                    if (axis < 0 || rank <= axis) {
+                        return Err(InferError(ERROR_MSG("Axes out of range")));
+                    }
+                    axes__.insert(axis);
+                }
+                Shape output;
+                for (size_t i = 0; i < data->shape.size(); ++i) {
+                    if (axes__.erase(i)) {
+                        ASSERT(data->shape[i] == DimExpr(1), "Squeeze error");
                     } else {
-                        output[i] = DimExpr(1);
-                        ity++;
+                        output.push_back(data->shape[i]);
                     }
                 }
-            } else {
-                RUNTIME_ERROR(fmt::format("{} not support in squeeze inference", op.opType.name()));
+                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
             }
-            // fmt::println("{} passed its data", opType);
-            return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
+            default:
+                return Err(InferError(ERROR_MSG("Squeeze need 1 or 2 inputs")));
         }
     }
 }// namespace refactor::onnx
