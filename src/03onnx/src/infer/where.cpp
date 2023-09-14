@@ -30,12 +30,12 @@ namespace refactor::onnx {
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
             fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
-                auto indices = buildIndices(output, i);
-                if (*reinterpret_cast<bool *>(locate(*condition, indices))) {
-                    std::memcpy(dst + i * eleSize, locate(*x, indices), eleSize);
+                auto indices = locateN(output, i);
+                if (*reinterpret_cast<bool *>(locate1(*condition, indices))) {
+                    std::memcpy(dst + i * eleSize, locate1(*x, indices), eleSize);
                     fmt::print("x ");
                 } else {
-                    std::memcpy(dst + i * eleSize, locate(*y, indices), eleSize);
+                    std::memcpy(dst + i * eleSize, locate1(*y, indices), eleSize);
                     fmt::print("y ");
                 }
             }

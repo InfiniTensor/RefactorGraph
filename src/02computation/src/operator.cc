@@ -65,9 +65,17 @@ namespace refactor::computation {
 
     void OpType::register_(const char *name, InferFn infer) {
         std::string name_(name);
-        if (OP_REPO.nameMap.find(name_) != OP_REPO.nameMap.end() ||
-            OP_REPO.knownList.find(name_) != OP_REPO.knownList.end()) {
-            RUNTIME_ERROR("Operator already registered");
+        {
+            auto it = OP_REPO.nameMap.find(name_);
+            if (it != OP_REPO.nameMap.end()) {
+                ASSERT(OP_REPO.map.at(it->second).inference == infer, "Different inference function for the same operator");
+            }
+        }
+        {
+            auto it = OP_REPO.knownList.find(name_);
+            if (it != OP_REPO.knownList.end()) {
+                ASSERT(it->second == infer, "Different inference function for the same operator");
+            }
         }
         OP_REPO.knownList.insert({std::move(name_), infer});
     }

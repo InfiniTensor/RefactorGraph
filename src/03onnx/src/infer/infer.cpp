@@ -114,18 +114,20 @@ namespace refactor::onnx {
                                [](auto acc, const auto &d) { return acc * d.value(); });
     }
 
-    Indices buildIndices(Shape const &shape, size_t i) {
+    Indices locateN(Shape const &shape, size_t k) {
         Indices indices(shape.size());
-        auto it = indices.rbegin();
-        for (auto d : shape) {
-            auto div = std::div(i, d.value());
-            *it++ = div.rem;
-            i = div.quot;
+        auto i = indices.rbegin();
+        auto j = shape.rbegin(),
+             ej = shape.rend();
+        while (j != ej) {
+            auto div = std::div(k, j++->value());
+            *i++ = div.rem;
+            k = div.quot;
         }
         return indices;
     }
 
-    void *locate(Tensor const &tensor, Indices const &indices) {
+    void *locate1(Tensor const &tensor, Indices const &indices) {
         auto i = indices.rbegin(),
              ei = indices.rend();
         auto j = tensor.shape.rbegin(),

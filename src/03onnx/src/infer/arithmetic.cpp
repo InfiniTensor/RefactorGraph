@@ -71,8 +71,8 @@ namespace refactor::onnx {
                 } else {
                     UNREACHABLE();
                 }
-                auto indices = buildIndices(output, i);
-                auto a_ = locate(*a, indices), b_ = locate(*b, indices);
+                auto indices = locateN(output, i);
+                auto a_ = locate1(*a, indices), b_ = locate1(*b, indices);
                 auto dst_ = dst + i * eleSize;
 #define CASE(T)                                   \
     case DataType::T:                             \

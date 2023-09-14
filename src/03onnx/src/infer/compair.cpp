@@ -27,9 +27,9 @@ namespace refactor::onnx {
             auto dst = reinterpret_cast<bool *>(blob->ptr);
             fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
-                auto indices = buildIndices(output, i);
-                auto a_ = *reinterpret_cast<int64_t *>(locate(*a, indices)),
-                     b_ = *reinterpret_cast<int64_t *>(locate(*b, indices));
+                auto indices = locateN(output, i);
+                auto a_ = *reinterpret_cast<int64_t *>(locate1(*a, indices)),
+                     b_ = *reinterpret_cast<int64_t *>(locate1(*b, indices));
                 if (op.opType.is("onnx::Equal")) {
                     dst[i] = a_ == b_;
                 } else if (op.opType.is("onnx::Greater")) {

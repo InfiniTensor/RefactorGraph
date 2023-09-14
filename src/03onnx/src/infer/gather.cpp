@@ -35,7 +35,7 @@ namespace refactor::onnx {
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
 
             for (size_t i = 0; i < size; ++i) {
-                auto indices_ = buildIndices(output, i);
+                auto indices_ = locateN(output, i);
                 int64_t k;
                 {
                     size_t ii = 0, mul = 1;

@@ -132,7 +132,7 @@ namespace refactor::onnx {
                 }
             }
             for (size_t i = 0; i < size; ++i) {
-                auto indices = buildIndices(output, i);
+                auto indices = locateN(output, i);
                 Indices indices_(indices.begin(), indices.end());
                 for (size_t j = 0; j < rank; ++j) {
                     if (axes) {
@@ -147,7 +147,7 @@ namespace refactor::onnx {
                         indices_[j] += starts[j];
                     }
                 }
-                std::memcpy(dst + i * eleSize, locate(*data, indices_), eleSize);
+                std::memcpy(dst + i * eleSize, locate1(*data, indices_), eleSize);
             }
 
             return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), std::move(blob))});

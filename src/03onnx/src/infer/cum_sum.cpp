@@ -68,11 +68,11 @@ namespace refactor::onnx {
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto src = reinterpret_cast<uint8_t *>(x->data->ptr);
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
-            auto step = std::accumulate(output.begin() + axis_, output.end(), eleSize,
+            auto step = std::accumulate(output.begin() + axis_ + 1, output.end(), eleSize,
                                         [](auto const acc, auto const &d) { return acc * d.value(); });
             if (!reverse) {
                 for (size_t i = 0; i < size; ++i) {
-                    auto indices = buildIndices(output, i);
+                    auto indices = locateN(output, i);
                     auto axisIdx = indices[axis_];
                     auto dst_ = dst + i * eleSize;
                     if (axisIdx == 0) {

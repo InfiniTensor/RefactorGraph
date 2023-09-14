@@ -30,7 +30,7 @@ namespace refactor::onnx {
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
             for (size_t i = 0; i < size; ++i) {
-                auto src = locate(*data, buildIndices(output, i));
+                auto src = locate1(*data, locateN(output, i));
                 std::memcpy(dst + i * eleSize, src, eleSize);
             }
             return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});

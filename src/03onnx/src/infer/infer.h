@@ -77,8 +77,10 @@ namespace refactor::onnx {
 
     using Indices = absl::InlinedVector<int64_t, 4>;
     size_t sizeOf(Shape const &shape);
-    Indices buildIndices(Shape const &shape, size_t i);
-    void *locate(Tensor const &tensor, Indices const &indices);
+    /// @brief 将标量坐标 `k` 展开到 `shape` 空间。
+    Indices locateN(Shape const &shape, size_t k);
+    /// @brief 在 `tensor` 中定位空间坐标 `indices` 所指向的元素。
+    void *locate1(Tensor const &tensor, Indices const &indices);
 }// namespace refactor::onnx
 
 #endif// GRAPH_INFER_H
