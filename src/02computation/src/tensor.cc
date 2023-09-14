@@ -77,5 +77,11 @@ namespace refactor::computation {
     size_t Tensor::bytesSize() const {
         return common::dataTypeSize(dataType) * elementsSize();
     }
+    void *Tensor::malloc() {
+        return (data = std::make_shared<Blob>(std::malloc(bytesSize())))->ptr;
+    }
+    void Tensor::free() {
+        data = nullptr;
+    }
 
 }// namespace refactor::computation

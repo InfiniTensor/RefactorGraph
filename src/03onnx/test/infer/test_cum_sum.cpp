@@ -9,30 +9,21 @@ using namespace onnx;
 
 TEST(infer, CumSum) {
     onnx::register_();
+    auto cumSum = OpType::parse("onnx::CumSum");
+    std::shared_ptr<Tensor> x, axis;
     {
-        std::shared_ptr<Tensor> x, axis;
         {
-            auto shape = Shape{DimExpr(2), DimExpr(3)};
-            auto size = sizeOf(shape);
-            auto dataType = DataType::F32;
-            auto eleSize = dataTypeSize(dataType);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto ptr = reinterpret_cast<float *>(blob->ptr);
+            x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
+            auto ptr = reinterpret_cast<float *>(x->malloc());
+            auto size = x->elementsSize();
             for (size_t i = 0; i < size; ++i) { ptr[i] = i + 1; }
-            x = Tensor::share(dataType, std::move(shape), std::move(blob));
         }
         {
-            auto shape = Shape{};
-            auto size = sizeOf(shape);
-            auto dataType = DataType::I32;
-            auto eleSize = dataTypeSize(dataType);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto ptr = reinterpret_cast<int32_t *>(blob->ptr);
+            axis = Tensor::share(DataType::I32, Shape{});
+            auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 0;
-            axis = Tensor::share(dataType, std::move(shape), std::move(blob));
         }
-        auto op = Operator{OpType::parse("onnx::CumSum"), {}};
-        auto infered = inferCumSum(op, {x, axis});
+        auto infered = inferCumSum(Operator{cumSum, {}}, {x, axis});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -48,29 +39,18 @@ TEST(infer, CumSum) {
         ASSERT_EQ(ptr[5], 9.0);
     }
     {
-        std::shared_ptr<Tensor> x, axis;
         {
-            auto shape = Shape{DimExpr(2), DimExpr(3)};
-            auto size = sizeOf(shape);
-            auto dataType = DataType::F32;
-            auto eleSize = dataTypeSize(dataType);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto ptr = reinterpret_cast<float *>(blob->ptr);
+            x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
+            auto ptr = reinterpret_cast<float *>(x->malloc());
+            auto size = x->elementsSize();
             for (size_t i = 0; i < size; ++i) { ptr[i] = i + 1; }
-            x = Tensor::share(dataType, std::move(shape), std::move(blob));
         }
         {
-            auto shape = Shape{};
-            auto size = sizeOf(shape);
-            auto dataType = DataType::I32;
-            auto eleSize = dataTypeSize(dataType);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto ptr = reinterpret_cast<int32_t *>(blob->ptr);
+            axis = Tensor::share(DataType::I32, Shape{});
+            auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 1;
-            axis = Tensor::share(dataType, std::move(shape), std::move(blob));
         }
-        auto op = Operator{OpType::parse("onnx::CumSum"), {}};
-        auto infered = inferCumSum(op, {x, axis});
+        auto infered = inferCumSum(Operator{cumSum, {}}, {x, axis});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);

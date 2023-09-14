@@ -66,6 +66,9 @@ namespace refactor::computation {
         bool hasData() const;
         size_t elementsSize() const;
         size_t bytesSize() const;
+
+        void *malloc();
+        void free();
     };
 
     struct Edge {
