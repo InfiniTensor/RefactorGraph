@@ -9,3 +9,4 @@
 - [googletest v1.14.0](https://github.com/google/googletest/releases/tag/v1.14.0)
 - [backward-cpp v1.6](https://github.com/bombela/backward-cpp/releases/tag/v1.6)
 - [result master](https://github.com/oktal/result)
+- [abseil-cpp 20230802.0](https://github.com/abseil/abseil-cpp/releases/tag/20230802.0)

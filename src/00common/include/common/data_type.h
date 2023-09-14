@@ -12,7 +12,7 @@ namespace refactor::common {
     /// @brief 数据类型。
     /// @see <https://onnx.ai/onnx/api/mapping.html#l-onnx-types-mapping>
     enum class DataType : uint8_t {
-        F32 = 1,// float
+        F32 = 1,// float·
         U8 = 2, // uint8_t
         I8 = 3, // int8_t
         U16 = 4,// uint16_t
@@ -35,17 +35,30 @@ namespace refactor::common {
     /// @return 当 `param1` 是合法的数据类型值，`std::optional` 非空。
     std::optional<DataType> parseDataType(uint8_t);
 
+    /// @brief 数据类型名字。
+    /// @param param1 数据类型。
+    /// @return 数据类型名字。
+    std::string_view dataTypeName(DataType);
+
     /// @brief 判断是否符合 IEE754 的浮点数数据类型。
     bool isIeee754DataType(DataType);
 
     /// @brief 判断是否浮点数数据类型。
     bool isFloatDataType(DataType);
 
+    /// @brief 判断是否有符号数据类型。Pow 算子使用这类类型。
+    bool isSignedDataType(DataType);
+
     /// @brief 判断是否数字数据类型。
     bool isNumbericDataType(DataType);
 
     /// @brief 判断是否布尔数据类型。
     bool isBool(DataType);
+
+    /// @brief 计算数据类型的字节数。
+    /// @param param1 数据类型。
+    /// @return 字节数。
+    size_t dataTypeSize(DataType);
 
     template<DataType t>
     struct primitive_t;
