@@ -23,7 +23,7 @@ TEST(infer, CumSum) {
             auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 0;
         }
-        auto infered = inferCumSum(Operator{cumSum, {}}, {x, axis});
+        auto infered = Operator{cumSum, {}}.infer({x, axis});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -50,7 +50,7 @@ TEST(infer, CumSum) {
             auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 1;
         }
-        auto infered = inferCumSum(Operator{cumSum, {}}, {x, axis});
+        auto infered = Operator{cumSum, {}}.infer({x, axis});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
