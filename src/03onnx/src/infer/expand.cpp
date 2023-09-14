@@ -15,25 +15,25 @@ namespace refactor::onnx {
             auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
             EXPECT_VAL(shape->shape[0], shapeSize)
             Shape shape__(shape_, shape_ + shapeSize);
+
             auto res = multidirBroadcast({data->shape, shape__});
             if (res.isErr()) {
                 return Err(InferError(ERROR_MSG(res.unwrapErr())));
             }
             auto dataType = data->dataType;
-            auto output = std::move(res.unwrap());
-            if (!shouldCalculate(inputs, output)) {
-                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
+            auto ans = Tensor::share(dataType, std::move(res.unwrap()));
+            if (!shouldCalculate(inputs, ans->shape)) {
+                return Ok(Tensors{std::move(ans)});
             }
 
-            auto size = sizeOf(output);
+            auto size = ans->elementsSize();
             auto eleSize = dataTypeSize(dataType);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
+            auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
             for (size_t i = 0; i < size; ++i) {
-                auto src = locate1(*data, locateN(output, i));
+                auto src = locate1(*data, locateN(ans->shape, i));
                 std::memcpy(dst + i * eleSize, src, eleSize);
             }
-            return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::move(ans)});
         }
     }
 }// namespace refactor::onnx

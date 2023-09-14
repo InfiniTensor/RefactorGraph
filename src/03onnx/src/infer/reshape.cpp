@@ -53,7 +53,7 @@ namespace refactor::onnx {
             } else if (old_ != new_) {
                 return Err(InferError(ERROR_MSG("Invalid shape variable")));
             }
-            return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
+            return Ok(Tensors{Tensor::share(inputs[0]->dataType, std::move(ans))});
         }
     }
 }// namespace refactor::onnx

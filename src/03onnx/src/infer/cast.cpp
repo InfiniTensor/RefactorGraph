@@ -13,31 +13,32 @@ namespace refactor::onnx {
     InferResult inferCast(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
             auto const &input = inputs[0];
-            auto output = input->shape;
             auto to = static_cast<DataType>(op.attribute("to").int_());
-            if (!shouldCalculate(inputs, output)) {
-                return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output))});
+            auto ans = Tensor::share(to, input->shape);
+            if (!shouldCalculate(inputs, ans->shape)) {
+                return Ok(Tensors{std::move(ans)});
             }
             auto from = input->dataType;
             if (from == to) {
-                return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), input->data)});
+                ans->data = input->data;
+                return Ok(Tensors{std::move(ans)});
             }
             fmt::print("({} -> {})", dataTypeName(from), dataTypeName(to));
-            auto size = sizeOf(output);
-            auto eleSize = dataTypeSize(to);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
+            auto size = ans->elementsSize();
+            auto src = input->data->ptr;
+            auto dst = ans->malloc();
             switch (from) {
                 case DataType::F32:
                     switch (to) {
                         case DataType::I64:
-                            castData<float, int64_t>(input->data->ptr, blob->ptr, size);
-                            return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
+                            castData<float, int64_t>(src, dst, size);
+                            break;
 
                         case DataType::Bool: {
-                            auto src_ = reinterpret_cast<float *>(input->data->ptr);
-                            auto dst_ = reinterpret_cast<bool *>(blob->ptr);
+                            auto src_ = reinterpret_cast<float *>(src);
+                            auto dst_ = reinterpret_cast<bool *>(dst);
                             std::transform(src_, src_ + size, dst_, [](auto x) { return x != 0.0; });
-                            return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
+                            break;
                         }
 
                         default:
@@ -45,28 +46,28 @@ namespace refactor::onnx {
                     }
                     break;
 
-                case DataType::I64: {
+                case DataType::I64:
                     switch (to) {
                         case DataType::F32:
-                            castData<int64_t, float>(input->data->ptr, blob->ptr, size);
-                            return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
+                            castData<int64_t, float>(src, dst, size);
+                            break;
 
                         case DataType::Bool: {
-                            auto src_ = reinterpret_cast<int64_t *>(input->data->ptr);
-                            auto dst_ = reinterpret_cast<bool *>(blob->ptr);
+                            auto src_ = reinterpret_cast<int64_t *>(src);
+                            auto dst_ = reinterpret_cast<bool *>(dst);
                             std::transform(src_, src_ + size, dst_, [](auto x) { return x != 0; });
-                            return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
+                            break;
                         }
 
                         default:
                             break;
                     }
-                } break;
+                    break;
 
                 default:
                     break;
             }
-            return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output))});
+            return Ok(Tensors{std::move(ans)});
         }
     }
 }// namespace refactor::onnx

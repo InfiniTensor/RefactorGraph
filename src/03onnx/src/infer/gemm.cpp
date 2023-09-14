@@ -41,7 +41,6 @@ namespace refactor::onnx {
                 }
                 n = b0;
             }
-            Shape ans;
             if (inputs.size() == 3) {
                 auto c = inputs[2];
                 if (c->dataType != dataType) {
@@ -51,7 +50,7 @@ namespace refactor::onnx {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
             }
-            return Ok(Tensors{std::make_shared<Tensor>(dataType, Shape{DimExpr(m), DimExpr(n)})});
+            return Ok(Tensors{Tensor::share(dataType, Shape{DimExpr(m), DimExpr(n)})});
         }
     }
 }// namespace refactor::onnx

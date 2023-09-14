@@ -116,7 +116,7 @@ namespace refactor::onnx {
             }
 
             if (!shouldCalculate(inputs, output) || steps) {
-                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output))});
+                return Ok(Tensors{Tensor::share(data->dataType, std::move(output))});
             }
 
             auto dataType = data->dataType;
@@ -150,7 +150,7 @@ namespace refactor::onnx {
                 std::memcpy(dst + i * eleSize, locate1(*data, indices_), eleSize);
             }
 
-            return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{Tensor::share(data->dataType, std::move(output), std::move(blob))});
         }
     }
 }// namespace refactor::onnx

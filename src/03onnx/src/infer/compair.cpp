@@ -15,19 +15,16 @@ namespace refactor::onnx {
             if (res.isErr()) {
                 return Err(InferError(ERROR_MSG(res.unwrapErr())));
             }
-
-            auto output = std::move(res.unwrap());
-            if (!shouldCalculate(inputs, output) || a->dataType != DataType::I64) {
-                return Ok(Tensors{std::make_shared<Tensor>(a->dataType, std::move(output))});
+            auto ans = Tensor::share(DataType::Bool, std::move(res.unwrap()));
+            if (!shouldCalculate(inputs, ans->shape) || a->dataType != DataType::I64) {// TODO: support other data type
+                return Ok(Tensors{std::move(ans)});
             }
 
-            auto size = sizeOf(output);
-            auto eleSize = dataTypeSize(DataType::Bool);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto dst = reinterpret_cast<bool *>(blob->ptr);
+            auto size = ans->elementsSize();
+            auto dst = reinterpret_cast<bool *>(ans->malloc());
             fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
-                auto indices = locateN(output, i);
+                auto indices = locateN(ans->shape, i);
                 auto a_ = *reinterpret_cast<int64_t *>(locate1(*a, indices)),
                      b_ = *reinterpret_cast<int64_t *>(locate1(*b, indices));
                 if (op.opType.is("onnx::Equal")) {
@@ -46,7 +43,7 @@ namespace refactor::onnx {
                 fmt::print("{} ", dst[i]);
             }
             fmt::print(")");
-            return Ok(Tensors{std::make_shared<Tensor>(DataType::Bool, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::move(ans)});
         }
     }
 }// namespace refactor::onnx

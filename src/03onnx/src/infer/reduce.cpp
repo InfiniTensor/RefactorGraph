@@ -34,13 +34,13 @@ namespace refactor::onnx {
                         ans.emplace_back(1);
                     }
                 }
-                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, std::move(ans))});
+                return Ok(Tensors{Tensor::share(inputs[0]->dataType, std::move(ans))});
             } else if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
                 return Ok(Tensors{std::move(inputs[0])});
             } else if (keepdims) {
-                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, Shape(inputs[0]->shape.size(), DimExpr(1)))});
+                return Ok(Tensors{Tensor::share(inputs[0]->dataType, Shape(inputs[0]->shape.size(), DimExpr(1)))});
             } else {
-                return Ok(Tensors{std::make_shared<Tensor>(inputs[0]->dataType, Shape{})});
+                return Ok(Tensors{Tensor::share(inputs[0]->dataType, Shape{})});
             }
         }
     }

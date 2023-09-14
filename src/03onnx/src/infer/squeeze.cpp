@@ -15,7 +15,7 @@ namespace refactor::onnx {
                         output.push_back(dim);
                     }
                 }
-                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
+                return Ok(Tensors{Tensor::share(data->dataType, std::move(output), data->data)});
             }
             case 2: {
                 auto const &data = inputs[0];
@@ -45,7 +45,7 @@ namespace refactor::onnx {
                         output.push_back(data->shape[i]);
                     }
                 }
-                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
+                return Ok(Tensors{Tensor::share(data->dataType, std::move(output), data->data)});
             }
             default:
                 return Err(InferError(ERROR_MSG("Squeeze need 1 or 2 inputs")));

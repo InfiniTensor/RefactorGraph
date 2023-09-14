@@ -45,34 +45,34 @@ namespace refactor::onnx {
                  axis->dataType != DataType::I32)) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
-            auto output = x->shape;
-            if (!shouldCalculate(inputs, output)) {
-                return Ok(Tensors{Tensor::share(dataType, std::move(output))});
+            auto ans = Tensor::share(dataType, x->shape);
+            if (!shouldCalculate(inputs, ans->shape)) {
+                return Ok(Tensors{std::move(ans)});
             }
             auto exclusive = op.attribute("exclusive", {0}).int_();
             auto reverse = op.attribute("reverse", {0}).int_() != 0;
             if (reverse) {// TODO: support reverse
-                return Ok(Tensors{Tensor::share(dataType, std::move(output))});
+                return Ok(Tensors{std::move(ans)});
             }
+            auto rank = ans->shape.size();
             auto axis_ = axis->dataType == DataType::I64
                              ? *reinterpret_cast<int64_t *>(axis->data->ptr)
                              : *reinterpret_cast<int32_t *>(axis->data->ptr);
             if (axis_ < 0) {
-                axis_ += output.size();
+                axis_ += rank;
             }
-            if (axis_ < 0 || output.size() <= axis_) {
+            if (axis_ < 0 || rank <= axis_) {
                 return Err(InferError(ERROR_MSG("Invalid axis")));
             }
-            auto size = sizeOf(output);
+            auto size = ans->elementsSize();
             auto eleSize = dataTypeSize(dataType);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto src = reinterpret_cast<uint8_t *>(x->data->ptr);
-            auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
-            auto step = std::accumulate(output.begin() + axis_ + 1, output.end(), eleSize,
+            auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
+            auto step = std::accumulate(ans->shape.begin() + axis_ + 1, ans->shape.end(), eleSize,
                                         [](auto const acc, auto const &d) { return acc * d.value(); });
             if (!reverse) {
                 for (size_t i = 0; i < size; ++i) {
-                    auto indices = locateN(output, i);
+                    auto indices = locateN(ans->shape, i);
                     auto axisIdx = indices[axis_];
                     auto dst_ = dst + i * eleSize;
                     if (axisIdx == 0) {
@@ -93,7 +93,7 @@ namespace refactor::onnx {
             } else {
                 UNREACHABLE();
             }
-            return Ok(Tensors{Tensor::share(dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::move(ans)});
         }
     }
 }// namespace refactor::onnx

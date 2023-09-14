@@ -19,10 +19,7 @@ namespace refactor::onnx {
                 reinterpret_cast<int64_t *>(blob->ptr)[i] = v;
             }
             return Ok(Tensors{
-                std::make_shared<Tensor>(
-                    DataType::I64,
-                    Shape{DimExpr(ans.size())},
-                    std::move(blob)),
+                Tensor::share(DataType::I64, Shape{DimExpr(ans.size())}, std::move(blob)),
             });
         }
     }

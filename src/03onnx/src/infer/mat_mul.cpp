@@ -48,10 +48,10 @@ namespace refactor::onnx {
                     auto shape = res.unwrap();
                     shape.emplace_back(m);
                     shape.emplace_back(n);
-                    return Ok(Tensors{std::make_shared<Tensor>(dataType, shape)});
+                    return Ok(Tensors{Tensor::share(dataType, shape)});
                 }
             } else {
-                return Ok(Tensors{std::make_shared<Tensor>(dataType, Shape{m, n})});
+                return Ok(Tensors{Tensor::share(dataType, Shape{m, n})});
             }
         }
     }

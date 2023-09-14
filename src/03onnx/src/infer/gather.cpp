@@ -24,7 +24,7 @@ namespace refactor::onnx {
             output.erase(output.begin() + axis);
             output.insert(output.begin() + axis, indices->shape.begin(), indices->shape.end());
             if (!shouldCalculate(inputs, output)) {
-                return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
+                return Ok(Tensors{Tensor::share(dataType, std::move(output))});
             }
 
             auto const ssz = output.size();
@@ -66,7 +66,7 @@ namespace refactor::onnx {
                 // fmt::println("gather copies {} bytes", eleSize);
             }
 
-            return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{Tensor::share(dataType, std::move(output), std::move(blob))});
         }
     }
 

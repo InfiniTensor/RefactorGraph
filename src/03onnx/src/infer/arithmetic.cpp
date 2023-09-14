@@ -48,36 +48,31 @@ namespace refactor::onnx {
             if (res.isErr()) {
                 return Err(InferError(ERROR_MSG(res.unwrapErr())));
             }
-            auto output = std::move(res.unwrap());
-            if (!shouldCalculate(inputs, output)) {
-                return Ok(Tensors{Tensor::share(dataType, std::move(output))});
+            auto ans = Tensor::share(dataType, std::move(res.unwrap()));
+            if (!shouldCalculate(inputs, ans->shape)) {
+                return Ok(Tensors{std::move(ans)});
             }
 
-            auto size = sizeOf(output);
+            auto size = ans->elementsSize();
             auto eleSize = dataTypeSize(dataType);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
+            auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
             fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
-                Ty ty;
-                if (op.opType.is("onnx::Add")) {
-                    ty = Ty::Add;
-                } else if (op.opType.is("onnx::Sub")) {
-                    ty = Ty::Sub;
-                } else if (op.opType.is("onnx::Mul")) {
-                    ty = Ty::Mul;
-                } else if (op.opType.is("onnx::Div")) {
-                    ty = Ty::Div;
-                } else {
-                    UNREACHABLE();
-                }
-                auto indices = locateN(output, i);
-                auto a_ = locate1(*a, indices), b_ = locate1(*b, indices);
+                auto ty = op.opType.is("onnx::Add")   ? Ty::Add
+                          : op.opType.is("onnx::Sub") ? Ty::Sub
+                          : op.opType.is("onnx::Mul") ? Ty::Mul
+                          : op.opType.is("onnx::Div") ? Ty::Div
+                                                      : UNREACHABLE();
+                auto indices = locateN(ans->shape, i);
+                auto a_ = locate1(*a, indices),
+                     b_ = locate1(*b, indices);
                 auto dst_ = dst + i * eleSize;
+                //-------------------------------------
 #define CASE(T)                                   \
     case DataType::T:                             \
         calculate<DataType::T>(ty, dst_, a_, b_); \
         break
+                //-------------------------------------
                 switch (dataType) {
                     CASE(F32);
                     CASE(F64);
@@ -90,11 +85,12 @@ namespace refactor::onnx {
                     CASE(U32);
                     CASE(U64);
                     default:
-                        return Ok(Tensors{Tensor::share(dataType, std::move(output))});
+                        ans->free();
+                        break;
                 }
             }
             fmt::print(")");
-            return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::move(ans)});
         }
     }
 }// namespace refactor::onnx

@@ -14,7 +14,7 @@ namespace refactor::onnx {
             if (ans.isErr()) {
                 return Err(InferError(ERROR_MSG(ans.unwrapErr())));
             } else {
-                return Ok(Tensors{std::make_shared<Tensor>(a->dataType, ans.unwrap())});
+                return Ok(Tensors{Tensor::share(a->dataType, std::move(ans.unwrap()))});
             }
         }
     }

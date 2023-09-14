@@ -30,7 +30,7 @@ namespace refactor::onnx {
             }
         }
         if (!shouldCalculate(inputs, output)) {
-            return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output))});
+            return Ok(Tensors{Tensor::share(dataType, std::move(output))});
         }
 
         auto size = sizeOf(output);
@@ -59,6 +59,6 @@ namespace refactor::onnx {
             auto input = reinterpret_cast<uint8_t *>(inputs[k]->data->ptr);
             std::memcpy(dst + i * eleSize, input + ii * eleSize, eleSize);
         }
-        return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});
+        return Ok(Tensors{Tensor::share(dataType, std::move(output), std::move(blob))});
     }
 }// namespace refactor::onnx

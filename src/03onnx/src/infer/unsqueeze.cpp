@@ -32,6 +32,6 @@ namespace refactor::onnx {
                 output[i] = *it++;
             }
         }
-        return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), data->data)});
+        return Ok(Tensors{Tensor::share(data->dataType, std::move(output), data->data)});
     }
 }// namespace refactor::onnx
