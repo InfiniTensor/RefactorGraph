@@ -3,6 +3,38 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
+    enum class Ty {
+        Add,
+        Sub,
+        Mul,
+        Div
+    };
+
+    template<DataType T>
+    void calculate(Ty ty, void *dst, void *a, void *b) {
+        using T_ = typename primitive_t<T>::type;
+        auto a_ = *reinterpret_cast<T_ *>(a);
+        auto b_ = *reinterpret_cast<T_ *>(b);
+        auto dst_ = reinterpret_cast<T_ *>(dst);
+        switch (ty) {
+            case Ty::Add:
+                *dst_ = a_ + b_;
+                break;
+            case Ty::Sub:
+                *dst_ = a_ - b_;
+                break;
+            case Ty::Mul:
+                *dst_ = a_ * b_;
+                break;
+            case Ty::Div:
+                *dst_ = a_ / b_;
+                break;
+            default:
+                RUNTIME_ERROR("Unreachable");
+        }
+        fmt::print("{} ", *dst_);
+    }
+
     InferResult inferArithmetic(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
@@ -17,31 +49,49 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG(res.unwrapErr())));
             }
             auto output = std::move(res.unwrap());
-            if (!shouldCalculate(inputs, output) || dataType != DataType::I64) {// Currently, only support int64_t
+            if (!shouldCalculate(inputs, output)) {
                 return Ok(Tensors{Tensor::share(dataType, std::move(output))});
             }
 
             auto size = sizeOf(output);
             auto eleSize = dataTypeSize(dataType);
             auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto dst = reinterpret_cast<uint64_t *>(blob->ptr);
+            auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
             fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
-                auto indices = buildIndices(output, i);
-                auto a_ = *reinterpret_cast<int64_t *>(locate(*a, indices)),
-                     b_ = *reinterpret_cast<int64_t *>(locate(*b, indices));
+                Ty ty;
                 if (op.opType.is("onnx::Add")) {
-                    dst[i] = a_ + b_;
+                    ty = Ty::Add;
                 } else if (op.opType.is("onnx::Sub")) {
-                    dst[i] = a_ - b_;
+                    ty = Ty::Sub;
                 } else if (op.opType.is("onnx::Mul")) {
-                    dst[i] = a_ * b_;
+                    ty = Ty::Mul;
                 } else if (op.opType.is("onnx::Div")) {
-                    dst[i] = a_ / b_;
+                    ty = Ty::Div;
                 } else {
-                    return Err(InferError(ERROR_MSG("OpType not support")));
+                    UNREACHABLE();
                 }
-                fmt::print("{} ", dst[i]);
+                auto indices = buildIndices(output, i);
+                auto a_ = locate(*a, indices), b_ = locate(*b, indices);
+                auto dst_ = dst + i * eleSize;
+#define CASE(T)                                   \
+    case DataType::T:                             \
+        calculate<DataType::T>(ty, dst_, a_, b_); \
+        break
+                switch (dataType) {
+                    CASE(F32);
+                    CASE(F64);
+                    CASE(I32);
+                    CASE(I64);
+                    CASE(I8);
+                    CASE(I16);
+                    CASE(U8);
+                    CASE(U16);
+                    CASE(U32);
+                    CASE(U64);
+                    default:
+                        return Ok(Tensors{Tensor::share(dataType, std::move(output))});
+                }
             }
             fmt::print(")");
             return Ok(Tensors{std::make_shared<Tensor>(dataType, std::move(output), std::move(blob))});

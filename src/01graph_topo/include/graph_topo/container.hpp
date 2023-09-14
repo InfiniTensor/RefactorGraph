@@ -47,6 +47,7 @@ namespace refactor::graph_topo {
         Iterator begin() const;
         Iterator end() const;
         size_t size() const;
+        size_t globalInputsCount() const;
 
         static GraphTopo __withGlobalInputs(size_t globalInputsCount);
         void __addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount);

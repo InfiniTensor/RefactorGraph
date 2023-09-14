@@ -19,6 +19,7 @@ struct UnimplementError : public std::logic_error {
 #define RUNTIME_ERROR(msg) throw std::runtime_error(buildMsg(msg, __FILE__, __LINE__))
 #define OUT_OF_RANGE(msg, a, b) throw std::out_of_range(buildMsg((std::to_string(a) + '/' + std::to_string(b) + ' ' + msg), __FILE__, __LINE__))
 #define TODO(msg) throw UnimplementError(buildMsg(msg, __FILE__, __LINE__))
+#define UNREACHABLE() throw std::logic_error(buildMsg("Unreachable", __FILE__, __LINE__))
 
 #ifndef DISABLE_ASSERT
 #define ASSERT(condition, msg)                \

@@ -12,9 +12,12 @@ namespace refactor::computation {
 
     public:
         explicit Graph(graph_topo::Graph<Node, Edge> &&);
+
         void collectVariables();
-        bool substitute(const char *, int64_t);
+
         std::unordered_set<std::string> fillEdgeInfo();
+        bool substitute(const char *, int64_t);
+        bool setInput(size_t, std::shared_ptr<Tensor>);
     };
 
 }// namespace refactor::computation

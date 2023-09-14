@@ -83,6 +83,7 @@ namespace refactor::graph_topo {
     auto GraphTopo::begin() const -> Iterator { return Iterator::begin(this); }
     auto GraphTopo::end() const -> Iterator { return Iterator::end(this); }
     size_t GraphTopo::size() const { return _impl->_nodes.size(); }
+    size_t GraphTopo::globalInputsCount() const { return _impl->_globalInputsCount; }
 
     GraphTopo GraphTopo::__withGlobalInputs(size_t globalInputsCount) {
         GraphTopo ans;

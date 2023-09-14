@@ -126,16 +126,17 @@ namespace refactor::onnx {
     }
 
     void *locate(Tensor const &tensor, Indices const &indices) {
-        auto it0 = indices.rbegin(),
-             end0 = indices.rend();
-        auto it1 = tensor.shape.rbegin(),
-             end1 = tensor.shape.rend();
-        size_t i = 0, mul = 1;
-        while (it0 != end0 && it1 != end1) {
-            i += *it0++ * mul;
-            mul *= it1++->value();
+        auto i = indices.rbegin(),
+             ei = indices.rend();
+        auto j = tensor.shape.rbegin(),
+             ej = tensor.shape.rend();
+        size_t k = 0, mul = 1;
+        while (i != ei && j != ej) {
+            auto const shape = j++->value();
+            k += std::min(*i++, shape) * mul;
+            mul *= shape;
         }
-        return reinterpret_cast<uint8_t *>(tensor.data->ptr) + i * dataTypeSize(tensor.dataType);
+        return reinterpret_cast<uint8_t *>(tensor.data->ptr) + k * dataTypeSize(tensor.dataType);
     }
 }// namespace refactor::onnx
 

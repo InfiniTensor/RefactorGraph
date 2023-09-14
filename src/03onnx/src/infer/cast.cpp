@@ -33,6 +33,13 @@ namespace refactor::onnx {
                             castData<float, int64_t>(input->data->ptr, blob->ptr, size);
                             return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
 
+                        case DataType::Bool: {
+                            auto src_ = reinterpret_cast<float *>(input->data->ptr);
+                            auto dst_ = reinterpret_cast<bool *>(blob->ptr);
+                            std::transform(src_, src_ + size, dst_, [](auto x) { return x != 0.0; });
+                            return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
+                        }
+
                         default:
                             break;
                     }
@@ -44,9 +51,12 @@ namespace refactor::onnx {
                             castData<int64_t, float>(input->data->ptr, blob->ptr, size);
                             return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
 
-                        case DataType::Bool:
-                            castData<int64_t, bool>(input->data->ptr, blob->ptr, size);
+                        case DataType::Bool: {
+                            auto src_ = reinterpret_cast<int64_t *>(input->data->ptr);
+                            auto dst_ = reinterpret_cast<bool *>(blob->ptr);
+                            std::transform(src_, src_ + size, dst_, [](auto x) { return x != 0; });
                             return Ok(Tensors{std::make_shared<Tensor>(to, std::move(output), std::move(blob))});
+                        }
 
                         default:
                             break;

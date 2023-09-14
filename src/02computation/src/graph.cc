@@ -37,6 +37,34 @@ namespace refactor::computation {
         }
     }
 
+    bool Graph::setInput(size_t i, std::shared_ptr<Tensor> tensor) {
+        if (i >= _internal.topology.globalInputsCount()) { return false; }
+        auto current = _internal.edges[i];
+        if (!current.tensor) {
+            current.tensor = std::move(tensor);
+            return true;
+        }
+        auto &shape0 = current.tensor->shape;
+        auto const &shape1 = tensor->shape;
+        auto rank = shape0.size();
+        if (shape1.size() != rank) { return false; }
+        for (size_t j = 0; j < rank; ++j) {
+            if (shape0[j].isVariable()) {
+                if (shape1[j].isVariable() && shape0[j].variable()->name != shape1[j].variable()->name) {
+                    return false;
+                }
+                if (shape1[j].hasValue()) {
+                    shape0[j].variable()->value = shape1[j].value();
+                }
+            } else if (shape1[j].isVariable() || shape0[j].value() != shape1[j].value()) {
+                return false;
+            }
+        }
+        current.tensor->dataType = tensor->dataType;
+        current.tensor->data = std::move(tensor->data);
+        return true;
+    }
+
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
         std::unordered_set<size_t> unknownEdges;         // 未知边，有入边未知的节点无法推导。
