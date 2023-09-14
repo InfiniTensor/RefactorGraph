@@ -11,7 +11,7 @@ namespace refactor::onnx {
     }
 
     void accumulate(DataType dataType, void *dst, void *src, size_t stepBytes) {
-        auto acc = reinterpret_cast<uint8_t *>(src) - stepBytes;
+        auto acc = reinterpret_cast<uint8_t *>(dst) - stepBytes;
         switch (dataType) {
 #define CASE(T)                                  \
     case DataType::T:                            \
