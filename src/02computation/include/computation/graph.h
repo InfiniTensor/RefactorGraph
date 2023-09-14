@@ -15,6 +15,8 @@ namespace refactor::computation {
 
         void collectVariables();
 
+        auto internal() const -> decltype(_internal) const &;
+
         std::unordered_set<std::string> fillEdgeInfo();
         bool substitute(const char *, int64_t);
         bool setInput(size_t, std::shared_ptr<Tensor>);
