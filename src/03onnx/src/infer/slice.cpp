@@ -59,7 +59,7 @@ namespace refactor::onnx {
             }
             std::unordered_set<int64_t> axes_set;
             for (size_t i = 0; i < rank; ++i) { axes_set.insert(i); }
-            Shape ans(rank, DimExpr(1));
+            Shape output(rank, DimExpr(1));
             for (size_t i = 0; i < rankParam; ++i) {
                 auto axis = axes ? axes[i] : i;
                 if (axis < 0) {
@@ -104,17 +104,53 @@ namespace refactor::onnx {
                     return Err(InferError(ERROR_MSG("Step not support")));
                 }
                 if (step > 0) {
-                    ans[axis] = DimExpr((end - start + step - 1) / step);
+                    output[axis] = DimExpr((end - start + step - 1) / step);
                 } else if (step < 0) {
-                    ans[axis] = DimExpr((end - start - step + 1) / -step);
+                    output[axis] = DimExpr((end - start - step + 1) / -step);
                 } else {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
             }
             for (auto axis : axes_set) {
-                ans[axis] = data->shape[axis];
+                output[axis] = data->shape[axis];
             }
-            return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(ans))});
+
+            if (!shouldCalculate(inputs, output) || steps) {
+                return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output))});
+            }
+
+            auto dataType = data->dataType;
+            auto size = sizeOf(output);
+            auto eleSize = dataTypeSize(dataType);
+            auto data_ = reinterpret_cast<uint8_t *>(data->data->ptr);
+            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
+            auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
+            std::vector<int64_t> axes_(rank, -1);
+            if (axes) {
+                for (size_t i = 0; i < rankParam; ++i) {
+                    axes_[axes[i]] = i;
+                }
+            }
+            for (size_t i = 0; i < size; ++i) {
+                auto indices = buildIndices(output, i);
+                Indices indices_(indices.begin(), indices.end());
+                for (size_t j = 0; j < rank; ++j) {
+                    if (axes) {
+                        if (axes_[j] >= 0) {
+                            auto start = starts[axes_[j]];
+                            if (start < 0) {
+                                start += data->shape[j].value();
+                            }
+                            indices_[j] += start;
+                        }
+                    } else {
+                        indices_[j] += starts[j];
+                    }
+                }
+                std::memcpy(dst + i * eleSize, locate(*data, indices_), eleSize);
+            }
+
+            return Ok(Tensors{std::make_shared<Tensor>(data->dataType, std::move(output), std::move(blob))});
         }
     }
 }// namespace refactor::onnx

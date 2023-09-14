@@ -47,7 +47,7 @@ namespace refactor::onnx {
                 if (c->dataType != dataType) {
                     return Err(InferError(ERROR_MSG("Input data type not support")));
                 }
-                if (c->shape.size() != 2 || !unidirBroadcast(Shape{DimExpr(m), DimExpr(n)}, c->shape)) {
+                if (!unidirBroadcast(Shape{DimExpr(m), DimExpr(n)}, c->shape)) {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
             }
