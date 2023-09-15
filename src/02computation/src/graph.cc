@@ -138,7 +138,7 @@ namespace refactor::computation {
         auto const endTime = steady_clock::now();
         logi("inference cost time: {}μs", duration_cast<microseconds>(endTime - startTime).count());
         if (unknownVariables.empty()) {
-            std::unordered_set<std::string> dynamicNodes;
+            std::unordered_set<std::string> frontNodes, dynamicNodes;
             auto it = _internal.topology.begin();
             auto const end = _internal.topology.end();
             {
@@ -147,8 +147,12 @@ namespace refactor::computation {
                 while (it != end) {
                     auto [nodeIdx, inputs, outputs] = *it++;
                     if (std::any_of(outputs.begin(), outputs.end(), [&](auto i) { return !_internal.edges[i].tensor->hasData(); })) {
-                        logi("{:>8}. {}", i++, _internal.nodes[nodeIdx].name);
-                        dynamicNodes.insert(std::string(_internal.nodes[nodeIdx].op->opType.name()));
+                        auto node = _internal.nodes[nodeIdx];
+                        logi("{:>8}. {}", i++, node.name);
+                        dynamicNodes.insert(std::string(node.op->opType.name()));
+                        if (std::all_of(inputs.begin(), inputs.end(), [&](auto i) { return _internal.edges[i].tensor->hasData(); })) {
+                            frontNodes.insert(std::string(node.op->opType.name()));
+                        }
                     }
                 }
             }
@@ -156,7 +160,11 @@ namespace refactor::computation {
                 logi("types:");
                 auto i = 0;
                 for (auto const &node : dynamicNodes) {
-                    logi("{:>8}. {}", i++, node);
+                    if (frontNodes.erase(node)) {
+                        logi("{:>8}.*{}", i++, node);
+                    } else {
+                        logi("{:>8}. {}", i++, node);
+                    }
                 }
             }
             {
