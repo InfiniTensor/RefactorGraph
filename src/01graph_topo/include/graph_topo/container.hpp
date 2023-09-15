@@ -1,6 +1,8 @@
 ﻿#ifndef GRAPH_TOPO_CONTAINER_HPP
 #define GRAPH_TOPO_CONTAINER_HPP
 
+#include "common/range.h"
+#include "common/slice.h"
 #include <cstddef>
 #include <vector>
 
@@ -22,38 +24,10 @@ namespace refactor::graph_topo {
         GraphTopo &operator=(GraphTopo const &);
         GraphTopo &operator=(GraphTopo &&) noexcept;
 
-        using Inputs = std::vector<size_t>;
-        struct Outputs {
-            size_t begin_, end_;
-
-            class Iterator : public std::iterator<std::input_iterator_tag, size_t> {
-                size_t _i;
-
-            public:
-                Iterator(size_t);
-                bool operator==(Iterator const &) const;
-                bool operator!=(Iterator const &) const;
-                bool operator<(Iterator const &) const;
-                bool operator>(Iterator const &) const;
-                bool operator<=(Iterator const &) const;
-                bool operator>=(Iterator const &) const;
-                Iterator &operator++();
-                Iterator operator++(int);
-                size_t operator*() const;
-            };
-
-            bool empty() const;
-            size_t size() const;
-            size_t at(size_t) const;
-            size_t operator[](size_t) const;
-            Iterator begin() const;
-            Iterator end() const;
-        };
-
         struct NodeRef {
             size_t idx;
-            Inputs inputs;
-            Outputs outputs;
+            common::slice_t<size_t> inputs;
+            common::range_t<size_t> outputs;
         };
 
         class Iterator {
@@ -72,8 +46,8 @@ namespace refactor::graph_topo {
             Iterator &operator++();
             Iterator operator++(int);
             NodeRef operator*() const;
-            std::vector<size_t> globalInputs() const;
-            std::vector<size_t> globalOutputs() const;
+            common::range_t<size_t> globalInputs() const;
+            common::slice_t<size_t> globalOutputs() const;
         };
 
         Iterator begin() const;

@@ -28,38 +28,7 @@ namespace refactor::graph_topo {
         return *this;
     }
 
-    bool GraphTopo::Outputs::empty() const { return end_ == begin_; }
-    size_t GraphTopo::Outputs::size() const { return end_ - begin_; }
-    size_t GraphTopo::Outputs::at(size_t i) const {
-        ASSERT(i < size(), "Index out of range");
-        return operator[](i);
-    }
-    size_t GraphTopo::Outputs::operator[](size_t i) const { return begin_ + i; }
-    auto GraphTopo::Outputs::begin() const -> Iterator { return begin_; }
-    auto GraphTopo::Outputs::end() const -> Iterator { return end_; }
-
-    GraphTopo::Outputs::Iterator::Iterator(size_t i) : _i(i) {}
-    bool GraphTopo::Outputs::Iterator::operator==(Iterator const &rhs) const { return _i == rhs._i; }
-    bool GraphTopo::Outputs::Iterator::operator!=(Iterator const &rhs) const { return _i != rhs._i; }
-    bool GraphTopo::Outputs::Iterator::operator<(Iterator const &rhs) const { return _i < rhs._i; }
-    bool GraphTopo::Outputs::Iterator::operator>(Iterator const &rhs) const { return _i > rhs._i; }
-    bool GraphTopo::Outputs::Iterator::operator<=(Iterator const &rhs) const { return _i <= rhs._i; }
-    bool GraphTopo::Outputs::Iterator::operator>=(Iterator const &rhs) const { return _i >= rhs._i; }
-    auto GraphTopo::Outputs::Iterator::operator++() -> Iterator & {
-        ++_i;
-        return *this;
-    }
-    auto GraphTopo::Outputs::Iterator::operator++(int) -> Iterator {
-        auto ans = *this;
-        operator++();
-        return ans;
-    }
-    size_t GraphTopo::Outputs::Iterator::operator*() const {
-        return _i;
-    }
-
-    auto
-    GraphTopo::Iterator::begin(GraphTopo const *internal) -> Iterator {
+    auto GraphTopo::Iterator::begin(GraphTopo const *internal) -> Iterator {
         Iterator ans;
         ans._internal = internal;
         ans._idx = 0;
@@ -104,32 +73,26 @@ namespace refactor::graph_topo {
             OUT_OF_RANGE("Iterator out of range", _idx, _internal->_impl->_nodes.size());
         }
         auto const &node = _internal->_impl->_nodes[_idx];
-        std::vector<size_t> inputs(node._inputsCount);
-        {
-            auto const begin = _internal->_impl->_connections.begin() + _passConnections;
-            auto const end = begin + node._inputsCount;
-            std::transform(begin, end, inputs.begin(), [](auto const &edge) { return edge._edgeIdx; });
-        }
-        auto outputBegin = _passEdges + node._localEdgesCount;
-        auto outputEnd = outputBegin + node._outputsCount;
+        auto inputsBegin = reinterpret_cast<size_t *>(_internal->_impl->_connections.data()) + _passConnections;
+        auto inputsEnd = inputsBegin + node._inputsCount;
+        auto outputsBegin = _passEdges + node._localEdgesCount;
+        auto outputsEnd = outputsBegin + node._outputsCount;
         return NodeRef{
             _idx,
-            std::move(inputs),
-            {outputBegin, outputEnd}};
+            {inputsBegin, inputsEnd},
+            {outputsBegin, outputsEnd}};
     }
 
-    std::vector<size_t> GraphTopo::Iterator::globalInputs() const {
-        std::vector<size_t> ans(_internal->_impl->_globalInputsCount);
-        for (size_t i = 0; i < ans.size(); ++i) { ans[i] = i; }
-        return ans;
+    common::range_t<size_t> GraphTopo::Iterator::globalInputs() const {
+        return {0, _internal->_impl->_globalInputsCount};
     }
-    std::vector<size_t> GraphTopo::Iterator::globalOutputs() const {
+    common::slice_t<size_t> GraphTopo::Iterator::globalOutputs() const {
         ASSERT(_idx == _internal->_impl->_nodes.size(), "Iterator not at end");
-        auto pass = _passConnections;
-        auto end = _internal->_impl->_connections.size();
-        std::vector<size_t> ans(end - pass);
-        for (auto i = pass; i < end; ++i) { ans[i - pass] = _internal->_impl->_connections[i]._edgeIdx; }
-        return ans;
+        auto const &connections = _internal->_impl->_connections;
+        auto begin = reinterpret_cast<size_t const *>(connections.data());
+        auto pass = begin + _passConnections;
+        auto end = begin + connections.size();
+        return {pass, end};
     }
 
     auto GraphTopo::begin() const -> Iterator { return Iterator::begin(this); }
