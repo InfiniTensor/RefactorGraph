@@ -62,6 +62,12 @@ namespace refactor::graph_topo {
         return *this;
     }
 
+    auto GraphTopo::Iterator::operator++(int) -> Iterator {
+        auto ans = *this;
+        ++*this;
+        return ans;
+    }
+
     auto GraphTopo::Iterator::operator*() const -> NodeRef {
         if (_idx >= _internal->_impl->_nodes.size()) {
             OUT_OF_RANGE("Iterator out of range", _idx, _internal->_impl->_nodes.size());
@@ -78,6 +84,20 @@ namespace refactor::graph_topo {
             for (size_t i = 0; i < outputs.size(); ++i) { outputs[i] = begin + i; }
         }
         return NodeRef{_idx, std::move(inputs), std::move(outputs)};
+    }
+
+    std::vector<size_t> GraphTopo::Iterator::globalInputs() const {
+        std::vector<size_t> ans(_internal->_impl->_globalInputsCount);
+        for (size_t i = 0; i < ans.size(); ++i) { ans[i] = i; }
+        return ans;
+    }
+    std::vector<size_t> GraphTopo::Iterator::globalOutputs() const {
+        ASSERT(_idx == _internal->_impl->_nodes.size(), "Iterator not at end");
+        auto pass = _passConnections;
+        auto end = _internal->_impl->_connections.size();
+        std::vector<size_t> ans(end - pass);
+        for (auto i = pass; i < end; ++i) { ans[i - pass] = _internal->_impl->_connections[i]._edgeIdx; }
+        return ans;
     }
 
     auto GraphTopo::begin() const -> Iterator { return Iterator::begin(this); }

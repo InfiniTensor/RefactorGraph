@@ -6,9 +6,8 @@
 using namespace refactor::common;
 namespace refactor::computation {
 
-    Graph::Graph(graph_topo::Graph<Node, Edge> &&internal)
-        : _internal(std::forward<graph_topo::Graph<Node, Edge>>(internal)),
-          _variables() {
+    Graph::Graph(graph_topo::Graph<Node, Edge> internal)
+        : _internal(std::move(internal)), _variables() {
         collectVariables();
     }
 
@@ -125,16 +124,26 @@ namespace refactor::computation {
         }
         if (unknownVariables.empty()) {
             std::unordered_set<std::string> dynamicNodes;
-            for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
+            auto it = _internal.topology.begin();
+            auto end = _internal.topology.end();
+            while (it != end) {
+                auto [nodeIdx, inputs, outputs] = *it++;
                 if (std::any_of(outputs.begin(), outputs.end(), [&](auto i) { return !_internal.edges[i].tensor->hasData(); })) {
-                    fmt::println("dynamic node: {}", _internal.nodes[nodeIdx].name);
+                    fmt::println("compute on device: {}", _internal.nodes[nodeIdx].name);
                     dynamicNodes.insert(std::string(_internal.nodes[nodeIdx].op->opType.name()));
                 }
             }
+            fmt::println("");
+            fmt::println("types:");
             for (auto const &node : dynamicNodes) {
-                fmt::print("{} ", node);
+                fmt::println("{}", node);
             }
             fmt::println("");
+            fmt::println("outputs:");
+            for (auto edgeIdx : it.globalOutputs()) {
+                auto const &edge = _internal.edges[edgeIdx];
+                fmt::println("{} with {}", edge.name, shapeFormat(edge.tensor->shape));
+            }
         }
         return unknownVariables;
     }

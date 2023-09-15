@@ -41,7 +41,10 @@ namespace refactor::graph_topo {
             bool operator<=(Iterator const &) const;
             bool operator>=(Iterator const &) const;
             Iterator &operator++();
+            Iterator operator++(int);
             NodeRef operator*() const;
+            std::vector<size_t> globalInputs() const;
+            std::vector<size_t> globalOutputs() const;
         };
 
         Iterator begin() const;
