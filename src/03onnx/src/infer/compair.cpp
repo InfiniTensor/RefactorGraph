@@ -22,7 +22,6 @@ namespace refactor::onnx {
 
             auto size = ans->elementsSize();
             auto dst = reinterpret_cast<bool *>(ans->malloc());
-            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = locateN(ans->shape, i);
                 auto a_ = *reinterpret_cast<int64_t *>(locate1(*a, indices)),
@@ -40,9 +39,7 @@ namespace refactor::onnx {
                 } else {
                     return Err(InferError(ERROR_MSG("OpType not support")));
                 }
-                fmt::print("{} ", dst[i]);
             }
-            fmt::print(")");
             return Ok(Tensors{std::move(ans)});
         }
     }

@@ -63,7 +63,6 @@ namespace refactor::onnx {
                     }
                     std::memcpy(dst + i * eleSize, src + ii * eleSize, eleSize);
                 }
-                // fmt::println("gather copies {} bytes", eleSize);
             }
 
             return Ok(Tensors{Tensor::share(dataType, std::move(output), std::move(blob))});

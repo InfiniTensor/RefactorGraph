@@ -1,9 +1,12 @@
 ﻿#include "computation/graph.h"
 #include "common/error_handler.h"
 #include "computation/tensor.h"
-// #include <fmtlog.h>
+#include <chrono>
+#include <fmtlog.h>
 
 using namespace refactor::common;
+using namespace std::chrono;
+
 namespace refactor::computation {
 
     Graph::Graph(graph_topo::Graph<Node, Edge> internal)
@@ -68,9 +71,19 @@ namespace refactor::computation {
         return true;
     }
 
+    class LogGuard {
+    public:
+        ~LogGuard() {
+            fmtlog::poll();
+        }
+    };
+
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
         std::unordered_set<size_t> unknownEdges;         // 未知边，有入边未知的节点无法推导。
+        LogGuard _logGuard;
+        logi("edge inference start");
+        auto const startTime = steady_clock::now();
         // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
             // 构造入边
@@ -91,12 +104,11 @@ namespace refactor::computation {
             }
             if (!inputs_) { continue; }
             auto const &node = _internal.nodes[nodeIdx];
-            fmt::print("nodes[{}] = {}({})", nodeIdx, node.name, node.op->opType.name());
-
+            auto msg = fmt::format("nodes[{}] = {}({})", nodeIdx, node.name, node.op->opType.name());
             // 推导
             auto infered = node.op->infer(std::move(*inputs_));
             if (infered.isErr()) {
-                fmt::println(", inference failed");
+                msg += ", inference failed";
                 // 推导失败，记录未知变量和边
                 auto error = infered.unwrapErr();
                 if (std::holds_alternative<UnknownVariable>(error.value)) {
@@ -111,48 +123,48 @@ namespace refactor::computation {
                 if (infered_.size() < outputs.size()) {
                     OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
                 } else {
-                    fmt::print(", outputs = ( ");
+                    msg += ", outputs = ( ";
                     for (auto const &tensor : infered_) {
-                        fmt::print("{} ", shapeFormat(tensor->shape));
+                        msg += shapeFormat(tensor->shape);
                     }
-                    fmt::println(")");
+                    msg += " )";
                     for (auto i = 0; i < outputs.size(); ++i) {
                         _internal.edges[outputs[i]].tensor = std::move(infered_[i]);
                     }
                 }
             }
+            logi("{}", std::move(msg));
         }
+        auto const endTime = steady_clock::now();
+        logi("inference cost time: {}μs", duration_cast<microseconds>(endTime - startTime).count());
         if (unknownVariables.empty()) {
             std::unordered_set<std::string> dynamicNodes;
             auto it = _internal.topology.begin();
             auto const end = _internal.topology.end();
             {
-                fmt::println("");
-                fmt::println("compute on device: ");
+                logi("compute on device: ");
                 auto i = 0;
                 while (it != end) {
                     auto [nodeIdx, inputs, outputs] = *it++;
                     if (std::any_of(outputs.begin(), outputs.end(), [&](auto i) { return !_internal.edges[i].tensor->hasData(); })) {
-                        fmt::println("{:>3}. {}", i++, _internal.nodes[nodeIdx].name);
+                        logi("{:>8}. {}", i++, _internal.nodes[nodeIdx].name);
                         dynamicNodes.insert(std::string(_internal.nodes[nodeIdx].op->opType.name()));
                     }
                 }
             }
             {
-                fmt::println("");
-                fmt::println("types:");
+                logi("types:");
                 auto i = 0;
                 for (auto const &node : dynamicNodes) {
-                    fmt::println("{:>3}. {}", i++, node);
+                    logi("{:>8}. {}", i++, node);
                 }
             }
             {
-                fmt::println("");
-                fmt::println("outputs:");
+                logi("outputs:");
                 auto i = 0;
                 for (auto edgeIdx : it.globalOutputs()) {
                     auto const &edge = _internal.edges[edgeIdx];
-                    fmt::println("outputs[{}] = {} with {}", i++, edge.name, shapeFormat(edge.tensor->shape));
+                    logi("    outputs[{:>2}] = {} with {}", i++, edge.name, shapeFormat(edge.tensor->shape));
                 }
             }
         }

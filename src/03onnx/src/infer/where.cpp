@@ -28,18 +28,14 @@ namespace refactor::onnx {
             auto size = ans->elementsSize();
             auto eleSize = dataTypeSize(dataType);
             auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto indices = locateN(ans->shape, i);
                 if (*reinterpret_cast<bool *>(locate1(*condition, indices))) {
                     std::memcpy(dst + i * eleSize, locate1(*x, indices), eleSize);
-                    fmt::print("x ");
                 } else {
                     std::memcpy(dst + i * eleSize, locate1(*y, indices), eleSize);
-                    fmt::print("y ");
                 }
             }
-            fmt::print(")");
             return Ok(Tensors{std::move(ans)});
         }
     }

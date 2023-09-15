@@ -32,7 +32,6 @@ namespace refactor::onnx {
             default:
                 RUNTIME_ERROR("Unreachable");
         }
-        fmt::print("{} ", *dst_);
     }
 
     InferResult inferArithmetic(Operator const &op, Tensors inputs) {
@@ -56,7 +55,6 @@ namespace refactor::onnx {
             auto size = ans->elementsSize();
             auto eleSize = dataTypeSize(dataType);
             auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
             for (size_t i = 0; i < size; ++i) {
                 auto ty = op.opType.is("onnx::Add")   ? Ty::Add
                           : op.opType.is("onnx::Sub") ? Ty::Sub
@@ -89,7 +87,6 @@ namespace refactor::onnx {
                         break;
                 }
             }
-            fmt::print(")");
             return Ok(Tensors{std::move(ans)});
         }
     }
