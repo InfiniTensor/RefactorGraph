@@ -5,22 +5,31 @@ namespace refactor::onnx {
 
     InferResult inferShape(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
-            auto attrs = op.attributes;
+            auto const &data = inputs[0];
+            auto rank = data->shape.size();
+
             auto start = op.attribute("start", {0}).int_(),
-                 end = op.attribute("end", {-1}).int_();
-
-            ASSERT(start == 0, "only support start == 0");
-            ASSERT(end == -1, "only support end == -1");
-
-            auto ans = inputs[0]->shape;
-            auto blob = std::make_shared<Blob>(new int64_t[ans.size()]);
-            for (auto i = 0; i < ans.size(); ++i) {
-                EXPECT_VAL(ans[i], v)
-                reinterpret_cast<int64_t *>(blob->ptr)[i] = v;
+                 end = op.attribute("end", {static_cast<int64_t>(rank)}).int_();
+            if (start < 0) {
+                start += rank;
             }
-            return Ok(Tensors{
-                Tensor::share(DataType::I64, Shape{DimExpr(ans.size())}, std::move(blob)),
-            });
+            if (start < 0 || rank <= start) {
+                return Err(InferError(ERROR_MSG("start out of range")));
+            }
+            if (end < 0) {
+                end += rank;
+            }
+            if (end <= start || rank < end) {
+                return Err(InferError(ERROR_MSG("end out of range")));
+            }
+
+            auto ans = Tensor::share(DataType::I64, Shape{DimExpr(end - start)});
+            auto dst = reinterpret_cast<int64_t *>(ans->malloc());
+            for (auto i = start; i < end; ++i) {
+                EXPECT_VAL(data->shape[i], dim)
+                dst[i - start] = dim;
+            }
+            return Ok(Tensors{std::move(ans)});
         }
     }
 }// namespace refactor::onnx
