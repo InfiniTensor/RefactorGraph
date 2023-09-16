@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -16,7 +17,7 @@ namespace refactor::onnx {
             EXPECT_VAL(inputs[1]->shape[0], rank)
             Shape ans(rank, DimExpr(1));
             auto pos_1 = -1;
-            for (auto i = 0; i < ans.size(); ++i) {
+            for (auto i : range0_(ans.size())) {
                 switch (shapeValue[i]) {
                     case -1:
                         if (pos_1 != -1) {

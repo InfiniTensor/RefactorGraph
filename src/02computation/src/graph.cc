@@ -80,7 +80,6 @@ namespace refactor::computation {
 
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
-        std::unordered_set<size_t> unknownEdges;         // 未知边，有入边未知的节点无法推导。
         LogGuard _logGuard;
         logi("edge inference start");
         auto const startTime = steady_clock::now();
@@ -88,32 +87,30 @@ namespace refactor::computation {
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
             // 构造入边
             std::optional<std::vector<std::shared_ptr<Tensor>>> inputs_(std::in_place);
-            {
-                inputs_->reserve(inputs.size());
-                for (auto i : inputs) {
-                    if (unknownEdges.find(i) != unknownEdges.end()) {
-                        // 有入边未知，其出边加入未知边，然后跳过节点
-                        for (auto j : outputs) { unknownEdges.insert(j); }
-                        inputs_ = std::nullopt;
-                        break;
-                    }
-                    auto const &input = _internal.edges[i].tensor;
-                    ASSERT(input, "input edge not exist");
-                    inputs_->emplace_back(input);
+
+            inputs_->reserve(inputs.size());
+            for (auto i : inputs) {
+                if (!_internal.edges[i].tensor) {
+                    // 无入边，跳过节点
+                    inputs_ = std::nullopt;
+                    break;
                 }
+                auto const &input = _internal.edges[i].tensor;
+                ASSERT(input, "input edge not exist");
+                inputs_->emplace_back(input);
             }
             if (!inputs_) { continue; }
+
             auto const &node = _internal.nodes[nodeIdx];
             auto msg = fmt::format("nodes[{}] = {}({})", nodeIdx, node.name, node.op->opType.name());
             // 推导
             auto infered = node.op->infer(std::move(*inputs_));
             if (infered.isErr()) {
                 msg += ", inference failed";
-                // 推导失败，记录未知变量和边
+                // 推导失败，记录未知变量
                 auto error = infered.unwrapErr();
                 if (std::holds_alternative<UnknownVariable>(error.value)) {
                     unknownVariables.insert(std::get<UnknownVariable>(error.value).name);
-                    for (auto i : outputs) { unknownEdges.insert(i); }
                 } else {
                     throw error;
                 }
@@ -128,7 +125,7 @@ namespace refactor::computation {
                         msg += shapeFormat(tensor->shape);
                     }
                     msg += " )";
-                    for (auto i = 0; i < outputs.size(); ++i) {
+                    for (auto i : range0_(outputs.size())) {
                         _internal.edges[outputs[i]].tensor = std::move(infered_[i]);
                     }
                 }

@@ -1,9 +1,12 @@
 ﻿#include "graph_topo/searcher.hpp"
+#include "common/range.h"
 #include "internal.h"
 #include <unordered_set>
 #include <utility>
 
 namespace refactor::graph_topo {
+    using namespace common;
+
     using EdgeIdx = size_t;
     using NodeIdx = size_t;
     constexpr static NodeIdx EXTERNAL = SIZE_MAX;
@@ -43,24 +46,24 @@ namespace refactor::graph_topo {
             auto nodesCount = _nodes.size();
             auto globalInputsCount = _globalInputs.size();
 
-            auto passConnections = 0;
+            size_t passConnections = 0;
 
-            for (size_t i = 0; i < globalInputsCount; ++i) {
+            for (auto i : range0_(globalInputsCount)) {
                 _globalInputs[i] = i;
                 _edges.push_back({EXTERNAL, {}});
             }
-            for (size_t nodeIdx = 0; nodeIdx < nodesCount; ++nodeIdx) {
+            for (auto nodeIdx : range0_(nodesCount)) {
                 auto const &node = graph._impl->_nodes[nodeIdx];
-                for (size_t _ = 0; _ < node._localEdgesCount; ++_) {
+                for (auto _ : range0_(node._localEdgesCount)) {
                     _localEdges.insert(_edges.size());
                     _edges.push_back({EXTERNAL, {}});
                 }
-                for (size_t _ = 0; _ < node._outputsCount; ++_) {
+                for (auto _ : range0_(node._outputsCount)) {
                     _nodes[nodeIdx]._outputs.push_back(_edges.size());
                     _edges.push_back({nodeIdx, {}});
                 }
-                for (size_t _ = 0; _ < node._inputsCount; ++_) {
-                    auto edgeIdx = graph._impl->_connections[passConnections++]._edgeIdx;
+                for (auto _ : range0_(node._inputsCount)) {
+                    auto edgeIdx = graph._impl->_connections[passConnections++];
                     auto &edge = _edges[edgeIdx];
 
                     _nodes[nodeIdx]._inputs.push_back(edgeIdx);
@@ -73,11 +76,10 @@ namespace refactor::graph_topo {
                 }
             }
             auto const &connections = graph._impl->_connections;
-            for (auto output = connections.begin() + passConnections; output != connections.end(); ++output) {
-                auto edgeIdx = output->_edgeIdx;
-                auto &edge = _edges[edgeIdx];
+            for (auto i : range(passConnections, connections.size())) {
+                auto &edge = _edges[connections[i]];
 
-                _globalOutputs.push_back(edgeIdx);
+                _globalOutputs.push_back(connections[i]);
                 edge._targets.insert(EXTERNAL);
 
                 if (edge._source != EXTERNAL) {

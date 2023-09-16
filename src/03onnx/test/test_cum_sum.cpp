@@ -1,4 +1,5 @@
 ﻿#include "../src/infer/infer.h"
+#include "common/range.h"
 #include "onnx/operators.h"
 #include <gtest/gtest.h>
 
@@ -15,8 +16,7 @@ TEST(infer, CumSum) {
         {
             x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
             auto ptr = reinterpret_cast<float *>(x->malloc());
-            auto size = x->elementsSize();
-            for (size_t i = 0; i < size; ++i) { ptr[i] = i + 1; }
+            for (auto i : range0_(x->elementsSize())) { ptr[i] = i + 1; }
         }
         {
             axis = Tensor::share(DataType::I32, Shape{});
@@ -42,8 +42,7 @@ TEST(infer, CumSum) {
         {
             x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
             auto ptr = reinterpret_cast<float *>(x->malloc());
-            auto size = x->elementsSize();
-            for (size_t i = 0; i < size; ++i) { ptr[i] = i + 1; }
+            for (auto i : range0_(x->elementsSize())) { ptr[i] = i + 1; }
         }
         {
             axis = Tensor::share(DataType::I32, Shape{});

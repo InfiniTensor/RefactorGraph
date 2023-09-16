@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -20,9 +21,8 @@ namespace refactor::onnx {
                 return Ok(Tensors{std::move(ans)});
             }
 
-            auto size = ans->elementsSize();
             auto dst = reinterpret_cast<bool *>(ans->malloc());
-            for (size_t i = 0; i < size; ++i) {
+            for (auto i : range0_(ans->elementsSize())) {
                 auto indices = locateN(ans->shape, i);
                 auto a_ = *reinterpret_cast<int64_t *>(locate1(*a, indices)),
                      b_ = *reinterpret_cast<int64_t *>(locate1(*b, indices));

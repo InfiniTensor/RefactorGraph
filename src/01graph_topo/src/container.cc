@@ -90,9 +90,7 @@ namespace refactor::graph_topo {
         ASSERT(_idx == _internal->_impl->_nodes.size(), "Iterator not at end");
         auto const &connections = _internal->_impl->_connections;
         auto begin = reinterpret_cast<size_t const *>(connections.data());
-        auto pass = begin + _passConnections;
-        auto end = begin + connections.size();
-        return {pass, end};
+        return {begin + _passConnections, begin + connections.size()};
     }
 
     auto GraphTopo::begin() const -> Iterator { return Iterator::begin(this); }

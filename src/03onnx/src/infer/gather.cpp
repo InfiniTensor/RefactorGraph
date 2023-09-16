@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -28,13 +29,12 @@ namespace refactor::onnx {
             }
 
             auto const ssz = output.size();
-            auto size = sizeOf(output);
+            auto ans = Tensor::share(dataType, std::move(output));
             auto eleSize = dataTypeSize(dataType);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
             auto src = reinterpret_cast<uint8_t *>(data->data->ptr);
-            auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
+            auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
 
-            for (size_t i = 0; i < size; ++i) {
+            for (auto i : range0_(ans->elementsSize())) {
                 auto indices_ = locateN(output, i);
                 int64_t k;
                 {
@@ -65,7 +65,7 @@ namespace refactor::onnx {
                 }
             }
 
-            return Ok(Tensors{Tensor::share(dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::move(ans)});
         }
     }
 

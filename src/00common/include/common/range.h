@@ -20,6 +20,9 @@ namespace refactor::common {
         Iterator begin() const { return begin_; }
         Iterator end() const { return end_; }
     };
+
+    template<class t = size_t> range_t<t> range0_(t end) { return {0, end}; }
+    template<class t = size_t> range_t<t> range(t begin, t end) { return {begin, end}; }
 }// namespace refactor::common
 
 

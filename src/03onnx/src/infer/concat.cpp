@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -11,15 +12,15 @@ namespace refactor::onnx {
         auto output = inputs[0]->shape;
         auto rank = output.size();
         auto axis = op.attribute("axis").int_();
-        for (auto it = inputs.begin() + 1; it != inputs.end(); ++it) {
-            auto const &input = *it;
+        for (auto i : range(1ul, inputs.size())) {
+            auto const &input = inputs[i];
             if (input->dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
             if (input->shape.size() != output.size()) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            for (size_t i = 0; i < output.size(); ++i) {
+            for (auto i : range0_(output.size())) {
                 if (i == axis) {
                     EXPECT_VAL(output[i], a)
                     EXPECT_VAL(input->shape[i], b)
@@ -33,11 +34,10 @@ namespace refactor::onnx {
             return Ok(Tensors{Tensor::share(dataType, std::move(output))});
         }
 
-        auto size = sizeOf(output);
+        auto ans = Tensor::share(dataType, std::move(output));
         auto eleSize = dataTypeSize(dataType);
-        auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-        auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
-        for (size_t i = 0; i < size; ++i) {
+        auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
+        for (auto i : range0_(ans->elementsSize())) {
             auto indices = locateN(output, i);
 
             size_t k = 0;
@@ -50,15 +50,8 @@ namespace refactor::onnx {
                     break;
                 }
             }
-            size_t ii = 0, mul = 1;
-            for (size_t j = 0; j < rank; ++j) {
-                auto j_ = rank - 1 - j;// reverse
-                ii += indices[j_] * mul;
-                mul *= inputs[k]->shape[j_].value();
-            }
-            auto input = reinterpret_cast<uint8_t *>(inputs[k]->data->ptr);
-            std::memcpy(dst + i * eleSize, input + ii * eleSize, eleSize);
+            std::memcpy(dst + i * eleSize, locate1(*inputs[k], indices), eleSize);
         }
-        return Ok(Tensors{Tensor::share(dataType, std::move(output), std::move(blob))});
+        return Ok(Tensors{std::move(ans)});
     }
 }// namespace refactor::onnx

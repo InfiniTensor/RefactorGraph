@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 #include <unordered_set>
 
 namespace refactor::onnx {
@@ -58,9 +59,9 @@ namespace refactor::onnx {
                 steps = reinterpret_cast<int64_t *>(steps_->data->ptr);
             }
             std::unordered_set<int64_t> axes_set;
-            for (size_t i = 0; i < rank; ++i) { axes_set.insert(i); }
+            for (auto i : range0_(rank)) { axes_set.insert(i); }
             Shape output(rank, DimExpr(1));
-            for (size_t i = 0; i < rankParam; ++i) {
+            for (auto i : range0_(rankParam)) {
                 auto axis = axes ? axes[i] : i;
                 if (axis < 0) {
                     axis += rank;
@@ -127,11 +128,9 @@ namespace refactor::onnx {
             auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
             std::vector<int64_t> axes_(rank, -1);
             if (axes) {
-                for (size_t i = 0; i < rankParam; ++i) {
-                    axes_[axes[i]] = i;
-                }
+                for (auto i : range0_(rankParam)) { axes_[axes[i]] = i; }
             }
-            for (size_t i = 0; i < size; ++i) {
+            for (auto i : range0_(size)) {
                 auto indices = locateN(output, i);
                 Indices indices_(indices.begin(), indices.end());
                 for (size_t j = 0; j < rank; ++j) {

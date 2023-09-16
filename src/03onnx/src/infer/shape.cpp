@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -25,7 +26,7 @@ namespace refactor::onnx {
 
             auto ans = Tensor::share(DataType::I64, Shape{DimExpr(end - start)});
             auto dst = reinterpret_cast<int64_t *>(ans->malloc());
-            for (auto i = start; i < end; ++i) {
+            for (auto i : range(start, end)) {
                 EXPECT_VAL(data->shape[i], dim)
                 dst[i - start] = dim;
             }
