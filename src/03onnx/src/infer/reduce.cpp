@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 #include <unordered_set>
 
 namespace refactor::onnx {
@@ -22,12 +23,12 @@ namespace refactor::onnx {
                 auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
                 EXPECT_VAL(axes->shape[0], axesSize)
                 std::unordered_set<int64_t> axes__;
-                for (size_t i = 0; i < axesSize; ++i) {
+                for (auto i : range0_(axesSize)) {
                     auto axis = axes_[i];
                     axes__.insert(axis < 0 ? axis + shape.size() : axis);
                 }
                 Shape ans;
-                for (size_t i = 0; i < shape.size(); ++i) {
+                for (auto i : range0_(shape.size())) {
                     if (axes__.find(i) == axes__.end()) {
                         ans.emplace_back(shape[i]);
                     } else if (keepdims) {

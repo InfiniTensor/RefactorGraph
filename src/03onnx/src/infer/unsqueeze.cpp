@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 #include <unordered_set>
 
 namespace refactor::onnx {
@@ -27,7 +28,7 @@ namespace refactor::onnx {
         ASSERT(axes__.size() == axesSize, "Axes has duplicate");
         Shape output(rank + axesSize, DimExpr(1));
         auto it = data->shape.begin();
-        for (size_t i = 0; i < output.size(); ++i) {
+        for (auto i : range0_(output.size())) {
             if (!axes__.erase(i)) {
                 output[i] = *it++;
             }

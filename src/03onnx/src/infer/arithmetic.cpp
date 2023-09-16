@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -32,7 +33,6 @@ namespace refactor::onnx {
             default:
                 RUNTIME_ERROR("Unreachable");
         }
-        fmt::print("{} ", *dst_);
     }
 
     InferResult inferArithmetic(Operator const &op, Tensors inputs) {
@@ -53,11 +53,9 @@ namespace refactor::onnx {
                 return Ok(Tensors{std::move(ans)});
             }
 
-            auto size = ans->elementsSize();
             auto eleSize = dataTypeSize(dataType);
             auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-            fmt::print("( {} dst<{}> = ", op.opType.name(), size);
-            for (size_t i = 0; i < size; ++i) {
+            for (auto i : range0_(ans->elementsSize())) {
                 auto ty = op.opType.is("onnx::Add")   ? Ty::Add
                           : op.opType.is("onnx::Sub") ? Ty::Sub
                           : op.opType.is("onnx::Mul") ? Ty::Mul
@@ -89,7 +87,6 @@ namespace refactor::onnx {
                         break;
                 }
             }
-            fmt::print(")");
             return Ok(Tensors{std::move(ans)});
         }
     }

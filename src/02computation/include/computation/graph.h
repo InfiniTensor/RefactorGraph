@@ -11,9 +11,12 @@ namespace refactor::computation {
         std::unordered_map<std::string, DimVariable> _variables;
 
     public:
-        explicit Graph(graph_topo::Graph<Node, Edge> &&);
+        explicit Graph(graph_topo::Graph<Node, Edge>);
+        Graph(Graph const &) = default;
+        Graph(Graph &&) = default;
 
         void collectVariables();
+        Graph clone() const;
 
         auto internal() const -> decltype(_internal) const &;
 

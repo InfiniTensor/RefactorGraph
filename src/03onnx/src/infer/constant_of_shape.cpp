@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -15,7 +16,7 @@ namespace refactor::onnx {
             Shape ans(shapeSize, DimExpr(1));
             size_t size = 1;
             auto shape = reinterpret_cast<int64_t *>(input->data->ptr);
-            for (auto i = 0; i < shapeSize; ++i) {
+            for (auto i : range_t<int64_t>{0, shapeSize}) {
                 auto d = shape[i];
                 ans[i] = DimExpr(d);
                 size *= d;
@@ -27,7 +28,7 @@ namespace refactor::onnx {
                 auto dataType = value->dataType;
                 auto eleSize = dataTypeSize(dataType);
                 auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-                for (auto i = 0; i < size; ++i) {
+                for (auto i : range0_(size)) {
                     std::memcpy(reinterpret_cast<uint8_t *>(blob->ptr) + i * eleSize, value->data->ptr, eleSize);
                 }
                 return Ok(Tensors{Tensor::share(dataType, std::move(ans), std::move(blob))});

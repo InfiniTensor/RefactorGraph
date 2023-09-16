@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <string>
 
-inline std::string buildMsg(std::string &&msg, const char *file, int line) {
+inline std::string buildMsg(std::string msg, const char *file, int line) {
     msg += " Source ";
     msg += file;
     msg += ':';
@@ -13,7 +13,7 @@ inline std::string buildMsg(std::string &&msg, const char *file, int line) {
 }
 
 struct UnimplementError : public std::logic_error {
-    explicit UnimplementError(std::string &&msg) : std::logic_error(msg) {}
+    explicit UnimplementError(std::string msg) : std::logic_error(msg) {}
 };
 
 #define RUNTIME_ERROR(msg) throw std::runtime_error(buildMsg(msg, __FILE__, __LINE__))

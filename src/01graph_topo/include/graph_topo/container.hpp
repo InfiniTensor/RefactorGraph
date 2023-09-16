@@ -1,6 +1,8 @@
 ﻿#ifndef GRAPH_TOPO_CONTAINER_HPP
 #define GRAPH_TOPO_CONTAINER_HPP
 
+#include "common/range.h"
+#include "common/slice.h"
 #include <cstddef>
 #include <vector>
 
@@ -24,7 +26,8 @@ namespace refactor::graph_topo {
 
         struct NodeRef {
             size_t idx;
-            std ::vector<size_t> inputs, outputs;
+            common::slice_t<size_t> inputs;
+            common::range_t<size_t> outputs;
         };
 
         class Iterator {
@@ -41,7 +44,10 @@ namespace refactor::graph_topo {
             bool operator<=(Iterator const &) const;
             bool operator>=(Iterator const &) const;
             Iterator &operator++();
+            Iterator operator++(int);
             NodeRef operator*() const;
+            common::range_t<size_t> globalInputs() const;
+            common::slice_t<size_t> globalOutputs() const;
         };
 
         Iterator begin() const;

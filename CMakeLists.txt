@@ -31,9 +31,6 @@ add_subdirectory(3rd-party/abseil-cpp)
 
 include_directories(3rd-party/result)
 
-include_directories(src/iterator/include)
-add_subdirectory(src/iterator)
-
 include_directories(src/00common/include)
 add_subdirectory(src/00common)
 

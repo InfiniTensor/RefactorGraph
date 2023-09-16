@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 #include <numeric>
 
 namespace refactor::onnx {
@@ -64,14 +65,13 @@ namespace refactor::onnx {
             if (axis_ < 0 || rank <= axis_) {
                 return Err(InferError(ERROR_MSG("Invalid axis")));
             }
-            auto size = ans->elementsSize();
             auto eleSize = dataTypeSize(dataType);
             auto src = reinterpret_cast<uint8_t *>(x->data->ptr);
             auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
             auto step = std::accumulate(ans->shape.begin() + axis_ + 1, ans->shape.end(), eleSize,
                                         [](auto const acc, auto const &d) { return acc * d.value(); });
             if (!reverse) {
-                for (size_t i = 0; i < size; ++i) {
+                for (auto i : range0_(ans->elementsSize())) {
                     auto indices = locateN(ans->shape, i);
                     auto axisIdx = indices[axis_];
                     auto dst_ = dst + i * eleSize;

@@ -1,4 +1,5 @@
-﻿#include "infer.h"
+﻿#include "common/range.h"
+#include "infer.h"
 #include <unordered_set>
 
 namespace refactor::onnx {
@@ -38,7 +39,7 @@ namespace refactor::onnx {
                     axes__.insert(axis);
                 }
                 Shape output;
-                for (size_t i = 0; i < data->shape.size(); ++i) {
+                for (auto i : range0_(data->shape.size())) {
                     if (axes__.erase(i)) {
                         ASSERT(data->shape[i] == DimExpr(1), "Squeeze error");
                     } else {

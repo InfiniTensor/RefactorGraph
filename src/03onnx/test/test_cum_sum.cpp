@@ -1,4 +1,5 @@
-﻿#include "../../src/infer/infer.h"
+﻿#include "../src/infer/infer.h"
+#include "common/range.h"
 #include "onnx/operators.h"
 #include <gtest/gtest.h>
 
@@ -9,21 +10,20 @@ using namespace onnx;
 
 TEST(infer, CumSum) {
     onnx::register_();
-    auto cumSum = OpType::parse("onnx::CumSum");
+    auto opType = OpType::parse("onnx::CumSum");
     std::shared_ptr<Tensor> x, axis;
     {
         {
             x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
             auto ptr = reinterpret_cast<float *>(x->malloc());
-            auto size = x->elementsSize();
-            for (size_t i = 0; i < size; ++i) { ptr[i] = i + 1; }
+            for (auto i : range0_(x->elementsSize())) { ptr[i] = i + 1; }
         }
         {
             axis = Tensor::share(DataType::I32, Shape{});
             auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 0;
         }
-        auto infered = inferCumSum(Operator{cumSum, {}}, {x, axis});
+        auto infered = Operator{opType, {}}.infer({x, axis});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -42,15 +42,14 @@ TEST(infer, CumSum) {
         {
             x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
             auto ptr = reinterpret_cast<float *>(x->malloc());
-            auto size = x->elementsSize();
-            for (size_t i = 0; i < size; ++i) { ptr[i] = i + 1; }
+            for (auto i : range0_(x->elementsSize())) { ptr[i] = i + 1; }
         }
         {
             axis = Tensor::share(DataType::I32, Shape{});
             auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 1;
         }
-        auto infered = inferCumSum(Operator{cumSum, {}}, {x, axis});
+        auto infered = Operator{opType, {}}.infer({x, axis});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);

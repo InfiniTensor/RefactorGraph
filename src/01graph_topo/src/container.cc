@@ -62,22 +62,35 @@ namespace refactor::graph_topo {
         return *this;
     }
 
+    auto GraphTopo::Iterator::operator++(int) -> Iterator {
+        auto ans = *this;
+        operator++();
+        return ans;
+    }
+
     auto GraphTopo::Iterator::operator*() const -> NodeRef {
         if (_idx >= _internal->_impl->_nodes.size()) {
             OUT_OF_RANGE("Iterator out of range", _idx, _internal->_impl->_nodes.size());
         }
         auto const &node = _internal->_impl->_nodes[_idx];
-        std::vector<size_t> inputs(node._inputsCount), outputs(node._outputsCount);
-        {
-            auto const begin = _internal->_impl->_connections.begin() + _passConnections;
-            auto const end = begin + node._inputsCount;
-            std::transform(begin, end, inputs.begin(), [](auto const &edge) { return edge._edgeIdx; });
-        }
-        {
-            auto const begin = _passEdges + node._localEdgesCount;
-            for (size_t i = 0; i < outputs.size(); ++i) { outputs[i] = begin + i; }
-        }
-        return NodeRef{_idx, std::move(inputs), std::move(outputs)};
+        auto inputsBegin = reinterpret_cast<size_t *>(_internal->_impl->_connections.data()) + _passConnections;
+        auto inputsEnd = inputsBegin + node._inputsCount;
+        auto outputsBegin = _passEdges + node._localEdgesCount;
+        auto outputsEnd = outputsBegin + node._outputsCount;
+        return NodeRef{
+            _idx,
+            {inputsBegin, inputsEnd},
+            {outputsBegin, outputsEnd}};
+    }
+
+    common::range_t<size_t> GraphTopo::Iterator::globalInputs() const {
+        return {0, _internal->_impl->_globalInputsCount};
+    }
+    common::slice_t<size_t> GraphTopo::Iterator::globalOutputs() const {
+        ASSERT(_idx == _internal->_impl->_nodes.size(), "Iterator not at end");
+        auto const &connections = _internal->_impl->_connections;
+        auto begin = reinterpret_cast<size_t const *>(connections.data());
+        return {begin + _passConnections, begin + connections.size()};
     }
 
     auto GraphTopo::begin() const -> Iterator { return Iterator::begin(this); }

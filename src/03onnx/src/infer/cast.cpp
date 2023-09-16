@@ -23,7 +23,6 @@ namespace refactor::onnx {
                 ans->data = input->data;
                 return Ok(Tensors{std::move(ans)});
             }
-            fmt::print("({} -> {})", dataTypeName(from), dataTypeName(to));
             auto size = ans->elementsSize();
             auto src = input->data->ptr;
             auto dst = ans->malloc();

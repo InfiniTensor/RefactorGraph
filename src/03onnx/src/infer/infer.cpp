@@ -22,11 +22,6 @@ namespace refactor::onnx {
                     if (!dim || *dim == DimExpr(1)) {
                         dim = std::move(new_);
                     } else if (new_ != DimExpr(1) && new_ != *dim) {
-                        fmt::print("Shape broadcast failed: ");
-                        for (auto const &input : inputs) {
-                            fmt::print("{} ", shapeFormat(input));
-                        }
-                        fmt::println("");
                         return Err(ERROR_MSG("Shape broadcast failed"));
                     }
                     ++i;

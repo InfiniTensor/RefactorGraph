@@ -13,9 +13,7 @@ namespace refactor::graph_topo {
             _outputsCount;
     };
 
-    struct OutputEdge {
-        size_t _edgeIdx;
-    };
+    using OutputEdge = size_t;
 
     class GraphTopo::__Implement {
     public:
