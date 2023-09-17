@@ -1,5 +1,7 @@
 ﻿#include "common/range.h"
+#include "common/slice.h"
 #include "infer.h"
+#include <execution>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -16,27 +18,29 @@ namespace refactor::onnx {
             Shape ans(shapeSize, DimExpr(1));
             size_t size = 1;
             auto shape = reinterpret_cast<int64_t *>(input->data->ptr);
-            for (auto i : range_t<int64_t>{0, shapeSize}) {
-                auto d = shape[i];
-                ans[i] = DimExpr(d);
-                size *= d;
-            }
+            auto slice = slice_t<int64_t>{shape, shape + shapeSize};
+            std::transform(slice.begin(), slice.end(), ans.begin(),
+                           [&size](auto d) { size *= d; return DimExpr(d); });
             if (auto it = op.attributes.find("value"); it != op.attributes.end()) {
                 auto const &value = it->second.tensor();
                 ASSERT(value->hasData(), "ConstantOfShape value must have data");
-                ASSERT(value->shape.size() == 1 && value->shape[0] == DimExpr(1), "ConstantOfShape value must be scalar");
+                ASSERT(value->shape == Shape{DimExpr(1)}, "ConstantOfShape value must be scalar");
                 auto dataType = value->dataType;
                 auto eleSize = dataTypeSize(dataType);
                 auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-                for (auto i : range0_(size)) {
-                    std::memcpy(reinterpret_cast<uint8_t *>(blob->ptr) + i * eleSize, value->data->ptr, eleSize);
-                }
+                auto src = reinterpret_cast<uint8_t *>(value->data->ptr);
+                auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
+                std::for_each_n(std::execution::par_unseq,
+                                natural_t(0), size, [src, dst, eleSize](auto i) {
+                                    std::memcpy(dst + i * eleSize, src, eleSize);
+                                });
                 return Ok(Tensors{Tensor::share(dataType, std::move(ans), std::move(blob))});
             } else {
                 auto dataType = DataType::F32;
                 auto eleSize = dataTypeSize(dataType);
-                auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-                std::memset(blob->ptr, 0, size * eleSize);
+                size *= eleSize;
+                auto blob = std::make_shared<Blob>(new uint8_t[size]);
+                std::memset(blob->ptr, 0, size);
                 return Ok(Tensors{Tensor::share(dataType, std::move(ans), std::move(blob))});
             }
         }

@@ -32,7 +32,7 @@ namespace refactor::onnx {
             } else {
                 RUNTIME_ERROR(fmt::format("{} not support in unary inference", opType));
             }
-            return Ok(std::move(inputs));
+            return Ok(Tensors{Tensor::share(dataType, inputs[0]->shape)});
         }
     }
 }// namespace refactor::onnx
