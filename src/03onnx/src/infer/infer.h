@@ -18,6 +18,7 @@ namespace refactor::onnx {
     InferResult inferReshape(Operator const &, Tensors);
     InferResult inferCumSum(Operator const &, Tensors);
     InferResult inferSlice(Operator const &, Tensors);
+    InferResult inferSplit(Operator const &, Tensors);
     InferResult inferShape(Operator const &, Tensors);
     InferResult inferWhere(Operator const &, Tensors);
     InferResult inferSqueeze(Operator const &, Tensors);

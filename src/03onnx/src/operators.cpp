@@ -8,6 +8,7 @@ namespace refactor::onnx {
         OpType::register_("onnx::ConstantOfShape", inferConstantOfShape);
         OpType::register_("onnx::Relu", inferUnary);
         OpType::register_("onnx::Sqrt", inferUnary);
+        OpType::register_("onnx::Tanh", inferUnary);
         OpType::register_("onnx::Add", inferArithmetic);
         OpType::register_("onnx::Sub", inferArithmetic);
         OpType::register_("onnx::Mul", inferArithmetic);
@@ -20,6 +21,7 @@ namespace refactor::onnx {
         OpType::register_("onnx::Transpose", inferTranspose);
         OpType::register_("onnx::Cast", inferCast);
         OpType::register_("onnx::Slice", inferSlice);
+        OpType::register_("onnx::Split", inferSplit);
         OpType::register_("onnx::Shape", inferShape);
         OpType::register_("onnx::Reshape", inferReshape);
         OpType::register_("onnx::Gather", inferGather);
