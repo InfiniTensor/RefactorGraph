@@ -1,5 +1,6 @@
 ﻿#include "common/range.h"
 #include "infer.h"
+#include <execution>
 #include <numeric>
 
 namespace refactor::onnx {
@@ -71,25 +72,26 @@ namespace refactor::onnx {
             auto step = std::accumulate(ans->shape.begin() + axis_ + 1, ans->shape.end(), eleSize,
                                         [](auto const acc, auto const &d) { return acc * d.value(); });
             if (!reverse) {
-                for (auto i : range0_(ans->elementsSize())) {
-                    auto indices = locateN(ans->shape, i);
-                    auto axisIdx = indices[axis_];
-                    auto dst_ = dst + i * eleSize;
-                    if (axisIdx == 0) {
-                        if (exclusive) {
-                            std::memset(dst_, 0, eleSize);
-                        } else {
-                            std::memcpy(dst_, src + i * eleSize, eleSize);
-                        }
-                    } else {
-                        auto src_ = src + i * eleSize;
-                        if (exclusive) {
-                            accumulate(dataType, dst_, src_ - step, step);
-                        } else {
-                            accumulate(dataType, dst_, src_, step);
-                        }
-                    }
-                }
+                std::for_each_n(std::execution::seq, natural_t(0), ans->elementsSize(),
+                                [&, axis_, src, dst, eleSize, exclusive](auto i) {
+                                    auto indices = locateN(ans->shape, i);
+                                    auto axisIdx = indices[axis_];
+                                    auto dst_ = dst + i * eleSize;
+                                    if (axisIdx == 0) {
+                                        if (exclusive) {
+                                            std::memset(dst_, 0, eleSize);
+                                        } else {
+                                            std::memcpy(dst_, src + i * eleSize, eleSize);
+                                        }
+                                    } else {
+                                        auto src_ = src + i * eleSize;
+                                        if (exclusive) {
+                                            accumulate(dataType, dst_, src_ - step, step);
+                                        } else {
+                                            accumulate(dataType, dst_, src_, step);
+                                        }
+                                    }
+                                });
             } else {
                 UNREACHABLE();
             }

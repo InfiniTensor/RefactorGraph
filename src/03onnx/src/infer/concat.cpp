@@ -1,5 +1,6 @@
 ﻿#include "common/range.h"
 #include "infer.h"
+#include <execution>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -37,21 +38,22 @@ namespace refactor::onnx {
         auto ans = Tensor::share(dataType, std::move(output));
         auto eleSize = dataTypeSize(dataType);
         auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-        for (auto i : range0_(ans->elementsSize())) {
-            auto indices = locateN(output, i);
+        std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
+                        [&, dst, eleSize](auto i) {
+                            auto indices = locateN(output, i);
 
-            size_t k = 0;
-            for (auto axis_ = indices[axis]; k < inputs.size(); ++k) {
-                auto axis__ = inputs[k]->shape[axis].value();
-                if (axis_ >= axis__) {
-                    axis_ -= axis__;
-                } else {
-                    indices[axis] = axis_;
-                    break;
-                }
-            }
-            std::memcpy(dst + i * eleSize, locate1(*inputs[k], indices), eleSize);
-        }
+                            size_t k = 0;
+                            for (auto axis_ = indices[axis]; k < inputs.size(); ++k) {
+                                auto axis__ = inputs[k]->shape[axis].value();
+                                if (axis_ >= axis__) {
+                                    axis_ -= axis__;
+                                } else {
+                                    indices[axis] = axis_;
+                                    break;
+                                }
+                            }
+                            std::memcpy(dst + i * eleSize, locate1(*inputs[k], indices), eleSize);
+                        });
         return Ok(Tensors{std::move(ans)});
     }
 }// namespace refactor::onnx
