@@ -1,4 +1,6 @@
-﻿#include "infer.h"
+﻿#include "common/natural.h"
+#include "infer.h"
+#include <execution>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -7,7 +9,9 @@ namespace refactor::onnx {
     void castData(void *src, void *dst, size_t size) {
         auto src_ = reinterpret_cast<TS *>(src);
         auto dst_ = reinterpret_cast<TD *>(dst);
-        std::transform(src_, src_ + size, dst_, [](auto x) { return static_cast<TD>(x); });
+        // std::transform(src_, src_ + size, dst_, [](auto x) { return static_cast<TD>(x); });
+        std::for_each_n(std::execution::par_unseq, natural_t(0), size,
+                        [src_, dst_](auto i) { dst_[i] = static_cast<TD>(src_[i]); });
     }
 
     InferResult inferCast(Operator const &op, Tensors inputs) {
