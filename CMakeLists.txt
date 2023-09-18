@@ -42,3 +42,6 @@ add_subdirectory(src/02computation)
 
 include_directories(src/03onnx/include)
 add_subdirectory(src/03onnx)
+
+include_directories(src/04communication/include)
+add_subdirectory(src/04communication)

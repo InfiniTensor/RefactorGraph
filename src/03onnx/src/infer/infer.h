@@ -1,5 +1,5 @@
-﻿#ifndef GRAPH_INFER_H
-#define GRAPH_INFER_H
+﻿#ifndef ONNX_INFER_H
+#define ONNX_INFER_H
 
 #include "common/error_handler.h"
 #include "computation/operator.h"
@@ -83,4 +83,4 @@ namespace refactor::onnx {
     void *locate1(Tensor const &tensor, Indices const &indices);
 }// namespace refactor::onnx
 
-#endif// GRAPH_INFER_H
+#endif// ONNX_INFER_H
