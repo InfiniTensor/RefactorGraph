@@ -18,6 +18,7 @@ namespace refactor::computation {
         void collectVariables();
         std::unordered_set<std::string> fillEdgeInfo();
 
+        auto internal() -> decltype(_internal) &;
         auto internal() const -> decltype(_internal) const &;
 
         bool substitute(const char *, int64_t);

@@ -30,9 +30,8 @@ namespace refactor::computation {
         }
     }
 
-    auto Graph::internal() const -> decltype(_internal) const & {
-        return _internal;
-    }
+    auto Graph::internal() -> decltype(_internal) & { return _internal; }
+    auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
 
     bool Graph::substitute(const char *name, int64_t value) {
         if (auto it = _variables.find(name); it != _variables.end()) {
