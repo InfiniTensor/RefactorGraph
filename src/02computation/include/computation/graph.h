@@ -16,13 +16,11 @@ namespace refactor::computation {
         Graph(Graph &&) = default;
 
         void collectVariables();
-        Graph clone() const;
+        std::unordered_set<std::string> fillEdgeInfo();
 
         auto internal() const -> decltype(_internal) const &;
 
-        std::unordered_set<std::string> fillEdgeInfo();
         bool substitute(const char *, int64_t);
-        bool setInput(size_t, std::shared_ptr<Tensor>);
     };
 
 }// namespace refactor::computation
