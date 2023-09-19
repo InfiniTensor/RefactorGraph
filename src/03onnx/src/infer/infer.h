@@ -33,6 +33,7 @@ namespace refactor::onnx {
     InferResult inferMax(Operator const &, Tensors);
     InferResult inferTranspose(Operator const &, Tensors);
     InferResult inferExpand(Operator const &, Tensors);
+    InferResult inferConstant(Operator const &, Tensors);
     InferResult inferConstantOfShape(Operator const &, Tensors);
 
     using ShapeResult = Result<Shape, std::string>;

@@ -5,6 +5,7 @@
 namespace refactor::onnx {
 
     void register_() {
+        OpType::register_("onnx::Constant", inferConstant);
         OpType::register_("onnx::ConstantOfShape", inferConstantOfShape);
         OpType::register_("onnx::Relu", inferUnary);
         OpType::register_("onnx::Sqrt", inferUnary);
