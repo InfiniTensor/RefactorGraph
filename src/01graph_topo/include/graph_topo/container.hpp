@@ -31,8 +31,9 @@ namespace refactor::graph_topo {
         };
 
         class Iterator {
-            GraphTopo const *_internal;
+            GraphTopo const &_internal;
             size_t _idx, _passConnections, _passEdges;
+            Iterator(GraphTopo const &, size_t, size_t, size_t);
 
         public:
             static Iterator begin(GraphTopo const *);
