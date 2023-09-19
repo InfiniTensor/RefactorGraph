@@ -54,7 +54,7 @@ namespace refactor::onnx {
                                     for (size_t j = axis + q; j < ssz; ++j) {
                                         auto j_ = ssz - 1 - j;// reverse
                                         ii += indices_[j_] * mul;
-                                        mul *= data->shape[j_ - q + 1].value();
+                                        mul *= data->shape[j - q + 1].value();
                                     }
                                     ii += k * mul;
                                     for (size_t j = 0; j < axis; ++j) {
