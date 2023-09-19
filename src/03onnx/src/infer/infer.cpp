@@ -6,12 +6,12 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    ShapeResult multidirBroadcast(std::vector<Shape> const &inputs) {
+    ShapeResult multidirBroadcast(ShapeRefs const &inputs) {
         using Iter = std::reverse_iterator<Shape::const_iterator>;
         std::vector<std::pair<Iter, Iter>> iters;
         iters.reserve(inputs.size());
         for (auto const &input : inputs) {
-            iters.emplace_back(input.rbegin(), input.rend());
+            iters.emplace_back(input.get().rbegin(), input.get().rend());
         }
         Shape ans;
         while (true) {

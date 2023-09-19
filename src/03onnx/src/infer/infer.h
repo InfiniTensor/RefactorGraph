@@ -37,11 +37,12 @@ namespace refactor::onnx {
     InferResult inferConstantOfShape(Operator const &, Tensors);
 
     using ShapeResult = Result<Shape, std::string>;
+    using ShapeRefs = std::vector<std::reference_wrapper<const Shape>>;
 
     /// @brief 多方向形状广播。
     /// @param inputs 所有输入的形状。
     /// @return 广播后的形状。
-    ShapeResult multidirBroadcast(std::vector<Shape> const &);
+    ShapeResult multidirBroadcast(ShapeRefs const &);
 
     /// @brief 单方向形状广播。
     /// @param target 目标形状。
