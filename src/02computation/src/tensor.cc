@@ -56,20 +56,24 @@ namespace refactor::computation {
     Blob::Blob(void *ptr_) : ptr(ptr_) {}
     Blob::~Blob() { std::free(ptr); }
 
-    Tensor::Tensor(common::DataType dt_, Shape shape_, std::shared_ptr<Blob> data_)
-        : dataType(dt_),
-          shape(std::move(shape_)),
-          data(std::move(data_)) {}
-    std::shared_ptr<Tensor> Tensor::share(common::DataType dt, Shape shape, std::shared_ptr<Blob> data) {
-        return std::make_shared<Tensor>(dt, std::move(shape), std::move(data));
+    Tensor::Tensor(common::DataType dataType_,
+                   Shape shape_,
+                   std::shared_ptr<Blob> data_,
+                   std::unordered_set<DimVariable> depVariables_)
+        : dataType(dataType_),
+          shape(shape_),
+          data(data_),
+          depVariables(depVariables_) {}
+    std::shared_ptr<Tensor>
+    Tensor::share(common::DataType dt,
+                  Shape shape,
+                  std::shared_ptr<Blob> data,
+                  std::unordered_set<DimVariable> depVariables) {
+        return std::make_shared<Tensor>(dt, std::move(shape), std::move(data), std::move(depVariables));
     }
-    bool Tensor::operator==(Tensor const &rhs) const {
-        return dataType == rhs.dataType &&
-               shape == rhs.shape &&
-               data.get() == rhs.data.get();
+    bool Tensor::hasData() const {
+        return data.get();
     }
-    bool Tensor::operator!=(Tensor const &rhs) const { return !operator==(rhs); }
-    bool Tensor::hasData() const { return data.get(); }
     size_t Tensor::elementsSize() const {
         return std::accumulate(shape.begin(), shape.end(), 1,
                                [](auto acc, auto const &it) { return acc * it.value(); });

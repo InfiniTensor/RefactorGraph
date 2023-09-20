@@ -31,15 +31,15 @@ namespace refactor::onnx {
                 }
             }
         }
+        auto ans = Tensor::share(dataType, std::move(output));
         if (!shouldCalculate(inputs, output)) {
-            return Ok(Tensors{Tensor::share(dataType, std::move(output))});
+            return Ok(Tensors{std::move(ans)});
         }
 
-        auto ans = Tensor::share(dataType, std::move(output));
-        auto eleSize = dataTypeSize(dataType);
-        auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
         std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
-                        [&, dst, eleSize](auto i) {
+                        [&,
+                         dst = reinterpret_cast<uint8_t *>(ans->malloc()),
+                         eleSize = dataTypeSize(dataType)](auto const i) {
                             auto indices = locateN(output, i);
 
                             size_t k = 0;

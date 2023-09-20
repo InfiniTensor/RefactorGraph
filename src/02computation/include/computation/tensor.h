@@ -3,7 +3,7 @@
 
 #include "absl/container/inlined_vector.h"
 #include "common/data_type.h"
-#include <cstring>
+#include <unordered_set>
 #include <variant>
 
 namespace refactor::computation {
@@ -57,11 +57,14 @@ namespace refactor::computation {
         Shape shape;
         std::shared_ptr<Blob> data;
 
-        Tensor(common::DataType, Shape, std::shared_ptr<Blob> = nullptr);
-        static std::shared_ptr<Tensor> share(common::DataType, Shape, std::shared_ptr<Blob> = nullptr);
+        std::unordered_set<DimVariable> depVariables;
 
-        bool operator==(Tensor const &) const;
-        bool operator!=(Tensor const &) const;
+        Tensor(common::DataType, Shape, std::shared_ptr<Blob>, std::unordered_set<DimVariable>);
+        static std::shared_ptr<Tensor> share(
+            common::DataType,
+            Shape,
+            std::shared_ptr<Blob> = nullptr,
+            std::unordered_set<DimVariable> = {});
 
         bool hasData() const;
         size_t elementsSize() const;

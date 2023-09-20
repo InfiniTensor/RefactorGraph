@@ -27,15 +27,15 @@ namespace refactor::onnx {
                     auto axis = axes_[i];
                     axes__.insert(axis < 0 ? axis + shape.size() : axis);
                 }
-                Shape ans;
+                Shape output;
                 for (auto i : range0_(shape.size())) {
                     if (axes__.find(i) == axes__.end()) {
-                        ans.emplace_back(shape[i]);
+                        output.emplace_back(shape[i]);
                     } else if (keepdims) {
-                        ans.emplace_back(1);
+                        output.emplace_back(1);
                     }
                 }
-                return Ok(Tensors{Tensor::share(inputs[0]->dataType, std::move(ans))});
+                return Ok(Tensors{Tensor::share(inputs[0]->dataType, std::move(output))});
             } else if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
                 return Ok(Tensors{std::move(inputs[0])});
             } else if (keepdims) {
