@@ -115,23 +115,19 @@ namespace refactor::onnx {
             for (auto axis : axes_set) {
                 output[axis] = data->shape[axis];
             }
-
+            auto ans = Tensor::share(data->dataType, std::move(output));
             if (!shouldCalculate(inputs, output) || steps) {
-                return Ok(Tensors{Tensor::share(data->dataType, std::move(output))});
+                return Ok(Tensors{std::move(ans)});
             }
 
-            auto dataType = data->dataType;
-            auto size = sizeOf(output);
-            auto eleSize = dataTypeSize(dataType);
-            auto data_ = reinterpret_cast<uint8_t *>(data->data->ptr);
-            auto blob = std::make_shared<Blob>(new uint8_t[size * eleSize]);
-            auto dst = reinterpret_cast<uint8_t *>(blob->ptr);
             Indices axes_(rank, -1);
             if (axes) {
                 for (auto i : range0_(rankParam)) { axes_[axes[i]] = i; }
             }
-            std::for_each_n(std::execution::par_unseq, natural_t(0), size,
-                            [&, rank, axes, starts, dst, eleSize](auto i) {
+            std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
+                            [&, rank, axes, starts,
+                             eleSize = dataTypeSize(data->dataType),
+                             dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto i) {
                                 auto indices = locateN(output, i);
                                 Indices indices_(indices.begin(), indices.end());
                                 for (size_t j = 0; j < rank; ++j) {
@@ -149,7 +145,7 @@ namespace refactor::onnx {
                                 }
                                 std::memcpy(dst + i * eleSize, locate1(*data, indices_), eleSize);
                             });
-            return Ok(Tensors{Tensor::share(data->dataType, std::move(output), std::move(blob))});
+            return Ok(Tensors{std::move(ans)});
         }
     }
 }// namespace refactor::onnx

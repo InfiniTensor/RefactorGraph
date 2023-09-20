@@ -77,9 +77,9 @@ namespace refactor::onnx {
     }
 
     bool shouldCalculate(Tensors const &inputs, Shape const &output);
+    std::unordered_set<DimVariable> extractDependency(Tensors const &inputs, std::unordered_set<size_t> keyInputs);
 
     using Indices = absl::InlinedVector<int64_t, 4>;
-    size_t sizeOf(Shape const &shape);
     /// @brief 将标量坐标 `k` 展开到 `shape` 空间。
     Indices locateN(Shape const &shape, size_t k);
     /// @brief 在 `tensor` 中定位空间坐标 `indices` 所指向的元素。

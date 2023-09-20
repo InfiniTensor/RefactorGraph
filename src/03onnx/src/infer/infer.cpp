@@ -1,6 +1,6 @@
 ﻿#include "infer.h"
+#include "common/natural.h"
 #include <numeric>
-#include <unordered_set>
 #include <vector>
 
 namespace refactor::onnx {
@@ -104,9 +104,24 @@ namespace refactor::onnx {
                std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
     }
 
-    size_t sizeOf(Shape const &shape) {
-        return std::accumulate(shape.begin(), shape.end(), 1,
-                               [](auto acc, const auto &d) { return acc * d.value(); });
+    std::unordered_set<DimVariable>
+    extractDependency(Tensors const &inputs, std::unordered_set<size_t> keyInputs) {
+        std::unordered_set<DimVariable> ans;
+        std::for_each_n(natural_t(0), inputs.size(),
+                        [&inputs, &keyInputs, &ans](auto const i) {
+                            Tensor const &input = *inputs[i];
+                            for (auto const &dim : input.shape) {
+                                if (dim.isVariable()) {
+                                    ans.insert(dim.variable());
+                                }
+                            }
+                            if (keyInputs.find(i) != keyInputs.end()) {
+                                for (auto var : input.depVariables) {
+                                    ans.insert(var);
+                                }
+                            }
+                        });
+        return ans;
     }
 
     Indices locateN(Shape const &shape, size_t k) {
