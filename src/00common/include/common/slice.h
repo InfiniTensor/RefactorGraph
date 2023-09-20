@@ -10,11 +10,6 @@ namespace refactor::common {
 
         bool empty() const { return end_ == begin_; }
         size_t size() const { return end_ - begin_; }
-        t &at(size_t i) {
-            ASSERT(i < size(), "Index out of range");
-            return operator[](i);
-        }
-        t &operator[](size_t i) { return begin_[i]; }
         t const &at(size_t i) const {
             ASSERT(i < size(), "Index out of range");
             return operator[](i);

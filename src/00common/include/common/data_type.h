@@ -60,6 +60,23 @@ namespace refactor::common {
     /// @return 字节数。
     size_t dataTypeSize(DataType);
 
+    template<class T>
+    DataType dataType();
+
+    template<> inline DataType dataType<float>() { return DataType::F32; }
+    template<> inline DataType dataType<uint8_t>() { return DataType::U8; }
+    template<> inline DataType dataType<int8_t>() { return DataType::I8; }
+    template<> inline DataType dataType<uint16_t>() { return DataType::U16; }
+    template<> inline DataType dataType<int16_t>() { return DataType::I16; }
+    template<> inline DataType dataType<int32_t>() { return DataType::I32; }
+    template<> inline DataType dataType<int64_t>() { return DataType::I64; }
+    template<> inline DataType dataType<bool>() { return DataType::Bool; }
+    template<> inline DataType dataType<fp16_t>() { return DataType::FP16; }
+    template<> inline DataType dataType<double>() { return DataType::F64; }
+    template<> inline DataType dataType<uint32_t>() { return DataType::U32; }
+    template<> inline DataType dataType<uint64_t>() { return DataType::U64; }
+    template<> inline DataType dataType<bf16_t>() { return DataType::BF16; }
+
     template<DataType t>
     struct primitive_t;
 

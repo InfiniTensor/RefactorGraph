@@ -98,9 +98,11 @@ namespace refactor::graph_topo {
     auto GraphTopo::end() const -> Iterator { return Iterator::end(this); }
     size_t GraphTopo::size() const { return _impl->_nodes.size(); }
     size_t GraphTopo::globalInputsCount() const { return _impl->_globalInputsCount; }
-    size_t GraphTopo::globalOutputIndex() const {
-        return std::accumulate(_impl->_nodes.begin(), _impl->_nodes.end(), _impl->_globalInputsCount,
-                               [](size_t acc, auto const &n) { return acc + n._localEdgesCount + n._outputsCount; });
+    common::slice_t<size_t> GraphTopo::globalOutputs() const {
+        auto i = std::accumulate(_impl->_nodes.begin(), _impl->_nodes.end(), 0,
+                                 [](auto const acc, auto const &n) { return acc + n._inputsCount; });
+        auto const &connections = _impl->_connections;
+        return {connections.data() + i, connections.data() + connections.size()};
     }
 
     GraphTopo GraphTopo::__withGlobalInputs(size_t globalInputsCount) {

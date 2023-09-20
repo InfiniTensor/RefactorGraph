@@ -140,7 +140,7 @@ namespace refactor::computation {
                 auto i = 0;
                 for (auto edgeIdx : it.globalOutputs()) {
                     auto const &edge = _internal.edges[edgeIdx];
-                    logi("    outputs[{:>2}] = {} with {}", i++, edge.name, shapeFormat(edge.tensor->shape));
+                    logi("    outputs[{:>2}] = edge[{:>2}] = {} with {}", i++, edgeIdx, edge.name, shapeFormat(edge.tensor->shape));
                 }
             }
         }
