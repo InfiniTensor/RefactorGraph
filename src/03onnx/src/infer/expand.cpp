@@ -16,16 +16,14 @@ namespace refactor::onnx {
             auto const &shape = inputs[1];
             auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
             EXPECT_VAL(shape->shape[0], shapeSize)
-            Shape shape__(shape_, shape_ + shapeSize);
 
-            auto res = multidirBroadcast({data->shape, shape__});
-            if (res.isErr()) {
-                return Err(InferError(ERROR_MSG(res.unwrapErr())));
-            }
-            auto ans = Tensor::share(data->dataType, std::move(res.unwrap()));
+            Shape forRef(shape_, shape_ + shapeSize);
+            MULTIDIR_BROADCAST((ShapeRefs{data->shape, forRef}))
+            auto ans = Tensor::share(data->dataType, std::move(output));
             if (!shouldCalculate(inputs, ans->shape)) {
                 return Ok(Tensors{std::move(ans)});
             }
+
             std::for_each_n(std::execution::par_unseq,
                             natural_t(0), ans->elementsSize(),
                             [&data, &ans,

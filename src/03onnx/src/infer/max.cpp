@@ -16,11 +16,7 @@ namespace refactor::onnx {
             }
             shapes.emplace_back(input->shape);
         }
-        auto res = multidirBroadcast(shapes);
-        if (res.isErr()) {
-            return Err(InferError(ERROR_MSG(res.unwrapErr())));
-        }
-        auto ans = Tensor::share(dataType, std::move(res.unwrap()));
-        return Ok(Tensors{std::move(ans)});
+        MULTIDIR_BROADCAST(shapes)
+        return Ok(Tensors{Tensor::share(dataType, std::move(output))});
     }
 }// namespace refactor::onnx

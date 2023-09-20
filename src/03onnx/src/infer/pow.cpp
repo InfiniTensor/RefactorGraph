@@ -10,12 +10,8 @@ namespace refactor::onnx {
             if (!isSignedDataType(a->dataType) || !isNumbericDataType(b->dataType)) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
-            auto res = multidirBroadcast({a->shape, b->shape});
-            if (res.isErr()) {
-                return Err(InferError(ERROR_MSG(res.unwrapErr())));
-            }
-            auto ans = Tensor::share(a->dataType, std::move(res.unwrap()));
-            return Ok(Tensors{std::move(ans)});
+            MULTIDIR_BROADCAST((ShapeRefs{a->shape, b->shape}))
+            return Ok(Tensors{Tensor::share(a->dataType, std::move(output))});
         }
     }
 }// namespace refactor::onnx

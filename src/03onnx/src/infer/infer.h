@@ -76,8 +76,18 @@ namespace refactor::onnx {
         return Err(InferError(UnknownVariable{(DIM.variable()->name)})); \
     }
 
+#define MULTIDIR_BROADCAST(SHAPES)                              \
+    Shape output;                                               \
+    {                                                           \
+        auto res = multidirBroadcast(SHAPES);                   \
+        if (res.isErr()) {                                      \
+            return Err(InferError(ERROR_MSG(res.unwrapErr()))); \
+        }                                                       \
+        output = std::move(res.unwrap());                       \
+    }
+
     bool shouldCalculate(Tensors const &inputs, Shape const &output);
-    std::unordered_set<DimVariable> extractDependency(Tensors const &inputs, std::unordered_set<size_t> keyInputs);
+    std::unordered_set<DimVariable> extractDependency(Tensors const &inputs);
 
     using Indices = absl::InlinedVector<int64_t, 4>;
     /// @brief 将标量坐标 `k` 展开到 `shape` 空间。

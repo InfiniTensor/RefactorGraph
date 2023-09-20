@@ -104,21 +104,18 @@ namespace refactor::onnx {
                std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
     }
 
-    std::unordered_set<DimVariable>
-    extractDependency(Tensors const &inputs, std::unordered_set<size_t> keyInputs) {
+    std::unordered_set<DimVariable> extractDependency(Tensors const &inputs) {
         std::unordered_set<DimVariable> ans;
         std::for_each_n(natural_t(0), inputs.size(),
-                        [&inputs, &keyInputs, &ans](auto const i) {
+                        [&inputs, &ans](auto const i) {
                             Tensor const &input = *inputs[i];
                             for (auto const &dim : input.shape) {
                                 if (dim.isVariable()) {
                                     ans.insert(dim.variable());
                                 }
                             }
-                            if (keyInputs.find(i) != keyInputs.end()) {
-                                for (auto var : input.depVariables) {
-                                    ans.insert(var);
-                                }
+                            for (auto var : input.depVariables) {
+                                ans.insert(var);
                             }
                         });
         return ans;

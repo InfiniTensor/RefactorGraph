@@ -12,13 +12,13 @@ namespace refactor::onnx {
                 if (perm.size() != data->shape.size()) {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
-                Shape ans(perm.size(), DimExpr(1));
-                std::transform(perm.begin(), perm.end(), ans.begin(),
+                Shape output(perm.size(), DimExpr(1));
+                std::transform(perm.begin(), perm.end(), output.begin(),
                                [&data](auto i) { return data->shape[i]; });
-                return Ok(Tensors{Tensor::share(data->dataType, std::move(ans))});
+                return Ok(Tensors{Tensor::share(data->dataType, std::move(output))});
             } else {
-                Shape ans(data->shape.rbegin(), data->shape.rend());
-                return Ok(Tensors{Tensor::share(data->dataType, std::move(ans))});
+                Shape output(data->shape.rbegin(), data->shape.rend());
+                return Ok(Tensors{Tensor::share(data->dataType, std::move(output))});
             }
         }
     }
