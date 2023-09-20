@@ -24,7 +24,7 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("end out of range")));
             }
 
-            auto ans = Tensor::share(DataType::I64, Shape{DimExpr(end - start)});
+            auto ans = Tensor::share(DataType::I64, Shape{DimExpr(end - start)}, extractDependency(inputs));
             auto dst = reinterpret_cast<int64_t *>(ans->malloc());
             for (auto i : range(start, end)) {
                 EXPECT_VAL(data->shape[i], dim)

@@ -31,7 +31,7 @@ namespace refactor::onnx {
                 }
             }
         }
-        auto ans = Tensor::share(dataType, std::move(output));
+        auto ans = Tensor::share(dataType, std::move(output), extractDependency(inputs));
         if (!shouldCalculate(inputs, output)) {
             return Ok(Tensors{std::move(ans)});
         }

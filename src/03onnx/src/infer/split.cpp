@@ -20,17 +20,18 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Axis error")));
             }
             EXPECT_VAL(input->shape[axis], total)
+            auto dependencies = extractDependency(inputs);
             if (inputs.size() == 1) {
                 auto numOutputs = op.attribute("num_outputs").int_();
                 Tensors ans(numOutputs, nullptr);
                 auto each = total + numOutputs - 1 / numOutputs;
                 for (auto i : range0_(numOutputs)) {
                     if (total > each) {
-                        ans[i] = Tensor::share(input->dataType, input->shape);
+                        ans[i] = Tensor::share(input->dataType, input->shape, dependencies);
                         ans[i]->shape[axis] = DimExpr(each);
                     } else {
                         ASSERT(i == numOutputs - 1, ERROR_MSG("Split error"));
-                        ans[i] = Tensor::share(input->dataType, input->shape);
+                        ans[i] = Tensor::share(input->dataType, input->shape, dependencies);
                         ans[i]->shape[axis] = DimExpr(total);
                     }
                 }
@@ -44,7 +45,7 @@ namespace refactor::onnx {
                 auto split_ = reinterpret_cast<int64_t *>(split->data->ptr);
                 auto ans = Tensors(numOutputs, nullptr);
                 for (auto i : range0_(numOutputs)) {
-                    ans[i] = Tensor::share(input->dataType, input->shape);
+                    ans[i] = Tensor::share(input->dataType, input->shape, dependencies);
                     ans[i]->shape[axis] = DimExpr(split_[i]);
                 }
                 return Ok(std::move(ans));

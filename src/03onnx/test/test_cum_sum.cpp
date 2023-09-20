@@ -14,12 +14,12 @@ TEST(infer, CumSum) {
     std::shared_ptr<Tensor> x, axis;
     {
         {
-            x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
+            x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)}, {});
             auto ptr = reinterpret_cast<float *>(x->malloc());
             for (auto i : range0_(x->elementsSize())) { ptr[i] = i + 1; }
         }
         {
-            axis = Tensor::share(DataType::I32, Shape{});
+            axis = Tensor::share(DataType::I32, Shape{}, {});
             auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 0;
         }
@@ -40,12 +40,12 @@ TEST(infer, CumSum) {
     }
     {
         {
-            x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
+            x = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)}, {});
             auto ptr = reinterpret_cast<float *>(x->malloc());
             for (auto i : range0_(x->elementsSize())) { ptr[i] = i + 1; }
         }
         {
-            axis = Tensor::share(DataType::I32, Shape{});
+            axis = Tensor::share(DataType::I32, Shape{}, {});
             auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 1;
         }

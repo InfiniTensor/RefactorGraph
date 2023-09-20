@@ -23,11 +23,11 @@ namespace refactor::onnx {
             auto output = data->shape;
             output.erase(output.begin() + axis);
             output.insert(output.begin() + axis, indices->shape.begin(), indices->shape.end());
+            auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
             if (!shouldCalculate(inputs, output)) {
-                return Ok(Tensors{Tensor::share(data->dataType, std::move(output))});
+                return Ok(Tensors{std::move(ans)});
             }
 
-            auto ans = Tensor::share(data->dataType, std::move(output));
             std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
                             [&data, &indices, &output,
                              axis,

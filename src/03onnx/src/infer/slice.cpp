@@ -115,7 +115,7 @@ namespace refactor::onnx {
             for (auto axis : axes_set) {
                 output[axis] = data->shape[axis];
             }
-            auto ans = Tensor::share(data->dataType, std::move(output));
+            auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
             if (!shouldCalculate(inputs, output) || steps) {
                 return Ok(Tensors{std::move(ans)});
             }

@@ -11,8 +11,8 @@ TEST(infer, Unsqueeze) {
     onnx::register_();
     auto opType = OpType::parse("onnx::Unsqueeze");
     {
-        auto x = Tensor::share(DataType::F32, Shape{DimExpr(3), DimExpr(5)});
-        auto axes = Tensor::share(DataType::I64, Shape{DimExpr(2)});
+        auto x = Tensor::share(DataType::F32, Shape{DimExpr(3), DimExpr(5)}, {});
+        auto axes = Tensor::share(DataType::I64, Shape{DimExpr(2)}, {});
         auto ptr = reinterpret_cast<int64_t *>(axes->malloc());
         ptr[0] = 2;
         ptr[1] = 0;

@@ -11,7 +11,7 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
             MULTIDIR_BROADCAST((ShapeRefs{a->shape, b->shape}))
-            return Ok(Tensors{Tensor::share(a->dataType, std::move(output))});
+            return Ok(Tensors{Tensor::share(a->dataType, std::move(output), extractDependency(inputs))});
         }
     }
 }// namespace refactor::onnx

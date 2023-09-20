@@ -10,8 +10,8 @@ using namespace onnx;
 TEST(infer, Expand) {
     onnx::register_();
     auto opType = OpType::parse("onnx::Expand");
-    auto input = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)});
-    auto shape = Tensor::share(DataType::I64, Shape{DimExpr(4)});
+    auto input = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
+    auto shape = Tensor::share(DataType::I64, Shape{DimExpr(4)}, {});
     auto ptr = reinterpret_cast<int64_t *>(shape->malloc());
     ptr[0] = 7;
     ptr[1] = 2;

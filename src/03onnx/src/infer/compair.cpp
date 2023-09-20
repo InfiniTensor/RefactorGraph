@@ -13,7 +13,7 @@ namespace refactor::onnx {
             }
 
             MULTIDIR_BROADCAST((ShapeRefs{a->shape, b->shape}))
-            auto ans = Tensor::share(DataType::Bool, std::move(output));
+            auto ans = Tensor::share(DataType::Bool, std::move(output), extractDependency(inputs));
             if (!shouldCalculate(inputs, ans->shape) || a->dataType != DataType::I64) {// TODO: support other data type
                 return Ok(Tensors{std::move(ans)});
             }

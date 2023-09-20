@@ -63,8 +63,8 @@ namespace refactor::computation {
         static std::shared_ptr<Tensor> share(
             common::DataType,
             Shape,
-            std::shared_ptr<Blob> = nullptr,
-            std::unordered_set<DimVariable> = {});
+            std::unordered_set<DimVariable>,
+            std::shared_ptr<Blob> = nullptr);
 
         bool hasData() const;
         size_t elementsSize() const;

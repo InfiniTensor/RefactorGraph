@@ -15,10 +15,10 @@ namespace refactor::onnx {
                 Shape output(perm.size(), DimExpr(1));
                 std::transform(perm.begin(), perm.end(), output.begin(),
                                [&data](auto i) { return data->shape[i]; });
-                return Ok(Tensors{Tensor::share(data->dataType, std::move(output))});
+                return Ok(Tensors{Tensor::share(data->dataType, std::move(output), extractDependency(inputs))});
             } else {
                 Shape output(data->shape.rbegin(), data->shape.rend());
-                return Ok(Tensors{Tensor::share(data->dataType, std::move(output))});
+                return Ok(Tensors{Tensor::share(data->dataType, std::move(output), extractDependency(inputs))});
             }
         }
     }

@@ -19,7 +19,7 @@ namespace refactor::onnx {
 
             Shape forRef(shape_, shape_ + shapeSize);
             MULTIDIR_BROADCAST((ShapeRefs{data->shape, forRef}))
-            auto ans = Tensor::share(data->dataType, std::move(output));
+            auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
             if (!shouldCalculate(inputs, ans->shape)) {
                 return Ok(Tensors{std::move(ans)});
             }

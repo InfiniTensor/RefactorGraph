@@ -18,7 +18,7 @@ namespace refactor::onnx {
         EXPECT_SIZE(1) {
             auto const &input = inputs[0];
             auto to = static_cast<DataType>(op.attribute("to").int_());
-            auto ans = Tensor::share(to, input->shape);
+            auto ans = Tensor::share(to, input->shape, extractDependency(inputs));
             if (!shouldCalculate(inputs, ans->shape)) {
                 return Ok(Tensors{std::move(ans)});
             }

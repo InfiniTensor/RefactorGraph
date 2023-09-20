@@ -50,7 +50,7 @@ namespace refactor::onnx {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
             }
-            return Ok(Tensors{Tensor::share(dataType, Shape{DimExpr(m), DimExpr(n)})});
+            return Ok(Tensors{Tensor::share(dataType, Shape{DimExpr(m), DimExpr(n)}, extractDependency(inputs))});
         }
     }
 }// namespace refactor::onnx

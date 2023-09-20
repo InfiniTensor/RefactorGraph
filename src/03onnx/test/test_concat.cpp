@@ -10,9 +10,9 @@ using namespace onnx;
 TEST(infer, Concat) {
     onnx::register_();
     auto opType = OpType::parse("onnx::Concat");
-    auto a = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)});
-    auto b = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(2)});
-    auto c = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(5)});
+    auto a = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)}, {});
+    auto b = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(2)}, {});
+    auto c = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(5)}, {});
     auto infered = Operator{opType, {{"axis", {1}}}}.infer({a, b, c});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());

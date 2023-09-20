@@ -5,8 +5,8 @@ namespace refactor::communication {
 
     InferResult inferAllReduce(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
-            auto const &input = inputs[0];
-            return Ok(Tensors{Tensor::share(input->dataType, input->shape)});
+            return Ok(Tensors{
+                Tensor::share(inputs[0]->dataType, inputs[0]->shape, extractDependency(inputs))});
         }
     }
 }// namespace refactor::communication

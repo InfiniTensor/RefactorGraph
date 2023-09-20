@@ -17,6 +17,6 @@ namespace refactor::onnx {
             shapes.emplace_back(input->shape);
         }
         MULTIDIR_BROADCAST(shapes)
-        return Ok(Tensors{Tensor::share(dataType, std::move(output))});
+        return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
     }
 }// namespace refactor::onnx

@@ -47,7 +47,7 @@ namespace refactor::onnx {
                  axis->dataType != DataType::I32)) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
-            auto ans = Tensor::share(dataType, x->shape);
+            auto ans = Tensor::share(dataType, x->shape, extractDependency(inputs));
             if (!shouldCalculate(inputs, ans->shape)) {
                 return Ok(Tensors{std::move(ans)});
             }

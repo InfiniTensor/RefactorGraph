@@ -30,29 +30,20 @@ namespace refactor::onnx {
                 default:
                     break;
             }
-            auto k = *sa.rbegin();
+            auto k = sa.back();
             sa.pop_back();
-            auto m = *sa.rbegin();
+            auto m = sa.back();
             sa.pop_back();
-            auto n = *sb.rbegin();
+            auto n = sb.back();
             sb.pop_back();
-            if (k != *sb.rbegin()) {
+            if (k != sb.back()) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
             sb.pop_back();
-            if (!sa.empty() || !sb.empty()) {
-                auto res = multidirBroadcast({sa, sb});
-                if (res.isErr()) {
-                    return Err(InferError(ERROR_MSG(res.unwrapErr())));
-                } else {
-                    auto shape = res.unwrap();
-                    shape.emplace_back(m);
-                    shape.emplace_back(n);
-                    return Ok(Tensors{Tensor::share(dataType, shape)});
-                }
-            } else {
-                return Ok(Tensors{Tensor::share(dataType, Shape{m, n})});
-            }
+            MULTIDIR_BROADCAST((ShapeRefs{sa, sb}))
+            output.emplace_back(std::move(m));
+            output.emplace_back(std::move(n));
+            return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
         }
     }
 }// namespace refactor::onnx

@@ -67,8 +67,8 @@ namespace refactor::computation {
     std::shared_ptr<Tensor>
     Tensor::share(common::DataType dt,
                   Shape shape,
-                  std::shared_ptr<Blob> data,
-                  std::unordered_set<DimVariable> depVariables) {
+                  std::unordered_set<DimVariable> depVariables,
+                  std::shared_ptr<Blob> data) {
         return std::make_shared<Tensor>(dt, std::move(shape), std::move(data), std::move(depVariables));
     }
     bool Tensor::hasData() const {
