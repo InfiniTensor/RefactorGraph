@@ -1,6 +1,7 @@
 ﻿#include "common/error_handler.h"
 #include "internal.h"
 #include <algorithm>
+#include <numeric>
 #include <utility>
 
 namespace refactor::graph_topo {
@@ -97,6 +98,10 @@ namespace refactor::graph_topo {
     auto GraphTopo::end() const -> Iterator { return Iterator::end(this); }
     size_t GraphTopo::size() const { return _impl->_nodes.size(); }
     size_t GraphTopo::globalInputsCount() const { return _impl->_globalInputsCount; }
+    size_t GraphTopo::globalOutputIndex() const {
+        return std::accumulate(_impl->_nodes.begin(), _impl->_nodes.end(), _impl->_globalInputsCount,
+                               [](size_t acc, auto const &n) { return acc + n._localEdgesCount + n._outputsCount; });
+    }
 
     GraphTopo GraphTopo::__withGlobalInputs(size_t globalInputsCount) {
         GraphTopo ans;
