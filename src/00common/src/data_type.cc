@@ -4,7 +4,9 @@
 #include <unordered_set>
 
 namespace refactor::common {
-    std::optional<DataType> parseDataType(uint8_t value) {
+    using Enum = decltype(DataType::internal);
+
+    std::optional<DataType> DataType::parse(uint8_t value) {
         switch (value) {
             case 1:
             case 2:
@@ -18,14 +20,21 @@ namespace refactor::common {
             case 11:
             case 12:
             case 13:
-                return {(DataType) value};
+                return {(Enum) value};
             default:
                 return {};
         }
     }
 
-    std::string_view dataTypeName(DataType dt) {
-        switch (dt) {
+    bool DataType::operator==(DataType const &rhs) const { return internal == rhs.internal; }
+    bool DataType::operator!=(DataType const &rhs) const { return internal != rhs.internal; }
+    bool DataType::operator<(DataType const &rhs) const { return internal < rhs.internal; }
+    bool DataType::operator>(DataType const &rhs) const { return internal > rhs.internal; }
+    bool DataType::operator<=(DataType const &rhs) const { return internal <= rhs.internal; }
+    bool DataType::operator>=(DataType const &rhs) const { return internal >= rhs.internal; }
+
+    std::string_view DataType::name() const {
+        switch (internal) {
             case DataType::F32:
                 return "F32";
             case DataType::U8:
@@ -61,39 +70,34 @@ namespace refactor::common {
         }
     }
 
-    bool isIeee754DataType(DataType dt) {
-        static const std::unordered_set<DataType> set{DataType::F32, DataType::FP16, DataType::F64};
-        return set.find(dt) != set.end();
+    bool DataType::isIeee754() const {
+        static const std::unordered_set<Enum> set{DataType::F32, DataType::FP16, DataType::F64};
+        return set.find(internal) != set.end();
     }
-
-    bool isFloatDataType(DataType dt) {
-        static const std::unordered_set<DataType> set{DataType::F32, DataType::FP16, DataType::F64, DataType::BF16};
-        return set.find(dt) != set.end();
+    bool DataType::isFloat() const {
+        static const std::unordered_set<Enum> set{DataType::F32, DataType::FP16, DataType::F64, DataType::BF16};
+        return set.find(internal) != set.end();
     }
-
-    bool isSignedDataType(DataType dt) {
-        static const std::unordered_set<DataType> set{
+    bool DataType::isSigned() const {
+        static const std::unordered_set<Enum> set{
             DataType::F32, DataType::I32, DataType::I64, DataType::FP16, DataType::F64, DataType::BF16};
-        return set.find(dt) != set.end();
+        return set.find(internal) != set.end();
     }
-
-    bool isNumbericDataType(DataType dt) {
-        static const std::unordered_set<DataType> set{
+    bool DataType::isNumberic() const {
+        static const std::unordered_set<Enum> set{
             DataType::F32, DataType::U8, DataType::I8, DataType::U16, DataType::I16, DataType::I32,
             DataType::I64, DataType::FP16, DataType::F64, DataType::U32, DataType::U64, DataType::BF16};
-        return set.find(dt) != set.end();
+        return set.find(internal) != set.end();
     }
-
-    bool isBool(DataType dt) {
-        return dt == DataType::Bool;
+    bool DataType::isBool() const {
+        return internal == DataType::Bool;
     }
-
-    size_t dataTypeSize(DataType dt) {
+    size_t DataType::size() const {
 #define RETURN_SIZE(TYPE) \
     case DataType::TYPE:  \
         return sizeof(primitive_t<DataType::TYPE>::type)
 
-        switch (dt) {
+        switch (internal) {
             RETURN_SIZE(F32);
             RETURN_SIZE(U8);
             RETURN_SIZE(I8);

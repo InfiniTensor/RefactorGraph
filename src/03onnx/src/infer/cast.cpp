@@ -17,7 +17,7 @@ namespace refactor::onnx {
     InferResult inferCast(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
             auto const &input = inputs[0];
-            auto to = static_cast<DataType>(op.attribute("to").int_());
+            auto to = *DataType::parse(op.attribute("to").int_());
             auto ans = Tensor::share(to, input->shape, extractDependency(inputs));
             if (!shouldCalculate(inputs, ans->shape)) {
                 return Ok(Tensors{std::move(ans)});
@@ -30,9 +30,9 @@ namespace refactor::onnx {
             auto size = ans->elementsSize();
             auto src = input->data->ptr;
             auto dst = ans->malloc();
-            switch (from) {
+            switch (from.internal) {
                 case DataType::F32:
-                    switch (to) {
+                    switch (to.internal) {
                         case DataType::I64:
                             castData<float, int64_t>(src, dst, size);
                             break;
@@ -50,7 +50,7 @@ namespace refactor::onnx {
                     break;
 
                 case DataType::I64:
-                    switch (to) {
+                    switch (to.internal) {
                         case DataType::F32:
                             castData<int64_t, float>(src, dst, size);
                             break;

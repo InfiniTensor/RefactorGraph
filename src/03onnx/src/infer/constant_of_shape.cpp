@@ -29,7 +29,7 @@ namespace refactor::onnx {
                 std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
                                 [src = reinterpret_cast<uint8_t *>(value->data->ptr),
                                  dst = reinterpret_cast<uint8_t *>(ans->malloc()),
-                                 eleSize = dataTypeSize(value->dataType)](auto const i) {
+                                 eleSize = value->dataType.size()](auto const i) {
                                     std::memcpy(dst + i * eleSize, src, eleSize);
                                 });
                 return Ok(Tensors{std::move(ans)});

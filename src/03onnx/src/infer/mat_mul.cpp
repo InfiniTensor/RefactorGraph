@@ -8,7 +8,7 @@ namespace refactor::onnx {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
             auto dataType = a->dataType;
-            if (!isNumbericDataType(dataType) || b->dataType != dataType) {
+            if (!dataType.isNumberic() || b->dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
             auto sa = a->shape, sb = b->shape;

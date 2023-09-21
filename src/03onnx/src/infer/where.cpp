@@ -25,7 +25,7 @@ namespace refactor::onnx {
 
             std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
                             [&condition, &x, &y, &ans,
-                             eleSize = dataTypeSize(x->dataType),
+                             eleSize = x->dataType.size(),
                              dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto const i) {
                                 auto indices = locateN(ans->shape, i);
                                 auto const &selected = *reinterpret_cast<bool *>(locate1(*condition, indices))

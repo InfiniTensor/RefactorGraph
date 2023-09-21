@@ -7,7 +7,7 @@ namespace refactor::onnx {
         EXPECT_SIZE(2) {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
-            if (!isSignedDataType(a->dataType) || !isNumbericDataType(b->dataType)) {
+            if (!a->dataType.isSigned() || !b->dataType.isNumberic()) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
             MULTIDIR_BROADCAST((ShapeRefs{a->shape, b->shape}))

@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    template<DataType T>
+    template<decltype(DataType::internal) T>
     void accumulate_(void *dst, void *src, void *acc) {
         using T_ = typename primitive_t<T>::type;
         *reinterpret_cast<T_ *>(dst) = *reinterpret_cast<T_ *>(src) + *reinterpret_cast<T_ *>(acc);
@@ -14,7 +14,7 @@ namespace refactor::onnx {
 
     void accumulate(DataType dataType, void *dst, void *src, size_t stepBytes) {
         auto acc = reinterpret_cast<uint8_t *>(dst) - stepBytes;
-        switch (dataType) {
+        switch (dataType.internal) {
 #define CASE(T)                                  \
     case DataType::T:                            \
         accumulate_<DataType::T>(dst, src, acc); \
@@ -42,7 +42,7 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
             auto dataType = x->dataType;
-            if (!isNumbericDataType(dataType) ||
+            if (!dataType.isNumberic() ||
                 (axis->dataType != DataType::I64 &&
                  axis->dataType != DataType::I32)) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
@@ -66,14 +66,14 @@ namespace refactor::onnx {
             if (axis_ < 0 || rank <= axis_) {
                 return Err(InferError(ERROR_MSG("Invalid axis")));
             }
-            auto eleSize = dataTypeSize(dataType);
-            auto src = reinterpret_cast<uint8_t *>(x->data->ptr);
-            auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-            auto step = std::accumulate(ans->shape.begin() + axis_ + 1, ans->shape.end(), eleSize,
-                                        [](auto const acc, auto const &d) { return acc * d.value(); });
+            auto eleSize = dataType.size();
             if (!reverse) {
                 std::for_each_n(std::execution::seq, natural_t(0), ans->elementsSize(),
-                                [&, axis_, src, dst, eleSize, exclusive](auto i) {
+                                [&, axis_, exclusive, eleSize,
+                                 step = std::accumulate(ans->shape.begin() + axis_ + 1, ans->shape.end(), eleSize,
+                                                        [](auto const acc, auto const &d) { return acc * d.value(); }),
+                                 src = reinterpret_cast<uint8_t *>(x->data->ptr),
+                                 dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto i) {
                                     auto indices = locateN(ans->shape, i);
                                     auto axisIdx = indices[axis_];
                                     auto dst_ = dst + i * eleSize;

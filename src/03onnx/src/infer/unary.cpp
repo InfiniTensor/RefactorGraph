@@ -18,15 +18,15 @@ namespace refactor::onnx {
                  "onnx::Tan"},
                 {"onnx::Tanh", "onnx::Sqrt"}};
             if (SET[0].find(opType) != SET[0].end()) {
-                if (!isNumbericDataType(dataType)) {
+                if (!dataType.isNumberic()) {
                     return Err(InferError(ERROR_MSG("Data type not support")));
                 }
             } else if (SET[1].find(opType) != SET[1].end()) {
-                if (!isIeee754DataType(dataType)) {
+                if (!dataType.isIeee754()) {
                     return Err(InferError(ERROR_MSG("Data type not support")));
                 }
             } else if (SET[2].find(opType) != SET[2].end()) {
-                if (!isFloatDataType(dataType)) {
+                if (!dataType.isFloat()) {
                     return Err(InferError(ERROR_MSG("Data type not support")));
                 }
             } else {

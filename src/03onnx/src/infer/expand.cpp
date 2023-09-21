@@ -28,7 +28,7 @@ namespace refactor::onnx {
                             natural_t(0), ans->elementsSize(),
                             [&data, &ans,
                              dst = reinterpret_cast<uint8_t *>(ans->malloc()),
-                             eleSize = dataTypeSize(data->dataType)](auto const i) {
+                             eleSize = data->dataType.size()](auto const i) {
                                 std::memcpy(dst + i * eleSize, locate1(*data, locateN(ans->shape, i)), eleSize);
                             });
             return Ok(Tensors{std::move(ans)});

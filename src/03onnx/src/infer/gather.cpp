@@ -35,7 +35,7 @@ namespace refactor::onnx {
                              ssz = output.size(),
                              src = reinterpret_cast<uint8_t *>(data->data->ptr),
                              dst = reinterpret_cast<uint8_t *>(ans->malloc()),
-                             eleSize = dataTypeSize(data->dataType)](auto const i) {
+                             eleSize = data->dataType.size()](auto const i) {
                                 auto indices_ = locateN(output, i);
                                 int64_t k;
                                 {

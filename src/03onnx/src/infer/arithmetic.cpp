@@ -11,7 +11,7 @@ namespace refactor::onnx {
         Div
     };
 
-    template<DataType T>
+    template<decltype(DataType::internal) T>
     void calculate(Ty ty, void *dst, void *a, void *b) {
         using T_ = typename primitive_t<T>::type;
         auto a_ = *reinterpret_cast<T_ *>(a);
@@ -40,7 +40,7 @@ namespace refactor::onnx {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
             auto dataType = a->dataType;
-            if (!isNumbericDataType(dataType) || b->dataType != dataType) {
+            if (!dataType.isNumberic() || b->dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Data type not support")));
             }
 
@@ -50,7 +50,7 @@ namespace refactor::onnx {
                 return Ok(Tensors{std::move(ans)});
             }
 
-            auto eleSize = dataTypeSize(dataType);
+            auto eleSize = dataType.size();
             auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
             for (auto i : range0_(ans->elementsSize())) {
                 auto ty = op.opType.is("onnx::Add")   ? Ty::Add
@@ -68,7 +68,7 @@ namespace refactor::onnx {
         calculate<DataType::T>(ty, dst_, a_, b_); \
         break
                 //-------------------------------------
-                switch (dataType) {
+                switch (dataType.internal) {
                     CASE(F32);
                     CASE(F64);
                     CASE(I32);

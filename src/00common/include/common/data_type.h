@@ -9,56 +9,47 @@
 
 namespace refactor::common {
 
-    /// @brief 数据类型。
-    /// @see <https://onnx.ai/onnx/api/mapping.html#l-onnx-types-mapping>
-    enum class DataType : uint8_t {
-        F32 = 1,// float·
-        U8 = 2, // uint8_t
-        I8 = 3, // int8_t
-        U16 = 4,// uint16_t
-        I16 = 5,// int16_t
-        I32 = 6,// int32_t
-        I64 = 7,// int64_t
-        // String = 8,
-        Bool = 9,       // bool
-        FP16 = 10,      // fp16_t
-        F64 = 11,       // double
-        U32 = 12,       // uint32_t
-        U64 = 13,       // uint64_t
-        Complex64 = 14, // std::complex<float>
-        Complex128 = 15,// std::complex<double>
-        BF16 = 16,      // bf16_t
+    struct DataType {
+        /// @brief 数据类型。
+        /// @see <https://onnx.ai/onnx/api/mapping.html#l-onnx-types-mapping>
+        enum : uint8_t {
+            F32 = 1,// float·
+            U8 = 2, // uint8_t
+            I8 = 3, // int8_t
+            U16 = 4,// uint16_t
+            I16 = 5,// int16_t
+            I32 = 6,// int32_t
+            I64 = 7,// int64_t
+            // String = 8,
+            Bool = 9,       // bool
+            FP16 = 10,      // fp16_t
+            F64 = 11,       // double
+            U32 = 12,       // uint32_t
+            U64 = 13,       // uint64_t
+            Complex64 = 14, // std::complex<float>
+            Complex128 = 15,// std::complex<double>
+            BF16 = 16,      // bf16_t
+        } internal;
+
+        constexpr DataType(decltype(internal) i) : internal(i) {}
+
+        static std::optional<DataType> parse(uint8_t);
+
+        bool operator==(DataType const &) const;
+        bool operator!=(DataType const &) const;
+        bool operator<(DataType const &) const;
+        bool operator>(DataType const &) const;
+        bool operator<=(DataType const &) const;
+        bool operator>=(DataType const &) const;
+
+        std::string_view name() const;
+        bool isIeee754() const;
+        bool isFloat() const;
+        bool isSigned() const;
+        bool isNumberic() const;
+        bool isBool() const;
+        size_t size() const;
     };
-
-    /// @brief 从数值解析数据类型。
-    /// @param param1 数据类型数值。
-    /// @return 当 `param1` 是合法的数据类型值，`std::optional` 非空。
-    std::optional<DataType> parseDataType(uint8_t);
-
-    /// @brief 数据类型名字。
-    /// @param param1 数据类型。
-    /// @return 数据类型名字。
-    std::string_view dataTypeName(DataType);
-
-    /// @brief 判断是否符合 IEE754 的浮点数数据类型。
-    bool isIeee754DataType(DataType);
-
-    /// @brief 判断是否浮点数数据类型。
-    bool isFloatDataType(DataType);
-
-    /// @brief 判断是否有符号数据类型。Pow 算子使用这类类型。
-    bool isSignedDataType(DataType);
-
-    /// @brief 判断是否数字数据类型。
-    bool isNumbericDataType(DataType);
-
-    /// @brief 判断是否布尔数据类型。
-    bool isBool(DataType);
-
-    /// @brief 计算数据类型的字节数。
-    /// @param param1 数据类型。
-    /// @return 字节数。
-    size_t dataTypeSize(DataType);
 
     template<class T>
     DataType dataType();
@@ -77,7 +68,7 @@ namespace refactor::common {
     template<> inline DataType dataType<uint64_t>() { return DataType::U64; }
     template<> inline DataType dataType<bf16_t>() { return DataType::BF16; }
 
-    template<DataType t>
+    template<decltype(DataType::internal) t>
     struct primitive_t;
 
     template<>

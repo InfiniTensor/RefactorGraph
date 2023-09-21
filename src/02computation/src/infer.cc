@@ -56,6 +56,6 @@ namespace refactor::computation {
             k += std::min(*i++, shape) * mul;
             mul *= shape;
         }
-        return reinterpret_cast<uint8_t *>(tensor.data->ptr) + k * dataTypeSize(tensor.dataType);
+        return reinterpret_cast<uint8_t *>(tensor.data->ptr) + k * tensor.dataType.size();
     }
 }// namespace refactor::computation

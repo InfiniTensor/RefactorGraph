@@ -126,7 +126,7 @@ namespace refactor::onnx {
             }
             std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
                             [&, rank, axes, starts,
-                             eleSize = dataTypeSize(data->dataType),
+                             eleSize = data->dataType.size(),
                              dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto i) {
                                 auto indices = locateN(output, i);
                                 Indices indices_(indices.begin(), indices.end());

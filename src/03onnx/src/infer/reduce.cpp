@@ -10,7 +10,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
             auto const &data = inputs[0];
-            if (!isNumbericDataType(data->dataType)) {
+            if (!data->dataType.isNumberic()) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
             auto keepdims = op.attribute("keepdims", {1}).int_();
