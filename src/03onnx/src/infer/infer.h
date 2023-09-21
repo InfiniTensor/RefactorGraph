@@ -2,11 +2,11 @@
 #define ONNX_INFER_H
 
 #include "common/error_handler.h"
-#include "computation/operator.h"
+#include "frontend/operator.h"
 #include <optional>
 
 namespace refactor::onnx {
-    using namespace computation;
+    using namespace frontend;
     using ShapeOrNot = std::optional<Shape>;
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)

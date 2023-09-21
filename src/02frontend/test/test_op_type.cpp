@@ -1,8 +1,8 @@
-﻿#include "computation/operator.h"
+﻿#include "frontend/operator.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
-using namespace computation;
+using namespace frontend;
 
 TEST(OpType, parse) {
     OpType::register_("test::op0", nullptr);

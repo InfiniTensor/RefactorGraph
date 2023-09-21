@@ -5,7 +5,7 @@
 
 using namespace refactor;
 using namespace common;
-using namespace computation;
+using namespace frontend;
 using namespace onnx;
 
 TEST(infer, CumSum) {

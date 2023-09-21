@@ -1,10 +1,10 @@
-﻿#ifndef COMPUTATION_INFER_H
-#define COMPUTATION_INFER_H
+﻿#ifndef FRONTEND_INFER_H
+#define FRONTEND_INFER_H
 
 #include "tensor.h"
 #include <result.h>
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     class Operator;
     using Edges = std::vector<Edge>;
@@ -32,6 +32,6 @@ namespace refactor::computation {
     /// @brief 在 `tensor` 中定位空间坐标 `indices` 所指向的元素。
     void *locate1(Tensor const &tensor, Indices const &indices);
 
-}// namespace refactor::computation
+}// namespace refactor::frontend
 
-#endif// COMPUTATION_INFER_H
+#endif// FRONTEND_INFER_H

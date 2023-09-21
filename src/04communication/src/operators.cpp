@@ -1,9 +1,9 @@
 ﻿#include "communication/operators.h"
-#include "computation/operator.h"
+#include "frontend/operator.h"
 #include "infer/infer.h"
 
 namespace refactor::communication {
-    using namespace computation;
+    using namespace frontend;
 
     void register_() {
         OpType::register_("onnx::AllReduceSum", inferAllReduce);

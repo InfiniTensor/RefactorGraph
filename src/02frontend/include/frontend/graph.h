@@ -1,10 +1,10 @@
-﻿#ifndef COMPUTATION_GRAPH_H
-#define COMPUTATION_GRAPH_H
+﻿#ifndef FRONTEND_GRAPH_H
+#define FRONTEND_GRAPH_H
 
 #include "graph_topo/graph_topo.h"
 #include "operator.h"
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     class Graph {
         graph_topo::Graph<Node, Edge> _internal;
@@ -24,6 +24,6 @@ namespace refactor::computation {
         bool substitute(const char *, int64_t);
     };
 
-}// namespace refactor::computation
+}// namespace refactor::frontend
 
-#endif// COMPUTATION_GRAPH_H
+#endif// FRONTEND_GRAPH_H

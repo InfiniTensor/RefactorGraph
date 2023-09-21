@@ -1,13 +1,13 @@
-﻿#include "computation/graph.h"
+﻿#include "frontend/graph.h"
 #include "common/error_handler.h"
-#include "computation/tensor.h"
+#include "frontend/tensor.h"
 #include <chrono>
 #include <fmtlog.h>
 
 using namespace refactor::common;
 using namespace std::chrono;
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     Graph::Graph(graph_topo::Graph<Node, Edge> internal)
         : _internal(std::move(internal)), _variables() {
@@ -186,4 +186,4 @@ namespace refactor::computation {
         return unknownVariables;
     }
 
-}// namespace refactor::computation
+}// namespace refactor::frontend

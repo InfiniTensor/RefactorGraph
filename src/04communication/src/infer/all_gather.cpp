@@ -1,7 +1,7 @@
 ﻿#include "infer.h"
 
 namespace refactor::communication {
-    using namespace computation;
+    using namespace frontend;
 
     InferResult inferAllGather(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {

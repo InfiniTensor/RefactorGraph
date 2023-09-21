@@ -2,10 +2,10 @@
 #define COMMUNICATION_INFER_H
 
 #include "common/error_handler.h"
-#include "computation/operator.h"
+#include "frontend/operator.h"
 
 namespace refactor::communication {
-    using namespace computation;
+    using namespace frontend;
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 

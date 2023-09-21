@@ -1,7 +1,7 @@
-﻿#include "computation/infer.h"
+﻿#include "frontend/infer.h"
 #include "common/natural.h"
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     InferError::InferError(std::string msg)
         : value(FatalError{}),
@@ -58,4 +58,4 @@ namespace refactor::computation {
         }
         return reinterpret_cast<uint8_t *>(tensor.data->ptr) + k * tensor.dataType.size();
     }
-}// namespace refactor::computation
+}// namespace refactor::frontend

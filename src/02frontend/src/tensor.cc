@@ -1,8 +1,8 @@
-﻿#include "computation/tensor.h"
+﻿#include "frontend/tensor.h"
 #include "common/error_handler.h"
 #include <numeric>
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     DimVariableInternal::DimVariableInternal(std::string name_, std::optional<int64_t> value_)
         : name(std::move(name_)), value(value_) {}
@@ -88,4 +88,4 @@ namespace refactor::computation {
         data = nullptr;
     }
 
-}// namespace refactor::computation
+}// namespace refactor::frontend

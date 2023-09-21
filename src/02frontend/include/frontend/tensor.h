@@ -1,12 +1,12 @@
-﻿#ifndef COMPUTATION_TENSOR_H
-#define COMPUTATION_TENSOR_H
+﻿#ifndef FRONTEND_TENSOR_H
+#define FRONTEND_TENSOR_H
 
 #include "absl/container/inlined_vector.h"
 #include "common/data_type.h"
 #include <unordered_set>
 #include <variant>
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     struct DimVariableInternal {
         std::string name;
@@ -79,6 +79,6 @@ namespace refactor::computation {
         std::string name;
     };
 
-}// namespace refactor::computation
+}// namespace refactor::frontend
 
-#endif// COMPUTATION_TENSOR_H
+#endif// FRONTEND_TENSOR_H
