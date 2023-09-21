@@ -45,3 +45,6 @@ add_subdirectory(src/03onnx)
 
 include_directories(src/04communication/include)
 add_subdirectory(src/04communication)
+
+include_directories(src/05kernel/include)
+add_subdirectory(src/05kernel)
