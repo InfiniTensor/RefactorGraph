@@ -1,10 +1,10 @@
-﻿#ifndef COMPUTATION_GRAPH_H
-#define COMPUTATION_GRAPH_H
+﻿#ifndef FRONTEND_GRAPH_H
+#define FRONTEND_GRAPH_H
 
 #include "graph_topo/graph_topo.h"
 #include "operator.h"
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     class Graph {
         graph_topo::Graph<Node, Edge> _internal;
@@ -16,15 +16,14 @@ namespace refactor::computation {
         Graph(Graph &&) = default;
 
         void collectVariables();
-        Graph clone() const;
+        std::unordered_set<std::string> fillEdgeInfo();
 
+        auto internal() -> decltype(_internal) &;
         auto internal() const -> decltype(_internal) const &;
 
-        std::unordered_set<std::string> fillEdgeInfo();
         bool substitute(const char *, int64_t);
-        bool setInput(size_t, std::shared_ptr<Tensor>);
     };
 
-}// namespace refactor::computation
+}// namespace refactor::frontend
 
-#endif// COMPUTATION_GRAPH_H
+#endif// FRONTEND_GRAPH_H

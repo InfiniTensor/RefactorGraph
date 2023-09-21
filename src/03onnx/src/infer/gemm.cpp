@@ -10,7 +10,7 @@ namespace refactor::onnx {
             auto const &a = inputs[0];
             auto const &b = inputs[1];
             auto dataType = a->dataType;
-            if (!isNumbericDataType(dataType) || b->dataType != dataType) {
+            if (!dataType.isNumberic() || b->dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
             if (a->shape.size() != 2 || b->shape.size() != 2) {
@@ -50,7 +50,7 @@ namespace refactor::onnx {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
             }
-            return Ok(Tensors{Tensor::share(dataType, Shape{DimExpr(m), DimExpr(n)})});
+            return Ok(Tensors{Tensor::share(dataType, Shape{DimExpr(m), DimExpr(n)}, extractDependency(inputs))});
         }
     }
 }// namespace refactor::onnx

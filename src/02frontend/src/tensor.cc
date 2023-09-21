@@ -1,8 +1,8 @@
-﻿#include "computation/tensor.h"
+﻿#include "frontend/tensor.h"
 #include "common/error_handler.h"
 #include <numeric>
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     DimVariableInternal::DimVariableInternal(std::string name_, std::optional<int64_t> value_)
         : name(std::move(name_)), value(value_) {}
@@ -56,26 +56,30 @@ namespace refactor::computation {
     Blob::Blob(void *ptr_) : ptr(ptr_) {}
     Blob::~Blob() { std::free(ptr); }
 
-    Tensor::Tensor(common::DataType dt_, Shape shape_, std::shared_ptr<Blob> data_)
-        : dataType(dt_),
-          shape(std::move(shape_)),
-          data(std::move(data_)) {}
-    std::shared_ptr<Tensor> Tensor::share(common::DataType dt, Shape shape, std::shared_ptr<Blob> data) {
-        return std::make_shared<Tensor>(dt, std::move(shape), std::move(data));
+    Tensor::Tensor(common::DataType dataType_,
+                   Shape shape_,
+                   std::shared_ptr<Blob> data_,
+                   std::unordered_set<DimVariable> depVariables_)
+        : dataType(dataType_),
+          shape(shape_),
+          data(data_),
+          depVariables(depVariables_) {}
+    std::shared_ptr<Tensor>
+    Tensor::share(common::DataType dt,
+                  Shape shape,
+                  std::unordered_set<DimVariable> depVariables,
+                  std::shared_ptr<Blob> data) {
+        return std::make_shared<Tensor>(dt, std::move(shape), std::move(data), std::move(depVariables));
     }
-    bool Tensor::operator==(Tensor const &rhs) const {
-        return dataType == rhs.dataType &&
-               shape == rhs.shape &&
-               data.get() == rhs.data.get();
+    bool Tensor::hasData() const {
+        return data.get();
     }
-    bool Tensor::operator!=(Tensor const &rhs) const { return !operator==(rhs); }
-    bool Tensor::hasData() const { return data.get(); }
     size_t Tensor::elementsSize() const {
         return std::accumulate(shape.begin(), shape.end(), 1,
                                [](auto acc, auto const &it) { return acc * it.value(); });
     }
     size_t Tensor::bytesSize() const {
-        return common::dataTypeSize(dataType) * elementsSize();
+        return dataType.size() * elementsSize();
     }
     void *Tensor::malloc() {
         return (data = std::make_shared<Blob>(std::malloc(bytesSize())))->ptr;
@@ -84,4 +88,4 @@ namespace refactor::computation {
         data = nullptr;
     }
 
-}// namespace refactor::computation
+}// namespace refactor::frontend

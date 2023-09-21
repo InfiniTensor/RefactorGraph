@@ -1,5 +1,5 @@
-﻿#ifndef COMPUTATION_OPERATOR_H
-#define COMPUTATION_OPERATOR_H
+﻿#ifndef FRONTEND_OPERATOR_H
+#define FRONTEND_OPERATOR_H
 
 #include "infer.h"
 #include "tensor.h"
@@ -7,7 +7,7 @@
 #include <variant>
 #include <vector>
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     using Int = long long;
     using Ints = std::vector<long long>;
@@ -68,6 +68,6 @@ namespace refactor::computation {
         InferResult infer(Tensors) const;
     };
 
-}// namespace refactor::computation
+}// namespace refactor::frontend
 
-#endif// COMPUTATION_OPERATOR_H
+#endif// FRONTEND_OPERATOR_H

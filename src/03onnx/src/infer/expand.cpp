@@ -1,5 +1,6 @@
 ﻿#include "common/range.h"
 #include "infer.h"
+#include <execution>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -15,24 +16,21 @@ namespace refactor::onnx {
             auto const &shape = inputs[1];
             auto shape_ = reinterpret_cast<int64_t *>(shape->data->ptr);
             EXPECT_VAL(shape->shape[0], shapeSize)
-            Shape shape__(shape_, shape_ + shapeSize);
 
-            auto res = multidirBroadcast({data->shape, shape__});
-            if (res.isErr()) {
-                return Err(InferError(ERROR_MSG(res.unwrapErr())));
-            }
-            auto dataType = data->dataType;
-            auto ans = Tensor::share(dataType, std::move(res.unwrap()));
+            Shape forRef(shape_, shape_ + shapeSize);
+            MULTIDIR_BROADCAST((ShapeRefs{data->shape, forRef}))
+            auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
             if (!shouldCalculate(inputs, ans->shape)) {
                 return Ok(Tensors{std::move(ans)});
             }
 
-            auto eleSize = dataTypeSize(dataType);
-            auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-            for (auto i : range0_(ans->elementsSize())) {
-                auto src = locate1(*data, locateN(ans->shape, i));
-                std::memcpy(dst + i * eleSize, src, eleSize);
-            }
+            std::for_each_n(std::execution::par_unseq,
+                            natural_t(0), ans->elementsSize(),
+                            [&data, &ans,
+                             dst = reinterpret_cast<uint8_t *>(ans->malloc()),
+                             eleSize = data->dataType.size()](auto const i) {
+                                std::memcpy(dst + i * eleSize, locate1(*data, locateN(ans->shape, i)), eleSize);
+                            });
             return Ok(Tensors{std::move(ans)});
         }
     }

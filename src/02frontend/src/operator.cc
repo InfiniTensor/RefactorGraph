@@ -1,8 +1,8 @@
-﻿#include "computation/operator.h"
+﻿#include "frontend/operator.h"
 #include "common/error_handler.h"
-#include "computation/graph.h"
+#include "frontend/graph.h"
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     bool Attribute::operator==(Attribute const &rhs) const {
         if (value.index() != rhs.value.index()) {
@@ -131,4 +131,4 @@ namespace refactor::computation {
         return OP_REPO.map.at(opType.id).inference(*this, inputs);
     }
 
-}// namespace refactor::computation
+}// namespace refactor::frontend

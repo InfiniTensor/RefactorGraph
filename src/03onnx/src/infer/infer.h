@@ -1,12 +1,12 @@
-﻿#ifndef GRAPH_INFER_H
-#define GRAPH_INFER_H
+﻿#ifndef ONNX_INFER_H
+#define ONNX_INFER_H
 
 #include "common/error_handler.h"
-#include "computation/operator.h"
+#include "frontend/operator.h"
 #include <optional>
 
 namespace refactor::onnx {
-    using namespace computation;
+    using namespace frontend;
     using ShapeOrNot = std::optional<Shape>;
 
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
@@ -18,6 +18,7 @@ namespace refactor::onnx {
     InferResult inferReshape(Operator const &, Tensors);
     InferResult inferCumSum(Operator const &, Tensors);
     InferResult inferSlice(Operator const &, Tensors);
+    InferResult inferSplit(Operator const &, Tensors);
     InferResult inferShape(Operator const &, Tensors);
     InferResult inferWhere(Operator const &, Tensors);
     InferResult inferSqueeze(Operator const &, Tensors);
@@ -32,14 +33,16 @@ namespace refactor::onnx {
     InferResult inferMax(Operator const &, Tensors);
     InferResult inferTranspose(Operator const &, Tensors);
     InferResult inferExpand(Operator const &, Tensors);
+    InferResult inferConstant(Operator const &, Tensors);
     InferResult inferConstantOfShape(Operator const &, Tensors);
 
     using ShapeResult = Result<Shape, std::string>;
+    using ShapeRefs = std::vector<std::reference_wrapper<const Shape>>;
 
     /// @brief 多方向形状广播。
     /// @param inputs 所有输入的形状。
     /// @return 广播后的形状。
-    ShapeResult multidirBroadcast(std::vector<Shape> const &);
+    ShapeResult multidirBroadcast(ShapeRefs const &);
 
     /// @brief 单方向形状广播。
     /// @param target 目标形状。
@@ -73,14 +76,15 @@ namespace refactor::onnx {
         return Err(InferError(UnknownVariable{(DIM.variable()->name)})); \
     }
 
-    bool shouldCalculate(Tensors const &inputs, Shape const &output);
-
-    using Indices = absl::InlinedVector<int64_t, 4>;
-    size_t sizeOf(Shape const &shape);
-    /// @brief 将标量坐标 `k` 展开到 `shape` 空间。
-    Indices locateN(Shape const &shape, size_t k);
-    /// @brief 在 `tensor` 中定位空间坐标 `indices` 所指向的元素。
-    void *locate1(Tensor const &tensor, Indices const &indices);
+#define MULTIDIR_BROADCAST(SHAPES)                              \
+    Shape output;                                               \
+    {                                                           \
+        auto res = multidirBroadcast(SHAPES);                   \
+        if (res.isErr()) {                                      \
+            return Err(InferError(ERROR_MSG(res.unwrapErr()))); \
+        }                                                       \
+        output = std::move(res.unwrap());                       \
+    }
 }// namespace refactor::onnx
 
-#endif// GRAPH_INFER_H
+#endif// ONNX_INFER_H

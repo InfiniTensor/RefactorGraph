@@ -33,11 +33,11 @@ namespace refactor::graph_topo {
     };
 
     class Searcher::Node {
-        Searcher const *_internal;
+        Searcher const &_internal;
         size_t _idx;
 
     public:
-        Node(Searcher const *internal, size_t idx);
+        Node(Searcher const &, size_t);
         bool operator==(Node const &) const;
         bool operator!=(Node const &) const;
         bool operator<(Node const &) const;
@@ -52,11 +52,11 @@ namespace refactor::graph_topo {
         std::set<Node> successors() const;
     };
     class Searcher::Edge {
-        Searcher const *_internal;
+        Searcher const &_internal;
         size_t _idx;
 
     public:
-        Edge(Searcher const *internal, size_t idx);
+        Edge(Searcher const &, size_t);
         bool operator==(Edge const &) const;
         bool operator!=(Edge const &) const;
         bool operator<(Edge const &) const;
@@ -70,15 +70,15 @@ namespace refactor::graph_topo {
     };
 
     class Searcher::Nodes {
-        Searcher const *_internal;
+        Searcher const &_internal;
 
     public:
         class Iterator {
-            Searcher const *_internal;
+            Searcher const &_internal;
             size_t _idx;
 
         public:
-            Iterator(Searcher const *internal, size_t idx);
+            Iterator(Searcher const &, size_t);
             bool operator==(Iterator const &) const;
             bool operator!=(Iterator const &) const;
             bool operator<(Iterator const &) const;
@@ -89,22 +89,22 @@ namespace refactor::graph_topo {
             Node operator*();
         };
 
-        Nodes(Searcher const *);
+        Nodes(Searcher const &);
         Iterator begin() const;
         Iterator end() const;
         size_t size() const;
         Node operator[](size_t) const;
     };
     class Searcher::Edges {
-        Searcher const *_internal;
+        Searcher const &_internal;
 
     public:
         class Iterator {
-            Searcher const *_internal;
+            Searcher const &_internal;
             size_t _idx;
 
         public:
-            Iterator(Searcher const *internal, size_t idx);
+            Iterator(Searcher const &, size_t);
             bool operator==(Iterator const &) const;
             bool operator!=(Iterator const &) const;
             bool operator<(Iterator const &) const;
@@ -115,7 +115,7 @@ namespace refactor::graph_topo {
             Edge operator*();
         };
 
-        Edges(Searcher const *);
+        Edges(Searcher const &);
         Iterator begin() const;
         Iterator end() const;
         size_t size() const;

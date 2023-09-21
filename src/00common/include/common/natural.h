@@ -31,6 +31,32 @@ namespace refactor::common {
         }
     };
 
+    template<class t = size_t>
+    class rev_natural_t : public std::iterator<std::input_iterator_tag, t> {
+        size_t _i;
+
+    public:
+        rev_natural_t(t val) : _i(val - 1) {}
+        bool operator==(rev_natural_t const &rhs) const { return _i == rhs._i; }
+        bool operator!=(rev_natural_t const &rhs) const { return _i != rhs._i; }
+        bool operator<(rev_natural_t const &rhs) const { return _i > rhs._i; }
+        bool operator>(rev_natural_t const &rhs) const { return _i < rhs._i; }
+        bool operator<=(rev_natural_t const &rhs) const { return _i >= rhs._i; }
+        bool operator>=(rev_natural_t const &rhs) const { return _i <= rhs._i; }
+        rev_natural_t &operator++() {
+            --_i;
+            return *this;
+        }
+        rev_natural_t operator++(int) {
+            auto ans = *this;
+            operator++();
+            return ans;
+        }
+        t operator*() const {
+            return _i;
+        }
+    };
+
 }// namespace refactor::common
 
 #endif// NATURAL_H

@@ -4,14 +4,14 @@
 
 using namespace refactor;
 using namespace common;
-using namespace computation;
+using namespace frontend;
 using namespace onnx;
 
 TEST(infer, Shape) {
     onnx::register_();
     auto opType = OpType::parse("onnx::Shape");
     {
-        auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)});
+        auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
         auto infered = Operator{opType, {}}.infer({data});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
@@ -25,7 +25,7 @@ TEST(infer, Shape) {
         ASSERT_EQ(ptr[2], 1);
     }
     {
-        auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)});
+        auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
         auto infered = Operator{opType, {{"start", {1}}}}.infer({data});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
@@ -38,7 +38,7 @@ TEST(infer, Shape) {
         ASSERT_EQ(ptr[1], 1);
     }
     {
-        auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)});
+        auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
         auto infered = Operator{opType, {{"start", {1}}, {"end", {2}}}}.infer({data});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
@@ -50,7 +50,7 @@ TEST(infer, Shape) {
         ASSERT_EQ(ptr[0], 3);
     }
     {
-        auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)});
+        auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
         auto infered = Operator{opType, {{"start", {1}}, {"end", {-1}}}}.infer({data});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());

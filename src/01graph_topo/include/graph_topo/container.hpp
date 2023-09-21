@@ -31,8 +31,9 @@ namespace refactor::graph_topo {
         };
 
         class Iterator {
-            GraphTopo const *_internal;
+            GraphTopo const &_internal;
             size_t _idx, _passConnections, _passEdges;
+            Iterator(GraphTopo const &, size_t, size_t, size_t);
 
         public:
             static Iterator begin(GraphTopo const *);
@@ -54,6 +55,7 @@ namespace refactor::graph_topo {
         Iterator end() const;
         size_t size() const;
         size_t globalInputsCount() const;
+        common::slice_t<size_t> globalOutputs() const;
 
         static GraphTopo __withGlobalInputs(size_t globalInputsCount);
         void __addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount);

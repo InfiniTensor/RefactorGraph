@@ -1,5 +1,6 @@
 ﻿#include "common/range.h"
 #include "infer.h"
+#include <execution>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -12,7 +13,6 @@ namespace refactor::onnx {
             auto const &data = inputs[0];
             auto const &indices = inputs[1];
             auto const r = data->shape.size();
-            auto const q = indices->shape.size();
             auto axis = op.attribute("axis", {0}).int_();
             if (axis < 0) {
                 axis += r;
@@ -20,50 +20,48 @@ namespace refactor::onnx {
             if (axis < 0 || r <= axis) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            auto dataType = data->dataType;
             auto output = data->shape;
             output.erase(output.begin() + axis);
             output.insert(output.begin() + axis, indices->shape.begin(), indices->shape.end());
+            auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
             if (!shouldCalculate(inputs, output)) {
-                return Ok(Tensors{Tensor::share(dataType, std::move(output))});
+                return Ok(Tensors{std::move(ans)});
             }
 
-            auto const ssz = output.size();
-            auto ans = Tensor::share(dataType, std::move(output));
-            auto eleSize = dataTypeSize(dataType);
-            auto src = reinterpret_cast<uint8_t *>(data->data->ptr);
-            auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-
-            for (auto i : range0_(ans->elementsSize())) {
-                auto indices_ = locateN(output, i);
-                int64_t k;
-                {
-                    size_t ii = 0, mul = 1;
-                    for (size_t j = 0; j < q; ++j) {
-                        auto j_ = q - 1 - j;// reverse
-                        ii += indices_[j_] * mul;
-                        mul *= indices->shape[j_].value();
-                    }
-                    k = indices->dataType == DataType::I64
-                            ? reinterpret_cast<int64_t *>(indices->data->ptr)[ii]
-                            : reinterpret_cast<int32_t *>(indices->data->ptr)[ii];
-                }
-                {
-                    size_t ii = 0, mul = 1;
-                    for (size_t j = axis + q; j < ssz; ++j) {
-                        auto j_ = ssz - 1 - j;// reverse
-                        ii += indices_[j_] * mul;
-                        mul *= data->shape[j_ - q + 1].value();
-                    }
-                    ii += k * mul;
-                    for (size_t j = 0; j < axis; ++j) {
-                        auto j_ = axis - 1 - j;// reverse
-                        ii += indices_[j_] * mul;
-                        mul *= data->shape[j_].value();
-                    }
-                    std::memcpy(dst + i * eleSize, src + ii * eleSize, eleSize);
-                }
-            }
+            std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
+                            [&data, &indices, &output,
+                             axis,
+                             q = indices->shape.size(),
+                             ssz = output.size(),
+                             src = reinterpret_cast<uint8_t *>(data->data->ptr),
+                             dst = reinterpret_cast<uint8_t *>(ans->malloc()),
+                             eleSize = data->dataType.size()](auto const i) {
+                                auto indices_ = locateN(output, i);
+                                int64_t k;
+                                {
+                                    size_t ii = 0, mul = 1;
+                                    for (auto j : range0_(q).rev()) {
+                                        ii += indices_[j] * mul;
+                                        mul *= indices->shape[j].value();
+                                    }
+                                    k = indices->dataType == DataType::I64
+                                            ? reinterpret_cast<int64_t *>(indices->data->ptr)[ii]
+                                            : reinterpret_cast<int32_t *>(indices->data->ptr)[ii];
+                                }
+                                {
+                                    size_t ii = 0, mul = 1;
+                                    for (auto j : range(static_cast<decltype(q)>(axis) + q, ssz).rev()) {
+                                        ii += indices_[j] * mul;
+                                        mul *= data->shape[j - q + 1].value();
+                                    }
+                                    ii += k * mul;
+                                    for (auto j : range0_(axis).rev()) {
+                                        ii += indices_[j] * mul;
+                                        mul *= data->shape[j].value();
+                                    }
+                                    std::memcpy(dst + i * eleSize, src + ii * eleSize, eleSize);
+                                }
+                            });
 
             return Ok(Tensors{std::move(ans)});
         }

@@ -1,12 +1,12 @@
-﻿#ifndef COMPUTATION_TENSOR_H
-#define COMPUTATION_TENSOR_H
+﻿#ifndef FRONTEND_TENSOR_H
+#define FRONTEND_TENSOR_H
 
 #include "absl/container/inlined_vector.h"
 #include "common/data_type.h"
-#include <cstring>
+#include <unordered_set>
 #include <variant>
 
-namespace refactor::computation {
+namespace refactor::frontend {
 
     struct DimVariableInternal {
         std::string name;
@@ -57,11 +57,14 @@ namespace refactor::computation {
         Shape shape;
         std::shared_ptr<Blob> data;
 
-        Tensor(common::DataType, Shape, std::shared_ptr<Blob> = nullptr);
-        static std::shared_ptr<Tensor> share(common::DataType, Shape, std::shared_ptr<Blob> = nullptr);
+        std::unordered_set<DimVariable> depVariables;
 
-        bool operator==(Tensor const &) const;
-        bool operator!=(Tensor const &) const;
+        Tensor(common::DataType, Shape, std::shared_ptr<Blob>, std::unordered_set<DimVariable>);
+        static std::shared_ptr<Tensor> share(
+            common::DataType,
+            Shape,
+            std::unordered_set<DimVariable>,
+            std::shared_ptr<Blob> = nullptr);
 
         bool hasData() const;
         size_t elementsSize() const;
@@ -76,6 +79,6 @@ namespace refactor::computation {
         std::string name;
     };
 
-}// namespace refactor::computation
+}// namespace refactor::frontend
 
-#endif// COMPUTATION_TENSOR_H
+#endif// FRONTEND_TENSOR_H

@@ -12,11 +12,8 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
 
-            auto res = multidirBroadcast({a->shape, b->shape});
-            if (res.isErr()) {
-                return Err(InferError(ERROR_MSG(res.unwrapErr())));
-            }
-            auto ans = Tensor::share(DataType::Bool, std::move(res.unwrap()));
+            MULTIDIR_BROADCAST((ShapeRefs{a->shape, b->shape}))
+            auto ans = Tensor::share(DataType::Bool, std::move(output), extractDependency(inputs));
             if (!shouldCalculate(inputs, ans->shape) || a->dataType != DataType::I64) {// TODO: support other data type
                 return Ok(Tensors{std::move(ans)});
             }
