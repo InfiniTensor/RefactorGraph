@@ -16,7 +16,6 @@ namespace refactor::computation {
 
     void Graph::collectVariables() {
         auto const globalInputsCount = _internal.topology.globalInputsCount();
-        ;
         for (auto i : range0_(globalInputsCount)) {
             auto const &edge = _internal.edges[i];
             if (!edge.tensor) {
@@ -106,11 +105,12 @@ namespace refactor::computation {
                 if (infered_.size() < outputs.size()) {
                     OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
                 } else {
-                    msg += ", outputs = ( ";
+                    msg += ", outputs = [ ";
                     for (auto const &tensor : infered_) {
                         msg += shapeFormat(tensor->shape);
+                        msg += ' ';
                     }
-                    msg += " )";
+                    msg += ']';
                     for (auto i : range0_(outputs.size())) {
                         _internal.edges[outputs[i]].tensor = std::move(infered_[i]);
                     }
