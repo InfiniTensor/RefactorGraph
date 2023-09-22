@@ -23,7 +23,7 @@ namespace refactor::onnx {
             EXPECT_VAL(b->shape[0], b0)
             EXPECT_VAL(b->shape[1], b1)
 
-            size_t m, n, k;
+            int64_t m, n, k;
             if (op.attribute("transA", {0}).int_() == 0) {
                 m = a0;
                 k = a1;

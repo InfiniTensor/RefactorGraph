@@ -18,6 +18,10 @@ namespace refactor::common {
         Iterator begin() const { return begin_; }
         Iterator end() const { return end_; }
     };
+
+    template<class t> slice_t<t> slice(t const *begin, t const *end) { return {begin, end}; }
+    template<class t> slice_t<t> slice(t const *begin, int64_t size) { return {begin, begin + size}; }
+    template<class t> slice_t<t> slice(t const *begin, size_t size) { return {begin, begin + size}; }
 }// namespace refactor::common
 
 #endif// SLICE_H

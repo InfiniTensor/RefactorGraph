@@ -22,10 +22,9 @@ namespace refactor::graph_topo {
         std::vector<OutputEdge> _connections;
 
         __Implement() = default;
-        __Implement(GraphTopo const &others)
-            : _globalInputsCount(_globalInputsCount),
-              _nodes(others._impl->_nodes),
-              _connections(others._impl->_connections) {}
+        __Implement(__Implement const &) = default;
+        __Implement(__Implement &&) noexcept = default;
+        __Implement(GraphTopo const &others) : __Implement(*others._impl) {}
     };
 
 }// namespace refactor::graph_topo

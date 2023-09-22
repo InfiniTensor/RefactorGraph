@@ -56,6 +56,7 @@ namespace refactor::frontend {
             std::shared_ptr<common::Blob> = nullptr);
 
         bool hasData() const;
+        int64_t rank() const;
         size_t elementsSize() const;
         size_t bytesSize() const;
 
@@ -63,11 +64,11 @@ namespace refactor::frontend {
         void free();
     };
 
-    using SharedTensor = std::shared_ptr<Tensor>;
-    using Tensors = std::vector<SharedTensor>;
+    using Tensor_ = std::shared_ptr<Tensor>;
+    using Tensors = std::vector<Tensor_>;
 
     struct Edge {
-        std::shared_ptr<Tensor> tensor;
+        Tensor_ tensor;
         std::string name;
     };
 

@@ -43,7 +43,6 @@ namespace refactor::onnx {
                 !delta->hasData()) {
                 return Err(InferError(ERROR_MSG("Input data not support")));
             }
-            size_t size;
             //-------------------------------------
 #define CASE(T)                                           \
     case DataType::T:                                     \

@@ -12,7 +12,7 @@ namespace refactor::onnx {
         }
         auto dataType = inputs[0]->dataType;
         auto output = inputs[0]->shape;
-        auto rank = output.size();
+        auto rank = inputs[0]->rank();
         auto axis = op.attribute("axis").int_();
         if (axis < 0) {
             axis += rank;
@@ -28,7 +28,7 @@ namespace refactor::onnx {
             if (input->shape.size() != output.size()) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            for (auto i : range0_(output.size())) {
+            for (auto i : range0_(static_cast<int64_t>(output.size()))) {
                 if (i == axis) {
                     EXPECT_VAL(output[i], a)
                     EXPECT_VAL(input->shape[i], b)

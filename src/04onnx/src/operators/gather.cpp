@@ -13,7 +13,7 @@ namespace refactor::onnx {
         } else {
             auto const &data = inputs[0];
             auto const &indices = inputs[1];
-            auto const r = data->shape.size();
+            auto const r = data->rank();
             auto axis = op.attribute("axis", {0}).int_();
             if (axis < 0) {
                 axis += r;

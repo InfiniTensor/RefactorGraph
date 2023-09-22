@@ -4,9 +4,7 @@
 #include "infer.h"
 #include "lower.h"
 #include "tensor.h"
-#include <memory>
 #include <variant>
-#include <vector>
 
 namespace refactor::frontend {
 
@@ -16,8 +14,6 @@ namespace refactor::frontend {
     using Floats = std::vector<float>;
     using String = std::string;
     using Strings = std::vector<std::string>;
-    using Tensor_ = std::shared_ptr<Tensor>;
-    using Tensors = std::vector<std::shared_ptr<Tensor>>;
 
     struct Attribute {
         std::variant<Int, Ints, Float, Floats, String, Strings, Tensor_, Tensors> value;

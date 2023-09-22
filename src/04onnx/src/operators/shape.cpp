@@ -1,5 +1,5 @@
-﻿#include "common/range.h"
-#include "common.h"
+﻿#include "common.h"
+#include "common/range.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -7,7 +7,7 @@ namespace refactor::onnx {
     InferResult inferShape(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1) {
             auto const &data = inputs[0];
-            auto rank = data->shape.size();
+            auto const rank = data->rank();
 
             auto start = op.attribute("start", {0}).int_(),
                  end = op.attribute("end", {static_cast<int64_t>(rank)}).int_();

@@ -26,7 +26,7 @@ namespace refactor::onnx {
         if (ends_->shape != starts_->shape) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
-        auto rank = data->shape.size();
+        auto rank = data->rank();
         EXPECT_VAL(starts_->shape[0], rankParam)
         if (rank < rankParam) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
@@ -130,7 +130,7 @@ namespace refactor::onnx {
                          dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto i) {
                             auto indices = locateN(output, i);
                             Indices indices_(indices.begin(), indices.end());
-                            for (size_t j = 0; j < rank; ++j) {
+                            for (auto j : range0_(rank)) {
                                 if (axes) {
                                     if (axes_[j] >= 0) {
                                         auto start = starts[axes_[j]];

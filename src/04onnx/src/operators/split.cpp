@@ -11,7 +11,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input size error")));
         } else {
             auto input = inputs[0];
-            auto rank = input->shape.size();
+            auto rank = input->rank();
             auto axis = op.attribute("axis", {0}).int_();
             if (axis < 0) {
                 axis += rank;

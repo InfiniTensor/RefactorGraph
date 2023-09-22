@@ -57,7 +57,7 @@ namespace refactor::onnx {
             if (reverse) {// TODO: support reverse
                 return Ok(Tensors{std::move(ans)});
             }
-            auto rank = ans->shape.size();
+            auto rank = ans->rank();
             auto axis_ = axis->dataType == DataType::I64
                              ? *reinterpret_cast<int64_t *>(axis->data->ptr)
                              : *reinterpret_cast<int32_t *>(axis->data->ptr);

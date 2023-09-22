@@ -27,7 +27,7 @@ namespace refactor::onnx {
                 if (axes->dataType != DataType::I64 || axes->shape.size() != 1 || !axes->hasData()) {
                     return Err(InferError(ERROR_MSG("Axes not support")));
                 }
-                auto rank = data->shape.size();
+                auto rank = data->rank();
                 auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
                 EXPECT_VAL(axes->shape[0], axesSize)
                 std::unordered_set<int64_t> axes__;

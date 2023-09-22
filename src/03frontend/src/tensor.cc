@@ -68,9 +68,8 @@ namespace refactor::frontend {
                   std::shared_ptr<common::Blob> data) {
         return std::make_shared<Tensor>(dt, std::move(shape), std::move(data), std::move(depVariables));
     }
-    bool Tensor::hasData() const {
-        return data.get();
-    }
+    bool Tensor::hasData() const { return data.get(); }
+    int64_t Tensor::rank() const { return shape.size(); }
     size_t Tensor::elementsSize() const {
         return std::accumulate(shape.begin(), shape.end(), 1,
                                [](auto acc, auto const &it) { return acc * it.value(); });
