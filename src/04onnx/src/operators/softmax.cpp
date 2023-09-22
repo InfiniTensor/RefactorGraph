@@ -11,7 +11,7 @@ namespace refactor::onnx {
         return Ok(std::move(inputs));
     }
 
-    computation::SharedOp lowerSoftmax(Operator const &) {
+    computation::SharedOp lowerSoftmax(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx

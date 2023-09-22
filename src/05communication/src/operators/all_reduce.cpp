@@ -10,7 +10,7 @@ namespace refactor::communication {
         }
     }
 
-    computation::SharedOp lowerAllReduce(Operator const &op) {
+    computation::SharedOp lowerAllReduce(Operator const &op, Tensors) {
         return nullptr;
     }
 }// namespace refactor::communication

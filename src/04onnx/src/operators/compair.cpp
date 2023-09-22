@@ -1,5 +1,6 @@
-﻿#include "common/range.h"
+﻿#include "computation/operators/compair.h"
 #include "common.h"
+#include "common/range.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -41,7 +42,19 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerCompair(Operator const &) {
-        return nullptr;
+    static computation::CompairType unsupport(OpType opType) {
+        RUNTIME_ERROR(fmt::format("{} not support in compair lowering", opType.name()));
+    }
+
+    computation::SharedOp lowerCompair(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto type = op.opType.is("onnx::Equal")            ? CompairType::EQ
+                    : op.opType.is("onnx::Greater")        ? CompairType::GT
+                    : op.opType.is("onnx::GreaterOrEqual") ? CompairType::GE
+                    : op.opType.is("onnx::Less")           ? CompairType::LT
+                    : op.opType.is("onnx::LessOrEqual")    ? CompairType::LE
+                                                           : unsupport(op.opType);
+        return std::make_shared<Compair>(Compair{{}, type});
     }
 }// namespace refactor::onnx

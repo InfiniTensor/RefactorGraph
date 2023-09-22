@@ -23,7 +23,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerTranspose(Operator const &) {
+    computation::SharedOp lowerTranspose(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx

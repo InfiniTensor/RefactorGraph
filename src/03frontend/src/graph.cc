@@ -206,13 +206,15 @@ namespace refactor::frontend {
         std::transform(_internal.topology.begin(), _internal.topology.end(), nodes.begin(),
                        [this](auto const &nodeRef) {
                            auto const &node = _internal.nodes[nodeRef.idx];
-                           return computation::Node{
-                               std::all_of(nodeRef.outputs.begin(), nodeRef.outputs.end(),
-                                           [this](auto i) { return _internal.edges[i].tensor->hasData(); })
-                                   ? nullptr
-                                   : node.op.lower(),
-                               node.name,
-                           };
+                           computation::SharedOp op = nullptr;
+                           if (!std::all_of(nodeRef.outputs.begin(), nodeRef.outputs.end(),
+                                            [this](auto i) { return _internal.edges[i].tensor->hasData(); })) {
+                               std::vector<std::shared_ptr<Tensor>> inputs(nodeRef.inputs.size());
+                               std::transform(nodeRef.inputs.begin(), nodeRef.inputs.end(), inputs.begin(),
+                                              [this](auto i) { return _internal.edges[i].tensor; });
+                               op = node.op.lower(std::move(inputs));
+                           }
+                           return computation::Node{std::move(op), node.name};
                        });
 
         return {_internal.topology, std::move(nodes), std::move(edges)};

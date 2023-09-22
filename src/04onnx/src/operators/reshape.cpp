@@ -1,5 +1,5 @@
-﻿#include "common/range.h"
-#include "common.h"
+﻿#include "common.h"
+#include "common/range.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -58,7 +58,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerReshape(Operator const &) {
+    computation::SharedOp lowerReshape(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx

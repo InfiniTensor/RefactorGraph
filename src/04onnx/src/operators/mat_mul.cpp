@@ -47,7 +47,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerMatMul(Operator const &) {
+    computation::SharedOp lowerMatMul(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx

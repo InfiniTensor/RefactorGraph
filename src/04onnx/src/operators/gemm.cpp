@@ -54,7 +54,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerGemm(Operator const &) {
+    computation::SharedOp lowerGemm(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx

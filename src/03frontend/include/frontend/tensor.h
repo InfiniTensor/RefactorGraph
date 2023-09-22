@@ -74,6 +74,9 @@ namespace refactor::frontend {
         void free();
     };
 
+    using SharedTensor = std::shared_ptr<Tensor>;
+    using Tensors = std::vector<SharedTensor>;
+
     struct Edge {
         std::shared_ptr<Tensor> tensor;
         std::string name;

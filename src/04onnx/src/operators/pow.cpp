@@ -15,7 +15,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerPow(Operator const &) {
+    computation::SharedOp lowerPow(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx

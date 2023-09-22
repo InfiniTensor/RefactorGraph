@@ -1,5 +1,6 @@
-﻿#include "common/range.h"
+﻿#include "computation/operators/concat.h"
 #include "common.h"
+#include "common/range.h"
 #include <execution>
 
 namespace refactor::onnx {
@@ -13,6 +14,12 @@ namespace refactor::onnx {
         auto output = inputs[0]->shape;
         auto rank = output.size();
         auto axis = op.attribute("axis").int_();
+        if (axis < 0) {
+            axis += rank;
+        }
+        if (axis < 0 || rank <= axis) {
+            return Err(InferError(ERROR_MSG("Axis out of range")));
+        }
         for (auto i : range(1ul, inputs.size())) {
             auto const &input = inputs[i];
             if (input->dataType != dataType) {
@@ -57,7 +64,13 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerConcat(Operator const &) {
-        return nullptr;
+    computation::SharedOp lowerConcat(Operator const &op, Tensors inputs) {
+        using namespace computation;
+
+        auto axis = op.attribute("axis").int_();
+        if (axis < 0) {
+            axis += inputs[0]->shape.size();
+        }
+        return std::make_shared<Concat>(Concat{{}, static_cast<size_t>(axis)});
     }
 }// namespace refactor::onnx

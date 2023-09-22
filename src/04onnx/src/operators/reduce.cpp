@@ -1,5 +1,5 @@
-﻿#include "common/range.h"
-#include "common.h"
+﻿#include "common.h"
+#include "common/range.h"
 #include <unordered_set>
 
 namespace refactor::onnx {
@@ -55,7 +55,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerReduce(Operator const &) {
+    computation::SharedOp lowerReduce(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx

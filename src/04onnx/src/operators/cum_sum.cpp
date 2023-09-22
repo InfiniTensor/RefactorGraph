@@ -1,5 +1,6 @@
-﻿#include "common/range.h"
+﻿#include "computation/operators/cum_sum.h"
 #include "common.h"
+#include "common/range.h"
 #include <execution>
 #include <numeric>
 
@@ -99,7 +100,10 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerCumSum(Operator const &) {
-        return nullptr;
+    computation::SharedOp lowerCumSum(Operator const &op, Tensors) {
+        using namespace computation;
+        auto exclusive = op.attribute("exclusive", {0}).int_() != 0;
+        auto reverse = op.attribute("reverse", {0}).int_() != 0;
+        return std::make_shared<CumSum>(CumSum{{}, exclusive, reverse});
     }
 }// namespace refactor::onnx

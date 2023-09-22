@@ -148,7 +148,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerSlice(Operator const &) {
+    computation::SharedOp lowerSlice(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx

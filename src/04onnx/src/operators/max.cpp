@@ -20,7 +20,7 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
     }
 
-    computation::SharedOp lowerMax(Operator const &) {
+    computation::SharedOp lowerMax(Operator const &, Tensors) {
         return nullptr;
     }
 }// namespace refactor::onnx
