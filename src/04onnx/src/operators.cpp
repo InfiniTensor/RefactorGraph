@@ -22,6 +22,7 @@ namespace refactor::onnx {
         OpType::register_("onnx::Max"             , inferMax             , lowerMax         );
         OpType::register_("onnx::Transpose"       , inferTranspose       , lowerTranspose   );
         OpType::register_("onnx::Cast"            , inferCast            , lowerCast        );
+        OpType::register_("onnx::Range"           , inferRange           , lowerRange       );
         OpType::register_("onnx::Slice"           , inferSlice           , lowerSlice       );
         OpType::register_("onnx::Split"           , inferSplit           , lowerSplit       );
         OpType::register_("onnx::Shape"           , inferShape           , unreachableLower );

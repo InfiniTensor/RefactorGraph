@@ -22,6 +22,7 @@ namespace refactor::onnx {
     InferResult inferMax             (Operator const &, Tensors); computation::SharedOp lowerMax        (Operator const &, Tensors);
     InferResult inferTranspose       (Operator const &, Tensors); computation::SharedOp lowerTranspose  (Operator const &, Tensors);
     InferResult inferCast            (Operator const &, Tensors); computation::SharedOp lowerCast       (Operator const &, Tensors);
+    InferResult inferRange           (Operator const &, Tensors); computation::SharedOp lowerRange      (Operator const &, Tensors);
     InferResult inferSlice           (Operator const &, Tensors); computation::SharedOp lowerSlice      (Operator const &, Tensors);
     InferResult inferSplit           (Operator const &, Tensors); computation::SharedOp lowerSplit      (Operator const &, Tensors);
     InferResult inferShape           (Operator const &, Tensors);
