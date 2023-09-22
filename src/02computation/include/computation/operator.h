@@ -2,6 +2,7 @@
 #define COMPUTATION_OPERATOR_H
 
 #include <memory>
+#include <string>
 
 namespace refactor::computation {
 
@@ -10,6 +11,11 @@ namespace refactor::computation {
     };
 
     using SharedOp = std::shared_ptr<Operator>;
+
+    struct Node {
+        SharedOp op;
+        std::string name;
+    };
 
 }// namespace refactor::computation
 

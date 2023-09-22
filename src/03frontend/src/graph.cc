@@ -187,4 +187,35 @@ namespace refactor::frontend {
         return unknownVariables;
     }
 
+    computation::Graph Graph::lower() const {
+
+        std::vector<computation::Edge> edges(_internal.edges.size());
+        std::transform(_internal.edges.begin(), _internal.edges.end(), edges.begin(),
+                       [](auto const &edge) {
+                           using _Tensor = computation::Tensor;
+                           computation::Shape shape(edge.tensor->shape.size());
+                           std::transform(edge.tensor->shape.begin(), edge.tensor->shape.end(), shape.begin(),
+                                          [](auto const &dim) { return dim.value(); });
+                           return computation::Edge{
+                               std::make_shared<_Tensor>(_Tensor{edge.tensor->dataType, std::move(shape)}),
+                               edge.name,
+                           };
+                       });
+
+        std::vector<computation::Node> nodes(_internal.nodes.size());
+        std::transform(_internal.topology.begin(), _internal.topology.end(), nodes.begin(),
+                       [this](auto const &nodeRef) {
+                           auto const &node = _internal.nodes[nodeRef.idx];
+                           return computation::Node{
+                               std::all_of(nodeRef.outputs.begin(), nodeRef.outputs.end(),
+                                           [this](auto i) { return _internal.edges[i].tensor->hasData(); })
+                                   ? nullptr
+                                   : node.op.lower(),
+                               node.name,
+                           };
+                       });
+
+        return {_internal.topology, std::move(nodes), std::move(edges)};
+    }
+
 }// namespace refactor::frontend
