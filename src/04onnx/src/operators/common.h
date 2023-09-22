@@ -19,7 +19,7 @@ namespace refactor::onnx {
     InferResult inferMatMul          (Operator const &, Tensors); computation::SharedOp lowerMatMul     (Operator const &, Tensors);
     InferResult inferGemm            (Operator const &, Tensors); computation::SharedOp lowerGemm       (Operator const &, Tensors);
     InferResult inferCumSum          (Operator const &, Tensors); computation::SharedOp lowerCumSum     (Operator const &, Tensors);
-    InferResult inferMax             (Operator const &, Tensors); computation::SharedOp lowerMax        (Operator const &, Tensors);
+    InferResult inferSelect          (Operator const &, Tensors); computation::SharedOp lowerSelect     (Operator const &, Tensors);
     InferResult inferTranspose       (Operator const &, Tensors); computation::SharedOp lowerTranspose  (Operator const &, Tensors);
     InferResult inferCast            (Operator const &, Tensors); computation::SharedOp lowerCast       (Operator const &, Tensors);
     InferResult inferRange           (Operator const &, Tensors); computation::SharedOp lowerRange      (Operator const &, Tensors);

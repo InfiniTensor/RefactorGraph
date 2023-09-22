@@ -1,7 +1,7 @@
-﻿#include "common.h"
+﻿#include "computation/operators/split.h"
+#include "common.h"
 #include "common/range.h"
 #include <execution>
-#include <unordered_set>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -53,7 +53,14 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerSplit(Operator const &, Tensors) {
-        return nullptr;
+    computation::SharedOp lowerSplit(Operator const &op, Tensors inputs) {
+        using namespace computation;
+
+        auto axis = op.attribute("axis", {-1}).int_();
+        if (axis < 0) {
+            axis += inputs[0]->shape.size();
+        }
+        auto numOutputs = op.attribute("num_outputs").int_();
+        return std::make_shared<Split>(static_cast<size_t>(axis), static_cast<size_t>(numOutputs));
     }
 }// namespace refactor::onnx

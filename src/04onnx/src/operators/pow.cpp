@@ -1,4 +1,5 @@
 ﻿#include "common.h"
+#include "computation/operators/simple_binary.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -15,7 +16,9 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerPow(Operator const &, Tensors) {
-        return nullptr;
+    computation::SharedOp lowerPow(Operator const &op, Tensors) {
+        using namespace computation;
+
+        return std::make_shared<SimpleBinary>(SimpleBinaryType::Pow);
     }
 }// namespace refactor::onnx

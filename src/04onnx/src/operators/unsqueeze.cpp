@@ -1,6 +1,6 @@
-﻿#include "common.h"
+﻿#include "computation/operators/unsqueeze.h"
+#include "common.h"
 #include "common/range.h"
-#include <unordered_set>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -40,6 +40,8 @@ namespace refactor::onnx {
     }
 
     computation::SharedOp lowerUnsqueeze(Operator const &, Tensors) {
-        return nullptr;
+        using namespace computation;
+
+        return std::make_shared<Unsqueeze>();
     }
 }// namespace refactor::onnx

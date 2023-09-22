@@ -10,6 +10,7 @@ namespace refactor::computation {
         Sub,
         Mul,
         Div,
+        Pow,
     };
 
     struct SimpleBinary : public Operator {

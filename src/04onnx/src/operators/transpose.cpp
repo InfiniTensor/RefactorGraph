@@ -1,4 +1,5 @@
-﻿#include "common.h"
+﻿#include "computation/operators/transpose.h"
+#include "common.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -23,7 +24,12 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerTranspose(Operator const &, Tensors) {
-        return nullptr;
+    computation::SharedOp lowerTranspose(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto perm = op.attribute("perm").ints();
+        decltype(Transpose::perm) ans(perm.size());
+        std::transform(perm.begin(), perm.end(), ans.begin(), [](auto i) { return static_cast<size_t>(i); });
+        return std::make_shared<Transpose>(std::move(ans));
     }
 }// namespace refactor::onnx

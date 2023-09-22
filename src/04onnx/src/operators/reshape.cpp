@@ -1,4 +1,5 @@
-﻿#include "common.h"
+﻿#include "computation/operators/reshape.h"
+#include "common.h"
 #include "common/range.h"
 
 namespace refactor::onnx {
@@ -14,6 +15,7 @@ namespace refactor::onnx {
         } else {
             auto const &input = inputs[0]->shape;
             auto shapeValue = reinterpret_cast<int64_t *>(inputs[1]->data->ptr);
+            auto allowzero = op.attribute("allowzero", {0}).int_() != 0;
             EXPECT_VAL(inputs[1]->shape[0], rank)
             Shape ans(rank, DimExpr(1));
             auto pos_1 = -1;
@@ -26,10 +28,14 @@ namespace refactor::onnx {
                         pos_1 = i;
                         break;
                     case 0:
-                        if (i >= input.size()) {
-                            return Err(InferError(ERROR_MSG("Invalid shape variable")));
+                        if (allowzero) {
+                            ans[i] = DimExpr(0);
+                        } else {
+                            if (i >= input.size()) {
+                                return Err(InferError(ERROR_MSG("Invalid shape variable")));
+                            }
+                            ans[i] = input[i];
                         }
-                        ans[i] = input[i];
                         break;
                     default:
                         ans[i] = DimExpr(shapeValue[i]);
@@ -58,7 +64,10 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerReshape(Operator const &, Tensors) {
-        return nullptr;
+    computation::SharedOp lowerReshape(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto allowzero = op.attribute("allowzero", {0}).int_() != 0;
+        return std::make_shared<Reshape>(allowzero);
     }
 }// namespace refactor::onnx

@@ -1,7 +1,7 @@
-﻿#include "common.h"
+﻿#include "computation/operators/slice.h"
+#include "common.h"
 #include "common/range.h"
 #include <execution>
-#include <unordered_set>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -149,6 +149,8 @@ namespace refactor::onnx {
     }
 
     computation::SharedOp lowerSlice(Operator const &, Tensors) {
-        return nullptr;
+        using namespace computation;
+
+        return std::make_shared<Slice>();
     }
 }// namespace refactor::onnx

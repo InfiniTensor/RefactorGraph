@@ -1,6 +1,6 @@
-﻿#include "common.h"
+﻿#include "computation/operators/reduce.h"
+#include "common.h"
 #include "common/range.h"
-#include <unordered_set>
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -13,7 +13,7 @@ namespace refactor::onnx {
             if (!data->dataType.isNumberic()) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
-            auto keepdims = op.attribute("keepdims", {1}).int_();
+            auto keepdims = op.attribute("keepdims", {1}).int_() != 0;
             if (inputs.size() == 1) {
                 if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
                     return Ok(std::move(inputs));
@@ -55,7 +55,26 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerReduce(Operator const &, Tensors) {
-        return nullptr;
+    static computation::ReduceType unsupport(OpType opType) {
+        RUNTIME_ERROR(fmt::format("{} not support in reduce lowering", opType.name()));
+    }
+
+    computation::SharedOp lowerReduce(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto type = op.opType.is("onnx::ReduceMean")        ? ReduceType::Mean
+                    : op.opType.is("onnx::ReduceL1")        ? ReduceType::L1
+                    : op.opType.is("onnx::ReduceL2")        ? ReduceType::L2
+                    : op.opType.is("onnx::ReduceLogSum")    ? ReduceType::LogSum
+                    : op.opType.is("onnx::ReduceLogSumExp") ? ReduceType::LogSumExp
+                    : op.opType.is("onnx::ReduceMax")       ? ReduceType::Max
+                    : op.opType.is("onnx::ReduceMin")       ? ReduceType::Min
+                    : op.opType.is("onnx::ReduceProd")      ? ReduceType::Prod
+                    : op.opType.is("onnx::ReduceSum")       ? ReduceType::Sum
+                    : op.opType.is("onnx::ReduceSumSquare") ? ReduceType::SumSquare
+                                                            : unsupport(op.opType);
+        auto keepdims = op.attribute("keepdims", {1}).int_() != 0;
+        auto noopWithEmptyAxes = op.attribute("noop_with_empty_axes", {0}).int_() != 0;
+        return std::make_shared<Reduce>(type, keepdims, noopWithEmptyAxes);
     }
 }// namespace refactor::onnx

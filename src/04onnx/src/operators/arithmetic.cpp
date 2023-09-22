@@ -89,7 +89,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SimpleBinaryType unsupport(OpType opType) {
+    static computation::SimpleBinaryType unsupport(OpType opType) {
         RUNTIME_ERROR(fmt::format("{} not support in binary lowering", opType.name()));
     }
 

@@ -1,4 +1,5 @@
-﻿#include "common.h"
+﻿#include "computation/operators/softmax.h"
+#include "common.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -11,7 +12,13 @@ namespace refactor::onnx {
         return Ok(std::move(inputs));
     }
 
-    computation::SharedOp lowerSoftmax(Operator const &, Tensors) {
-        return nullptr;
+    computation::SharedOp lowerSoftmax(Operator const &op, Tensors inputs) {
+        using namespace computation;
+
+        auto axis = op.attribute("axis", {-1}).int_();
+        if (axis < 0) {
+            axis += inputs[0]->shape.size();
+        }
+        return std::make_shared<Softmax>(static_cast<size_t>(axis));
     }
 }// namespace refactor::onnx
