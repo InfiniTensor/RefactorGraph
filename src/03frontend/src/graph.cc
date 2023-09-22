@@ -12,6 +12,9 @@ namespace refactor::frontend {
     Graph::Graph(graph_topo::Graph<Node, Edge> internal)
         : _internal(std::move(internal)), _variables() {
         collectVariables();
+#ifdef NDEBUG
+        fmtlog::setLogLevel(fmtlog::LogLevel::OFF);
+#endif
     }
 
     void Graph::collectVariables() {
