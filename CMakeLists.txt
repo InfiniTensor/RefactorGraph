@@ -37,14 +37,14 @@ add_subdirectory(src/00common)
 include_directories(src/01graph_topo/include)
 add_subdirectory(src/01graph_topo)
 
-include_directories(src/02frontend/include)
-add_subdirectory(src/02frontend)
+include_directories(src/02computation/include)
+add_subdirectory(src/02computation)
 
-include_directories(src/03onnx/include)
-add_subdirectory(src/03onnx)
+include_directories(src/03frontend/include)
+add_subdirectory(src/03frontend)
 
-include_directories(src/04communication/include)
-add_subdirectory(src/04communication)
+include_directories(src/04onnx/include)
+add_subdirectory(src/04onnx)
 
-include_directories(src/05computation/include)
-add_subdirectory(src/05computation)
+include_directories(src/05communication/include)
+add_subdirectory(src/05communication)
