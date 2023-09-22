@@ -35,12 +35,6 @@ namespace refactor::frontend {
     };
     using Attributes = std::unordered_map<std::string, Attribute>;
 
-    class Operator;
-    struct Node {
-        std::shared_ptr<Operator> op;
-        std::string name;
-    };
-
     struct OpType {
         size_t id;
 
@@ -66,6 +60,11 @@ namespace refactor::frontend {
         Attribute const &attribute(const char *, Attribute const &default_) const;
 
         InferResult infer(Tensors) const;
+    };
+
+    struct Node {
+        Operator op;
+        std::string name;
     };
 
 }// namespace refactor::frontend

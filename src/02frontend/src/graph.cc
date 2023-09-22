@@ -87,9 +87,9 @@ namespace refactor::frontend {
             if (!inputs_) { continue; }
 
             auto const &node = _internal.nodes[nodeIdx];
-            auto msg = fmt::format("nodes[{}] = {}({})", nodeIdx, node.name, node.op->opType.name());
+            auto msg = fmt::format("nodes[{}] = {}({})", nodeIdx, node.name, node.op.opType.name());
             // 推导
-            auto infered = node.op->infer(std::move(*inputs_));
+            auto infered = node.op.infer(std::move(*inputs_));
             if (infered.isErr()) {
                 msg += ", inference failed";
                 // 推导失败，记录未知变量
@@ -134,7 +134,8 @@ namespace refactor::frontend {
                                      [this](auto i) { return _internal.edges[i].tensor->hasData(); })) {
                         auto node = _internal.nodes[nodeIdx];
                         logi("{:>8}. {}", i++, node.name);
-                        dynamicNodes.insert(node.op->opType.name());
+                        auto opType = node.op.opType.name();
+                        dynamicNodes.insert(opType);
                         auto front = true;
                         for (auto i : inputs) {
                             if (_internal.edges[i].tensor->hasData()) {
@@ -144,7 +145,7 @@ namespace refactor::frontend {
                             }
                         }
                         if (front) {
-                            frontNodes.insert(node.op->opType.name());
+                            frontNodes.insert(opType);
                         }
                     }
                 }
