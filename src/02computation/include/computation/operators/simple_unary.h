@@ -26,6 +26,9 @@ namespace refactor::computation {
 
     struct SimpleUnary : public Operator {
         SimpleUnaryType type;
+
+        constexpr explicit SimpleUnary(SimpleUnaryType type_)
+            : Operator(), type(type_) {}
     };
 
 }// namespace refactor::computation

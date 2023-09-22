@@ -14,6 +14,9 @@ namespace refactor::computation {
 
     struct SimpleBinary : public Operator {
         SimpleBinaryType type;
+
+        constexpr explicit SimpleBinary(SimpleBinaryType type_)
+            : Operator(), type(type_) {}
     };
 
 }// namespace refactor::computation

@@ -79,6 +79,6 @@ namespace refactor::onnx {
         using namespace computation;
 
         auto to = *DataType::parse(op.attribute("to").int_());
-        return std::make_shared<Cast>(Cast{{}, to});
+        return std::make_shared<Cast>(to);
     }
 }// namespace refactor::onnx

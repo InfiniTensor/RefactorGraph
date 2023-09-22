@@ -16,6 +16,9 @@ namespace refactor::computation {
 
     struct Compair : public Operator {
         CompairType type;
+
+        constexpr explicit Compair(CompairType type_)
+            : Operator(), type(type_) {}
     };
 
 }// namespace refactor::computation

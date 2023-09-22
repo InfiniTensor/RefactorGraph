@@ -12,8 +12,8 @@ namespace refactor::frontend {
 
     using Int = long long;
     using Ints = std::vector<long long>;
-    using Float = double;
-    using Floats = std::vector<double>;
+    using Float = float;
+    using Floats = std::vector<float>;
     using String = std::string;
     using Strings = std::vector<std::string>;
     using Tensor_ = std::shared_ptr<Tensor>;

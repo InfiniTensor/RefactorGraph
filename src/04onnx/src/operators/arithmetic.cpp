@@ -101,6 +101,6 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::Mul") ? SimpleBinaryType::Mul
                     : op.opType.is("onnx::Div") ? SimpleBinaryType::Div
                                                 : unsupport(op.opType);
-        return std::make_shared<SimpleBinary>(SimpleBinary{{}, type});
+        return std::make_shared<SimpleBinary>(type);
     }
 }// namespace refactor::onnx

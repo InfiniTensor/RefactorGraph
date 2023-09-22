@@ -102,8 +102,9 @@ namespace refactor::onnx {
 
     computation::SharedOp lowerCumSum(Operator const &op, Tensors) {
         using namespace computation;
+
         auto exclusive = op.attribute("exclusive", {0}).int_() != 0;
         auto reverse = op.attribute("reverse", {0}).int_() != 0;
-        return std::make_shared<CumSum>(CumSum{{}, exclusive, reverse});
+        return std::make_shared<CumSum>(exclusive, reverse);
     }
 }// namespace refactor::onnx

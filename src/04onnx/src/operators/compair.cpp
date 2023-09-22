@@ -55,6 +55,6 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::Less")           ? CompairType::LT
                     : op.opType.is("onnx::LessOrEqual")    ? CompairType::LE
                                                            : unsupport(op.opType);
-        return std::make_shared<Compair>(Compair{{}, type});
+        return std::make_shared<Compair>(type);
     }
 }// namespace refactor::onnx

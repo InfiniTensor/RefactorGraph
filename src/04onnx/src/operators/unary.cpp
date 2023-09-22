@@ -61,6 +61,6 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::Sqrt")    ? SimpleUnaryType::Sqrt
                     : op.opType.is("onnx::Sigmoid") ? SimpleUnaryType::Sigmoid
                                                     : unsupport(op.opType);
-        return std::make_shared<SimpleUnary>(SimpleUnary{{}, type});
+        return std::make_shared<SimpleUnary>(type);
     }
 }// namespace refactor::onnx

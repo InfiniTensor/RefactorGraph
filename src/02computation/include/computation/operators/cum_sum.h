@@ -8,6 +8,9 @@ namespace refactor::computation {
 
     struct CumSum : public Operator {
         bool exclusive, reverse;
+
+        constexpr CumSum(bool exclusive_, bool reverse_)
+            : Operator(), exclusive(exclusive_), reverse(reverse_) {}
     };
 
 }// namespace refactor::computation

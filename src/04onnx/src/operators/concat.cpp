@@ -71,6 +71,6 @@ namespace refactor::onnx {
         if (axis < 0) {
             axis += inputs[0]->shape.size();
         }
-        return std::make_shared<Concat>(Concat{{}, static_cast<size_t>(axis)});
+        return std::make_shared<Concat>(static_cast<size_t>(axis));
     }
 }// namespace refactor::onnx

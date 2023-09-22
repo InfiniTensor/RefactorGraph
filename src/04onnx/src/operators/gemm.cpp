@@ -1,4 +1,5 @@
 ﻿#include "common.h"
+#include "computation/operators/mat_mul.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -54,7 +55,13 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerGemm(Operator const &, Tensors) {
-        return nullptr;
+    computation::SharedOp lowerGemm(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto alpha = op.attribute("alpha", {1.0f}).float_();
+        auto beta = op.attribute("beta", {1.0f}).float_();
+        auto transA = op.attribute("transA", {0}).int_() != 0;
+        auto transB = op.attribute("transB", {0}).int_() != 0;
+        return std::make_shared<MatMul>(alpha, beta, transA, transB);
     }
 }// namespace refactor::onnx

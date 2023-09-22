@@ -1,4 +1,5 @@
-﻿#include "common.h"
+﻿#include "computation/operators/expand.h"
+#include "common.h"
 #include "common/range.h"
 #include <execution>
 
@@ -36,6 +37,8 @@ namespace refactor::onnx {
     }
 
     computation::SharedOp lowerExpand(Operator const &, Tensors) {
-        return nullptr;
+        using namespace computation;
+
+        return std::make_shared<Expand>();
     }
 }// namespace refactor::onnx
