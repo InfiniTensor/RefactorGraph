@@ -1,9 +1,9 @@
 ﻿#ifndef COMPUTATION_TENSOR_H
 #define COMPUTATION_TENSOR_H
 
+#include "common/blob.h"
 #include "common/data_type.h"
 #include <absl/container/inlined_vector.h>
-#include <memory>
 #include <string>
 
 namespace refactor::computation {
@@ -13,6 +13,7 @@ namespace refactor::computation {
     struct Tensor {
         common::DataType type;
         Shape shape;
+        std::shared_ptr<common::Blob> data;
     };
 
     struct Edge {

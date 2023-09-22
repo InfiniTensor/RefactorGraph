@@ -197,7 +197,7 @@ namespace refactor::frontend {
                            std::transform(edge.tensor->shape.begin(), edge.tensor->shape.end(), shape.begin(),
                                           [](auto const &dim) { return dim.value(); });
                            return computation::Edge{
-                               std::make_shared<_Tensor>(_Tensor{edge.tensor->dataType, std::move(shape)}),
+                               std::make_shared<_Tensor>(_Tensor{edge.tensor->dataType, std::move(shape), edge.tensor->data}),
                                edge.name,
                            };
                        });

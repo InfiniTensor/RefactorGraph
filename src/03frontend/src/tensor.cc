@@ -53,12 +53,9 @@ namespace refactor::frontend {
         return ans;
     }
 
-    Blob::Blob(void *ptr_) : ptr(ptr_) {}
-    Blob::~Blob() { std::free(ptr); }
-
     Tensor::Tensor(common::DataType dataType_,
                    Shape shape_,
-                   std::shared_ptr<Blob> data_,
+                   std::shared_ptr<common::Blob> data_,
                    std::unordered_set<DimVariable> depVariables_)
         : dataType(dataType_),
           shape(shape_),
@@ -68,7 +65,7 @@ namespace refactor::frontend {
     Tensor::share(common::DataType dt,
                   Shape shape,
                   std::unordered_set<DimVariable> depVariables,
-                  std::shared_ptr<Blob> data) {
+                  std::shared_ptr<common::Blob> data) {
         return std::make_shared<Tensor>(dt, std::move(shape), std::move(data), std::move(depVariables));
     }
     bool Tensor::hasData() const {
@@ -82,7 +79,7 @@ namespace refactor::frontend {
         return dataType.size() * elementsSize();
     }
     void *Tensor::malloc() {
-        return (data = std::make_shared<Blob>(std::malloc(bytesSize())))->ptr;
+        return (data = std::make_shared<common::Blob>(bytesSize()))->ptr;
     }
     void Tensor::free() {
         data = nullptr;
