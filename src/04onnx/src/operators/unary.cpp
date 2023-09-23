@@ -41,7 +41,7 @@ namespace refactor::onnx {
         RUNTIME_ERROR(fmt::format("{} not support in unary lowering", opType.name()));
     }
 
-    computation::SharedOp lowerUnary(Operator const &op, Tensors) {
+    computation::SharedOp lowerUnary(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::Abs")       ? SimpleUnaryType::Abs

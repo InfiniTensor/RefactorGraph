@@ -64,7 +64,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerReshape(Operator const &op, Tensors) {
+    computation::SharedOp lowerReshape(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto allowzero = op.attribute("allowzero", {0}).int_() != 0;

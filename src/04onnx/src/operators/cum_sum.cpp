@@ -100,7 +100,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerCumSum(Operator const &op, Tensors) {
+    computation::SharedOp lowerCumSum(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto exclusive = op.attribute("exclusive", {0}).int_() != 0;

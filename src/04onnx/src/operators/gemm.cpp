@@ -55,7 +55,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerGemm(Operator const &op, Tensors) {
+    computation::SharedOp lowerGemm(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto alpha = op.attribute("alpha", {1.0f}).float_();

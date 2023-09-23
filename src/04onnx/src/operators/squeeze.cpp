@@ -59,7 +59,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerSqueeze(Operator const &, Tensors) {
+    computation::SharedOp lowerSqueeze(Operator const &, TensorRefs) {
         using namespace computation;
 
         return std::make_shared<Squeeze>();

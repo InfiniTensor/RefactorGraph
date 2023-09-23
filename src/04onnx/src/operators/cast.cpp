@@ -75,7 +75,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerCast(Operator const &op, Tensors) {
+    computation::SharedOp lowerCast(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto to = *DataType::parse(op.attribute("to").int_());

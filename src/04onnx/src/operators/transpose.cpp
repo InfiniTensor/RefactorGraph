@@ -24,7 +24,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerTranspose(Operator const &op, Tensors) {
+    computation::SharedOp lowerTranspose(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto perm = op.attribute("perm").ints();

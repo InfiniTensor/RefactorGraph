@@ -25,7 +25,7 @@ namespace refactor::onnx {
         RUNTIME_ERROR(fmt::format("{} not support in select lowering", opType.name()));
     }
 
-    computation::SharedOp lowerSelect(Operator const &op, Tensors) {
+    computation::SharedOp lowerSelect(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::Max")   ? SelectType::Max

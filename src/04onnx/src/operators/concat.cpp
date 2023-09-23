@@ -64,12 +64,12 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerConcat(Operator const &op, Tensors inputs) {
+    computation::SharedOp lowerConcat(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
         auto axis = op.attribute("axis").int_();
         if (axis < 0) {
-            axis += inputs[0]->shape.size();
+            axis += inputs[0].rank();
         }
         return std::make_shared<Concat>(static_cast<size_t>(axis));
     }

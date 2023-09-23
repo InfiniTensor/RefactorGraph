@@ -7,6 +7,8 @@
 
 namespace refactor::frontend {
 
+    void configLog();
+
     class Graph {
         graph_topo::Graph<Node, Edge> _internal;
         std::unordered_map<std::string, DimVariable> _variables;

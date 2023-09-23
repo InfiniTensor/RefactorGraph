@@ -38,7 +38,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerWhere(Operator const &, Tensors) {
+    computation::SharedOp lowerWhere(Operator const &, TensorRefs) {
         using namespace computation;
 
         return std::make_shared<Where>();

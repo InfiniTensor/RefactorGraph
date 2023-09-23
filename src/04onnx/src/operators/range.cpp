@@ -64,7 +64,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerRange(Operator const &, Tensors) {
+    computation::SharedOp lowerRange(Operator const &, TensorRefs) {
         using namespace computation;
 
         return std::make_shared<Range>();

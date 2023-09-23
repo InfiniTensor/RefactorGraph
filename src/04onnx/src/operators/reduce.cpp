@@ -59,7 +59,7 @@ namespace refactor::onnx {
         RUNTIME_ERROR(fmt::format("{} not support in reduce lowering", opType.name()));
     }
 
-    computation::SharedOp lowerReduce(Operator const &op, Tensors) {
+    computation::SharedOp lowerReduce(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::ReduceMean")        ? ReduceType::Mean

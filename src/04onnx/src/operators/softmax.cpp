@@ -12,12 +12,12 @@ namespace refactor::onnx {
         return Ok(std::move(inputs));
     }
 
-    computation::SharedOp lowerSoftmax(Operator const &op, Tensors inputs) {
+    computation::SharedOp lowerSoftmax(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
         auto axis = op.attribute("axis", {-1}).int_();
         if (axis < 0) {
-            axis += inputs[0]->shape.size();
+            axis += inputs[0].rank();
         }
         return std::make_shared<Softmax>(static_cast<size_t>(axis));
     }

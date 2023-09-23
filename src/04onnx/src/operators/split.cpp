@@ -53,12 +53,12 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerSplit(Operator const &op, Tensors inputs) {
+    computation::SharedOp lowerSplit(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
         auto axis = op.attribute("axis", {-1}).int_();
         if (axis < 0) {
-            axis += inputs[0]->shape.size();
+            axis += inputs[0].rank();
         }
         auto numOutputs = op.attribute("num_outputs").int_();
         return std::make_shared<Split>(static_cast<size_t>(axis), static_cast<size_t>(numOutputs));

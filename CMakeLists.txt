@@ -4,7 +4,10 @@ project(refactor_graph VERSION 0.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+add_compile_options(-Wall -Werror)
+add_compile_options(-fPIC)
+# add_compile_options(-march=native) # this will cause error in some machine
+add_compile_options(-mtune=native)
 
 option(BUILD_SHARED "Build shared library" OFF)
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)

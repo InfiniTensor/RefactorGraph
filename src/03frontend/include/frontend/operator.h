@@ -57,7 +57,7 @@ namespace refactor::frontend {
         Attribute const &attribute(const char *, Attribute const &default_) const;
 
         InferResult infer(Tensors) const;
-        computation::SharedOp lower(Tensors) const;
+        computation::SharedOp lower(TensorRefs) const;
     };
 
     struct Node {

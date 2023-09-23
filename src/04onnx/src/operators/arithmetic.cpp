@@ -93,7 +93,7 @@ namespace refactor::onnx {
         RUNTIME_ERROR(fmt::format("{} not support in binary lowering", opType.name()));
     }
 
-    computation::SharedOp lowerArithmetic(Operator const &op, Tensors) {
+    computation::SharedOp lowerArithmetic(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::Add")   ? SimpleBinaryType::Add

@@ -16,7 +16,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerPow(Operator const &op, Tensors) {
+    computation::SharedOp lowerPow(Operator const &op, TensorRefs) {
         using namespace computation;
 
         return std::make_shared<SimpleBinary>(SimpleBinaryType::Pow);

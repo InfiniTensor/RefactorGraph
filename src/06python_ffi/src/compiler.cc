@@ -5,8 +5,7 @@ namespace refactor::python_ffi {
     using namespace frontend;
     namespace py = pybind11;
 
-    Compiler::Compiler(frontend::Graph g)
-        : _g(std::move(g)) {}
+    Compiler::Compiler(frontend::Graph g) : _g(std::move(g)) {}
 
     void
     Compiler::substitute(CStr name, int64_t value) {

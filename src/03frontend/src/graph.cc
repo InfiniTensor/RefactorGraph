@@ -13,10 +13,7 @@ namespace fs = std::filesystem;
 
 namespace refactor::frontend {
 
-    Graph::Graph(graph_topo::Graph<Node, Edge> internal)
-        : _internal(std::move(internal)), _variables() {
-        collectVariables();
-
+    void configLog() {
         static std::once_flag logInitFlag;
         std::call_once(logInitFlag, [] {
             auto dir = fs::path(__FILE__)
@@ -34,7 +31,14 @@ namespace refactor::frontend {
             }
             fmtlog::setLogFile(dir.append(name).c_str(), false);
             fmtlog::startPollingThread();
+            logi("process start with log file {}", name);
         });
+    }
+
+    Graph::Graph(graph_topo::Graph<Node, Edge> internal)
+        : _internal(std::move(internal)), _variables() {
+        collectVariables();
+        configLog();
     }
 
     bool Graph::substitute(const char *name, int64_t value) {
@@ -80,12 +84,11 @@ namespace refactor::frontend {
 
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
-        logi("----------------------------------");
         auto const startTime = high_resolution_clock::now();
         // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
             // 构造入边
-            std::optional<std::vector<std::shared_ptr<Tensor>>> inputs_(std::in_place);
+            std::optional<Tensors> inputs_(std::in_place);
 
             inputs_->reserve(inputs.size());
             for (auto i : inputs) {
@@ -123,7 +126,7 @@ namespace refactor::frontend {
             }
         }
         auto const endTime = high_resolution_clock::now();
-        logi("inference cost time: {}μs", duration_cast<microseconds>(endTime - startTime).count());
+        logi("inference cost time: {} μs", duration_cast<microseconds>(endTime - startTime).count());
 #ifndef NDEBUG
         if (unknownVariables.empty()) {
             logGraph();
@@ -134,12 +137,16 @@ namespace refactor::frontend {
 
     computation::Graph Graph::lower() const {
 
+        auto const startTime = high_resolution_clock::now();
+
         std::vector<computation::Edge> edges(_internal.edges.size());
-        std::transform(_internal.edges.begin(), _internal.edges.end(), edges.begin(),
+        std::transform(std::execution::par_unseq,
+                       _internal.edges.begin(), _internal.edges.end(), edges.begin(),
                        [](auto const &edge) {
                            using _Tensor = computation::Tensor;
                            computation::Shape shape(edge.tensor->shape.size());
-                           std::transform(edge.tensor->shape.begin(), edge.tensor->shape.end(), shape.begin(),
+                           std::transform(std::execution::par_unseq,
+                                          edge.tensor->shape.begin(), edge.tensor->shape.end(), shape.begin(),
                                           [](auto const &dim) { return dim.value(); });
                            return computation::Edge{
                                std::make_shared<_Tensor>(_Tensor{edge.tensor->dataType, std::move(shape), edge.tensor->data}),
@@ -150,17 +157,17 @@ namespace refactor::frontend {
         std::vector<computation::Node> nodes(_internal.nodes.size());
         std::transform(_internal.topology.begin(), _internal.topology.end(), nodes.begin(),
                        [this](auto const &nodeRef) {
-                           auto const &node = _internal.nodes[nodeRef.idx];
-                           computation::SharedOp op = nullptr;
-                           if (!std::all_of(nodeRef.outputs.begin(), nodeRef.outputs.end(),
-                                            [this](auto i) { return _internal.edges[i].tensor->hasData(); })) {
-                               std::vector<std::shared_ptr<Tensor>> inputs(nodeRef.inputs.size());
-                               std::transform(nodeRef.inputs.begin(), nodeRef.inputs.end(), inputs.begin(),
-                                              [this](auto i) { return _internal.edges[i].tensor; });
-                               op = node.op.lower(std::move(inputs));
-                           }
-                           return computation::Node{std::move(op), node.name};
+                           auto const &[op, name] = _internal.nodes[nodeRef.idx];
+                           auto op_ = std::all_of(std::execution::par_unseq,
+                                                  nodeRef.outputs.begin(), nodeRef.outputs.end(),
+                                                  [this](auto i) { return _internal.edges[i].tensor->hasData(); })
+                                          ? nullptr
+                                          : op.lower(TensorRefs(_internal.edges));
+                           return computation::Node{std::move(op_), name};
                        });
+
+        auto const endTime = high_resolution_clock::now();
+        logi("lowering cost time: {} μs", duration_cast<microseconds>(endTime - startTime).count());
 
         return {_internal.topology, std::move(nodes), std::move(edges)};
     }

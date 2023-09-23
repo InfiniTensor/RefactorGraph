@@ -46,7 +46,7 @@ namespace refactor::onnx {
         RUNTIME_ERROR(fmt::format("{} not support in compair lowering", opType.name()));
     }
 
-    computation::SharedOp lowerCompair(Operator const &op, Tensors) {
+    computation::SharedOp lowerCompair(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::Equal")            ? CompairType::EQ

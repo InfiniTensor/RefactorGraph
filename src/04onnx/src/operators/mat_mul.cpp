@@ -48,7 +48,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerMatMul(Operator const &, Tensors) {
+    computation::SharedOp lowerMatMul(Operator const &, TensorRefs) {
         using namespace computation;
 
         return std::make_shared<MatMul>(1.0, 1.0, false, false);

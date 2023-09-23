@@ -36,7 +36,7 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerExpand(Operator const &, Tensors) {
+    computation::SharedOp lowerExpand(Operator const &, TensorRefs) {
         using namespace computation;
 
         return std::make_shared<Expand>();

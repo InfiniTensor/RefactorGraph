@@ -74,14 +74,13 @@ namespace refactor::frontend {
         return std::accumulate(shape.begin(), shape.end(), 1,
                                [](auto acc, auto const &it) { return acc * it.value(); });
     }
-    size_t Tensor::bytesSize() const {
-        return dataType.size() * elementsSize();
-    }
-    void *Tensor::malloc() {
-        return (data = std::make_shared<common::Blob>(bytesSize()))->ptr;
-    }
-    void Tensor::free() {
-        data = nullptr;
-    }
+    size_t Tensor::bytesSize() const { return dataType.size() * elementsSize(); }
+    void *Tensor::malloc() { return (data = std::make_shared<common::Blob>(bytesSize()))->ptr; }
+    void Tensor::free() { data = nullptr; }
+
+    TensorRefs::TensorRefs(std::vector<Edge> const &edges) : _edges(edges) {}
+    Tensor const &TensorRefs::operator[](size_t i) const { return *_edges[i].tensor; }
+    size_t TensorRefs::size() const { return _edges.size(); }
+    bool TensorRefs::empty() const { return _edges.empty(); }
 
 }// namespace refactor::frontend

@@ -7,9 +7,9 @@
 namespace refactor::frontend {
 
     class Operator;
-    using LowerFn = computation::SharedOp (*)(Operator const &, Tensors);
+    using LowerFn = computation::SharedOp (*)(Operator const &, TensorRefs);
 
-    computation::SharedOp unreachableLower(Operator const &, Tensors);
+    computation::SharedOp unreachableLower(Operator const &, TensorRefs);
 
 }// namespace refactor::frontend
 

@@ -72,6 +72,16 @@ namespace refactor::frontend {
         std::string name;
     };
 
+    class TensorRefs {
+        std::vector<Edge> const &_edges;
+
+    public:
+        explicit TensorRefs(std::vector<Edge> const &edges);
+        Tensor const &operator[](size_t) const;
+        size_t size() const;
+        bool empty() const;
+    };
+
 }// namespace refactor::frontend
 
 #endif// FRONTEND_TENSOR_H
