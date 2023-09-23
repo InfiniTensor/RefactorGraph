@@ -18,14 +18,14 @@ namespace refactor::frontend {
         Graph(Graph const &) = default;
         Graph(Graph &&) = default;
 
+        bool substitute(const char *, int64_t);
         void collectVariables();
         std::unordered_set<std::string> fillEdgeInfo();
+
         computation::Graph lower() const;
 
         auto internal() -> decltype(_internal) &;
         auto internal() const -> decltype(_internal) const &;
-
-        bool substitute(const char *, int64_t);
     };
 
 }// namespace refactor::frontend

@@ -37,6 +37,14 @@ namespace refactor::frontend {
         });
     }
 
+    bool Graph::substitute(const char *name, int64_t value) {
+        if (auto it = _variables.find(name); it != _variables.end()) {
+            it->second->value = value;
+            return true;
+        }
+        return false;
+    }
+
     void Graph::collectVariables() {
         auto const globalInputsCount = _internal.topology.globalInputsCount();
         for (auto i : range0_(globalInputsCount)) {
@@ -69,15 +77,6 @@ namespace refactor::frontend {
 
     auto Graph::internal() -> decltype(_internal) & { return _internal; }
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
-
-    bool Graph::substitute(const char *name, int64_t value) {
-        if (auto it = _variables.find(name); it != _variables.end()) {
-            it->second->value = value;
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。

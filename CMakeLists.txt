@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
-option(BUILD_SHARED "Build shared library" ON)
+option(BUILD_SHARED "Build shared library" OFF)
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
 
 if(BUILD_SHARED)

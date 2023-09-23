@@ -1,44 +1,21 @@
-﻿#include <pybind11/pybind11.h>
-
-#define STRINGIFY(x) #x
-#define MACRO_STRINGIFY(x) STRINGIFY(x)
-
-int add(int i, int j) {
-    return i + j;
-}
+﻿#include "compiler.h"
+#include <memory>
+#include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(cmake_example, m) {
-    m.doc() = R"pbdoc(
-        Pybind11 example plugin
-        -----------------------
+namespace refactor::python_ffi {
 
-        .. currentmodule:: cmake_example
+    PYBIND11_MODULE(python_ffi, m) {
+        using policy = py::return_value_policy;
 
-        .. autosummary::
-           :toctree: _generate
+        // clang-format off
+        py::class_<Compiler, std::shared_ptr<Compiler>>(m, "Compiler")
+            .def("substitute"      , &Compiler::substitute   , policy::automatic )
+            .def("set_input"       , &Compiler::setInput     , policy::automatic )
+            .def("check_variables" , &Compiler::fillEdgeInfo , policy::move      )
+            .def("get_tensor"      , &Compiler::getTensor    , policy::move      );
+        // clang-format on
+    }
 
-           add
-           subtract
-    )pbdoc";
-
-    m.def("add", &add, R"pbdoc(
-        Add two numbers
-
-        Some other explanation about the add function.
-    )pbdoc");
-
-    m.def(
-        "subtract", [](int i, int j) { return i - j; }, R"pbdoc(
-        Subtract two numbers
-
-        Some other explanation about the subtract function.
-    )pbdoc");
-
-#ifdef VERSION_INFO
-    m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
-#else
-    m.attr("__version__") = "dev";
-#endif
-}
+}// namespace refactor::python_ffi
