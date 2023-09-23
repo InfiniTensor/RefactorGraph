@@ -26,8 +26,12 @@ namespace refactor::python_ffi {
     std::unordered_set<std::string>
     Compiler::fillEdgeInfo() { return _g.fillEdgeInfo(); }
 
-    Graph const &
-    Compiler::graph() const { return _g; }
+    std::shared_ptr<Executor>
+    Compiler::compile() {
+        _g.collectVariables();
+        ASSERT(_g.fillEdgeInfo().empty(), "Graph not fully specified");
+        return std::make_shared<Executor>(_g.lower());
+    }
 
     std::optional<py::array>
     Compiler::getTensor(CStr name) const {
@@ -44,11 +48,6 @@ namespace refactor::python_ffi {
         auto ans = py::array(buildNumpyDType(tensor.dataType), std::move(shape), nullptr);
         if (tensor.data) { std::memcpy(ans.mutable_data(), tensor.data->ptr, ans.nbytes()); }
         return ans;
-    }
-
-    std::shared_ptr<computation::Graph>
-    Compiler::lower() const {
-        return std::make_shared<computation::Graph>(_g.lower());
     }
 
 }// namespace refactor::python_ffi

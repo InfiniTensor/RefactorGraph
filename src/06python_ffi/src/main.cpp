@@ -1,5 +1,6 @@
 ﻿#include "communication/operators.h"
 #include "compiler.h"
+#include "executor.h"
 #include "import.h"
 #include "onnx/operators.h"
 #include <memory>
@@ -19,13 +20,6 @@ namespace refactor::python_ffi {
 
         // clang-format off
 
-        py::class_<Compiler , std::shared_ptr<Compiler> >(m, "Compiler" )
-            .def("substitute"      , &Compiler::substitute   , policy::automatic )
-            .def("set_input"       , &Compiler::setInput     , policy::automatic )
-            .def("check_variables" , &Compiler::fillEdgeInfo , policy::move      )
-            .def("get_tensor"      , &Compiler::getTensor    , policy::move      )
-            .def("lower"           , &Compiler::lower        , policy::move      );
-
         py::class_<Tensor   , std::shared_ptr<Tensor>   >(m, "Tensor"   );
         py::class_<Operator , std::shared_ptr<Operator> >(m, "Operator" );
 
@@ -34,10 +28,16 @@ namespace refactor::python_ffi {
             .def("_make_data"      , &makeTensorWithData     , policy::move      )
             .def("_make_compiler"  , &makeCompiler           , policy::move      );
 
-        // clang-format on
+        py::class_<Compiler , std::shared_ptr<Compiler> >(m, "Compiler" )
+            .def("substitute"      , &Compiler::substitute   , policy::automatic )
+            .def("set_input"       , &Compiler::setInput     , policy::automatic )
+            .def("check_variables" , &Compiler::fillEdgeInfo , policy::move      )
+            .def("get_tensor"      , &Compiler::getTensor    , policy::move      )
+            .def("compile"         , &Compiler::compile      , policy::move      );
 
-        // TODO 临时测试用
-        py::class_<computation::Graph, std::shared_ptr<computation::Graph>>(m, "ComputationGraph");
+        py::class_<Executor , std::shared_ptr<Executor> >(m, "Executor" );
+
+        // clang-format on
     }
 
 }// namespace refactor::python_ffi
