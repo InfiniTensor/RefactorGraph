@@ -2,19 +2,33 @@
 #include "common/error_handler.h"
 #include "frontend/tensor.h"
 #include <chrono>
+#include <execution>
+#include <filesystem>
 #include <fmtlog.h>
+#include <mutex>
 
 using namespace refactor::common;
 using namespace std::chrono;
+namespace fs = std::filesystem;
 
 namespace refactor::frontend {
 
     Graph::Graph(graph_topo::Graph<Node, Edge> internal)
         : _internal(std::move(internal)), _variables() {
         collectVariables();
-#ifdef NDEBUG
-        fmtlog::setLogLevel(fmtlog::LogLevel::OFF);
-#endif
+
+        static std::once_flag logInitFlag;
+        std::call_once(logInitFlag, [] {
+            auto dir = fs::path(__FILE__)
+                           .parent_path()
+                           .parent_path()
+                           .parent_path()
+                           .parent_path()
+                           .append("log");
+            fs::create_directory(dir);
+            fmtlog::setLogFile(dir.append(fmt::format("ver_{}.log", __TIME__)).c_str(), false);
+            fmtlog::startPollingThread();
+        });
     }
 
     void Graph::collectVariables() {
@@ -59,18 +73,10 @@ namespace refactor::frontend {
         }
     }
 
-    class LogGuard {
-    public:
-        ~LogGuard() {
-            fmtlog::poll();
-        }
-    };
-
     std::unordered_set<std::string> Graph::fillEdgeInfo() {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
-        LogGuard _logGuard;
-        logi("edge inference start");
-        auto const startTime = steady_clock::now();
+        logi("----------------------------------");
+        auto const startTime = high_resolution_clock::now();
         // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
             // 构造入边
@@ -78,115 +84,46 @@ namespace refactor::frontend {
 
             inputs_->reserve(inputs.size());
             for (auto i : inputs) {
-                if (!_internal.edges[i].tensor) {
+                auto input = _internal.edges[i].tensor;
+                if (!input) {
                     // 无入边，跳过节点
                     inputs_ = std::nullopt;
                     break;
                 }
-                auto const &input = _internal.edges[i].tensor;
-                ASSERT(input, "input edge not exist");
-                inputs_->emplace_back(input);
+                inputs_->emplace_back(std::move(input));
             }
             if (!inputs_) { continue; }
 
-            auto const &node = _internal.nodes[nodeIdx];
-            auto msg = fmt::format("nodes[{}] = {}({})", nodeIdx, node.name, node.op.opType.name());
-            // 推导
-            auto infered = node.op.infer(std::move(*inputs_));
-            if (infered.isErr()) {
-                msg += ", inference failed";
+            auto infered = _internal.nodes[nodeIdx].op.infer(std::move(*inputs_));
+
+            if (infered.isOk()) {
+                // 推导成功，填充边信息
+                auto infered_ = std::move(infered.unwrap());
+                if (infered_.size() < outputs.size()) {
+                    OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
+                } else {
+                    std::for_each_n(std::execution::par_unseq, natural_t(0), outputs.size(),
+                                    [&infered_, outputs, this](auto i) {
+                                        _internal.edges[outputs[i]].tensor = std::move(infered_[i]);
+                                    });
+                }
+            } else {
                 // 推导失败，记录未知变量
-                auto error = infered.unwrapErr();
+                auto error = std::move(infered.unwrapErr());
                 if (std::holds_alternative<UnknownVariable>(error.value)) {
                     unknownVariables.insert(std::get<UnknownVariable>(error.value).name);
                 } else {
                     throw error;
                 }
-            } else {
-                // 推导成功，填充边信息
-                auto infered_ = infered.unwrap();
-                if (infered_.size() < outputs.size()) {
-                    OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
-                } else {
-                    msg += ", outputs = [ ";
-                    for (auto const &tensor : infered_) {
-                        msg += shapeFormat(tensor->shape);
-                        msg += ' ';
-                    }
-                    msg += ']';
-                    for (auto i : range0_(outputs.size())) {
-                        _internal.edges[outputs[i]].tensor = std::move(infered_[i]);
-                    }
-                }
             }
-            logi("{}", std::move(msg));
         }
-        auto const endTime = steady_clock::now();
+        auto const endTime = high_resolution_clock::now();
         logi("inference cost time: {}μs", duration_cast<microseconds>(endTime - startTime).count());
+#ifndef NDEBUG
         if (unknownVariables.empty()) {
-            std::unordered_set<std::string_view> frontNodes, dynamicNodes;
-            std::unordered_set<size_t> dataEdges;
-            auto it = _internal.topology.begin();
-            auto const end = _internal.topology.end();
-            {
-                logi("compute on device: ");
-                auto i = 0;
-                while (it != end) {
-                    auto [nodeIdx, inputs, outputs] = *it++;
-                    if (!std::all_of(outputs.begin(), outputs.end(),
-                                     [this](auto i) { return _internal.edges[i].tensor->hasData(); })) {
-                        auto node = _internal.nodes[nodeIdx];
-                        logi("{:>8}. {}", i++, node.name);
-                        auto opType = node.op.opType.name();
-                        dynamicNodes.insert(opType);
-                        auto front = true;
-                        for (auto i : inputs) {
-                            if (_internal.edges[i].tensor->hasData()) {
-                                dataEdges.insert(i);
-                            } else {
-                                front = false;
-                            }
-                        }
-                        if (front) {
-                            frontNodes.insert(opType);
-                        }
-                    }
-                }
-            }
-            {
-                logi("types:");
-                auto i = 0;
-                for (auto const &node : dynamicNodes) {
-                    if (frontNodes.erase(node)) {
-                        logi("{:>8}.*{}", i++, node);
-                    } else {
-                        logi("{:>8}. {}", i++, node);
-                    }
-                }
-            }
-            {
-                logi("edges to copy:");
-                auto i = 0;
-                for (auto edgeIdx : dataEdges) {
-                    auto const &edge = _internal.edges[edgeIdx];
-                    std::string depVariables = "[ ";
-                    for (auto const &var : edge.tensor->depVariables) {
-                        depVariables += var->name;
-                        depVariables += ' ';
-                    }
-                    depVariables += ']';
-                    logi("{:>8}. {} {} ** {}", i++, edge.name, shapeFormat(edge.tensor->shape), depVariables);
-                }
-            }
-            {
-                logi("outputs:");
-                auto i = 0;
-                for (auto edgeIdx : it.globalOutputs()) {
-                    auto const &edge = _internal.edges[edgeIdx];
-                    logi("    outputs[{:>2}] = edge[{:>2}] = {} with {}", i++, edgeIdx, edge.name, shapeFormat(edge.tensor->shape));
-                }
-            }
+            logGraph();
         }
+#endif
         return unknownVariables;
     }
 
@@ -223,4 +160,68 @@ namespace refactor::frontend {
         return {_internal.topology, std::move(nodes), std::move(edges)};
     }
 
+    void Graph::logGraph() const {
+        std::unordered_set<std::string_view> frontNodes, dynamicNodes;
+        std::unordered_set<size_t> dataEdges;
+        auto it = _internal.topology.begin();
+        auto const end = _internal.topology.end();
+        {
+            logi("compute on device: ");
+            auto i = 0;
+            while (it != end) {
+                auto [nodeIdx, inputs, outputs] = *it++;
+                if (!std::all_of(outputs.begin(), outputs.end(),
+                                 [this](auto i) { return _internal.edges[i].tensor->hasData(); })) {
+                    auto node = _internal.nodes[nodeIdx];
+                    logi("{:>8}. {}", i++, node.name);
+                    auto opType = node.op.opType.name();
+                    dynamicNodes.insert(opType);
+                    auto front = true;
+                    for (auto i : inputs) {
+                        if (_internal.edges[i].tensor->hasData()) {
+                            dataEdges.insert(i);
+                        } else {
+                            front = false;
+                        }
+                    }
+                    if (front) {
+                        frontNodes.insert(opType);
+                    }
+                }
+            }
+        }
+        {
+            logi("types:");
+            auto i = 0;
+            for (auto const &node : dynamicNodes) {
+                if (frontNodes.erase(node)) {
+                    logi("{:>8}.*{}", i++, node);
+                } else {
+                    logi("{:>8}. {}", i++, node);
+                }
+            }
+        }
+        {
+            logi("edges to copy:");
+            auto i = 0;
+            for (auto edgeIdx : dataEdges) {
+                auto const &edge = _internal.edges[edgeIdx];
+                std::string depVariables = "[ ";
+                for (auto const &var : edge.tensor->depVariables) {
+                    depVariables += var->name;
+                    depVariables += ' ';
+                }
+                depVariables += ']';
+                logi("{:>8}. {} {} ** {}", i++, edge.name, shapeFormat(edge.tensor->shape), depVariables);
+            }
+        }
+        {
+            logi("outputs:");
+            auto i = 0;
+            for (auto edgeIdx : it.globalOutputs()) {
+                auto const &edge = _internal.edges[edgeIdx];
+                logi("    outputs[{:>2}] = edge[{:>2}] = {} with {}", i++, edgeIdx, edge.name, shapeFormat(edge.tensor->shape));
+            }
+        }
+    }
 }// namespace refactor::frontend

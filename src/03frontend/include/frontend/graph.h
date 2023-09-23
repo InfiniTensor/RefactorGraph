@@ -11,6 +11,8 @@ namespace refactor::frontend {
         graph_topo::Graph<Node, Edge> _internal;
         std::unordered_map<std::string, DimVariable> _variables;
 
+        void logGraph() const;
+
     public:
         explicit Graph(graph_topo::Graph<Node, Edge>);
         Graph(Graph const &) = default;

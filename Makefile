@@ -1,4 +1,4 @@
-﻿.PHONY : build clean format test-all
+﻿.PHONY : build clean clean-log format test-all
 
 TYPE ?= release
 BUILD_SHARED ?= OFF
@@ -12,6 +12,9 @@ build:
 
 clean:
 	rm -rf build
+
+clean-log:
+	rm -rf log
 
 format:
 	@python3 scripts/format.py $(FORMAT_ORIGIN)
