@@ -21,6 +21,7 @@ namespace refactor::python_ffi {
 
         frontend::Graph const &graph() const;
         std::optional<pybind11::array> getTensor(CStr) const;
+        std::shared_ptr<computation::Graph> lower() const;
     };
 
 }// namespace refactor::python_ffi

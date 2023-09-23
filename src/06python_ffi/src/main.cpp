@@ -17,7 +17,8 @@ namespace refactor::python_ffi {
             .def("substitute"      , &Compiler::substitute   , policy::automatic )
             .def("set_input"       , &Compiler::setInput     , policy::automatic )
             .def("check_variables" , &Compiler::fillEdgeInfo , policy::move      )
-            .def("get_tensor"      , &Compiler::getTensor    , policy::move      );
+            .def("get_tensor"      , &Compiler::getTensor    , policy::move      )
+            .def("lower"           , &Compiler::lower        , policy::move      );
 
         py::class_<Tensor   , std::shared_ptr<Tensor>   >(m, "Tensor"   );
         py::class_<Operator , std::shared_ptr<Operator> >(m, "Operator" );
@@ -29,6 +30,9 @@ namespace refactor::python_ffi {
             .def("make_graph"      , &makeGraph              , policy::move      );
 
         // clang-format on
+
+        // TODO 临时测试用
+        py::class_<computation::Graph, std::shared_ptr<computation::Graph>>(m, "ComputationGraph");
     }
 
 }// namespace refactor::python_ffi

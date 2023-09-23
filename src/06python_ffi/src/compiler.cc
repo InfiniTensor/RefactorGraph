@@ -46,4 +46,9 @@ namespace refactor::python_ffi {
         return ans;
     }
 
+    std::shared_ptr<computation::Graph>
+    Compiler::lower() const {
+        return std::make_shared<computation::Graph>(_g.lower());
+    }
+
 }// namespace refactor::python_ffi
