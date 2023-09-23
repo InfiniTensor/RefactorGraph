@@ -4,20 +4,20 @@ from typing import Any
 from python_ffi import (
     Compiler,
     Tensor,
-    make_data,
-    make_tensor,
-    make_graph,
-    make_operator,
+    _make_data,
+    _make_tensor,
+    _make_compiler,
+    _make_operator,
 )
 
 
 def make_compiler(model: ModelProto) -> Compiler:
     edges: dict[str, Tensor] = dict()
     for tensor in model.graph.initializer:
-        edges[tensor.name] = make_data(to_array(tensor))
+        edges[tensor.name] = _make_data(to_array(tensor))
     for tensor in model.graph.input:
         if tensor.name not in edges:
-            edges[tensor.name] = make_tensor(
+            edges[tensor.name] = _make_tensor(
                 tensor.type.tensor_type.elem_type,
                 [
                     d.dim_value if d.HasField("dim_value") else d.dim_param
@@ -35,10 +35,10 @@ def make_compiler(model: ModelProto) -> Compiler:
         else:
             names[node.name] = 0
 
-    return make_graph(
+    return _make_compiler(
         {node.name: (node.input, node.output) for node in model.graph.node},
         {
-            node.name: make_operator(node.op_type, _parse_attribute(node))
+            node.name: _make_operator(node.op_type, _parse_attribute(node))
             for node in model.graph.node
         },
         edges,
@@ -65,9 +65,9 @@ def _parse_attribute(node: NodeProto) -> dict[str, Any]:
         if attr.type == AttributeProto.STRING
         else attr.strings
         if attr.type == AttributeProto.STRINGS
-        else make_data(to_array(attr.t))
+        else _make_data(to_array(attr.t))
         if attr.type == AttributeProto.TENSOR
-        else [make_data(to_array(t)) for t in attr.tensors]
+        else [_make_data(to_array(t)) for t in attr.tensors]
         if attr.type == AttributeProto.TENSORS
         else _raise(attr)
         for attr in node.attribute

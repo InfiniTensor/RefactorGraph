@@ -31,8 +31,8 @@ namespace refactor::python_ffi {
             });
     }
 
-    SharedGraph
-    makeGraph(
+    std::shared_ptr<Compiler>
+    makeCompiler(
         std::unordered_map<Name, std::pair<NameVec, NameVec>> topology,
         std::unordered_map<Name, SharedOp> nodes,
         std::unordered_map<Name, SharedTensor> edges,
@@ -64,7 +64,7 @@ namespace refactor::python_ffi {
         }
         builder.globalInputs = std::move(inputs);
         builder.globalOutputs = std::move(outputs);
-        return std::make_shared<Graph>(builder.build());
+        return std::make_shared<Compiler>(Graph(builder.build()));
     }
 
 }// namespace refactor::python_ffi

@@ -28,12 +28,11 @@ namespace refactor::python_ffi {
 
         py::class_<Tensor   , std::shared_ptr<Tensor>   >(m, "Tensor"   );
         py::class_<Operator , std::shared_ptr<Operator> >(m, "Operator" );
-        py::class_<Graph    , std::shared_ptr<Graph>    >(m, "Graph"    );
 
-        m   .def("make_operator"   , &makeOp                 , policy::move      )
-            .def("make_tensor"     , &makeTensor             , policy::move      )
-            .def("make_data"       , &makeTensorWithData     , policy::move      )
-            .def("make_graph"      , &makeGraph              , policy::move      );
+        m   .def("_make_operator"  , &makeOp                 , policy::move      )
+            .def("_make_tensor"    , &makeTensor             , policy::move      )
+            .def("_make_data"      , &makeTensorWithData     , policy::move      )
+            .def("_make_compiler"  , &makeCompiler           , policy::move      );
 
         // clang-format on
 
