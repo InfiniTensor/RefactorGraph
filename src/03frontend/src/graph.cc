@@ -26,7 +26,13 @@ namespace refactor::frontend {
                            .parent_path()
                            .append("log");
             fs::create_directory(dir);
-            fmtlog::setLogFile(dir.append(fmt::format("ver_{}.log", __TIME__)).c_str(), false);
+            auto name = fmt::format("ver_{}_{}.log", __DATE__, __TIME__);
+            for (auto &c : name) {
+                if (c == ' ' || c == ':') {
+                    c = '_';
+                }
+            }
+            fmtlog::setLogFile(dir.append(name).c_str(), false);
             fmtlog::startPollingThread();
         });
     }

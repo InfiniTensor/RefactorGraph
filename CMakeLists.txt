@@ -49,3 +49,5 @@ add_subdirectory(src/04onnx)
 
 include_directories(src/05communication/include)
 add_subdirectory(src/05communication)
+
+add_subdirectory(src/06python_ffi)
