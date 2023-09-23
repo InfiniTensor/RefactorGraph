@@ -2,6 +2,7 @@
 #define FRONTEND_TENSOR_H
 
 #include "absl/container/inlined_vector.h"
+#include "common/blob.h"
 #include "common/data_type.h"
 #include <unordered_set>
 #include <variant>
@@ -39,34 +40,23 @@ namespace refactor::frontend {
 
     std::string shapeFormat(Shape const &);
 
-    /// @brief 内存块。
-    struct Blob {
-        /// @brief ! NOTICE 指针必须非空。
-        void *ptr;
-
-        explicit Blob(void *);
-        Blob(Blob const &) = delete;
-        Blob(Blob &&) = delete;
-
-        ~Blob();
-    };
-
     /// @brief 张量边。
     struct Tensor {
         common::DataType dataType;
         Shape shape;
-        std::shared_ptr<Blob> data;
+        std::shared_ptr<common::Blob> data;
 
         std::unordered_set<DimVariable> depVariables;
 
-        Tensor(common::DataType, Shape, std::shared_ptr<Blob>, std::unordered_set<DimVariable>);
+        Tensor(common::DataType, Shape, std::shared_ptr<common::Blob>, std::unordered_set<DimVariable>);
         static std::shared_ptr<Tensor> share(
             common::DataType,
             Shape,
             std::unordered_set<DimVariable>,
-            std::shared_ptr<Blob> = nullptr);
+            std::shared_ptr<common::Blob> = nullptr);
 
         bool hasData() const;
+        int64_t rank() const;
         size_t elementsSize() const;
         size_t bytesSize() const;
 
@@ -74,8 +64,11 @@ namespace refactor::frontend {
         void free();
     };
 
+    using Tensor_ = std::shared_ptr<Tensor>;
+    using Tensors = std::vector<Tensor_>;
+
     struct Edge {
-        std::shared_ptr<Tensor> tensor;
+        Tensor_ tensor;
         std::string name;
     };
 

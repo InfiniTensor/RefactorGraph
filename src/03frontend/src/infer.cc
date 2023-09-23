@@ -4,11 +4,11 @@
 namespace refactor::frontend {
 
     InferError::InferError(std::string msg)
-        : value(FatalError{}),
-          std::runtime_error(std::forward<std::string>(msg)) {}
+        : std::runtime_error(std::move(msg)),
+          value(FatalError{}) {}
     InferError::InferError(UnknownVariable variable)
         : std::runtime_error(fmt::format("Unknown variable: {}", variable.name)),
-          value(std::forward<UnknownVariable>(variable)) {}
+          value(std::move(variable)) {}
 
     bool shouldCalculate(Tensors const &inputs, Shape const &output) {
         return std::all_of(inputs.begin(), inputs.end(), [](auto const &input) { return input->hasData(); }) &&

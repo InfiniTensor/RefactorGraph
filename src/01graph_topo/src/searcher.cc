@@ -55,15 +55,15 @@ namespace refactor::graph_topo {
             }
             for (auto nodeIdx : range0_(nodesCount)) {
                 auto const &node = graph._impl->_nodes[nodeIdx];
-                for (auto _ : range0_(node._localEdgesCount)) {
+                for ([[maybe_unused]] auto _ : range0_(node._localEdgesCount)) {
                     _localEdges.insert(_edges.size());
                     _edges.push_back({EXTERNAL, {}});
                 }
-                for (auto _ : range0_(node._outputsCount)) {
+                for ([[maybe_unused]] auto _ : range0_(node._outputsCount)) {
                     _nodes[nodeIdx]._outputs.push_back(_edges.size());
                     _edges.push_back({nodeIdx, {}});
                 }
-                for (auto _ : range0_(node._inputsCount)) {
+                for ([[maybe_unused]] auto _ : range0_(node._inputsCount)) {
                     auto edgeIdx = graph._impl->_connections[passConnections++];
                     auto &edge = _edges[edgeIdx];
 

@@ -1,6 +1,6 @@
-﻿#include "common/range.h"
+﻿#include "computation/operators/squeeze.h"
 #include "common.h"
-#include <unordered_set>
+#include "common/range.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -27,7 +27,7 @@ namespace refactor::onnx {
                 if (axes->dataType != DataType::I64 || axes->shape.size() != 1 || !axes->hasData()) {
                     return Err(InferError(ERROR_MSG("Axes not support")));
                 }
-                auto rank = data->shape.size();
+                auto rank = data->rank();
                 auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
                 EXPECT_VAL(axes->shape[0], axesSize)
                 std::unordered_set<int64_t> axes__;
@@ -59,7 +59,9 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerSqueeze(Operator const &) {
-        return nullptr;
+    computation::SharedOp lowerSqueeze(Operator const &, Tensors) {
+        using namespace computation;
+
+        return std::make_shared<Squeeze>();
     }
 }// namespace refactor::onnx

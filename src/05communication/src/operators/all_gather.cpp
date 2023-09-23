@@ -11,7 +11,7 @@ namespace refactor::communication {
         }
     }
 
-    computation::SharedOp lowerAllGather(Operator const &op) {
+    computation::SharedOp lowerAllGather(Operator const &op, Tensors) {
         return nullptr;
     }
 }// namespace refactor::communication

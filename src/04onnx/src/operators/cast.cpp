@@ -1,5 +1,6 @@
-﻿#include "common/natural.h"
+﻿#include "computation/operators/cast.h"
 #include "common.h"
+#include "common/natural.h"
 #include <execution>
 
 namespace refactor::onnx {
@@ -74,7 +75,10 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerCast(Operator const &) {
-        return nullptr;
+    computation::SharedOp lowerCast(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto to = *DataType::parse(op.attribute("to").int_());
+        return std::make_shared<Cast>(to);
     }
 }// namespace refactor::onnx

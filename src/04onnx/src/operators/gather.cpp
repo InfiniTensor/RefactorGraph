@@ -1,5 +1,6 @@
-﻿#include "common/range.h"
+﻿#include "computation/operators/gather.h"
 #include "common.h"
+#include "common/range.h"
 #include <execution>
 
 namespace refactor::onnx {
@@ -12,7 +13,7 @@ namespace refactor::onnx {
         } else {
             auto const &data = inputs[0];
             auto const &indices = inputs[1];
-            auto const r = data->shape.size();
+            auto const r = data->rank();
             auto axis = op.attribute("axis", {0}).int_();
             if (axis < 0) {
                 axis += r;
@@ -67,7 +68,13 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerGather(Operator const &) {
-        return nullptr;
+    computation::SharedOp lowerGather(Operator const &op, Tensors inputs) {
+        using namespace computation;
+
+        auto axis = op.attribute("axis", {0}).int_();
+        if (axis < 0) {
+            axis += inputs[0]->shape.size();
+        }
+        return std::make_shared<Gather>(static_cast<size_t>(axis));
     }
 }// namespace refactor::onnx

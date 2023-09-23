@@ -1,5 +1,6 @@
-﻿#include "common/range.h"
+﻿#include "computation/operators/where.h"
 #include "common.h"
+#include "common/range.h"
 #include <execution>
 
 namespace refactor::onnx {
@@ -37,7 +38,9 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerWhere(Operator const &) {
-        return nullptr;
+    computation::SharedOp lowerWhere(Operator const &, Tensors) {
+        using namespace computation;
+
+        return std::make_shared<Where>();
     }
 }// namespace refactor::onnx

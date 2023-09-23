@@ -4,7 +4,6 @@
 #include "bf16_t.h"
 #include "fp16_t.h"
 #include <complex>
-#include <cstdint>
 #include <optional>
 
 namespace refactor::common {

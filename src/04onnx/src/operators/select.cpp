@@ -1,9 +1,10 @@
-﻿#include "common.h"
+﻿#include "computation/operators/select.h"
+#include "common.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
 
-    InferResult inferMax(Operator const &op, Tensors inputs) {
+    InferResult inferSelect(Operator const &op, Tensors inputs) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
@@ -20,7 +21,16 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
     }
 
-    computation::SharedOp lowerMax(Operator const &) {
-        return nullptr;
+    static computation::SelectType unsupport(OpType opType) {
+        RUNTIME_ERROR(fmt::format("{} not support in select lowering", opType.name()));
+    }
+
+    computation::SharedOp lowerSelect(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto type = op.opType.is("onnx::Max")   ? SelectType::Max
+                    : op.opType.is("onnx::Min") ? SelectType::Min
+                                                : unsupport(op.opType);
+        return std::make_shared<Select>(type);
     }
 }// namespace refactor::onnx

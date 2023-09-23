@@ -19,9 +19,11 @@ namespace refactor::onnx {
         OpType::register_("onnx::MatMul"          , inferMatMul          , lowerMatMul      );
         OpType::register_("onnx::Gemm"            , inferGemm            , lowerGemm        );
         OpType::register_("onnx::CumSum"          , inferCumSum          , lowerCumSum      );
-        OpType::register_("onnx::Max"             , inferMax             , lowerMax         );
+        OpType::register_("onnx::Max"             , inferSelect          , lowerSelect      );
+        OpType::register_("onnx::Min"             , inferSelect          , lowerSelect      );
         OpType::register_("onnx::Transpose"       , inferTranspose       , lowerTranspose   );
         OpType::register_("onnx::Cast"            , inferCast            , lowerCast        );
+        OpType::register_("onnx::Range"           , inferRange           , lowerRange       );
         OpType::register_("onnx::Slice"           , inferSlice           , lowerSlice       );
         OpType::register_("onnx::Split"           , inferSplit           , lowerSplit       );
         OpType::register_("onnx::Shape"           , inferShape           , unreachableLower );

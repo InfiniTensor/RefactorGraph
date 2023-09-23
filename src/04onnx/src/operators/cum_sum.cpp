@@ -1,5 +1,6 @@
-﻿#include "common/range.h"
+﻿#include "computation/operators/cum_sum.h"
 #include "common.h"
+#include "common/range.h"
 #include <execution>
 #include <numeric>
 
@@ -56,7 +57,7 @@ namespace refactor::onnx {
             if (reverse) {// TODO: support reverse
                 return Ok(Tensors{std::move(ans)});
             }
-            auto rank = ans->shape.size();
+            auto rank = ans->rank();
             auto axis_ = axis->dataType == DataType::I64
                              ? *reinterpret_cast<int64_t *>(axis->data->ptr)
                              : *reinterpret_cast<int32_t *>(axis->data->ptr);
@@ -99,7 +100,11 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerCumSum(Operator const &) {
-        return nullptr;
+    computation::SharedOp lowerCumSum(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto exclusive = op.attribute("exclusive", {0}).int_() != 0;
+        auto reverse = op.attribute("reverse", {0}).int_() != 0;
+        return std::make_shared<CumSum>(exclusive, reverse);
     }
 }// namespace refactor::onnx

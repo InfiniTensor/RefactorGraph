@@ -6,13 +6,29 @@
 namespace refactor::computation {
 
     enum class SimpleUnaryType {
+        Abs,
+        Acos,
+        Acosh,
+        Asin,
+        Asinh,
+        Atan,
+        Atanh,
+        Cos,
+        Cosh,
+        Sin,
+        Sinh,
+        Tan,
+        Tanh,
         Relu,
         Sqrt,
-        Tanh,
+        Sigmoid,
     };
 
     struct SimpleUnary : public Operator {
         SimpleUnaryType type;
+
+        constexpr explicit SimpleUnary(SimpleUnaryType type_)
+            : Operator(), type(type_) {}
     };
 
 }// namespace refactor::computation

@@ -2,13 +2,14 @@
 #define FRONTEND_LOWER_H
 
 #include "computation/operator.h"
+#include "tensor.h"
 
 namespace refactor::frontend {
 
     class Operator;
-    using LowerFn = computation::SharedOp (*)(Operator const &);
+    using LowerFn = computation::SharedOp (*)(Operator const &, Tensors);
 
-    computation::SharedOp unreachableLower(Operator const &);
+    computation::SharedOp unreachableLower(Operator const &, Tensors);
 
 }// namespace refactor::frontend
 

@@ -8,7 +8,6 @@ namespace refactor::frontend {
 
     class Operator;
     using Edges = std::vector<Edge>;
-    using Tensors = std::vector<std::shared_ptr<Tensor>>;
 
     struct FatalError {};
     struct UnknownVariable {

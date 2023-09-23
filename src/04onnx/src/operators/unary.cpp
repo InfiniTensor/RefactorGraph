@@ -1,4 +1,5 @@
 ﻿#include "common.h"
+#include "computation/operators/simple_unary.h"
 #include <unordered_set>
 
 namespace refactor::onnx {
@@ -9,7 +10,7 @@ namespace refactor::onnx {
             auto dataType = inputs[0]->dataType;
             auto opType = op.opType.name();
             static std::unordered_set<std::string_view> const SET[]{
-                {"onnx::Abs", "onnx::Relu", "onnx::PRelu"},
+                {"onnx::Abs", "onnx::Relu"},
                 {"onnx::Acos", "onnx::Acosh",
                  "onnx::Asin", "onnx::Asinh",
                  "onnx::Atan", "onnx::Atanh",
@@ -36,7 +37,30 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerUnary(Operator const &op) {
-        return nullptr;
+    static computation::SimpleUnaryType unsupport(OpType opType) {
+        RUNTIME_ERROR(fmt::format("{} not support in unary lowering", opType.name()));
+    }
+
+    computation::SharedOp lowerUnary(Operator const &op, Tensors) {
+        using namespace computation;
+
+        auto type = op.opType.is("onnx::Abs")       ? SimpleUnaryType::Abs
+                    : op.opType.is("onnx::Acos")    ? SimpleUnaryType::Acos
+                    : op.opType.is("onnx::Acosh")   ? SimpleUnaryType::Acosh
+                    : op.opType.is("onnx::Asin")    ? SimpleUnaryType::Asin
+                    : op.opType.is("onnx::Asinh")   ? SimpleUnaryType::Asinh
+                    : op.opType.is("onnx::Atan")    ? SimpleUnaryType::Atan
+                    : op.opType.is("onnx::Atanh")   ? SimpleUnaryType::Atanh
+                    : op.opType.is("onnx::Cos")     ? SimpleUnaryType::Cos
+                    : op.opType.is("onnx::Cosh")    ? SimpleUnaryType::Cosh
+                    : op.opType.is("onnx::Sin")     ? SimpleUnaryType::Sin
+                    : op.opType.is("onnx::Sinh")    ? SimpleUnaryType::Sinh
+                    : op.opType.is("onnx::Tan")     ? SimpleUnaryType::Tan
+                    : op.opType.is("onnx::Tanh")    ? SimpleUnaryType::Tanh
+                    : op.opType.is("onnx::Relu")    ? SimpleUnaryType::Relu
+                    : op.opType.is("onnx::Sqrt")    ? SimpleUnaryType::Sqrt
+                    : op.opType.is("onnx::Sigmoid") ? SimpleUnaryType::Sigmoid
+                                                    : unsupport(op.opType);
+        return std::make_shared<SimpleUnary>(type);
     }
 }// namespace refactor::onnx
