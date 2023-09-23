@@ -4,6 +4,7 @@
 
 namespace refactor::python_ffi {
     using namespace common;
+    using namespace frontend;
     namespace py = pybind11;
 
     // A helper function that converts DataType to python format string
@@ -33,6 +34,17 @@ namespace refactor::python_ffi {
             default:
                 RUNTIME_ERROR("unsupported data type.");
         }
+    }
+
+    Shape dimVec2Shape(DimVec const &dims) {
+        Shape shape(dims.size(), DimExpr(1));
+        std::transform(dims.begin(), dims.end(), shape.begin(),
+                       [](auto const &d) {
+                           return std::holds_alternative<int64_t>(d)
+                                      ? DimExpr(std::get<int64_t>(d))
+                                      : DimExpr(std::get<std::string>(d));
+                       });
+        return shape;
     }
 
 }// namespace refactor::python_ffi
