@@ -1,7 +1,7 @@
 ﻿.PHONY : build install-python clean clean-log format test-all
 
 TYPE ?= release
-BUILD_SHARED ?= OFF
+BUILD_SHARED ?= ON
 FORMAT_ORIGIN ?=
 
 CMAKE_OPT = -DCMAKE_BUILD_TYPE=$(TYPE) -DBUILD_SHARED=$(BUILD_SHARED)

@@ -3,7 +3,6 @@
 
 #include "frontend/graph.h"
 #include "functions.h"
-#include <pybind11/numpy.h>
 #include <string>
 
 namespace refactor::python_ffi {

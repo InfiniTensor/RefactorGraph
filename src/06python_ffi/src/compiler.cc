@@ -41,7 +41,7 @@ namespace refactor::python_ffi {
         std::transform(tensor.shape.begin(), tensor.shape.end(), shape.begin(),
                        [](auto const &d) { return d.value(); });
 
-        auto ans = py::array(py::dtype(getFormat(tensor.dataType)), std::move(shape), nullptr);
+        auto ans = py::array(buildNumpyDType(tensor.dataType), std::move(shape), nullptr);
         if (tensor.data) { std::memcpy(ans.mutable_data(), tensor.data->ptr, ans.nbytes()); }
         return ans;
     }

@@ -13,8 +13,7 @@ namespace refactor::python_ffi {
         Shape shape(data.ndim(), DimExpr(1));
         std::transform(data.shape(), data.shape() + data.ndim(), shape.begin(),
                        [](auto const &d) { return DimExpr(d); });
-        // TODO numpy 的 dtype number 和 onnx 不一定对应
-        auto ans = Tensor::share(*common::DataType::parse(data.dtype().num()), std::move(shape), {});
+        auto ans = Tensor::share(parseNumpyDType(data.dtype()), std::move(shape), {});
         std::memcpy(ans->malloc(), data.data(), data.nbytes());
         return ans;
     }

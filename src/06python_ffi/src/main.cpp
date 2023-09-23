@@ -1,7 +1,10 @@
-﻿#include "compiler.h"
+﻿#include "communication/operators.h"
+#include "compiler.h"
 #include "import.h"
+#include "onnx/operators.h"
 #include <memory>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>// keep this line to convert stl types
 
 namespace py = pybind11;
 
@@ -10,6 +13,9 @@ namespace refactor::python_ffi {
     PYBIND11_MODULE(python_ffi, m) {
         using policy = py::return_value_policy;
         using namespace frontend;
+
+        onnx::register_();
+        communication::register_();
 
         // clang-format off
 
@@ -24,7 +30,7 @@ namespace refactor::python_ffi {
         py::class_<Operator , std::shared_ptr<Operator> >(m, "Operator" );
         py::class_<Graph    , std::shared_ptr<Graph>    >(m, "Graph"    );
 
-        m   .def("make_node"       , &makeOp                 , policy::move      )
+        m   .def("make_operator"   , &makeOp                 , policy::move      )
             .def("make_tensor"     , &makeTensor             , policy::move      )
             .def("make_data"       , &makeTensorWithData     , policy::move      )
             .def("make_graph"      , &makeGraph              , policy::move      );

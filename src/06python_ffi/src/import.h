@@ -3,7 +3,6 @@
 
 #include "frontend/graph.h"
 #include "functions.h"
-#include <pybind11/numpy.h>
 
 namespace refactor::python_ffi {
     using SharedTensor = std::shared_ptr<frontend::Tensor>;

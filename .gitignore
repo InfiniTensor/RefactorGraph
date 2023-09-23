@@ -1,6 +1,8 @@
 .vscode/
 /build/
 
-*.log
-*.so
 *.egg-info/
+__pycache__/
+*.so
+*.log
+*.onnx

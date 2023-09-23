@@ -1,20 +1,43 @@
 ﻿#include "functions.h"
 #include "common/error_handler.h"
-#include <pybind11/numpy.h>
 
 namespace refactor::python_ffi {
     using namespace common;
     using namespace frontend;
     namespace py = pybind11;
 
+    common::DataType parseNumpyDType(py::dtype const &dt) {
+
+#define CASE(T)                                                   \
+    if (dt.is(py::dtype::of<primitive_t<DataType::T>::type>())) { \
+        return DataType::T;                                       \
+    }
+
+        CASE(F32);
+        CASE(F64);
+        CASE(I32);
+        CASE(I64);
+        CASE(I8);
+        CASE(I16);
+        CASE(U8);
+        CASE(U16);
+        CASE(U32);
+        CASE(U64);
+        CASE(Bool);
+
+#undef CASE
+        RUNTIME_ERROR("unsupported data type.");
+    }
+
     // A helper function that converts DataType to python format string
-    std::string getFormat(DataType type) {
+    pybind11::dtype buildNumpyDType(common::DataType dt) {
 
 #define CASE(T)       \
     case DataType::T: \
-        return py::format_descriptor<primitive_t<DataType::T>::type>::format();
+        return py::dtype::of<primitive_t<DataType::T>::type>();
 
-        switch (type.internal) {
+        switch (dt.internal) {
+
             CASE(F32);
             CASE(F64);
             CASE(I32);
@@ -25,15 +48,20 @@ namespace refactor::python_ffi {
             CASE(U16);
             CASE(U32);
             CASE(U64);
+            CASE(Bool);
+
             case DataType::FP16:
             case DataType::BF16:
                 // Python uses "e" for half precision float type code.
                 // Check the following link for more information.
                 // https://docs.python.org/3/library/struct.html#format-characters
-                return "e";
+                return py::dtype("e");
+
             default:
                 RUNTIME_ERROR("unsupported data type.");
         }
+
+#undef CASE
     }
 
     Shape dimVec2Shape(DimVec const &dims) {
