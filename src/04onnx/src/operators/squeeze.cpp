@@ -3,7 +3,7 @@
 #include "computation/operators/reshape.h"
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferSqueeze(Operator const &op, Tensors inputs) {
         switch (inputs.size()) {

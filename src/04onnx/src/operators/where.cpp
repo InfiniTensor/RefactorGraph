@@ -4,7 +4,7 @@
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferWhere(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(3)

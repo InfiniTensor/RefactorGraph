@@ -2,7 +2,7 @@
 #include "common.h"
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferSelect(Operator const &op, Tensors inputs) {
         if (inputs.empty()) {

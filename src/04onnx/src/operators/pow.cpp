@@ -2,7 +2,7 @@
 #include "computation/operators/simple_binary.h"
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferPow(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2)

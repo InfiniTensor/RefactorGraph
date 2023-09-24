@@ -4,7 +4,7 @@
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferSplit(Operator const &op, Tensors inputs) {
         if (inputs.empty() || inputs.size() > 2) {

@@ -4,7 +4,7 @@
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     template<class TS, class TD>
     void castData(void *src, void *dst, size_t size) {

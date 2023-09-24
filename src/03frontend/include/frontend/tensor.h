@@ -4,6 +4,7 @@
 #include "absl/container/inlined_vector.h"
 #include "common/blob.h"
 #include "common/data_type.h"
+#include "common/slice.h"
 #include <unordered_set>
 #include <variant>
 
@@ -74,9 +75,10 @@ namespace refactor::frontend {
 
     class TensorRefs {
         std::vector<Edge> const &_edges;
+        common::slice_t<size_t> _slice;
 
     public:
-        explicit TensorRefs(std::vector<Edge> const &edges);
+        TensorRefs(std::vector<Edge> const &, common::slice_t<size_t>);
         Tensor const &operator[](size_t) const;
         size_t size() const;
         bool empty() const;

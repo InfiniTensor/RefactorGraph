@@ -2,7 +2,7 @@
 #include "common/range.h"
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferShape(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1)

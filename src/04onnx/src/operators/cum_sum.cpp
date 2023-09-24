@@ -5,7 +5,7 @@
 #include <numeric>
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     template<decltype(DataType::internal) T>
     void accumulate_(void *dst, void *src, void *acc) {

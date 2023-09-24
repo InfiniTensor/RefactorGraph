@@ -3,7 +3,7 @@
 #include <unordered_set>
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferUnary(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1)

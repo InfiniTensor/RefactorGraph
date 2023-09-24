@@ -2,13 +2,19 @@
 #define COMPUTATION_SLICE_H
 
 #include "../operator.h"
+#include <vector>
 
 namespace refactor::computation {
 
-    struct Slice : public Operator {
-        // TODO: implement
+    struct Dim {
+        int64_t start, step, number;
+    };
 
-        constexpr Slice() : Operator() {}
+    struct Slice : public Operator {
+        std::vector<Dim> dims;
+
+        explicit Slice(std::vector<Dim> dims_)
+            : Operator(), dims(std::move(dims_)) {}
     };
 
 }// namespace refactor::computation

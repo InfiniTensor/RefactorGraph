@@ -21,18 +21,16 @@ namespace refactor::computation {
 
     struct Reduce : public Operator {
         ReduceType type;
-        absl::InlinedVector<size_t, 4> axes;
-        bool keepDims, noopWithEmptyAxes;
+        absl::InlinedVector<size_t, 4> axes;// empty means reduce all axes
+        bool keepDims;
 
         Reduce(ReduceType type_,
                absl::InlinedVector<size_t, 4> axes_,
-               bool keepDims_,
-               bool noopWithEmptyAxes_)
+               bool keepDims_)
             : Operator(),
               type(type_),
               axes(std::move(axes_)),
-              keepDims(keepDims_),
-              noopWithEmptyAxes(noopWithEmptyAxes_) {}
+              keepDims(keepDims_) {}
     };
 
 }// namespace refactor::computation

@@ -2,7 +2,7 @@
 #include "computation/operators/mat_mul.h"
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferGemm(Operator const &op, Tensors inputs) {
         if (auto size = inputs.size(); size < 2 || 3 < size) {

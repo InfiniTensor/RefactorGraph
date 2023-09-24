@@ -4,7 +4,7 @@
 #include <vector>
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     ShapeResult multidirBroadcast(ShapeRefs const &inputs) {
         using Iter = std::reverse_iterator<Shape::const_iterator>;

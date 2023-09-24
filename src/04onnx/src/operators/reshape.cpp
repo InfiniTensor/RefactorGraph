@@ -4,7 +4,7 @@
 #include "common/slice.h"
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferReshape(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(2)

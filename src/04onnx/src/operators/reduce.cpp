@@ -1,9 +1,10 @@
 ﻿#include "computation/operators/reduce.h"
 #include "common.h"
 #include "common/range.h"
+#include "computation/operators/identity.h"
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferReduce(Operator const &op, Tensors inputs) {
         if (inputs.empty() || 2 < inputs.size()) {
@@ -19,7 +20,7 @@ namespace refactor::onnx {
                 return Ok(std::move(inputs));
             } else if (keepdims) {
                 return Ok(Tensors{Tensor::share(data->dataType,
-                                                Shape(data->shape.size(), DimExpr(1)),
+                                                Shape(data->rank(), DimExpr(1)),
                                                 extractDependency(inputs))});
             } else {
                 return Ok(Tensors{Tensor::share(data->dataType,
@@ -70,18 +71,25 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::ReduceSum")       ? ReduceType::Sum
                     : op.opType.is("onnx::ReduceSumSquare") ? ReduceType::SumSquare
                                                             : unsupport(op.opType);
+
+        auto rank = inputs[0].rank();
+        auto keepdims = op.attribute("keepdims", {1}).int_() != 0;
+        if (inputs.size() == 1) {
+            if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
+                return std::make_shared<Identity>();
+            } else {
+                return std::make_shared<Reduce>(type, decltype(Reduce::axes){}, keepdims);
+            }
+        }
         auto const &axes = inputs[1];
         auto axes_ = reinterpret_cast<int64_t *>(axes.data->ptr);
         auto axesSize = axes.shape[0].value();
 
-        auto rank = inputs[0].rank();
         decltype(Reduce::axes) axes__(axesSize);
         std::transform(axes_, axes_ + axesSize, axes__.begin(), [rank](auto axis) {
             return axis < 0 ? axis + rank : axis;
         });
 
-        auto keepdims = op.attribute("keepdims", {1}).int_() != 0;
-        auto noopWithEmptyAxes = op.attribute("noop_with_empty_axes", {0}).int_() != 0;
-        return std::make_shared<Reduce>(type, std::move(axes__), keepdims, noopWithEmptyAxes);
+        return std::make_shared<Reduce>(type, std::move(axes__), keepdims);
     }
 }// namespace refactor::onnx

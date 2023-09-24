@@ -7,11 +7,10 @@
 #include <fmtlog.h>
 #include <mutex>
 
-using namespace refactor::common;
-using namespace std::chrono;
-namespace fs = std::filesystem;
-
 namespace refactor::frontend {
+    using namespace common;
+    using namespace std::chrono;
+    namespace fs = std::filesystem;
 
     void configLog() {
         static std::once_flag logInitFlag;
@@ -162,7 +161,7 @@ namespace refactor::frontend {
                                                   nodeRef.outputs.begin(), nodeRef.outputs.end(),
                                                   [this](auto i) { return _internal.edges[i].tensor->hasData(); })
                                           ? nullptr
-                                          : op.lower(TensorRefs(_internal.edges));
+                                          : op.lower(TensorRefs(_internal.edges, nodeRef.inputs));
                            return computation::Node{std::move(op_), name};
                        });
 

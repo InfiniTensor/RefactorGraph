@@ -3,7 +3,7 @@
 #include "computation/operators/simple_binary.h"
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     enum class Ty {
         Add,

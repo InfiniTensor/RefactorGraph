@@ -1,10 +1,10 @@
-﻿#include "common/range.h"
+﻿#include "common.h"
+#include "common/range.h"
 #include "common/slice.h"
-#include "common.h"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
 
     InferResult inferConstantOfShape(Operator const &op, Tensors inputs) {
         EXPECT_SIZE(1)

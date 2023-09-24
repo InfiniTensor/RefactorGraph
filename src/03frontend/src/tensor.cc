@@ -78,9 +78,10 @@ namespace refactor::frontend {
     void *Tensor::malloc() { return (data = std::make_shared<common::Blob>(bytesSize()))->ptr; }
     void Tensor::free() { data = nullptr; }
 
-    TensorRefs::TensorRefs(std::vector<Edge> const &edges) : _edges(edges) {}
-    Tensor const &TensorRefs::operator[](size_t i) const { return *_edges[i].tensor; }
-    size_t TensorRefs::size() const { return _edges.size(); }
-    bool TensorRefs::empty() const { return _edges.empty(); }
+    TensorRefs::TensorRefs(std::vector<Edge> const &edges, common::slice_t<size_t> slice)
+        : _edges(edges), _slice(slice) {}
+    Tensor const &TensorRefs::operator[](size_t i) const { return *_edges[_slice[i]].tensor; }
+    size_t TensorRefs::size() const { return _slice.size(); }
+    bool TensorRefs::empty() const { return _slice.empty(); }
 
 }// namespace refactor::frontend

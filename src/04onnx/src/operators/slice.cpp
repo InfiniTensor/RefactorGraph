@@ -4,7 +4,64 @@
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace refactor::common;
+    using namespace common;
+    using computation::Dim;
+
+    Result<std::vector<Dim>, InferError> buildDims(
+        size_t rank,
+        size_t size,
+        Shape const &data,
+        int64_t const *const starts,
+        int64_t const *const ends,
+        int64_t const *const axes,
+        int64_t const *const steps) {
+        std::vector<Dim> dims(rank);
+        std::vector<bool> flags(rank, false);
+        for (auto i : range0_(size)) {
+            auto axis = axes ? axes[i] : i;
+            auto step = steps ? steps[i] : 1;
+            auto start = starts[i];
+            auto end = ends[i];
+
+            if (axis < 0) {
+                axis += rank;
+            }
+            if (axis < 0 || rank <= axis) {
+                return Err(InferError(ERROR_MSG("Axes not support")));
+            }
+            flags[axis] = true;
+
+            EXPECT_VAL(data[axis], dim)
+
+            if (start < 0) {
+                start += dim;
+            }
+            if (end < 0) {
+                end += dim;
+            }
+
+            if (step > 0) {
+                start = std::clamp(start, 0l, dim);
+                end = std::clamp(end, 0l, dim);
+                dims[axis] = {start, step, end <= start ? 0 : (end - start + step - 1) / step};
+            } else if (step < 0) {
+                start = std::clamp(start, 0l, dim - 1);
+                end = std::clamp(end, -1l, dim - 1);
+                dims[axis] = {end, step, start <= end ? 0 : (start - end - step + 1) / -step};
+            } else {
+                return Err(InferError(ERROR_MSG("Step not support")));
+            }
+        }
+        if (size < rank) {
+            for (auto i : range0_(rank)) {
+                if (!flags[i]) {
+                    EXPECT_VAL(data[i], dim)
+                    dims[i] = {0, 1, dim};
+                }
+            }
+        }
+        return Ok(std::move(dims));
+    }
 
     InferResult inferSlice(Operator const &op, Tensors inputs) {
         if (inputs.size() < 3 || 5 < inputs.size()) {
@@ -27,8 +84,8 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
         auto rank = data->rank();
-        EXPECT_VAL(starts_->shape[0], rankParam)
-        if (rank < rankParam) {
+        EXPECT_VAL(starts_->shape[0], size)
+        if (rank < size) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
         if (!starts_->hasData() || !ends_->hasData()) {
@@ -58,99 +115,50 @@ namespace refactor::onnx {
             }
             steps = reinterpret_cast<int64_t *>(steps_->data->ptr);
         }
-        std::unordered_set<int64_t> axes_set;
-        for (auto i : range0_(rank)) { axes_set.insert(i); }
-        Shape output(rank, DimExpr(1));
-        for (auto i : range0_(rankParam)) {
-            auto axis = axes ? axes[i] : i;
-            if (axis < 0) {
-                axis += rank;
-            }
-            if (!axes_set.erase(axis)) {
-                return Err(InferError(ERROR_MSG("Axes not support")));
-            }
-            auto start = starts[i];
-            auto end = ends[i];
-            auto step = steps ? steps[i] : 1;
-            EXPECT_VAL(data->shape[axis], dim)
-            if (start < 0) {
-                start += dim;
-            }
-            if (end < 0) {
-                end += dim;
-            }
-            if (step > 0) {
-                if (start < 0) {
-                    start = 0;
-                } else if (start > dim) {
-                    start = dim;
-                }
-                if (end < 0) {
-                    end = 0;
-                } else if (end > dim) {
-                    end = dim;
-                }
-            } else if (step < 0) {
-                if (start < 0) {
-                    start = 0;
-                } else if (start > dim - 1) {
-                    start = dim - 1;
-                }
-                if (end < -1) {
-                    end = -1;
-                } else if (end > dim - 1) {
-                    end = dim - 1;
-                }
-            } else {
-                return Err(InferError(ERROR_MSG("Step not support")));
-            }
-            if (step > 0) {
-                output[axis] = DimExpr((end - start + step - 1) / step);
-            } else if (step < 0) {
-                output[axis] = DimExpr((end - start - step + 1) / -step);
-            } else {
-                return Err(InferError(ERROR_MSG("Input shape not support")));
-            }
-        }
-        for (auto axis : axes_set) {
-            output[axis] = data->shape[axis];
-        }
-        auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
-        if (!shouldCalculate(inputs, output) || (steps && std::any_of(steps, steps + rankParam, [](auto i) { return i != 1; }))) {
-            return Ok(Tensors{std::move(ans)});
-        }
 
-        Indices axes_(rank, -1);
-        if (axes) {
-            for (auto i : range0_(rankParam)) { axes_[axes[i]] = i; }
+        auto res = buildDims(rank, size, data->shape, starts, ends, axes, steps);
+        if (res.isErr()) {
+            return Err(res.unwrapErr());
         }
+        auto dims = std::move(res.unwrap());
+        Shape output(dims.size(), DimExpr(1));
+        std::transform(dims.begin(), dims.end(), output.begin(),
+                       [](auto const &dim) { return DimExpr(dim.number); });
+
+        auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
+        if (!data->data) { return Ok(Tensors{std::move(ans)}); }
+
         std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
-                        [&, rank, axes, starts,
+                        [&output, &dims, &data, rank,
                          eleSize = data->dataType.size(),
                          dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto i) {
                             auto indices = locateN(output, i);
                             Indices indices_(indices.begin(), indices.end());
                             for (auto j : range0_(rank)) {
-                                if (axes) {
-                                    if (axes_[j] >= 0) {
-                                        auto start = starts[axes_[j]];
-                                        if (start < 0) {
-                                            start += data->shape[j].value();
-                                        }
-                                        indices_[j] += start;
-                                    }
-                                } else {
-                                    indices_[j] += starts[j];
-                                }
+                                indices_[j] *= dims[j].step;
+                                indices_[j] += dims[j].start;
                             }
                             std::memcpy(dst + i * eleSize, locate1(*data, indices_), eleSize);
                         });
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerSlice(Operator const &, TensorRefs) {
+    computation::SharedOp lowerSlice(Operator const &, TensorRefs inputs) {
         using namespace computation;
 
-        return std::make_shared<Slice>();
+        auto const &data = inputs[0];
+        auto const &starts_ = inputs[1];
+        auto const &ends_ = inputs[2];
+
+        int64_t const
+            *starts = reinterpret_cast<int64_t *>(starts_.data->ptr),
+            *ends = reinterpret_cast<int64_t *>(ends_.data->ptr),
+            *axes = inputs.size() >= 4 ? reinterpret_cast<int64_t *>(inputs[3].data->ptr) : nullptr,
+            *steps = inputs.size() == 5 ? reinterpret_cast<int64_t *>(inputs[4].data->ptr) : nullptr;
+
+        auto rank = data.rank();
+        auto size = starts_.shape[0].value();
+
+        return std::make_shared<Slice>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap());
     }
 }// namespace refactor::onnx
