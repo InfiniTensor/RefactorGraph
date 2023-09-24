@@ -1,12 +1,14 @@
-﻿#include "computation/operators/unsqueeze.h"
-#include "common.h"
+﻿#include "common.h"
 #include "common/range.h"
 #include "common/slice.h"
+#include "computation/operators/reshape.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
 
     InferResult inferUnsqueeze(Operator const &op, Tensors inputs) {
+        EXPECT_SIZE(2)
+
         auto const &data = inputs[0];
         auto const &axes = inputs[1];
         if (axes->dataType != DataType::I64 || axes->shape.size() != 1 || !axes->hasData()) {
@@ -42,6 +44,6 @@ namespace refactor::onnx {
     computation::SharedOp lowerUnsqueeze(Operator const &, TensorRefs) {
         using namespace computation;
 
-        return std::make_shared<Unsqueeze>();
+        return nullptr;
     }
 }// namespace refactor::onnx

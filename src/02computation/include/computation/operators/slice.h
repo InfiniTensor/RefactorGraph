@@ -6,6 +6,8 @@
 namespace refactor::computation {
 
     struct Slice : public Operator {
+        // TODO: implement
+
         constexpr Slice() : Operator() {}
     };
 

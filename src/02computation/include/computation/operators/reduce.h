@@ -2,6 +2,7 @@
 #define COMPUTATION_REDUCE_H
 
 #include "../operator.h"
+#include <absl/container/inlined_vector.h>
 
 namespace refactor::computation {
 
@@ -20,10 +21,18 @@ namespace refactor::computation {
 
     struct Reduce : public Operator {
         ReduceType type;
+        absl::InlinedVector<size_t, 4> axes;
         bool keepDims, noopWithEmptyAxes;
 
-        constexpr Reduce(ReduceType type_, bool keepDims_, bool noopWithEmptyAxes_)
-            : Operator(), type(type_), keepDims(keepDims_), noopWithEmptyAxes(noopWithEmptyAxes_) {}
+        Reduce(ReduceType type_,
+               absl::InlinedVector<size_t, 4> axes_,
+               bool keepDims_,
+               bool noopWithEmptyAxes_)
+            : Operator(),
+              type(type_),
+              axes(std::move(axes_)),
+              keepDims(keepDims_),
+              noopWithEmptyAxes(noopWithEmptyAxes_) {}
     };
 
 }// namespace refactor::computation

@@ -6,10 +6,9 @@
 namespace refactor::computation {
 
     struct Split : public Operator {
-        size_t axis, numOutputs;
+        size_t axis;
 
-        constexpr Split(size_t axis_, size_t numOutputs_)
-            : Operator(), axis(axis_), numOutputs(numOutputs_) {}
+        constexpr Split(size_t axis_) : Operator(), axis(axis_) {}
     };
 
 }// namespace refactor::computation

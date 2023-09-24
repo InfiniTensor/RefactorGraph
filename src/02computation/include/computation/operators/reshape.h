@@ -6,10 +6,7 @@
 namespace refactor::computation {
 
     struct Reshape : public Operator {
-        bool allowzero;
-
-        constexpr explicit Reshape(bool allowzero_)
-            : Operator(), allowzero(allowzero_) {}
+        constexpr Reshape() : Operator() {}
     };
 
 }// namespace refactor::computation

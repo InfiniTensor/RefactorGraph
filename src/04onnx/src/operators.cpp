@@ -8,6 +8,8 @@ namespace refactor::onnx {
         // clang-format off
         OpType::register_("onnx::Constant"        , inferConstant        , unreachableLower );
         OpType::register_("onnx::ConstantOfShape" , inferConstantOfShape , unreachableLower );
+        OpType::register_("onnx::Range"           , inferRange           , unreachableLower );
+        OpType::register_("onnx::Shape"           , inferShape           , unreachableLower );
         OpType::register_("onnx::Relu"            , inferUnary           , lowerUnary       );
         OpType::register_("onnx::Sqrt"            , inferUnary           , lowerUnary       );
         OpType::register_("onnx::Tanh"            , inferUnary           , lowerUnary       );
@@ -23,10 +25,8 @@ namespace refactor::onnx {
         OpType::register_("onnx::Min"             , inferSelect          , lowerSelect      );
         OpType::register_("onnx::Transpose"       , inferTranspose       , lowerTranspose   );
         OpType::register_("onnx::Cast"            , inferCast            , lowerCast        );
-        OpType::register_("onnx::Range"           , inferRange           , lowerRange       );
         OpType::register_("onnx::Slice"           , inferSlice           , lowerSlice       );
         OpType::register_("onnx::Split"           , inferSplit           , lowerSplit       );
-        OpType::register_("onnx::Shape"           , inferShape           , unreachableLower );
         OpType::register_("onnx::Reshape"         , inferReshape         , lowerReshape     );
         OpType::register_("onnx::Gather"          , inferGather          , lowerGather      );
         OpType::register_("onnx::Concat"          , inferConcat          , lowerConcat      );

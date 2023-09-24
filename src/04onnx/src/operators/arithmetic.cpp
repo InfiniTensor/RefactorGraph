@@ -37,56 +37,56 @@ namespace refactor::onnx {
     }
 
     InferResult inferArithmetic(Operator const &op, Tensors inputs) {
-        EXPECT_SIZE(2) {
-            auto const &a = inputs[0];
-            auto const &b = inputs[1];
-            auto dataType = a->dataType;
-            if (!dataType.isNumberic() || b->dataType != dataType) {
-                return Err(InferError(ERROR_MSG("Data type not support")));
-            }
+        EXPECT_SIZE(2)
 
-            MULTIDIR_BROADCAST((ShapeRefs{a->shape, b->shape}))
-            auto ans = Tensor::share(dataType, std::move(output), extractDependency(inputs));
-            if (!shouldCalculate(inputs, ans->shape)) {
-                return Ok(Tensors{std::move(ans)});
-            }
+        auto const &a = inputs[0];
+        auto const &b = inputs[1];
+        auto dataType = a->dataType;
+        if (!dataType.isNumberic() || b->dataType != dataType) {
+            return Err(InferError(ERROR_MSG("Data type not support")));
+        }
 
-            auto eleSize = dataType.size();
-            auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-            for (auto i : range0_(ans->elementsSize())) {
-                auto ty = op.opType.is("onnx::Add")   ? Ty::Add
-                          : op.opType.is("onnx::Sub") ? Ty::Sub
-                          : op.opType.is("onnx::Mul") ? Ty::Mul
-                          : op.opType.is("onnx::Div") ? Ty::Div
-                                                      : UNREACHABLE();
-                auto indices = locateN(ans->shape, i);
-                auto a_ = locate1(*a, indices),
-                     b_ = locate1(*b, indices);
-                auto dst_ = dst + i * eleSize;
-                //-------------------------------------
+        MULTIDIR_BROADCAST((ShapeRefs{a->shape, b->shape}))
+        auto ans = Tensor::share(dataType, std::move(output), extractDependency(inputs));
+        if (!shouldCalculate(inputs, ans->shape)) {
+            return Ok(Tensors{std::move(ans)});
+        }
+
+        auto eleSize = dataType.size();
+        auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
+        for (auto i : range0_(ans->elementsSize())) {
+            auto ty = op.opType.is("onnx::Add")   ? Ty::Add
+                      : op.opType.is("onnx::Sub") ? Ty::Sub
+                      : op.opType.is("onnx::Mul") ? Ty::Mul
+                      : op.opType.is("onnx::Div") ? Ty::Div
+                                                  : UNREACHABLE();
+            auto indices = locateN(ans->shape, i);
+            auto a_ = locate1(*a, indices),
+                 b_ = locate1(*b, indices);
+            auto dst_ = dst + i * eleSize;
+            //-------------------------------------
 #define CASE(T)                                   \
     case DataType::T:                             \
         calculate<DataType::T>(ty, dst_, a_, b_); \
         break
-                //-------------------------------------
-                switch (dataType.internal) {
-                    CASE(F32);
-                    CASE(F64);
-                    CASE(I32);
-                    CASE(I64);
-                    CASE(I8);
-                    CASE(I16);
-                    CASE(U8);
-                    CASE(U16);
-                    CASE(U32);
-                    CASE(U64);
-                    default:
-                        ans->free();
-                        break;
-                }
+            //-------------------------------------
+            switch (dataType.internal) {
+                CASE(F32);
+                CASE(F64);
+                CASE(I32);
+                CASE(I64);
+                CASE(I8);
+                CASE(I16);
+                CASE(U8);
+                CASE(U16);
+                CASE(U32);
+                CASE(U64);
+                default:
+                    ans->free();
+                    break;
             }
-            return Ok(Tensors{std::move(ans)});
         }
+        return Ok(Tensors{std::move(ans)});
     }
 
     static computation::SimpleBinaryType unsupport(OpType opType) {

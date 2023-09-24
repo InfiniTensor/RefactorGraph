@@ -1,6 +1,6 @@
-﻿#include "computation/operators/squeeze.h"
-#include "common.h"
+﻿#include "common.h"
 #include "common/range.h"
+#include "computation/operators/reshape.h"
 
 namespace refactor::onnx {
     using namespace refactor::common;
@@ -59,9 +59,9 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerSqueeze(Operator const &, TensorRefs) {
+    computation::SharedOp lowerSqueeze(Operator const &, TensorRefs inputs) {
         using namespace computation;
 
-        return std::make_shared<Squeeze>();
+        return std::make_shared<Reshape>();
     }
 }// namespace refactor::onnx
