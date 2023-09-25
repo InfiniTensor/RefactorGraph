@@ -14,9 +14,9 @@ namespace refactor::onnx {
         if (axes->dataType != DataType::I64 || axes->shape.size() != 1 || !axes->hasData()) {
             return Err(InferError(ERROR_MSG("Axes not support")));
         }
-        auto rank = data->rank();
         auto axes_ = reinterpret_cast<int64_t *>(axes->data->ptr);
         EXPECT_VAL(axes->shape[0], axesSize)
+        auto rank = data->rank() + axesSize;
         std::unordered_set<int64_t> axes__;
         for (auto axis : slice(axes_, axesSize)) {
             if (axis < 0) {
@@ -28,7 +28,7 @@ namespace refactor::onnx {
             axes__.insert(axis);
         }
         ASSERT(static_cast<int64_t>(axes__.size()) == axesSize, "Axes has duplicate");
-        Shape output(rank + axesSize, DimExpr(1));
+        Shape output(rank, DimExpr(1));
         auto it = data->shape.begin();
         for (auto i : range0_(output.size())) {
             if (!axes__.erase(i)) {

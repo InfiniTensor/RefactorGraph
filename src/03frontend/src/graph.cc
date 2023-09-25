@@ -101,6 +101,9 @@ namespace refactor::frontend {
             }
             if (!inputs_) { continue; }
 
+#ifndef NDEBUG
+            logi("infering: {}", _internal.nodes[nodeIdx].name);
+#endif
             auto infered = _internal.nodes[nodeIdx].op.infer(std::move(*inputs_));
 
             if (infered.isOk()) {
@@ -109,6 +112,15 @@ namespace refactor::frontend {
                 if (infered_.size() < outputs.size()) {
                     OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
                 } else {
+#ifndef NDEBUG
+                    auto log = fmt::format("node[{}] = {} -> [ ", nodeIdx, _internal.nodes[nodeIdx].name);
+                    for (auto const &shape : infered_) {
+                        log += shapeFormat(shape->shape);
+                        log += ' ';
+                    }
+                    logd("{}]", log);
+#endif
+
                     std::for_each_n(std::execution::unseq, natural_t(0), outputs.size(),
                                     [&infered_, outputs, this](auto i) {
                                         _internal.edges[outputs[i]].tensor = std::move(infered_[i]);
@@ -167,6 +179,11 @@ namespace refactor::frontend {
 
         auto const endTime = high_resolution_clock::now();
         logi("lowering cost time: {} μs", duration_cast<microseconds>(endTime - startTime).count());
+
+#ifndef NDEBUG
+        logi("{} nodes remained after lowering",
+             std::count_if(nodes.begin(), nodes.end(), [](auto const &node) { return node.op; }));
+#endif
 
         return {_internal.topology, std::move(nodes), std::move(edges)};
     }

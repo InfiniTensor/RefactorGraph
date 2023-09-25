@@ -18,10 +18,10 @@ namespace refactor::onnx {
         std::vector<Dim> dims(rank);
         std::vector<bool> flags(rank, false);
         for (auto i : range0_(size)) {
-            auto axis = axes ? axes[i] : i;
-            auto step = steps ? steps[i] : 1;
-            auto start = starts[i];
-            auto end = ends[i];
+            int64_t axis = axes ? axes[i] : i,
+                    step = steps ? steps[i] : 1,
+                    start = starts[i],
+                    end = ends[i];
 
             if (axis < 0) {
                 axis += rank;

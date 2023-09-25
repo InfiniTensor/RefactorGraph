@@ -18,7 +18,7 @@ namespace refactor::onnx {
              "onnx::Cos", "onnx::Cosh",
              "onnx::Sin", "onnx::Sinh",
              "onnx::Tan"},
-            {"onnx::Tanh", "onnx::Sqrt"}};
+            {"onnx::Tanh", "onnx::Sqrt", "onnx::Sigmoid"}};
         if (SET[0].find(opType) != SET[0].end()) {
             if (!dataType.isNumberic()) {
                 return Err(InferError(ERROR_MSG("Data type not support")));

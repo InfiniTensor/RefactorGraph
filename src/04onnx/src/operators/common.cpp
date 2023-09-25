@@ -1,5 +1,6 @@
 ﻿#include "common.h"
 #include "common/natural.h"
+#include <fmtlog.h>
 #include <numeric>
 #include <vector>
 
@@ -22,6 +23,10 @@ namespace refactor::onnx {
                     if (!dim || *dim == DimExpr(1)) {
                         dim = std::move(new_);
                     } else if (new_ != DimExpr(1) && new_ != *dim) {
+                        loge("shape broadcast failed");
+                        for (auto input : inputs) {
+                            loge("{}", shapeFormat(input.get()));
+                        }
                         return Err(ERROR_MSG("Shape broadcast failed"));
                     }
                     ++i;
