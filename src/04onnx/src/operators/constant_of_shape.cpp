@@ -18,7 +18,8 @@ namespace refactor::onnx {
             Shape output(shapeSize, DimExpr(1));
             auto shape = reinterpret_cast<int64_t *>(input->data->ptr);
             auto slice = slice_t<int64_t>{shape, shape + shapeSize};
-            std::transform(slice.begin(), slice.end(), output.begin(),
+            std::transform(std::execution::unseq,
+                           slice.begin(), slice.end(), output.begin(),
                            [](auto const d) { return DimExpr(d); });
             auto dependencies = inputs[0]->depVariables;
             if (auto it = op.attributes.find("value"); it != op.attributes.end()) {

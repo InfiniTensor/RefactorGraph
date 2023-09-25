@@ -1,5 +1,6 @@
 ﻿#include "frontend/infer.h"
 #include "common/natural.h"
+#include <execution>
 
 namespace refactor::frontend {
 
@@ -11,8 +12,8 @@ namespace refactor::frontend {
           value(std::move(variable)) {}
 
     bool shouldCalculate(Tensors const &inputs, Shape const &output) {
-        return std::all_of(inputs.begin(), inputs.end(), [](auto const &input) { return input->hasData(); }) &&
-               std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
+        return std::all_of(std::execution::unseq, inputs.begin(), inputs.end(), [](auto const &input) { return input->hasData(); }) &&
+               std::all_of(std::execution::unseq, output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
     }
 
     std::unordered_set<DimVariable> extractDependency(Tensors const &inputs) {

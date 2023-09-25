@@ -1,4 +1,5 @@
 ﻿#include "import.h"
+#include <execution>
 
 namespace refactor::python_ffi {
     using namespace frontend;
@@ -11,7 +12,8 @@ namespace refactor::python_ffi {
     SharedTensor
     makeTensorWithData(pybind11::array data) {
         Shape shape(data.ndim(), DimExpr(1));
-        std::transform(data.shape(), data.shape() + data.ndim(), shape.begin(),
+        std::transform(std::execution::unseq,
+                       data.shape(), data.shape() + data.ndim(), shape.begin(),
                        [](auto const &d) { return DimExpr(d); });
         auto ans = Tensor::share(parseNumpyDType(data.dtype()), std::move(shape), {});
         std::memcpy(ans->malloc(), data.data(), data.nbytes());

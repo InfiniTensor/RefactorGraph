@@ -3,6 +3,7 @@
 
 #include "container.hpp"
 #include <algorithm>
+#include <execution>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -55,7 +56,7 @@ namespace refactor::graph_topo {
                 for (auto const &[kn, n__] : this->topology) {
                     auto const &[inputs, outputs] = n__;
                     if (mappedNodes.find(kn) != mappedNodes.end() ||
-                        !std::all_of(inputs.begin(), inputs.end(),
+                        !std::all_of(std::execution::unseq, inputs.begin(), inputs.end(),
                                      [&](auto const &edge) { return keyToIdx.find(edge) != keyToIdx.end() ||
                                                                     generatedEdges.find(edge) == generatedEdges.end(); })) {
                         continue;

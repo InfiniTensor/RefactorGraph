@@ -2,6 +2,7 @@
 #include "common.h"
 #include "common/range.h"
 #include "computation/operators/identity.h"
+#include <execution>
 
 namespace refactor::onnx {
     using namespace common;
@@ -86,9 +87,10 @@ namespace refactor::onnx {
         auto axesSize = axes.shape[0].value();
 
         decltype(Reduce::axes) axes__(axesSize);
-        std::transform(axes_, axes_ + axesSize, axes__.begin(), [rank](auto axis) {
-            return axis < 0 ? axis + rank : axis;
-        });
+        std::transform(std::execution::unseq,
+                       axes_, axes_ + axesSize, axes__.begin(), [rank](auto axis) {
+                           return axis < 0 ? axis + rank : axis;
+                       });
 
         return std::make_shared<Reduce>(type, std::move(axes__), keepdims);
     }

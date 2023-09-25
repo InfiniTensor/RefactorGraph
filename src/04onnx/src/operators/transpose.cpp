@@ -1,5 +1,6 @@
 ﻿#include "computation/operators/transpose.h"
 #include "common.h"
+#include <execution>
 
 namespace refactor::onnx {
     using namespace common;
@@ -15,7 +16,8 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
             Shape output(perm.size(), DimExpr(1));
-            std::transform(perm.begin(), perm.end(), output.begin(),
+            std::transform(std::execution::unseq,
+                           perm.begin(), perm.end(), output.begin(),
                            [&data](auto i) { return data->shape[i]; });
             return Ok(Tensors{Tensor::share(data->dataType, std::move(output), extractDependency(inputs))});
         } else {
@@ -29,7 +31,8 @@ namespace refactor::onnx {
 
         auto perm = op.attribute("perm").ints();
         decltype(Transpose::perm) ans(perm.size());
-        std::transform(perm.begin(), perm.end(), ans.begin(), [](auto i) { return static_cast<size_t>(i); });
+        std::transform(std::execution::unseq,
+                       perm.begin(), perm.end(), ans.begin(), [](auto i) { return static_cast<size_t>(i); });
         return std::make_shared<Transpose>(std::move(ans));
     }
 }// namespace refactor::onnx

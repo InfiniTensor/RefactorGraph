@@ -1,5 +1,6 @@
 ﻿#include "functions.h"
 #include "common/error_handler.h"
+#include <execution>
 
 namespace refactor::python_ffi {
     using namespace common;
@@ -66,7 +67,8 @@ namespace refactor::python_ffi {
 
     Shape dimVec2Shape(DimVec const &dims) {
         Shape shape(dims.size(), DimExpr(1));
-        std::transform(dims.begin(), dims.end(), shape.begin(),
+        std::transform(std::execution::unseq,
+                       dims.begin(), dims.end(), shape.begin(),
                        [](auto const &d) {
                            return std::holds_alternative<int64_t>(d)
                                       ? DimExpr(std::get<int64_t>(d))

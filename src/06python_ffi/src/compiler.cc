@@ -1,5 +1,6 @@
 ﻿#include "compiler.h"
 #include "common/error_handler.h"
+#include <execution>
 
 namespace refactor::python_ffi {
     using namespace frontend;
@@ -41,7 +42,8 @@ namespace refactor::python_ffi {
         auto const &tensor = *it->tensor;
 
         std::vector<int64_t> shape(tensor.shape.size());
-        std::transform(tensor.shape.begin(), tensor.shape.end(), shape.begin(),
+        std::transform(std::execution::unseq,
+                       tensor.shape.begin(), tensor.shape.end(), shape.begin(),
                        [](auto const &d) { return d.value(); });
 
         auto ans = py::array(buildNumpyDType(tensor.dataType), std::move(shape), nullptr);

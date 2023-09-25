@@ -122,7 +122,8 @@ namespace refactor::onnx {
         }
         auto dims = std::move(res.unwrap());
         Shape output(dims.size(), DimExpr(1));
-        std::transform(dims.begin(), dims.end(), output.begin(),
+        std::transform(std::execution::unseq,
+                       dims.begin(), dims.end(), output.begin(),
                        [](auto const &dim) { return DimExpr(dim.number); });
 
         auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
