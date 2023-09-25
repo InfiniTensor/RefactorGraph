@@ -11,7 +11,7 @@ namespace refactor::onnx {
         auto dataType = inputs[0]->dataType;
         auto opType = op.opType.name();
         static std::unordered_set<std::string_view> const SET[]{
-            {"onnx::Abs", "onnx::Relu"},
+            {"onnx::Abs", "onnx::Relu", "onnx::Erf"},
             {"onnx::Acos", "onnx::Acosh",
              "onnx::Asin", "onnx::Asinh",
              "onnx::Atan", "onnx::Atanh",
@@ -60,6 +60,7 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::Relu")    ? SimpleUnaryType::Relu
                     : op.opType.is("onnx::Sqrt")    ? SimpleUnaryType::Sqrt
                     : op.opType.is("onnx::Sigmoid") ? SimpleUnaryType::Sigmoid
+                    : op.opType.is("onnx::Erf")     ? SimpleUnaryType::Erf
                                                     : unsupport(op.opType);
         return std::make_shared<SimpleUnary>(type);
     }

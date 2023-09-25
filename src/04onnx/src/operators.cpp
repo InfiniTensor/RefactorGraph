@@ -10,6 +10,7 @@ namespace refactor::onnx {
         OpType::register_("onnx::ConstantOfShape" , inferConstantOfShape , unreachableLower );
         OpType::register_("onnx::Range"           , inferRange           , unreachableLower );
         OpType::register_("onnx::Shape"           , inferShape           , unreachableLower );
+        OpType::register_("onnx::Erf"             , inferUnary           , lowerUnary       );
         OpType::register_("onnx::Relu"            , inferUnary           , lowerUnary       );
         OpType::register_("onnx::Sqrt"            , inferUnary           , lowerUnary       );
         OpType::register_("onnx::Tanh"            , inferUnary           , lowerUnary       );
