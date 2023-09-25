@@ -128,7 +128,7 @@ namespace refactor::onnx {
         auto ans = Tensor::share(data->dataType, std::move(output), extractDependency(inputs));
         if (!data->data) { return Ok(Tensors{std::move(ans)}); }
 
-        std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
+        std::for_each_n(std::execution::unseq, natural_t(0), ans->elementsSize(),
                         [&output, &dims, &data, rank,
                          eleSize = data->dataType.size(),
                          dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto i) {

@@ -25,7 +25,7 @@ namespace refactor::onnx {
             return Ok(Tensors{std::move(ans)});
         }
 
-        std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
+        std::for_each_n(std::execution::unseq, natural_t(0), ans->elementsSize(),
                         [&condition, &x, &y, &ans,
                          eleSize = x->dataType.size(),
                          dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto const i) {

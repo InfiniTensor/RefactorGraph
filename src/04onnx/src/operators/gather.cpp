@@ -29,7 +29,7 @@ namespace refactor::onnx {
             return Ok(Tensors{std::move(ans)});
         }
 
-        std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
+        std::for_each_n(std::execution::unseq, natural_t(0), ans->elementsSize(),
                         [&data, &indices, &output,
                          axis,
                          q = indices->shape.size(),

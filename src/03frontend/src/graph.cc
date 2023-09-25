@@ -109,7 +109,7 @@ namespace refactor::frontend {
                 if (infered_.size() < outputs.size()) {
                     OUT_OF_RANGE("outputs more than infered", infered_.size(), outputs.size());
                 } else {
-                    std::for_each_n(std::execution::par_unseq, natural_t(0), outputs.size(),
+                    std::for_each_n(std::execution::unseq, natural_t(0), outputs.size(),
                                     [&infered_, outputs, this](auto i) {
                                         _internal.edges[outputs[i]].tensor = std::move(infered_[i]);
                                     });
@@ -139,12 +139,12 @@ namespace refactor::frontend {
         auto const startTime = high_resolution_clock::now();
 
         std::vector<computation::Edge> edges(_internal.edges.size());
-        std::transform(std::execution::par_unseq,
+        std::transform(std::execution::unseq,
                        _internal.edges.begin(), _internal.edges.end(), edges.begin(),
                        [](auto const &edge) {
                            using _Tensor = computation::Tensor;
                            computation::Shape shape(edge.tensor->shape.size());
-                           std::transform(std::execution::par_unseq,
+                           std::transform(std::execution::unseq,
                                           edge.tensor->shape.begin(), edge.tensor->shape.end(), shape.begin(),
                                           [](auto const &dim) { return dim.value(); });
                            return computation::Edge{
@@ -157,7 +157,7 @@ namespace refactor::frontend {
         std::transform(_internal.topology.begin(), _internal.topology.end(), nodes.begin(),
                        [this](auto const &nodeRef) {
                            auto const &[op, name] = _internal.nodes[nodeRef.idx];
-                           auto op_ = std::all_of(std::execution::par_unseq,
+                           auto op_ = std::all_of(std::execution::unseq,
                                                   nodeRef.outputs.begin(), nodeRef.outputs.end(),
                                                   [this](auto i) { return _internal.edges[i].tensor->hasData(); })
                                           ? nullptr

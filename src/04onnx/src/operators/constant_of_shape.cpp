@@ -26,7 +26,7 @@ namespace refactor::onnx {
                 ASSERT(value->hasData(), "ConstantOfShape value must have data");
                 ASSERT(value->shape == Shape{DimExpr(1)}, "ConstantOfShape value must be scalar");
                 auto ans = Tensor::share(value->dataType, std::move(output), std::move(dependencies));
-                std::for_each_n(std::execution::par_unseq, natural_t(0), ans->elementsSize(),
+                std::for_each_n(std::execution::unseq, natural_t(0), ans->elementsSize(),
                                 [src = reinterpret_cast<uint8_t *>(value->data->ptr),
                                  dst = reinterpret_cast<uint8_t *>(ans->malloc()),
                                  eleSize = value->dataType.size()](auto const i) {
