@@ -1,6 +1,23 @@
 # 重构图表示
 
-[文档](/docs/index.md)
+[文档](docs/index.md)
+
+## 安装
+
+使用 `make install-python` 编译并安装 Python 前端到全局，安装的包名为 `refactor_grpah`。
+
+## 使用前端
+
+```python
+import sys
+from onnx import load
+from refactor_graph.onnx import make_compiler
+
+model = load(sys.argv[1])         # 加载 onnx 模型
+compiler = make_compiler(model)   # 生成编译器对象
+compiler.substitute("seq_len", 1) # 代换模型中的变量
+executor = compiler.compile()     # 编译模型到执行器
+```
 
 ## 依赖
 
