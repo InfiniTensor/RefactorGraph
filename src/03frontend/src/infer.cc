@@ -47,14 +47,15 @@ namespace refactor::frontend {
     }
 
     void *locate1(Tensor const &tensor, Indices const &indices) {
-        auto i = indices.rbegin(),
-             ei = indices.rend();
+        auto i = indices.rbegin();
         auto j = tensor.shape.rbegin(),
              ej = tensor.shape.rend();
         size_t k = 0, mul = 1;
-        while (i != ei && j != ej) {
+        // while (i != ei && j != ej) { // 广播不可能使形状缩短
+        while (j != ej) {
             auto const shape = j++->value();
-            k += std::min(*i++, shape) * mul;
+            auto const i_ = *i++;
+            k += shape == 1 ? 0 : i_ * mul;
             mul *= shape;
         }
         return reinterpret_cast<uint8_t *>(tensor.data->ptr) + k * tensor.dataType.size();
