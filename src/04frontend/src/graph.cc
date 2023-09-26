@@ -181,8 +181,9 @@ namespace refactor::frontend {
         logi("lowering cost time: {} μs", duration_cast<microseconds>(endTime - startTime).count());
 
 #ifndef NDEBUG
-        logi("{} nodes remained after lowering",
-             std::count_if(nodes.begin(), nodes.end(), [](auto const &node) { return node.op; }));
+        logi("{}/{} nodes remained after lowering",
+             std::count_if(nodes.begin(), nodes.end(), [](auto const &node) { return node.op; }),
+             nodes.size());
 #endif
 
         return {_internal.topology, std::move(nodes), std::move(edges)};
