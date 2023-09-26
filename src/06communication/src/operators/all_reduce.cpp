@@ -3,10 +3,10 @@
 namespace refactor::communication {
     using namespace frontend;
 
-    InferResult inferAllReduce(Operator const &op, Tensors inputs) {
+    InferResult inferAllReduce(Operator const &op, TensorRefs inputs) {
         EXPECT_SIZE(1) {
             return Ok(Tensors{
-                Tensor::share(inputs[0]->dataType, inputs[0]->shape, extractDependency(inputs))});
+                Tensor::share(inputs[0].dataType, inputs[0].shape, extractDependency(inputs))});
         }
     }
 

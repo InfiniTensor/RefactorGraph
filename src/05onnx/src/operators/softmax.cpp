@@ -4,12 +4,12 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferSoftmax(Operator const &op, Tensors inputs) {
+    InferResult inferSoftmax(Operator const &op, TensorRefs inputs) {
         EXPECT_SIZE(1)
-        if (!inputs[0]->dataType.isIeee754()) {
+        if (!inputs[0].dataType.isIeee754()) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
-        return Ok(std::move(inputs));
+        return Ok(Tensors{Tensor::share(inputs[0])});
     }
 
     computation::SharedOp lowerSoftmax(Operator const &op, TensorRefs inputs) {

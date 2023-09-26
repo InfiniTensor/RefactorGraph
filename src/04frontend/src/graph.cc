@@ -87,24 +87,15 @@ namespace refactor::frontend {
         // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
             // 构造入边
-            std::optional<Tensors> inputs_(std::in_place);
-
-            inputs_->reserve(inputs.size());
-            for (auto i : inputs) {
-                auto input = _internal.edges[i].tensor;
-                if (!input) {
-                    // 无入边，跳过节点
-                    inputs_ = std::nullopt;
-                    break;
-                }
-                inputs_->emplace_back(std::move(input));
+            bool hasUnknownVariable = false;
+            if (std::any_of(inputs.begin(), inputs.end(), [this](auto i) { return !_internal.edges[i].tensor; })) {
+                // 有入边未知，跳过节点
+                continue;
             }
-            if (!inputs_) { continue; }
-
 #ifndef NDEBUG
             logi("infering: {}", _internal.nodes[nodeIdx].name);
 #endif
-            auto infered = _internal.nodes[nodeIdx].op.infer(std::move(*inputs_));
+            auto infered = _internal.nodes[nodeIdx].op.infer(TensorRefs(_internal.edges, inputs));
 
             if (infered.isOk()) {
                 // 推导成功，填充边信息

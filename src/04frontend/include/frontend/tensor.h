@@ -50,6 +50,7 @@ namespace refactor::frontend {
         std::unordered_set<DimVariable> depVariables;
 
         Tensor(common::DataType, Shape, std::shared_ptr<common::Blob>, std::unordered_set<DimVariable>);
+        static std::shared_ptr<Tensor> share(const Tensor &);
         static std::shared_ptr<Tensor> share(
             common::DataType,
             Shape,
@@ -66,7 +67,6 @@ namespace refactor::frontend {
     };
 
     using Tensor_ = std::shared_ptr<Tensor>;
-    using Tensors = std::vector<Tensor_>;
 
     struct Edge {
         Tensor_ tensor;
@@ -82,6 +82,21 @@ namespace refactor::frontend {
         Tensor const &operator[](size_t) const;
         size_t size() const;
         bool empty() const;
+
+        class Iterator : public std::iterator<std::input_iterator_tag, std::reference_wrapper<Tensor const>> {
+            TensorRefs const &_internal;
+            size_t _index;
+
+        public:
+            Iterator(TensorRefs const &, size_t);
+            bool operator==(Iterator const &) const;
+            bool operator!=(Iterator const &) const;
+            Tensor const &operator*() const;
+            Iterator &operator++();
+        };
+
+        Iterator begin() const;
+        Iterator end() const;
     };
 
 }// namespace refactor::frontend

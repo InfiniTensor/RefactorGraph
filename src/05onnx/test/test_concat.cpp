@@ -13,7 +13,9 @@ TEST(infer, Concat) {
     auto a = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)}, {});
     auto b = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(2)}, {});
     auto c = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(5)}, {});
-    auto infered = Operator{opType, {{"axis", {1}}}}.infer({a, b, c});
+    auto edges = Edges{{a, ""}, {b, ""}, {c, ""}};
+    auto inputs = std::vector<size_t>{0, 1, 2};
+    auto infered = Operator{opType, {{"axis", {1}}}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

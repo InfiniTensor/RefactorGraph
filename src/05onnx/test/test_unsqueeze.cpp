@@ -16,7 +16,11 @@ TEST(infer, Unsqueeze) {
         auto ptr = reinterpret_cast<int64_t *>(axes->malloc());
         ptr[0] = 2;
         ptr[1] = 0;
-        auto infered = Operator{opType, {}}.infer({x, axes});
+        auto edges = Edges{
+            {x, ""},
+            {axes, ""}};
+        auto inputs = std::vector<size_t>{0, 1};
+        auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);

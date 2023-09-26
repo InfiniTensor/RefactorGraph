@@ -7,34 +7,34 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferReduce(Operator const &op, Tensors inputs) {
+    InferResult inferReduce(Operator const &op, TensorRefs inputs) {
         if (inputs.empty() || 2 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
         auto const &data = inputs[0];
-        if (!data->dataType.isNumberic()) {
+        if (!data.dataType.isNumberic()) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
         auto keepdims = op.attribute("keepdims", {1}).int_() != 0;
         if (inputs.size() == 1) {
             if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
-                return Ok(std::move(inputs));
+                return Ok(Tensors{Tensor::share(data)});
             } else if (keepdims) {
-                return Ok(Tensors{Tensor::share(data->dataType,
-                                                Shape(data->rank(), DimExpr(1)),
+                return Ok(Tensors{Tensor::share(data.dataType,
+                                                Shape(data.rank(), DimExpr(1)),
                                                 extractDependency(inputs))});
             } else {
-                return Ok(Tensors{Tensor::share(data->dataType,
+                return Ok(Tensors{Tensor::share(data.dataType,
                                                 Shape{},
                                                 extractDependency(inputs))});
             }
         }
-        auto const &axes = *inputs[1];
+        auto const &axes = inputs[1];
         if (axes.dataType != DataType::I64 || axes.rank() != 1 || !axes.hasData()) {
             return Err(InferError(ERROR_MSG("Axes not support")));
         }
         auto axes_ = reinterpret_cast<int64_t *>(axes.data->ptr);
-        auto const &shape = data->shape;
+        auto const &shape = data.shape;
         EXPECT_VAL(axes.shape[0], axesSize)
         std::unordered_set<int64_t> axes__;
         for (auto i : range0_(axesSize)) {
@@ -49,7 +49,7 @@ namespace refactor::onnx {
                 output.emplace_back(1);
             }
         }
-        return Ok(Tensors{Tensor::share(data->dataType,
+        return Ok(Tensors{Tensor::share(data.dataType,
                                         std::move(output),
                                         extractDependency(inputs))});
     }

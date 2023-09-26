@@ -6,11 +6,11 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferSplit(Operator const &op, Tensors inputs) {
+    InferResult inferSplit(Operator const &op, TensorRefs inputs) {
         if (inputs.empty() || inputs.size() > 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
-        auto const &input = *inputs[0];
+        auto const &input = inputs[0];
         auto rank = input.rank();
         auto axis = op.attribute("axis", {0}).int_();
         if (axis < 0) {
@@ -37,12 +37,12 @@ namespace refactor::onnx {
             }
             return Ok(std::move(ans));
         } else {
-            auto split = inputs[1];
-            if (split->dataType != DataType::I64 || split->shape.size() != 1 || !split->hasData()) {
+            auto const &split = inputs[1];
+            if (split.dataType != DataType::I64 || split.shape.size() != 1 || !split.hasData()) {
                 return Err(InferError(ERROR_MSG("Split not support")));
             }
-            EXPECT_VAL(split->shape[0], numOutputs)
-            auto split_ = reinterpret_cast<int64_t *>(split->data->ptr);
+            EXPECT_VAL(split.shape[0], numOutputs)
+            auto split_ = reinterpret_cast<int64_t *>(split.data->ptr);
             auto ans = Tensors(numOutputs, nullptr);
             for (auto i : range0_(numOutputs)) {
                 ans[i] = Tensor::share(input.dataType, input.shape, dependencies);

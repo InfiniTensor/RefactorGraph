@@ -23,33 +23,33 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    InferResult inferRange(Operator const &, Tensors inputs) {
+    InferResult inferRange(Operator const &, TensorRefs inputs) {
         EXPECT_SIZE(3)
 
         auto const &start = inputs[0];
         auto const &limit = inputs[1];
         auto const &delta = inputs[2];
-        auto dataType = start->dataType;
-        if (limit->dataType != dataType || delta->dataType != dataType) {
+        auto dataType = start.dataType;
+        if (limit.dataType != dataType || delta.dataType != dataType) {
             return Err(InferError(ERROR_MSG("Data type not support")));
         }
-        if (start->shape.size() != 0 ||
-            limit->shape.size() != 0 ||
-            delta->shape.size() != 0) {
+        if (start.shape.size() != 0 ||
+            limit.shape.size() != 0 ||
+            delta.shape.size() != 0) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
-        if (!start->hasData() ||
-            !limit->hasData() ||
-            !delta->hasData()) {
+        if (!start.hasData() ||
+            !limit.hasData() ||
+            !delta.hasData()) {
             return Err(InferError(ERROR_MSG("Input data not support")));
         }
         //-------------------------------------
 #define CASE(T)                                           \
     case DataType::T:                                     \
         return calculate<primitive_t<DataType::T>::type>( \
-            start->data->ptr,                             \
-            limit->data->ptr,                             \
-            delta->data->ptr,                             \
+            start.data->ptr,                              \
+            limit.data->ptr,                              \
+            delta.data->ptr,                              \
             extractDependency(inputs))
         //-------------------------------------
         switch (dataType.internal) {

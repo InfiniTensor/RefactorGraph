@@ -36,17 +36,17 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferArithmetic(Operator const &op, Tensors inputs) {
+    InferResult inferArithmetic(Operator const &op, TensorRefs inputs) {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];
         auto const &b = inputs[1];
-        auto dataType = a->dataType;
-        if (!dataType.isNumberic() || b->dataType != dataType) {
+        auto dataType = a.dataType;
+        if (!dataType.isNumberic() || b.dataType != dataType) {
             return Err(InferError(ERROR_MSG("Data type not support")));
         }
 
-        MULTIDIR_BROADCAST((ShapeRefs{a->shape, b->shape}))
+        MULTIDIR_BROADCAST((ShapeRefs{a.shape, b.shape}))
         auto ans = Tensor::share(dataType, std::move(output), extractDependency(inputs));
         if (!shouldCalculate(inputs, ans->shape)) {
             return Ok(Tensors{std::move(ans)});
@@ -61,8 +61,8 @@ namespace refactor::onnx {
                       : op.opType.is("onnx::Div") ? Ty::Div
                                                   : UNREACHABLE();
             auto indices = locateN(ans->shape, i);
-            auto a_ = locate1(*a, indices),
-                 b_ = locate1(*b, indices);
+            auto a_ = locate1(a, indices),
+                 b_ = locate1(b, indices);
             auto dst_ = dst + i * eleSize;
             //-------------------------------------
 #define CASE(T)                                   \

@@ -12,7 +12,9 @@ TEST(infer, Shape) {
     auto opType = OpType::parse("onnx::Shape");
     {
         auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
-        auto infered = Operator{opType, {}}.infer({data});
+        auto edges = Edges{{data, ""}};
+        auto inputs = std::vector<size_t>{0};
+        auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -26,7 +28,9 @@ TEST(infer, Shape) {
     }
     {
         auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
-        auto infered = Operator{opType, {{"start", {1}}}}.infer({data});
+        auto edges = Edges{{data, ""}};
+        auto inputs = std::vector<size_t>{0};
+        auto infered = Operator{opType, {{"start", {1}}}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -39,7 +43,9 @@ TEST(infer, Shape) {
     }
     {
         auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
-        auto infered = Operator{opType, {{"start", {1}}, {"end", {2}}}}.infer({data});
+        auto edges = Edges{{data, ""}};
+        auto inputs = std::vector<size_t>{0};
+        auto infered = Operator{opType, {{"start", {1}}, {"end", {2}}}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -51,7 +57,9 @@ TEST(infer, Shape) {
     }
     {
         auto data = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
-        auto infered = Operator{opType, {{"start", {1}}, {"end", {-1}}}}.infer({data});
+        auto edges = Edges{{data, ""}};
+        auto inputs = std::vector<size_t>{0};
+        auto infered = Operator{opType, {{"start", {1}}, {"end", {-1}}}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);

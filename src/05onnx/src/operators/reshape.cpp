@@ -6,11 +6,11 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferReshape(Operator const &op, Tensors inputs) {
+    InferResult inferReshape(Operator const &op, TensorRefs inputs) {
         EXPECT_SIZE(2)
 
-        auto const &data = *inputs[0];
-        auto const &shape = *inputs[1];
+        auto const &data = inputs[0];
+        auto const &shape = inputs[1];
         if (shape.dataType != DataType::I64 || shape.rank() != 1 || !shape.hasData()) {
             return Err(InferError(ERROR_MSG("Shape not support")));
         }

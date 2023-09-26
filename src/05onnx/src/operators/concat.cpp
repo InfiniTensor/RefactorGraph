@@ -6,13 +6,13 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferConcat(Operator const &op, Tensors inputs) {
+    InferResult inferConcat(Operator const &op, TensorRefs inputs) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
-        auto dataType = inputs[0]->dataType;
-        auto output = inputs[0]->shape;
-        auto rank = inputs[0]->rank();
+        auto dataType = inputs[0].dataType;
+        auto output = inputs[0].shape;
+        auto rank = inputs[0].rank();
         auto axis = op.attribute("axis").int_();
         if (axis < 0) {
             axis += rank;
@@ -22,18 +22,18 @@ namespace refactor::onnx {
         }
         for (auto i : range(1ul, inputs.size())) {
             auto const &input = inputs[i];
-            if (input->dataType != dataType) {
+            if (input.dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
-            if (input->shape.size() != output.size()) {
+            if (input.shape.size() != output.size()) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
             for (auto i : range0_(static_cast<int64_t>(output.size()))) {
                 if (i == axis) {
                     EXPECT_VAL(output[i], a)
-                    EXPECT_VAL(input->shape[i], b)
+                    EXPECT_VAL(input.shape[i], b)
                     output[i] = DimExpr(a + b);
-                } else if (output[i] != input->shape[i]) {
+                } else if (output[i] != input.shape[i]) {
                     return Err(InferError(ERROR_MSG("Input shape not support")));
                 }
             }
@@ -51,7 +51,7 @@ namespace refactor::onnx {
 
                             size_t k = 0;
                             for (auto axis_ = indices[axis]; k < inputs.size(); ++k) {
-                                auto axis__ = inputs[k]->shape[axis].value();
+                                auto axis__ = inputs[k].shape[axis].value();
                                 if (axis_ >= axis__) {
                                     axis_ -= axis__;
                                 } else {
@@ -59,7 +59,7 @@ namespace refactor::onnx {
                                     break;
                                 }
                             }
-                            std::memcpy(dst + i * eleSize, locate1(*inputs[k], indices), eleSize);
+                            std::memcpy(dst + i * eleSize, locate1(inputs[k], indices), eleSize);
                         });
         return Ok(Tensors{std::move(ans)});
     }

@@ -4,24 +4,24 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferGemm(Operator const &op, Tensors inputs) {
+    InferResult inferGemm(Operator const &op, TensorRefs inputs) {
         if (auto size = inputs.size(); size < 2 || 3 < size) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
         auto const &a = inputs[0];
         auto const &b = inputs[1];
-        auto dataType = a->dataType;
-        if (!dataType.isNumberic() || b->dataType != dataType) {
+        auto dataType = a.dataType;
+        if (!dataType.isNumberic() || b.dataType != dataType) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
-        if (a->shape.size() != 2 || b->shape.size() != 2) {
+        if (a.shape.size() != 2 || b.shape.size() != 2) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
 
-        EXPECT_VAL(a->shape[0], a0)
-        EXPECT_VAL(a->shape[1], a1)
-        EXPECT_VAL(b->shape[0], b0)
-        EXPECT_VAL(b->shape[1], b1)
+        EXPECT_VAL(a.shape[0], a0)
+        EXPECT_VAL(a.shape[1], a1)
+        EXPECT_VAL(b.shape[0], b0)
+        EXPECT_VAL(b.shape[1], b1)
 
         int64_t m, n, k;
         if (op.attribute("transA", {0}).int_() == 0) {
@@ -43,11 +43,11 @@ namespace refactor::onnx {
             n = b0;
         }
         if (inputs.size() == 3) {
-            auto c = inputs[2];
-            if (c->dataType != dataType) {
+            auto const &c = inputs[2];
+            if (c.dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Input data type not support")));
             }
-            if (!unidirBroadcast(Shape{DimExpr(m), DimExpr(n)}, c->shape)) {
+            if (!unidirBroadcast(Shape{DimExpr(m), DimExpr(n)}, c.shape)) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
         }

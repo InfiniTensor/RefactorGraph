@@ -14,6 +14,7 @@ namespace refactor::frontend {
     using Floats = std::vector<float>;
     using String = std::string;
     using Strings = std::vector<std::string>;
+    using Tensors = std::vector<Tensor_>;
 
     struct Attribute {
         std::variant<Int, Ints, Float, Floats, String, Strings, Tensor_, Tensors> value;
@@ -56,7 +57,7 @@ namespace refactor::frontend {
         Attribute const &attribute(const char *) const;
         Attribute const &attribute(const char *, Attribute const &default_) const;
 
-        InferResult infer(Tensors) const;
+        InferResult infer(TensorRefs) const;
         computation::SharedOp lower(TensorRefs) const;
     };
 

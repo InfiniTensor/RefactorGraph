@@ -5,10 +5,10 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferUnary(Operator const &op, Tensors inputs) {
+    InferResult inferUnary(Operator const &op, TensorRefs inputs) {
         EXPECT_SIZE(1)
 
-        auto dataType = inputs[0]->dataType;
+        auto dataType = inputs[0].dataType;
         auto opType = op.opType.name();
         static std::unordered_set<std::string_view> const SET[]{
             {"onnx::Abs", "onnx::Relu", "onnx::Erf"},
@@ -34,7 +34,7 @@ namespace refactor::onnx {
         } else {
             RUNTIME_ERROR(fmt::format("{} not support in unary inference", opType));
         }
-        return Ok(Tensors{Tensor::share(dataType, inputs[0]->shape, extractDependency(inputs))});
+        return Ok(Tensors{Tensor::share(dataType, inputs[0].shape, extractDependency(inputs))});
     }
 
     static computation::SimpleUnaryType unsupport(OpType opType) {

@@ -62,6 +62,10 @@ namespace refactor::frontend {
           data(data_),
           depVariables(depVariables_) {}
     std::shared_ptr<Tensor>
+    Tensor::share(const Tensor &rhs) {
+        return std::make_shared<Tensor>(rhs);
+    }
+    std::shared_ptr<Tensor>
     Tensor::share(common::DataType dt,
                   Shape shape,
                   std::unordered_set<DimVariable> depVariables,
@@ -83,5 +87,19 @@ namespace refactor::frontend {
     Tensor const &TensorRefs::operator[](size_t i) const { return *_edges[_slice[i]].tensor; }
     size_t TensorRefs::size() const { return _slice.size(); }
     bool TensorRefs::empty() const { return _slice.empty(); }
+
+    TensorRefs::Iterator::Iterator(TensorRefs const &internal, size_t i)
+        : _internal(internal), _index(i) {}
+
+    bool TensorRefs::Iterator::operator==(Iterator const &rhs) const { return _index == rhs._index; }
+    bool TensorRefs::Iterator::operator!=(Iterator const &rhs) const { return !operator==(rhs); }
+    Tensor const &TensorRefs::Iterator::operator*() const { return _internal[_index]; }
+    TensorRefs::Iterator &TensorRefs::Iterator::operator++() {
+        ++_index;
+        return *this;
+    }
+
+    auto TensorRefs::begin() const -> Iterator { return Iterator(*this, 0); }
+    auto TensorRefs::end() const -> Iterator { return Iterator(*this, size()); }
 
 }// namespace refactor::frontend

@@ -17,7 +17,9 @@ TEST(infer, Expand) {
     ptr[1] = 2;
     ptr[2] = 3;
     ptr[3] = 5;
-    auto infered = Operator{opType, {}}.infer({input, shape});
+    auto edges = Edges{{input, ""}, {shape, ""}};
+    auto inputs = std::vector<size_t>{0, 1};
+    auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

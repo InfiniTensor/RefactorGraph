@@ -19,11 +19,11 @@ namespace refactor::frontend {
         explicit InferError(std::string);
         explicit InferError(UnknownVariable);
     };
-    using InferResult = Result<Tensors, InferError>;
-    using InferFn = InferResult (*)(Operator const &, Tensors);
+    using InferResult = Result<std::vector<Tensor_>, InferError>;
+    using InferFn = InferResult (*)(Operator const &, TensorRefs);
 
-    bool shouldCalculate(Tensors const &inputs, Shape const &output);
-    std::unordered_set<DimVariable> extractDependency(Tensors const &inputs);
+    bool shouldCalculate(TensorRefs, Shape const &output);
+    std::unordered_set<DimVariable> extractDependency(TensorRefs);
 
     using Indices = absl::InlinedVector<int64_t, 4>;
     /// @brief 将标量坐标 `k` 展开到 `shape` 空间。

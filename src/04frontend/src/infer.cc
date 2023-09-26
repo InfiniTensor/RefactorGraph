@@ -11,16 +11,16 @@ namespace refactor::frontend {
         : std::runtime_error(fmt::format("Unknown variable: {}", variable.name)),
           value(std::move(variable)) {}
 
-    bool shouldCalculate(Tensors const &inputs, Shape const &output) {
-        return std::all_of(std::execution::unseq, inputs.begin(), inputs.end(), [](auto const &input) { return input->hasData(); }) &&
-               std::all_of(std::execution::unseq, output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
+    bool shouldCalculate(TensorRefs inputs, Shape const &output) {
+        return std::all_of(inputs.begin(), inputs.end(), [](auto const &input) { return input.hasData(); }) &&
+               std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
     }
 
-    std::unordered_set<DimVariable> extractDependency(Tensors const &inputs) {
+    std::unordered_set<DimVariable> extractDependency(TensorRefs inputs) {
         std::unordered_set<DimVariable> ans;
         std::for_each_n(common::natural_t(0), inputs.size(),
                         [&inputs, &ans](auto const i) {
-                            Tensor const &input = *inputs[i];
+                            Tensor const &input = inputs[i];
                             for (auto const &dim : input.shape) {
                                 if (dim.isVariable()) {
                                     ans.insert(dim.variable());

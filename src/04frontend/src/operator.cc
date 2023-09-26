@@ -134,11 +134,11 @@ namespace refactor::frontend {
         }
     }
 
-    InferResult Operator::infer(Tensors inputs) const {
-        return OP_REPO.map.at(opType.id).properties.inference(*this, std::move(inputs));
+    InferResult Operator::infer(TensorRefs inputs) const {
+        return OP_REPO.map.at(opType.id).properties.inference(*this, inputs);
     }
     computation::SharedOp Operator::lower(TensorRefs inputs) const {
-        return OP_REPO.map.at(opType.id).properties.lower(*this, std::move(inputs));
+        return OP_REPO.map.at(opType.id).properties.lower(*this, inputs);
     }
 
 }// namespace refactor::frontend

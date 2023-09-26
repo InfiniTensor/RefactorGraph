@@ -4,16 +4,16 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferMatMul(Operator const &op, Tensors inputs) {
+    InferResult inferMatMul(Operator const &op, TensorRefs inputs) {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];
         auto const &b = inputs[1];
-        auto dataType = a->dataType;
-        if (!dataType.isNumberic() || b->dataType != dataType) {
+        auto dataType = a.dataType;
+        if (!dataType.isNumberic() || b.dataType != dataType) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
-        auto sa = a->shape, sb = b->shape;
+        auto sa = a.shape, sb = b.shape;
         switch (sa.size()) {
             case 1:
                 sa.insert(sa.begin(), DimExpr(1));

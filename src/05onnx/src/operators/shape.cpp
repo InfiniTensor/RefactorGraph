@@ -4,10 +4,10 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferShape(Operator const &op, Tensors inputs) {
+    InferResult inferShape(Operator const &op, TensorRefs inputs) {
         EXPECT_SIZE(1)
         auto const &data = inputs[0];
-        auto const rank = data->rank();
+        auto const rank = data.rank();
 
         auto start = op.attribute("start", {0}).int_(),
              end = op.attribute("end", {static_cast<int64_t>(rank)}).int_();
@@ -27,7 +27,7 @@ namespace refactor::onnx {
         auto ans = Tensor::share(DataType::I64, Shape{DimExpr(end - start)}, extractDependency(inputs));
         auto dst = reinterpret_cast<int64_t *>(ans->malloc());
         for (auto i : range(start, end)) {
-            EXPECT_VAL(data->shape[i], dim)
+            EXPECT_VAL(data.shape[i], dim)
             dst[i - start] = dim;
         }
         return Ok(Tensors{std::move(ans)});

@@ -10,8 +10,8 @@ namespace refactor::communication {
 #define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
 
     // clang-format off
-    InferResult inferAllReduce(Operator const &, Tensors); computation::SharedOp lowerAllReduce(Operator const &, TensorRefs);
-    InferResult inferAllGather(Operator const &, Tensors); computation::SharedOp lowerAllGather(Operator const &, TensorRefs);
+    InferResult inferAllReduce(Operator const &, TensorRefs); computation::SharedOp lowerAllReduce(Operator const &, TensorRefs);
+    InferResult inferAllGather(Operator const &, TensorRefs); computation::SharedOp lowerAllGather(Operator const &, TensorRefs);
     // clang-format on
 
 #define EXPECT_SIZE(N)                                         \
