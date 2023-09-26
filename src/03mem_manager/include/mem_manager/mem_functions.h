@@ -5,9 +5,9 @@
 
 namespace refactor::mem_manager {
 
-    using CopyHD = void (*)(void *, void *, size_t);
-    using CopyDH = void (*)(void *, void *, size_t);
-    using CopyDD = void (*)(void *, void *, size_t);
+    using CopyHD = void (*)(void *, void *, size_t);// dst <- src ; n
+    using CopyDH = void (*)(void *, void *, size_t);// dst <- src ; n
+    using CopyDD = void (*)(void *, void *, size_t);// dst <- src ; n
 
     struct mem_functions {
         CopyHD copy_hd;
