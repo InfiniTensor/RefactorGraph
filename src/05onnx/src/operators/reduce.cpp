@@ -7,7 +7,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferReduce(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferReduce(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         if (inputs.empty() || 2 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }

@@ -13,13 +13,13 @@ namespace refactor::onnx {
         std::transform(std::execution::unseq, src_, src_ + size, dst_, [](auto x) { return static_cast<TD>(x); });
     }
 
-    InferResult inferCast(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferCast(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         EXPECT_SIZE(1)
 
         auto const &input = inputs[0];
         auto to = *DataType::parse(op.attribute("to").int_());
         auto ans = Tensor::share(to, input.shape, extractDependency(inputs));
-        if (!options.shouldCalculate(inputs, ans->shape)) {
+        if (!options.shouldCalculate(inputs, {*ans})) {
             return Ok(Tensors{std::move(ans)});
         }
         auto from = input.dataType;

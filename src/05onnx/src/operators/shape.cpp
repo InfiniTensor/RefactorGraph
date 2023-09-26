@@ -4,7 +4,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferShape(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferShape(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         EXPECT_SIZE(1)
         auto const &data = inputs[0];
         auto const rank = data.rank();

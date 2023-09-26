@@ -27,7 +27,7 @@ namespace refactor::python_ffi {
     Compiler::fillEdgeInfo() { return _g.fillEdgeInfo(); }
 
     std::shared_ptr<Executor>
-    Compiler::compile() {
+    Compiler::compile(bool calculate) {
         _g.collectVariables();
         ASSERT(_g.fillEdgeInfo().empty(), "Graph not fully specified");
         return std::make_shared<Executor>(_g.lower());

@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferWhere(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferWhere(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         EXPECT_SIZE(3)
 
         auto const &condition = inputs[0];
@@ -21,7 +21,7 @@ namespace refactor::onnx {
 
         MULTIDIR_BROADCAST((ShapeRefs{condition.shape, x.shape, y.shape}))
         auto ans = Tensor::share(x.dataType, std::move(output), extractDependency(inputs));
-        if (!options.shouldCalculate(inputs, ans->shape)) {
+        if (!options.shouldCalculate(inputs, {*ans})) {
             return Ok(Tensors{std::move(ans)});
         }
 

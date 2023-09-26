@@ -5,7 +5,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferCompair(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferCompair(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];
@@ -16,7 +16,7 @@ namespace refactor::onnx {
 
         MULTIDIR_BROADCAST((ShapeRefs{a.shape, b.shape}))
         auto ans = Tensor::share(DataType::Bool, std::move(output), extractDependency(inputs));
-        if (!options.shouldCalculate(inputs, ans->shape) || a.dataType != DataType::I64) {// TODO: support other data type
+        if (!options.shouldCalculate(inputs, {*ans}) || a.dataType != DataType::I64) {// TODO: support other data type
             return Ok(Tensors{std::move(ans)});
         }
 

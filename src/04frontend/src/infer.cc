@@ -11,10 +11,26 @@ namespace refactor::frontend {
         : std::runtime_error(fmt::format("Unknown variable: {}", variable.name)),
           value(std::move(variable)) {}
 
-    bool InferOptions::shouldCalculate(TensorRefs inputs, Shape const &output) {
-        return calculate &&
-               std::all_of(inputs.begin(), inputs.end(), [](auto const &input) { return input.hasData(); }) &&
-               std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
+    bool InferOptions::shouldCalculate(
+        TensorRefs inputs,
+        std::vector<std::reference_wrapper<Tensor const>> outputs) const {
+        if (!calculate) { return false; }
+        size_t sizeI = 0;
+        for (auto const &input : inputs) {
+            if (!input.hasData()) {
+                return false;
+            }
+            if (!input.depVariables.empty()) {
+                sizeI += input.bytesSize();
+            }
+        }
+        auto sizeO = std::accumulate(outputs.begin(), outputs.end(), 0ul,
+                                     [](auto const &acc, auto const &output) {
+                                         return acc + output.get().depVariables.empty()
+                                                    ? 0
+                                                    : output.get().bytesSize();
+                                     });
+        return sizeO < std::max(bytesDilationThreshold * sizeI, calculationByteThreshold);
     }
 
     std::unordered_set<DimVariable> extractDependency(TensorRefs inputs) {

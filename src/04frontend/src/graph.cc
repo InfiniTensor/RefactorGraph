@@ -83,6 +83,7 @@ namespace refactor::frontend {
 
     std::unordered_set<std::string> Graph::fillEdgeInfo(bool calculate) {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
+        InferOptions options{calculate};
         auto const startTime = high_resolution_clock::now();
         // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
@@ -93,9 +94,8 @@ namespace refactor::frontend {
                 continue;
             }
 #ifndef NDEBUG
-            logi("infering: {}", _internal.nodes[nodeIdx].name);
+            logd("infering: {}", _internal.nodes[nodeIdx].name);
 #endif
-            InferOptions options{calculate};
             auto infered = _internal.nodes[nodeIdx].op.infer(TensorRefs(_internal.edges, inputs), options);
 
             if (infered.isOk()) {

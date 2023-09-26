@@ -5,7 +5,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferSqueeze(Operator const &op, TensorRefs inputs, InferOptions) {
+    InferResult inferSqueeze(Operator const &op, TensorRefs inputs, InferOptions const&) {
         switch (inputs.size()) {
             case 1: {
                 auto const &data = inputs[0];

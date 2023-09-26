@@ -4,7 +4,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferSelect(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferSelect(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }

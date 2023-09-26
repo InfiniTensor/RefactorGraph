@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferConcat(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferConcat(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
@@ -39,7 +39,7 @@ namespace refactor::onnx {
             }
         }
         auto ans = Tensor::share(dataType, std::move(output), extractDependency(inputs));
-        if (!options.shouldCalculate(inputs, output)) {
+        if (!options.shouldCalculate(inputs, {*ans})) {
             return Ok(Tensors{std::move(ans)});
         }
 

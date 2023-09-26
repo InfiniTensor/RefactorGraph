@@ -4,7 +4,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferPow(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferPow(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];

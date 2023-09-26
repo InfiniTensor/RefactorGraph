@@ -5,7 +5,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferUnary(Operator const &op, TensorRefs inputs, InferOptions) {
+    InferResult inferUnary(Operator const &op, TensorRefs inputs, InferOptions const&) {
         EXPECT_SIZE(1)
 
         auto dataType = inputs[0].dataType;

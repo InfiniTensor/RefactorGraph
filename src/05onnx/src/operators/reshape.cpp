@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferReshape(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferReshape(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         EXPECT_SIZE(2)
 
         auto const &data = inputs[0];

@@ -17,7 +17,7 @@ namespace refactor::python_ffi {
         void substitute(CStr, int64_t);
         void setInput(size_t index, int dataType, DimVec dims);
         std::unordered_set<std::string> fillEdgeInfo();
-        std::shared_ptr<Executor> compile();
+        std::shared_ptr<Executor> compile(bool calculate = true);
 
         std::optional<pybind11::array> getTensor(CStr) const;
     };

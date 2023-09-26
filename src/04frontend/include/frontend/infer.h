@@ -21,13 +21,17 @@ namespace refactor::frontend {
     };
 
     struct InferOptions {
-        bool calculate;
+        bool calculate = true;               // 如果为 false 则不计算所有算子。
+        size_t calculationByteThreshold = 64;// 只要输出的字节数少于这个数，无论输入多大都计算。
+        size_t bytesDilationThreshold = 2;   // 如果计算使输出比输入膨胀这个倍数则不计算。
 
-        bool shouldCalculate(TensorRefs, Shape const &output);
+        bool shouldCalculate(
+            TensorRefs,
+            std::vector<std::reference_wrapper<Tensor const>>) const;
     };
 
     using InferResult = Result<std::vector<Tensor_>, InferError>;
-    using InferFn = InferResult (*)(Operator const &, TensorRefs, InferOptions);
+    using InferFn = InferResult (*)(Operator const &, TensorRefs, InferOptions const &);
 
     std::unordered_set<DimVariable> extractDependency(TensorRefs);
 

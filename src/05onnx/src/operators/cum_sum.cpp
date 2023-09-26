@@ -35,7 +35,7 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferCumSum(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferCumSum(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         EXPECT_SIZE(2)
 
         auto const &x = inputs[0];
@@ -50,7 +50,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
         auto ans = Tensor::share(dataType, x.shape, extractDependency(inputs));
-        if (!options.shouldCalculate(inputs, ans->shape)) {
+        if (!options.shouldCalculate(inputs, {*ans})) {
             return Ok(Tensors{std::move(ans)});
         }
         auto exclusive = op.attribute("exclusive", {0}).int_();

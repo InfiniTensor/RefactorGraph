@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferGather(Operator const &op, TensorRefs inputs, InferOptions options) {
+    InferResult inferGather(Operator const &op, TensorRefs inputs, InferOptions const& options) {
         EXPECT_SIZE(2)
 
         auto const &data = inputs[0];
@@ -27,7 +27,7 @@ namespace refactor::onnx {
         output.erase(output.begin() + axis);
         output.insert(output.begin() + axis, indices.shape.begin(), indices.shape.end());
         auto ans = Tensor::share(data.dataType, std::move(output), extractDependency(inputs));
-        if (!options.shouldCalculate(inputs, output)) {
+        if (!options.shouldCalculate(inputs, {*ans})) {
             return Ok(Tensors{std::move(ans)});
         }
 
