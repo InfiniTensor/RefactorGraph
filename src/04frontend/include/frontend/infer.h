@@ -19,10 +19,16 @@ namespace refactor::frontend {
         explicit InferError(std::string);
         explicit InferError(UnknownVariable);
     };
-    using InferResult = Result<std::vector<Tensor_>, InferError>;
-    using InferFn = InferResult (*)(Operator const &, TensorRefs);
 
-    bool shouldCalculate(TensorRefs, Shape const &output);
+    struct InferOptions {
+        bool calculate;
+
+        bool shouldCalculate(TensorRefs, Shape const &output);
+    };
+
+    using InferResult = Result<std::vector<Tensor_>, InferError>;
+    using InferFn = InferResult (*)(Operator const &, TensorRefs, InferOptions);
+
     std::unordered_set<DimVariable> extractDependency(TensorRefs);
 
     using Indices = absl::InlinedVector<int64_t, 4>;

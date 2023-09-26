@@ -63,7 +63,7 @@ namespace refactor::onnx {
         return Ok(std::move(dims));
     }
 
-    InferResult inferSlice(Operator const &op, TensorRefs inputs) {
+    InferResult inferSlice(Operator const &op, TensorRefs inputs, InferOptions) {
         if (inputs.size() < 3 || 5 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }

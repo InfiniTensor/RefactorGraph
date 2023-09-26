@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferSplit(Operator const &op, TensorRefs inputs) {
+    InferResult inferSplit(Operator const &op, TensorRefs inputs, InferOptions) {
         if (inputs.empty() || inputs.size() > 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }

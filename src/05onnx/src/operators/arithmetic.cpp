@@ -36,7 +36,7 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferArithmetic(Operator const &op, TensorRefs inputs) {
+    InferResult inferArithmetic(Operator const &op, TensorRefs inputs, InferOptions options) {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];
@@ -48,7 +48,7 @@ namespace refactor::onnx {
 
         MULTIDIR_BROADCAST((ShapeRefs{a.shape, b.shape}))
         auto ans = Tensor::share(dataType, std::move(output), extractDependency(inputs));
-        if (!shouldCalculate(inputs, ans->shape)) {
+        if (!options.shouldCalculate(inputs, ans->shape)) {
             return Ok(Tensors{std::move(ans)});
         }
 

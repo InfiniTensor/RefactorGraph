@@ -3,7 +3,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferConstant(Operator const &op, TensorRefs inputs) {
+    InferResult inferConstant(Operator const &op, TensorRefs inputs, InferOptions) {
         EXPECT_SIZE(0)
         if (auto it = op.attributes.find("value"); it != op.attributes.end()) {
             return Ok(Tensors{it->second.tensor()});

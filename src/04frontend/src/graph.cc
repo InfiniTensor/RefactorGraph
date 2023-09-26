@@ -81,7 +81,7 @@ namespace refactor::frontend {
     auto Graph::internal() -> decltype(_internal) & { return _internal; }
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
 
-    std::unordered_set<std::string> Graph::fillEdgeInfo() {
+    std::unordered_set<std::string> Graph::fillEdgeInfo(bool calculate) {
         std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
         auto const startTime = high_resolution_clock::now();
         // 拓扑遍历
@@ -95,7 +95,8 @@ namespace refactor::frontend {
 #ifndef NDEBUG
             logi("infering: {}", _internal.nodes[nodeIdx].name);
 #endif
-            auto infered = _internal.nodes[nodeIdx].op.infer(TensorRefs(_internal.edges, inputs));
+            InferOptions options{calculate};
+            auto infered = _internal.nodes[nodeIdx].op.infer(TensorRefs(_internal.edges, inputs), options);
 
             if (infered.isOk()) {
                 // 推导成功，填充边信息

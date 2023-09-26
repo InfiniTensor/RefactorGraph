@@ -4,7 +4,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferGemm(Operator const &op, TensorRefs inputs) {
+    InferResult inferGemm(Operator const &op, TensorRefs inputs, InferOptions options) {
         if (auto size = inputs.size(); size < 2 || 3 < size) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }

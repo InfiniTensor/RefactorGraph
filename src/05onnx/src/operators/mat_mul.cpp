@@ -4,7 +4,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferMatMul(Operator const &op, TensorRefs inputs) {
+    InferResult inferMatMul(Operator const &op, TensorRefs inputs, InferOptions options) {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];

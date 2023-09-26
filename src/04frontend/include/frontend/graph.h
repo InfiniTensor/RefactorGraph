@@ -24,7 +24,7 @@ namespace refactor::frontend {
 
         bool substitute(const char *, int64_t);
         void collectVariables();
-        std::unordered_set<std::string> fillEdgeInfo();
+        std::unordered_set<std::string> fillEdgeInfo(bool = true);
 
         computation::Graph lower() const;
 

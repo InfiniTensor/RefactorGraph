@@ -14,7 +14,8 @@ TEST(infer, Squeeze) {
         auto x = Tensor::share(DataType::F32, Shape{DimExpr(1), DimExpr(3), DimExpr(1), DimExpr(5)}, {});
         auto edges = Edges{{x, ""}};
         auto inputs = std::vector<size_t>{0};
-        auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
+        InferOptions options{true};
+        auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())), options);
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -29,7 +30,8 @@ TEST(infer, Squeeze) {
         ptr[0] = 2;
         auto edges = Edges{{x, ""}, {axes, ""}};
         auto inputs = std::vector<size_t>{0, 1};
-        auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())));
+        InferOptions options{true};
+        auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())), options);
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);

@@ -23,7 +23,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    InferResult inferRange(Operator const &, TensorRefs inputs) {
+    InferResult inferRange(Operator const &, TensorRefs inputs, InferOptions options) {
         EXPECT_SIZE(3)
 
         auto const &start = inputs[0];

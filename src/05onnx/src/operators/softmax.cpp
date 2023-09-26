@@ -4,7 +4,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferSoftmax(Operator const &op, TensorRefs inputs) {
+    InferResult inferSoftmax(Operator const &op, TensorRefs inputs, InferOptions) {
         EXPECT_SIZE(1)
         if (!inputs[0].dataType.isIeee754()) {
             return Err(InferError(ERROR_MSG("Input data type not support")));

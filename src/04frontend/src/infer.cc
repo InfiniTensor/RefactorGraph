@@ -11,8 +11,9 @@ namespace refactor::frontend {
         : std::runtime_error(fmt::format("Unknown variable: {}", variable.name)),
           value(std::move(variable)) {}
 
-    bool shouldCalculate(TensorRefs inputs, Shape const &output) {
-        return std::all_of(inputs.begin(), inputs.end(), [](auto const &input) { return input.hasData(); }) &&
+    bool InferOptions::shouldCalculate(TensorRefs inputs, Shape const &output) {
+        return calculate &&
+               std::all_of(inputs.begin(), inputs.end(), [](auto const &input) { return input.hasData(); }) &&
                std::all_of(output.begin(), output.end(), [](auto const &dim) { return dim.hasValue(); });
     }
 
