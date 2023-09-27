@@ -38,9 +38,11 @@ namespace refactor::frontend {
     };
 
     using Shape = absl::InlinedVector<DimExpr, 4>;
-    using ShapeSnapshot = absl::InlinedVector<std::optional<int64_t>, 4>;
+    using ShapeSnapshot = absl::InlinedVector<std::variant<int64_t, DimVariable>, 4>;
 
     std::string shapeFormat(Shape const &);
+
+    struct Tensor;
 
     struct TensorSnapshot {
         common::DataType dataType;
@@ -49,6 +51,8 @@ namespace refactor::frontend {
 
         bool operator==(TensorSnapshot const &) const;
         bool operator!=(TensorSnapshot const &) const;
+        bool operator==(Tensor const &) const;
+        bool operator!=(Tensor const &) const;
     };
 
     /// @brief 张量边。

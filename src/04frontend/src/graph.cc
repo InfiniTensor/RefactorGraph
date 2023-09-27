@@ -93,16 +93,17 @@ namespace refactor::frontend {
             auto unknownEdge = false, inputChanged = false;
             for (auto i : inputs) {
                 auto const &input = _internal.edges[i].tensor;
-                if (!input) {
+                if (!input) {// 有入边未知
                     unknownEdge = true;
                     break;
                 }
-                auto checked = edgeChanged[2 * i];
-                auto changed = edgeChanged[2 * i + 1];
+                auto checked = edgeChanged[2 * i];    // NOTICE `std::vector<bool>::operator[]` 产生常引用！！！
+                auto changed = edgeChanged[2 * i + 1];// NOTICE `std::vector<bool>::operator[]` 产生常引用！！！
                 if (!checked) {
                     checked = true;
-                    auto old = std::exchange(_edgeSnapshot[i], input->snapshot());
-                    changed = old != _edgeSnapshot[i];
+                    if (changed = _edgeSnapshot[i] != *input) {
+                        _edgeSnapshot[i] = input->snapshot();
+                    }
                 }
                 inputChanged |= changed;
             }

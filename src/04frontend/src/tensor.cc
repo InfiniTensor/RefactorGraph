@@ -1,5 +1,6 @@
 ﻿#include "frontend/tensor.h"
 #include "common/error_handler.h"
+#include "common/range.h"
 #include <execution>
 #include <numeric>
 
@@ -62,6 +63,30 @@ namespace refactor::frontend {
                dataPtr.lock().get() == rhs.dataPtr.lock().get();
     }
     bool TensorSnapshot::operator!=(TensorSnapshot const &rhs) const { return !operator==(rhs); }
+    bool TensorSnapshot::operator==(Tensor const &rhs) const {
+        if (dataType != rhs.dataType ||
+            shape.size() != rhs.shape.size() ||
+            dataPtr.lock().get() != rhs.data.get()) {
+            return false;
+        }
+        for (auto i : range0_(shape.size())) {
+            auto hasValue = std::holds_alternative<int64_t>(shape[i]);
+            if (hasValue != rhs.shape[i].hasValue()) {
+                return false;
+            }
+            if (hasValue) {
+                if (std::get<int64_t>(shape[i]) != rhs.shape[i].value()) {
+                    return false;
+                }
+            } else {
+                if (std::get<DimVariable>(shape[i]) != rhs.shape[i].variable()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    bool TensorSnapshot::operator!=(Tensor const &rhs) const { return !operator==(rhs); }
 
     Tensor::Tensor(DataType dataType_, Shape shape_, std::shared_ptr<Blob> data_, std::unordered_set<DimVariable> depVariables_)
         : dataType(dataType_),
@@ -90,7 +115,13 @@ namespace refactor::frontend {
         ShapeSnapshot shape_(shape.size());
         std::transform(std::execution::unseq,
                        shape.begin(), shape.end(), shape_.begin(),
-                       [](auto const &it) { return it.hasValue() ? std::make_optional(it.value()) : std::nullopt; });
+                       [](auto const &it) -> std::variant<int64_t, DimVariable> {
+                           if (it.hasValue()) {
+                               return it.value();
+                           } else {
+                               return it.variable();
+                           }
+                       });
         return TensorSnapshot{dataType, std::move(shape_), data};
     }
     void *Tensor::malloc() {
@@ -98,26 +129,44 @@ namespace refactor::frontend {
         data = std::move(data_);
         return ptr;
     }
-    void Tensor::free() { data = nullptr; }
+    void Tensor::free() {
+        data = nullptr;
+    }
 
     TensorRefs::TensorRefs(std::vector<Edge> const &edges, slice_t<size_t> slice)
         : _edges(edges), _slice(slice) {}
-    Tensor const &TensorRefs::operator[](size_t i) const { return *_edges[_slice[i]].tensor; }
-    size_t TensorRefs::size() const { return _slice.size(); }
-    bool TensorRefs::empty() const { return _slice.empty(); }
+    Tensor const &TensorRefs::operator[](size_t i) const {
+        return *_edges[_slice[i]].tensor;
+    }
+    size_t TensorRefs::size() const {
+        return _slice.size();
+    }
+    bool TensorRefs::empty() const {
+        return _slice.empty();
+    }
 
     TensorRefs::Iterator::Iterator(TensorRefs const &internal, size_t i)
         : _internal(internal), _index(i) {}
 
-    bool TensorRefs::Iterator::operator==(Iterator const &rhs) const { return _index == rhs._index; }
-    bool TensorRefs::Iterator::operator!=(Iterator const &rhs) const { return !operator==(rhs); }
-    Tensor const &TensorRefs::Iterator::operator*() const { return _internal[_index]; }
+    bool TensorRefs::Iterator::operator==(Iterator const &rhs) const {
+        return _index == rhs._index;
+    }
+    bool TensorRefs::Iterator::operator!=(Iterator const &rhs) const {
+        return !operator==(rhs);
+    }
+    Tensor const &TensorRefs::Iterator::operator*() const {
+        return _internal[_index];
+    }
     TensorRefs::Iterator &TensorRefs::Iterator::operator++() {
         ++_index;
         return *this;
     }
 
-    auto TensorRefs::begin() const -> Iterator { return Iterator(*this, 0); }
-    auto TensorRefs::end() const -> Iterator { return Iterator(*this, size()); }
+    auto TensorRefs::begin() const -> Iterator {
+        return Iterator(*this, 0);
+    }
+    auto TensorRefs::end() const -> Iterator {
+        return Iterator(*this, size());
+    }
 
 }// namespace refactor::frontend
