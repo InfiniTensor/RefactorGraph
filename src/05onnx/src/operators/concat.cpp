@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferConcat(Operator const &op, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferConcat(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }

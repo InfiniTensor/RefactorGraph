@@ -22,7 +22,7 @@ TEST(infer, Shape) {
         auto shape = std::move(outputs[0]);
         ASSERT_EQ(shape->dataType, DataType::I64);
         ASSERT_EQ(shape->shape, (Shape{DimExpr(3)}));
-        auto ptr = reinterpret_cast<int64_t *>(shape->data->ptr);
+        auto ptr = shape->data->get<int64_t>();
         ASSERT_EQ(ptr[0], 2);
         ASSERT_EQ(ptr[1], 3);
         ASSERT_EQ(ptr[2], 1);
@@ -39,7 +39,7 @@ TEST(infer, Shape) {
         auto shape = std::move(outputs[0]);
         ASSERT_EQ(shape->dataType, DataType::I64);
         ASSERT_EQ(shape->shape, (Shape{DimExpr(2)}));
-        auto ptr = reinterpret_cast<int64_t *>(shape->data->ptr);
+        auto ptr = shape->data->get<int64_t>();
         ASSERT_EQ(ptr[0], 3);
         ASSERT_EQ(ptr[1], 1);
     }
@@ -55,7 +55,7 @@ TEST(infer, Shape) {
         auto shape = std::move(outputs[0]);
         ASSERT_EQ(shape->dataType, DataType::I64);
         ASSERT_EQ(shape->shape, (Shape{DimExpr(1)}));
-        auto ptr = reinterpret_cast<int64_t *>(shape->data->ptr);
+        auto ptr = shape->data->get<int64_t>();
         ASSERT_EQ(ptr[0], 3);
     }
     {
@@ -70,7 +70,7 @@ TEST(infer, Shape) {
         auto shape = std::move(outputs[0]);
         ASSERT_EQ(shape->dataType, DataType::I64);
         ASSERT_EQ(shape->shape, (Shape{DimExpr(1)}));
-        auto ptr = reinterpret_cast<int64_t *>(shape->data->ptr);
+        auto ptr = shape->data->get<int64_t>();
         ASSERT_EQ(ptr[0], 3);
     }
 }

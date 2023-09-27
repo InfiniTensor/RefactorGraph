@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferGather(Operator const &op, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferGather(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(2)
 
         auto const &data = inputs[0];
@@ -36,7 +36,7 @@ namespace refactor::onnx {
                          axis,
                          q = indices.shape.size(),
                          ssz = output.size(),
-                         src = reinterpret_cast<uint8_t *>(data.data->ptr),
+                         src = data.data->get<uint8_t>(),
                          dst = reinterpret_cast<uint8_t *>(ans->malloc()),
                          eleSize = data.dataType.size()](auto const i) {
                             auto indices_ = locateN(output, i);
@@ -48,8 +48,8 @@ namespace refactor::onnx {
                                     mul *= indices.shape[j].value();
                                 }
                                 k = indices.dataType == DataType::I64
-                                        ? reinterpret_cast<int64_t *>(indices.data->ptr)[ii]
-                                        : reinterpret_cast<int32_t *>(indices.data->ptr)[ii];
+                                        ? indices.data->get<int64_t>()[ii]
+                                        : indices.data->get<int32_t>()[ii];
                             }
                             {
                                 size_t ii = 0, mul = 1;

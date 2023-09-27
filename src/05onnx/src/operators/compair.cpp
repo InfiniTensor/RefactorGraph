@@ -23,8 +23,8 @@ namespace refactor::onnx {
         auto dst = reinterpret_cast<bool *>(ans->malloc());
         for (auto i : range0_(ans->elementsSize())) {
             auto indices = locateN(ans->shape, i);
-            auto a_ = *reinterpret_cast<int64_t *>(locate1(a, indices)),
-                 b_ = *reinterpret_cast<int64_t *>(locate1(b, indices));
+            auto a_ = *reinterpret_cast<int64_t const *>(locate1(a, indices)),
+                 b_ = *reinterpret_cast<int64_t const *>(locate1(b, indices));
             if (op.opType.is("onnx::Equal")) {
                 dst[i] = a_ == b_;
             } else if (op.opType.is("onnx::Greater")) {

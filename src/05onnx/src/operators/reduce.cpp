@@ -7,7 +7,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferReduce(Operator const &op, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferReduce(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         if (inputs.empty() || 2 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
@@ -33,7 +33,7 @@ namespace refactor::onnx {
         if (axes.dataType != DataType::I64 || axes.rank() != 1 || !axes.hasData()) {
             return Err(InferError(ERROR_MSG("Axes not support")));
         }
-        auto axes_ = reinterpret_cast<int64_t *>(axes.data->ptr);
+        auto axes_ = axes.data->get<int64_t>();
         auto const &shape = data.shape;
         EXPECT_VAL(axes.shape[0], axesSize)
         std::unordered_set<int64_t> axes__;
@@ -83,7 +83,7 @@ namespace refactor::onnx {
             }
         }
         auto const &axes = inputs[1];
-        auto axes_ = reinterpret_cast<int64_t *>(axes.data->ptr);
+        auto axes_ = axes.data->get<int64_t>();
         auto axesSize = axes.shape[0].value();
 
         decltype(Reduce::axes) axes__(axesSize);

@@ -13,10 +13,10 @@ namespace refactor::onnx {
     };
 
     template<decltype(DataType::internal) T>
-    void calculate(Ty ty, void *dst, void *a, void *b) {
+    void calculate(Ty ty, void *dst, void const *a, void const *b) {
         using T_ = typename primitive_t<T>::type;
-        auto a_ = *reinterpret_cast<T_ *>(a);
-        auto b_ = *reinterpret_cast<T_ *>(b);
+        auto a_ = *reinterpret_cast<T_ const *>(a);
+        auto b_ = *reinterpret_cast<T_ const *>(b);
         auto dst_ = reinterpret_cast<T_ *>(dst);
         switch (ty) {
             case Ty::Add:
@@ -36,7 +36,7 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferArithmetic(Operator const &op, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferArithmetic(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];

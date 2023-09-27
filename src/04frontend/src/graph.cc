@@ -35,7 +35,9 @@ namespace refactor::frontend {
     }
 
     Graph::Graph(graph_topo::Graph<Node, Edge> internal)
-        : _internal(std::move(internal)), _variables() {
+        : _internal(std::move(internal)),
+          _variables(),
+          _edgeSnapshot(_internal.edges.size(), TensorSnapshot{DataType::F32, {}, {}}) {
         collectVariables();
         configLog();
     }
@@ -82,15 +84,35 @@ namespace refactor::frontend {
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
 
     std::unordered_set<std::string> Graph::fillEdgeInfo(bool calculate) {
-        std::unordered_set<std::string> unknownVariables;// 未知变量，将返回。
+        std::unordered_set<std::string> unknownVariables;                // 未知变量，将返回。
+        std::vector<bool> edgeChanged(_internal.edges.size() * 2, false);// 记录边是否发生变化
         InferOptions options{calculate};
         auto const startTime = high_resolution_clock::now();
         // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
-            // 构造入边
-            bool hasUnknownVariable = false;
-            if (std::any_of(inputs.begin(), inputs.end(), [this](auto i) { return !_internal.edges[i].tensor; })) {
-                // 有入边未知，跳过节点
+            auto unknownEdge = false, inputChanged = false;
+            for (auto i : inputs) {
+                auto const &input = _internal.edges[i].tensor;
+                if (!input) {
+                    unknownEdge = true;
+                    break;
+                }
+                auto checked = edgeChanged[2 * i];
+                auto changed = edgeChanged[2 * i + 1];
+                if (!checked) {
+                    checked = true;
+                    auto old = std::exchange(_edgeSnapshot[i], input->snapshot());
+                    changed = old != _edgeSnapshot[i];
+                }
+                inputChanged |= changed;
+            }
+            // 有入边未知，跳过节点
+            if (unknownEdge) {
+                continue;
+            }
+            if (!inputChanged && std::all_of(outputs.begin(), outputs.end(),
+                                             [this](auto i) { return _internal.edges[i].tensor; })) {
+                // 入边未发生变化，且出边已推导
                 continue;
             }
 #ifndef NDEBUG

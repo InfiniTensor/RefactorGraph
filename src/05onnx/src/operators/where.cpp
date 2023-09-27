@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferWhere(Operator const &op, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferWhere(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(3)
 
         auto const &condition = inputs[0];
@@ -30,7 +30,7 @@ namespace refactor::onnx {
                          eleSize = x.dataType.size(),
                          dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto const i) {
                             auto indices = locateN(ans->shape, i);
-                            auto const &selected = *reinterpret_cast<bool *>(locate1(condition, indices))
+                            auto const &selected = *reinterpret_cast<bool const *>(locate1(condition, indices))
                                                        ? x
                                                        : y;
                             std::memcpy(dst + i * eleSize, locate1(selected, indices), eleSize);

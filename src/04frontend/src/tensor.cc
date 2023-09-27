@@ -1,8 +1,11 @@
 ﻿#include "frontend/tensor.h"
 #include "common/error_handler.h"
+#include <execution>
 #include <numeric>
 
 namespace refactor::frontend {
+    using namespace common;
+    using namespace mem_manager;
 
     DimVariableInternal::DimVariableInternal(std::string name_, std::optional<int64_t> value_)
         : name(std::move(name_)), value(value_) {}
@@ -53,23 +56,27 @@ namespace refactor::frontend {
         return ans;
     }
 
-    Tensor::Tensor(common::DataType dataType_,
-                   Shape shape_,
-                   std::shared_ptr<common::Blob> data_,
-                   std::unordered_set<DimVariable> depVariables_)
+    bool TensorSnapshot::operator==(TensorSnapshot const &rhs) const {
+        return dataType == rhs.dataType &&
+               shape == rhs.shape &&
+               dataPtr.lock().get() == rhs.dataPtr.lock().get();
+    }
+    bool TensorSnapshot::operator!=(TensorSnapshot const &rhs) const { return !operator==(rhs); }
+
+    Tensor::Tensor(DataType dataType_, Shape shape_, std::shared_ptr<Blob> data_, std::unordered_set<DimVariable> depVariables_)
         : dataType(dataType_),
-          shape(shape_),
-          data(data_),
-          depVariables(depVariables_) {}
+          shape(std::move(shape_)),
+          data(std::move(data_)),
+          depVariables(std::move(depVariables_)) {}
     std::shared_ptr<Tensor>
     Tensor::share(const Tensor &rhs) {
         return std::make_shared<Tensor>(rhs);
     }
     std::shared_ptr<Tensor>
-    Tensor::share(common::DataType dt,
+    Tensor::share(DataType dt,
                   Shape shape,
                   std::unordered_set<DimVariable> depVariables,
-                  std::shared_ptr<common::Blob> data) {
+                  std::shared_ptr<Blob> data) {
         return std::make_shared<Tensor>(dt, std::move(shape), std::move(data), std::move(depVariables));
     }
     bool Tensor::hasData() const { return data.get(); }
@@ -79,10 +86,21 @@ namespace refactor::frontend {
                                [](auto acc, auto const &it) { return acc * it.value(); });
     }
     size_t Tensor::bytesSize() const { return dataType.size() * elementsSize(); }
-    void *Tensor::malloc() { return (data = std::make_shared<common::Blob>(bytesSize()))->ptr; }
+    TensorSnapshot Tensor::snapshot() const {
+        ShapeSnapshot shape_(shape.size());
+        std::transform(std::execution::unseq,
+                       shape.begin(), shape.end(), shape_.begin(),
+                       [](auto const &it) { return it.hasValue() ? std::make_optional(it.value()) : std::nullopt; });
+        return TensorSnapshot{dataType, std::move(shape_), data};
+    }
+    void *Tensor::malloc() {
+        auto [data_, ptr] = Blob::share(bytesSize());
+        data = std::move(data_);
+        return ptr;
+    }
     void Tensor::free() { data = nullptr; }
 
-    TensorRefs::TensorRefs(std::vector<Edge> const &edges, common::slice_t<size_t> slice)
+    TensorRefs::TensorRefs(std::vector<Edge> const &edges, slice_t<size_t> slice)
         : _edges(edges), _slice(slice) {}
     Tensor const &TensorRefs::operator[](size_t i) const { return *_edges[_slice[i]].tensor; }
     size_t TensorRefs::size() const { return _slice.size(); }

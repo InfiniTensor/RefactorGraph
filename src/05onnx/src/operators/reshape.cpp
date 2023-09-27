@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferReshape(Operator const &op, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferReshape(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(2)
 
         auto const &data = inputs[0];
@@ -17,7 +17,7 @@ namespace refactor::onnx {
 
         ASSERT(op.attribute("allowzero", {0}).int_() == 0, "Not support allowzero");
 
-        auto shape_ = reinterpret_cast<int64_t *>(shape.data->ptr);
+        auto shape_ = shape.data->get<int64_t>();
         EXPECT_VAL(shape.shape[0], rank)
 
         Shape output(rank, DimExpr(1));

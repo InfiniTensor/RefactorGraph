@@ -63,7 +63,7 @@ namespace refactor::frontend {
         return indices;
     }
 
-    void *locate1(Tensor const &tensor, Indices const &indices) {
+    void const *locate1(Tensor const &tensor, Indices const &indices) {
         auto i = indices.rbegin();
         auto j = tensor.shape.rbegin(),
              ej = tensor.shape.rend();
@@ -75,6 +75,6 @@ namespace refactor::frontend {
             k += shape == 1 ? 0 : i_ * mul;
             mul *= shape;
         }
-        return reinterpret_cast<uint8_t *>(tensor.data->ptr) + k * tensor.dataType.size();
+        return tensor.data->get<uint8_t>() + k * tensor.dataType.size();
     }
 }// namespace refactor::frontend

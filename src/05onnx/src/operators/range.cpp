@@ -4,10 +4,13 @@ namespace refactor::onnx {
     using namespace common;
 
     template<class T>
-    InferResult calculate(void *start, void *limit, void *delta, std::unordered_set<DimVariable> depVariables) {
-        auto start_ = *reinterpret_cast<T *>(start);
-        auto limit_ = *reinterpret_cast<T *>(limit);
-        auto delta_ = *reinterpret_cast<T *>(delta);
+    InferResult calculate(void const *start,
+                          void const *limit,
+                          void const *delta,
+                          std::unordered_set<DimVariable> depVariables) {
+        auto start_ = *reinterpret_cast<T const *>(start);
+        auto limit_ = *reinterpret_cast<T const *>(limit);
+        auto delta_ = *reinterpret_cast<T const *>(delta);
         size_t size;
         if constexpr (std::is_floating_point_v<T>) {
             size = std::ceil((limit_ - start_) / delta_);
@@ -23,7 +26,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    InferResult inferRange(Operator const &, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferRange(Operator const &, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(3)
 
         auto const &start = inputs[0];
@@ -47,9 +50,9 @@ namespace refactor::onnx {
 #define CASE(T)                                           \
     case DataType::T:                                     \
         return calculate<primitive_t<DataType::T>::type>( \
-            start.data->ptr,                              \
-            limit.data->ptr,                              \
-            delta.data->ptr,                              \
+            start.data->get<void>(),                      \
+            limit.data->get<void>(),                      \
+            delta.data->get<void>(),                      \
             extractDependency(inputs))
         //-------------------------------------
         switch (dataType.internal) {

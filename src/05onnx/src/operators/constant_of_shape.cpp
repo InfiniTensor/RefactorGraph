@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferConstantOfShape(Operator const &op, TensorRefs inputs, InferOptions const&) {
+    InferResult inferConstantOfShape(Operator const &op, TensorRefs inputs, InferOptions const &) {
         EXPECT_SIZE(1)
 
         auto const &input = inputs[0];
@@ -17,7 +17,7 @@ namespace refactor::onnx {
         } else {
             EXPECT_VAL(input.shape[0], shapeSize)
             Shape output(shapeSize, DimExpr(1));
-            auto shape = reinterpret_cast<int64_t *>(input.data->ptr);
+            auto shape = input.data->get<int64_t>();
             auto slice = slice_t<int64_t>{shape, shape + shapeSize};
             std::transform(std::execution::unseq,
                            slice.begin(), slice.end(), output.begin(),
@@ -29,7 +29,7 @@ namespace refactor::onnx {
                 ASSERT(value->shape == Shape{DimExpr(1)}, "ConstantOfShape value must be scalar");
                 auto ans = Tensor::share(value->dataType, std::move(output), std::move(dependencies));
                 std::for_each_n(std::execution::unseq, natural_t(0), ans->elementsSize(),
-                                [src = reinterpret_cast<uint8_t *>(value->data->ptr),
+                                [src = value->data->get<uint8_t>(),
                                  dst = reinterpret_cast<uint8_t *>(ans->malloc()),
                                  eleSize = value->dataType.size()](auto const i) {
                                     std::memcpy(dst + i * eleSize, src, eleSize);

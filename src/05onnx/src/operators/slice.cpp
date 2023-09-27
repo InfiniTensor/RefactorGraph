@@ -63,7 +63,7 @@ namespace refactor::onnx {
         return Ok(std::move(dims));
     }
 
-    InferResult inferSlice(Operator const &op, TensorRefs inputs, InferOptions const&) {
+    InferResult inferSlice(Operator const &op, TensorRefs inputs, InferOptions const &) {
         if (inputs.size() < 3 || 5 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
@@ -91,8 +91,8 @@ namespace refactor::onnx {
         if (!starts_.hasData() || !ends_.hasData()) {
             return Err(InferError(ERROR_MSG("Starts and ends must be constant")));
         }
-        int64_t const *const starts = reinterpret_cast<int64_t *>(starts_.data->ptr);
-        int64_t const *const ends = reinterpret_cast<int64_t *>(ends_.data->ptr);
+        int64_t const *starts = starts_.data->get<int64_t>(),
+                      *ends = ends_.data->get<int64_t>();
         int64_t const *axes = nullptr,
                       *steps = nullptr;
         if (inputs.size() >= 4) {
@@ -103,7 +103,7 @@ namespace refactor::onnx {
             if (!axes_.hasData()) {
                 return Err(InferError(ERROR_MSG("Axes must be constant")));
             }
-            axes = reinterpret_cast<int64_t *>(axes_.data->ptr);
+            axes = axes_.data->get<int64_t>();
         }
         if (inputs.size() == 5) {
             auto const &steps_ = inputs[4];
@@ -113,7 +113,7 @@ namespace refactor::onnx {
             if (!steps_.hasData()) {
                 return Err(InferError(ERROR_MSG("Steps must be constant")));
             }
-            steps = reinterpret_cast<int64_t *>(steps_.data->ptr);
+            steps = steps_.data->get<int64_t>();
         }
 
         auto res = buildDims(rank, size, data.shape, starts, ends, axes, steps);
@@ -152,10 +152,10 @@ namespace refactor::onnx {
         auto const &ends_ = inputs[2];
 
         int64_t const
-            *starts = reinterpret_cast<int64_t *>(starts_.data->ptr),
-            *ends = reinterpret_cast<int64_t *>(ends_.data->ptr),
-            *axes = inputs.size() >= 4 ? reinterpret_cast<int64_t *>(inputs[3].data->ptr) : nullptr,
-            *steps = inputs.size() == 5 ? reinterpret_cast<int64_t *>(inputs[4].data->ptr) : nullptr;
+            *starts = starts_.data->get<int64_t>(),
+            *ends = ends_.data->get<int64_t>(),
+            *axes = inputs.size() >= 4 ? inputs[3].data->get<int64_t>() : nullptr,
+            *steps = inputs.size() == 5 ? inputs[4].data->get<int64_t>() : nullptr;
 
         auto rank = data.rank();
         auto size = starts_.shape[0].value();

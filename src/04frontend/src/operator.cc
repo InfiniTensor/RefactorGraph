@@ -134,7 +134,7 @@ namespace refactor::frontend {
         }
     }
 
-    InferResult Operator::infer(TensorRefs inputs, InferOptions const& options) const {
+    InferResult Operator::infer(TensorRefs inputs, InferOptions const &options) const {
         return OP_REPO.map.at(opType.id).properties.inference(*this, inputs, options);
     }
     computation::SharedOp Operator::lower(TensorRefs inputs) const {

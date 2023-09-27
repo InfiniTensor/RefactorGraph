@@ -8,12 +8,12 @@ namespace refactor::onnx {
     using namespace common;
 
     template<decltype(DataType::internal) T>
-    void accumulate_(void *dst, void *src, void *acc) {
+    void accumulate_(void *dst, void const *src, void *acc) {
         using T_ = typename primitive_t<T>::type;
-        *reinterpret_cast<T_ *>(dst) = *reinterpret_cast<T_ *>(src) + *reinterpret_cast<T_ *>(acc);
+        *reinterpret_cast<T_ *>(dst) = *reinterpret_cast<T_ const *>(src) + *reinterpret_cast<T_ *>(acc);
     }
 
-    void accumulate(DataType dataType, void *dst, void *src, size_t stepBytes) {
+    void accumulate(DataType dataType, void *dst, void const *src, size_t stepBytes) {
         auto acc = reinterpret_cast<uint8_t *>(dst) - stepBytes;
         switch (dataType.internal) {
 #define CASE(T)                                  \
@@ -35,7 +35,7 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferCumSum(Operator const &op, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferCumSum(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(2)
 
         auto const &x = inputs[0];
@@ -60,8 +60,8 @@ namespace refactor::onnx {
         }
         auto rank = ans->rank();
         auto axis_ = axis.dataType == DataType::I64
-                         ? *reinterpret_cast<int64_t *>(axis.data->ptr)
-                         : *reinterpret_cast<int32_t *>(axis.data->ptr);
+                         ? *axis.data->get<int64_t>()
+                         : *axis.data->get<int32_t>();
         if (axis_ < 0) {
             axis_ += rank;
         }
@@ -74,7 +74,7 @@ namespace refactor::onnx {
                             [&, axis_, exclusive, eleSize,
                              step = std::accumulate(ans->shape.begin() + axis_ + 1, ans->shape.end(), eleSize,
                                                     [](auto const acc, auto const &d) { return acc * d.value(); }),
-                             src = reinterpret_cast<uint8_t *>(x.data->ptr),
+                             src = x.data->get<uint8_t>(),
                              dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto i) {
                                 auto indices = locateN(ans->shape, i);
                                 auto axisIdx = indices[axis_];

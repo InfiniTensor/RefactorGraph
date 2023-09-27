@@ -5,7 +5,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferSqueeze(Operator const &op, TensorRefs inputs, InferOptions const&) {
+    InferResult inferSqueeze(Operator const &op, TensorRefs inputs, InferOptions const &) {
         switch (inputs.size()) {
             case 1: {
                 auto const &data = inputs[0];
@@ -28,7 +28,7 @@ namespace refactor::onnx {
                     return Err(InferError(ERROR_MSG("Axes not support")));
                 }
                 auto rank = data.rank();
-                auto axes_ = reinterpret_cast<int64_t *>(axes.data->ptr);
+                auto axes_ = axes.data->get<int64_t>();
                 EXPECT_VAL(axes.shape[0], axesSize)
                 std::unordered_set<int64_t> axes__;
                 for (auto ptr = axes_; ptr != axes_ + axesSize; ++ptr) {

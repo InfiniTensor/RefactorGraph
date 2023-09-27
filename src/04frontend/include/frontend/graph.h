@@ -12,6 +12,7 @@ namespace refactor::frontend {
     class Graph {
         graph_topo::Graph<Node, Edge> _internal;
         std::unordered_map<std::string, DimVariable> _variables;
+        std::vector<TensorSnapshot> _edgeSnapshot;
 
         void logGraph() const;
 

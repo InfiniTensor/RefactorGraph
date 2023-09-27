@@ -7,13 +7,13 @@ namespace refactor::onnx {
     using namespace common;
 
     template<class TS, class TD>
-    void castData(void *src, void *dst, size_t size) {
-        auto src_ = reinterpret_cast<TS *>(src);
+    void castData(void const *src, void *dst, size_t size) {
+        auto src_ = reinterpret_cast<TS const *>(src);
         auto dst_ = reinterpret_cast<TD *>(dst);
         std::transform(std::execution::unseq, src_, src_ + size, dst_, [](auto x) { return static_cast<TD>(x); });
     }
 
-    InferResult inferCast(Operator const &op, TensorRefs inputs, InferOptions const& options) {
+    InferResult inferCast(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(1)
 
         auto const &input = inputs[0];
@@ -28,7 +28,7 @@ namespace refactor::onnx {
             return Ok(Tensors{std::move(ans)});
         }
         auto size = ans->elementsSize();
-        auto src = input.data->ptr;
+        auto src = input.data->get<void>();
         auto dst = ans->malloc();
         switch (from.internal) {
             case DataType::F32:
@@ -38,7 +38,7 @@ namespace refactor::onnx {
                         break;
 
                     case DataType::Bool: {
-                        auto src_ = reinterpret_cast<float *>(src);
+                        auto src_ = reinterpret_cast<float const *>(src);
                         auto dst_ = reinterpret_cast<bool *>(dst);
                         std::transform(std::execution::unseq, src_, src_ + size, dst_, [](auto x) { return x != 0.0; });
                         break;
@@ -56,7 +56,7 @@ namespace refactor::onnx {
                         break;
 
                     case DataType::Bool: {
-                        auto src_ = reinterpret_cast<int64_t *>(src);
+                        auto src_ = reinterpret_cast<int64_t const *>(src);
                         auto dst_ = reinterpret_cast<bool *>(dst);
                         std::transform(std::execution::unseq, src_, src_ + size, dst_, [](auto x) { return x != 0; });
                         break;

@@ -2,9 +2,9 @@
 #define FRONTEND_TENSOR_H
 
 #include "absl/container/inlined_vector.h"
-#include "common/blob.h"
 #include "common/data_type.h"
 #include "common/slice.h"
+#include "mem_manager/blob.h"
 #include <unordered_set>
 #include <variant>
 
@@ -38,29 +38,40 @@ namespace refactor::frontend {
     };
 
     using Shape = absl::InlinedVector<DimExpr, 4>;
+    using ShapeSnapshot = absl::InlinedVector<std::optional<int64_t>, 4>;
 
     std::string shapeFormat(Shape const &);
+
+    struct TensorSnapshot {
+        common::DataType dataType;
+        ShapeSnapshot shape;
+        std::weak_ptr<mem_manager::Blob> dataPtr;
+
+        bool operator==(TensorSnapshot const &) const;
+        bool operator!=(TensorSnapshot const &) const;
+    };
 
     /// @brief 张量边。
     struct Tensor {
         common::DataType dataType;
         Shape shape;
-        std::shared_ptr<common::Blob> data;
+        std::shared_ptr<mem_manager::Blob> data;
 
         std::unordered_set<DimVariable> depVariables;
 
-        Tensor(common::DataType, Shape, std::shared_ptr<common::Blob>, std::unordered_set<DimVariable>);
+        Tensor(common::DataType, Shape, std::shared_ptr<mem_manager::Blob>, std::unordered_set<DimVariable>);
         static std::shared_ptr<Tensor> share(const Tensor &);
         static std::shared_ptr<Tensor> share(
             common::DataType,
             Shape,
             std::unordered_set<DimVariable>,
-            std::shared_ptr<common::Blob> = nullptr);
+            std::shared_ptr<mem_manager::Blob> = nullptr);
 
         bool hasData() const;
         int64_t rank() const;
         size_t elementsSize() const;
         size_t bytesSize() const;
+        TensorSnapshot snapshot() const;
 
         void *malloc();
         void free();

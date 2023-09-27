@@ -33,7 +33,7 @@ TEST(infer, CumSum) {
         auto y = std::move(outputs[0]);
         ASSERT_EQ(y->dataType, DataType::F32);
         ASSERT_EQ(y->shape, (Shape{DimExpr(2), DimExpr(3)}));
-        auto ptr = reinterpret_cast<float *>(y->data->ptr);
+        auto ptr = y->data->get<float>();
         ASSERT_EQ(ptr[0], 1.0);
         ASSERT_EQ(ptr[1], 2.0);
         ASSERT_EQ(ptr[2], 3.0);
@@ -62,7 +62,7 @@ TEST(infer, CumSum) {
         auto y = std::move(outputs[0]);
         ASSERT_EQ(y->dataType, DataType::F32);
         ASSERT_EQ(y->shape, (Shape{DimExpr(2), DimExpr(3)}));
-        auto ptr = reinterpret_cast<float *>(y->data->ptr);
+        auto ptr = y->data->get<float>();
         ASSERT_EQ(ptr[0], 1.0);
         ASSERT_EQ(ptr[1], 3.0);
         ASSERT_EQ(ptr[2], 6.0);

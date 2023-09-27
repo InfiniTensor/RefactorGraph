@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferSplit(Operator const &op, TensorRefs inputs, InferOptions const&) {
+    InferResult inferSplit(Operator const &op, TensorRefs inputs, InferOptions const &) {
         if (inputs.empty() || inputs.size() > 2) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
@@ -42,7 +42,7 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Split not support")));
             }
             EXPECT_VAL(split.shape[0], numOutputs)
-            auto split_ = reinterpret_cast<int64_t *>(split.data->ptr);
+            auto split_ = split.data->get<int64_t>();
             auto ans = Tensors(numOutputs, nullptr);
             for (auto i : range0_(numOutputs)) {
                 ans[i] = Tensor::share(input.dataType, input.shape, dependencies);
