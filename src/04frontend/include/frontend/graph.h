@@ -3,7 +3,6 @@
 
 #include "computation/graph.h"
 #include "graph_topo/graph_topo.h"
-#include "mem_manager/segmentation.h"
 #include "operator.h"
 
 namespace refactor::frontend {
@@ -13,7 +12,6 @@ namespace refactor::frontend {
     class Graph {
         graph_topo::Graph<Node, Edge> _internal;
         std::unordered_map<std::string, DimVariable> _variables;
-        std::unordered_map<std::string, mem_manager::Segmentation> _segmentations;
 
         void logGraph() const;
 

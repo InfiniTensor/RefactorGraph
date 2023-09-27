@@ -3,7 +3,7 @@ project(frontend)
 
 file(GLOB_RECURSE FRONTEND_SRC src/*.cc src/*.cpp)
 add_library(frontend ${LIBRARY_TYPE} ${FRONTEND_SRC})
-target_link_libraries(frontend PUBLIC computation mem_manager)
+target_link_libraries(frontend PUBLIC computation)
 
 file(GLOB_RECURSE FRONTEND_TEST test/*.cpp)
 add_executable(frontend_test ${FRONTEND_TEST})

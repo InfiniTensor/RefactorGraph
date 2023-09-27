@@ -45,11 +45,11 @@ add_subdirectory(src/00common)
 include_directories(src/01graph_topo/include)
 add_subdirectory(src/01graph_topo)
 
-include_directories(src/02computation/include)
-add_subdirectory(src/02computation)
+include_directories(src/02mem_manager/include)
+add_subdirectory(src/02mem_manager)
 
-include_directories(src/03mem_manager/include)
-add_subdirectory(src/03mem_manager)
+include_directories(src/03computation/include)
+add_subdirectory(src/03computation)
 
 include_directories(src/04frontend/include)
 add_subdirectory(src/04frontend)
