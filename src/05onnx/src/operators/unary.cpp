@@ -18,10 +18,9 @@ namespace refactor::onnx {
              "onnx::Cos", "onnx::Cosh",
              "onnx::Sin", "onnx::Sinh",
              "onnx::Tan"},
-            {"onnx::Tanh", "onnx::Sqrt", "onnx::Sigmoid",
-			 "onnx::Log"},
-			{"onnx::Neg"},
-			{"onnx::Identity"}};
+            {"onnx::Tanh", "onnx::Sqrt", "onnx::Sigmoid", "onnx::Log"},
+            {"onnx::Neg"},
+            {"onnx::Identity"}};
         if (SET[0].find(opType) != SET[0].end()) {
             if (!dataType.isNumberic()) {
                 return Err(InferError(ERROR_MSG("Data type not support")));
@@ -35,12 +34,12 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Data type not support")));
             }
         } else if (SET[3].find(opType) != SET[3].end()) {
-			if (!dataType.isPositive()) {
+            if (!dataType.isSigned()) {
                 return Err(InferError(ERROR_MSG("Data type not support")));
-			}
-		} else if (SET[4].find(opType) != SET[4].end()) {
-			// nothing to do
-		} else {
+            }
+        } else if (SET[4].find(opType) != SET[4].end()) {
+            // nothing to do
+        } else {
             RUNTIME_ERROR(fmt::format("{} not support in unary inference", opType));
         }
         return Ok(Tensors{Tensor::share(dataType, inputs[0].shape, extractDependency(inputs))});

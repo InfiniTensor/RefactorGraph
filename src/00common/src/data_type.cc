@@ -78,9 +78,15 @@ namespace refactor::common {
         static const std::unordered_set<Enum> set{DataType::F32, DataType::FP16, DataType::F64, DataType::BF16};
         return set.find(internal) != set.end();
     }
+    bool DataType::isSignedLarge() const {
+        static const std::unordered_set<Enum> set{
+            DataType::F32, DataType::FP16, DataType::BF16, DataType::F64, DataType::I32, DataType::I64};
+        return set.find(internal) != set.end();
+    }
     bool DataType::isSigned() const {
         static const std::unordered_set<Enum> set{
-            DataType::F32, DataType::I32, DataType::I64, DataType::FP16, DataType::F64, DataType::BF16};
+            DataType::F32, DataType::FP16, DataType::BF16, DataType::F64, DataType::I8, DataType::I16,
+            DataType::I32, DataType::I64};
         return set.find(internal) != set.end();
     }
     bool DataType::isNumberic() const {
@@ -92,12 +98,7 @@ namespace refactor::common {
     bool DataType::isBool() const {
         return internal == DataType::Bool;
     }
-	bool DataType::isPositive() const {
-		static const std::unordered_set<Enum> set {
-			DataType::F32, DataType::FP16, DataType::BF16, DataType::F64, DataType::I8, DataType::I16,
-			DataType::I32, DataType::I64};
-		return set.find(internal) != set.end();
-	}
+
     size_t DataType::size() const {
 #define RETURN_SIZE(TYPE) \
     case DataType::TYPE:  \

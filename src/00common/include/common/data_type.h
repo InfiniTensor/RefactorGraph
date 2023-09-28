@@ -44,10 +44,10 @@ namespace refactor::common {
         std::string_view name() const;
         bool isIeee754() const;
         bool isFloat() const;
+        bool isSignedLarge() const;
         bool isSigned() const;
         bool isNumberic() const;
         bool isBool() const;
-		bool isPositive() const;
         size_t size() const;
     };
 
