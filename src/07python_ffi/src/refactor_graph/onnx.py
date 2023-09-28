@@ -19,6 +19,11 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
     for tensor in model.graph.initializer:
         if tensor.data_location == 1:
             edi = ExternalDataInfo(tensor)
+            print(
+                "load {:> 10} bytes from {} for {}".format(
+                    edi.length, edi.location, tensor.name
+                )
+            )
             edges[tensor.name] = _make_data_ex(
                 tensor.data_type,
                 tensor.dims,
