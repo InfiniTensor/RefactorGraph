@@ -1,6 +1,6 @@
 ﻿#include "transformation/conv.h"
 
-using namespace refactor::common;
+using namespace common;
 using namespace refactor::graph;
 
 namespace refactor::transformation {
