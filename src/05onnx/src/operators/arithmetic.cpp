@@ -32,7 +32,7 @@ namespace refactor::onnx {
                 *dst_ = a_ / b_;
                 break;
             default:
-                RUNTIME_ERROR("Unreachable");
+                UNREACHABLE();
         }
     }
 

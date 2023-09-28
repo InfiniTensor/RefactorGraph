@@ -15,19 +15,36 @@ namespace refactor::onnx {
         if (repeats.dataType != DataType::I64 || repeats.shape[0].value() != rank || !repeats.hasData()) {
             return Err(InferError(ERROR_MSG("repeats not support")));
         }
-        auto shape_ = repeats.data->get<int64_t>();
-        EXPECT_VAL(repeats.shape[0], shapeSize)
-        Shape repeatsVec(shape_, shape_ + shapeSize);
+        EXPECT_VAL(repeats.shape[0], repeatsSize)
+        ASSERT(repeatsSize == rank, ERROR_MSG("repeats size error"));
+
+        auto repeats_ = repeats.data->get<int64_t>();
         Shape output(rank, DimExpr(1));
-        for (auto i : range0_(static_cast<size_t>(rank))) {
-            auto inputEle = input.shape[i];
-            auto repeatsEle = repeatsVec[i];
-            if (!inputEle.isValue() || !repeatsEle.isValue()) {
-                return Err(InferError(ERROR_MSG("have unknown variable")));
+        for (auto i : range0_(rank)) {
+            if (repeats_[i] == 1) {
+                output[i] = input.shape[i];
+            } else {
+                EXPECT_VAL(input.shape[i], dim)
+                output[i] = DimExpr(dim * repeats_[i]);
             }
-            output[i] = DimExpr(inputEle.value() * repeatsEle.value());
         }
+
         auto ans = Tensor::share(input.dataType, std::move(output), extractDependency(inputs));
+        if (!options.shouldCalculate(inputs, {*ans})) {
+            return Ok(Tensors{std::move(ans)});
+        }
+
+        std::for_each_n(std::execution::unseq,
+                        natural_t(0), ans->elementsSize(),
+                        [&ans, &input, rank,
+                         dst = reinterpret_cast<uint8_t *>(ans->malloc()),
+                         eleSize = input.dataType.size()](auto i) {
+                            auto indices = locateN(ans->shape, i);
+                            for (auto j : range0_(rank)) {
+                                indices[j] %= input.shape[j].value();
+                            }
+                            std::memcpy(dst + i * eleSize, locate1(input, indices), eleSize);
+                        });
         return Ok(Tensors{std::move(ans)});
     }
 

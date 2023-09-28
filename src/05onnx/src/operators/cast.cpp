@@ -33,6 +33,10 @@ namespace refactor::onnx {
         switch (from.internal) {
             case DataType::F32:
                 switch (to.internal) {
+                    case DataType::I32:
+                        castData<float, int32_t>(src, dst, size);
+                        break;
+
                     case DataType::I64:
                         castData<float, int64_t>(src, dst, size);
                         break;
@@ -49,10 +53,36 @@ namespace refactor::onnx {
                 }
                 break;
 
+            case DataType::I32:
+                switch (to.internal) {
+                    case DataType::F32:
+                        castData<int32_t, float>(src, dst, size);
+                        break;
+
+                    case DataType::I64:
+                        castData<int32_t, int64_t>(src, dst, size);
+                        break;
+
+                    case DataType::Bool: {
+                        auto src_ = reinterpret_cast<int32_t const *>(src);
+                        auto dst_ = reinterpret_cast<bool *>(dst);
+                        std::transform(std::execution::unseq, src_, src_ + size, dst_, [](auto x) { return x != 0; });
+                        break;
+                    }
+
+                    default:
+                        break;
+                }
+                break;
+
             case DataType::I64:
                 switch (to.internal) {
                     case DataType::F32:
                         castData<int64_t, float>(src, dst, size);
+                        break;
+
+                    case DataType::I32:
+                        castData<int64_t, int32_t>(src, dst, size);
                         break;
 
                     case DataType::Bool: {

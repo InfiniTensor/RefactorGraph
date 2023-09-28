@@ -5,7 +5,23 @@
 namespace refactor::onnx {
     using namespace common;
 
-    InferResult inferUnary(Operator const &op, TensorRefs inputs, InferOptions const &) {
+    enum class Ty {
+        Abs
+    };
+
+    template<decltype(DataType::internal) T>
+    void abs(void *dst, void const *src) {
+        using T_ = typename primitive_t<T>::type;
+        *reinterpret_cast<T_ *>(dst) = std::abs(*reinterpret_cast<T_ const *>(src));
+    }
+
+    template<decltype(DataType::internal) T>
+    void log(void *dst, void const *src) {
+        using T_ = typename primitive_t<T>::type;
+        *reinterpret_cast<T_ *>(dst) = std::log(*reinterpret_cast<T_ const *>(src));
+    }
+
+    InferResult inferUnary(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         EXPECT_SIZE(1)
 
         auto dataType = inputs[0].dataType;
@@ -42,7 +58,50 @@ namespace refactor::onnx {
         } else {
             RUNTIME_ERROR(fmt::format("{} not support in unary inference", opType));
         }
-        return Ok(Tensors{Tensor::share(dataType, inputs[0].shape, extractDependency(inputs))});
+        auto ans = Tensor::share(dataType, inputs[0].shape, extractDependency(inputs));
+        if (!options.shouldCalculate(inputs, {*ans})) {
+            return Ok(Tensors{std::move(ans)});
+        }
+        if (opType == "onnx::Identity") {
+            ans->data = inputs[0].data;
+        } else if (opType == "onnx::Abs") {
+            //-------------------------------------
+#define CASE(T)                                                       \
+    case DataType::T:                                                 \
+        abs<DataType::T>(ans->malloc(), inputs[0].data->get<void>()); \
+        break
+            //-------------------------------------
+            switch (dataType.internal) {
+                CASE(F32);
+                CASE(F64);
+                CASE(I32);
+                CASE(I64);
+                CASE(I8);
+                CASE(I16);
+                default:
+                    ans->free();
+                    break;
+            }
+        } else if (opType == "onnx::Log") {
+            //-------------------------------------
+#define CASE(T)                                                       \
+    case DataType::T:                                                 \
+        log<DataType::T>(ans->malloc(), inputs[0].data->get<void>()); \
+        break
+            //-------------------------------------
+            switch (dataType.internal) {
+                CASE(F32);
+                CASE(F64);
+                CASE(I32);
+                CASE(I64);
+                CASE(I8);
+                CASE(I16);
+                default:
+                    ans->free();
+                    break;
+            }
+        }
+        return Ok(Tensors{std::move(ans)});
     }
 
     static computation::SimpleUnaryType unsupport(OpType opType) {

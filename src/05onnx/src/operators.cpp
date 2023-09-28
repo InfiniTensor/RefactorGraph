@@ -24,6 +24,7 @@ namespace refactor::onnx {
         OpType::register_("onnx::Not"             , inferLogic           , unreachableLower );
         OpType::register_("onnx::And"             , inferLogic           , unreachableLower );
         OpType::register_("onnx::Or"              , inferLogic           , unreachableLower );
+        OpType::register_("onnx::Xor"             , inferLogic           , unreachableLower );
         OpType::register_("onnx::Add"             , inferArithmetic      , lowerArithmetic  );
         OpType::register_("onnx::Sub"             , inferArithmetic      , lowerArithmetic  );
         OpType::register_("onnx::Mul"             , inferArithmetic      , lowerArithmetic  );
