@@ -22,6 +22,7 @@ namespace refactor::onnx {
     InferResult inferCumSum          (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerCumSum     (Operator const &, TensorRefs);
     InferResult inferExpand          (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerExpand     (Operator const &, TensorRefs);
     InferResult inferGather          (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerGather     (Operator const &, TensorRefs);
+    InferResult inferGatherElements  (Operator const &, TensorRefs, InferOptions const&);
     InferResult inferGemm            (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerGemm       (Operator const &, TensorRefs);
     InferResult inferMatMul          (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerMatMul     (Operator const &, TensorRefs);
     InferResult inferPow             (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerPow        (Operator const &, TensorRefs);
@@ -34,8 +35,10 @@ namespace refactor::onnx {
     InferResult inferSqueeze         (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerSqueeze    (Operator const &, TensorRefs);
     InferResult inferTranspose       (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerTranspose  (Operator const &, TensorRefs);
     InferResult inferUnary           (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerUnary      (Operator const &, TensorRefs);
+    InferResult inferLogic           (Operator const &, TensorRefs, InferOptions const&);
     InferResult inferUnsqueeze       (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerUnsqueeze  (Operator const &, TensorRefs);
     InferResult inferWhere           (Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerWhere      (Operator const &, TensorRefs);
+    InferResult inferTile            (Operator const &, TensorRefs, InferOptions const&);
 
     // clang-format on
     using ShapeResult = Result<Shape, std::string>;

@@ -15,6 +15,15 @@ namespace refactor::onnx {
         OpType::register_("onnx::Sigmoid"         , inferUnary           , lowerUnary       );
         OpType::register_("onnx::Sqrt"            , inferUnary           , lowerUnary       );
         OpType::register_("onnx::Tanh"            , inferUnary           , lowerUnary       );
+        OpType::register_("onnx::Identity"        , inferUnary           , unreachableLower );
+        OpType::register_("onnx::Cos"             , inferUnary           , unreachableLower );
+        OpType::register_("onnx::Sin"             , inferUnary           , unreachableLower );
+        OpType::register_("onnx::Abs"             , inferUnary           , unreachableLower );
+        OpType::register_("onnx::Neg"             , inferUnary           , unreachableLower );
+        OpType::register_("onnx::Log"             , inferUnary           , unreachableLower );
+        OpType::register_("onnx::Not"             , inferLogic           , unreachableLower );
+        OpType::register_("onnx::And"             , inferLogic           , unreachableLower );
+        OpType::register_("onnx::Or"              , inferLogic           , unreachableLower );
         OpType::register_("onnx::Add"             , inferArithmetic      , lowerArithmetic  );
         OpType::register_("onnx::Sub"             , inferArithmetic      , lowerArithmetic  );
         OpType::register_("onnx::Mul"             , inferArithmetic      , lowerArithmetic  );
@@ -31,6 +40,7 @@ namespace refactor::onnx {
         OpType::register_("onnx::Split"           , inferSplit           , lowerSplit       );
         OpType::register_("onnx::Reshape"         , inferReshape         , lowerReshape     );
         OpType::register_("onnx::Gather"          , inferGather          , lowerGather      );
+        OpType::register_("onnx::GatherElements"  , inferGatherElements  , unreachableLower );
         OpType::register_("onnx::Concat"          , inferConcat          , lowerConcat      );
         OpType::register_("onnx::Expand"          , inferExpand          , lowerExpand      );
         OpType::register_("onnx::Where"           , inferWhere           , lowerWhere       );
@@ -43,6 +53,7 @@ namespace refactor::onnx {
         OpType::register_("onnx::LessOrEqual"     , inferCompair         , lowerCompair     );
         OpType::register_("onnx::Softmax"         , inferSoftmax         , lowerSoftmax     );
         OpType::register_("onnx::ReduceMean"      , inferReduce          , lowerReduce      );
+        OpType::register_("onnx::Tile"            , inferTile            , unreachableLower );
         // clang-format on
     }
 

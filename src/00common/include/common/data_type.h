@@ -47,6 +47,7 @@ namespace refactor::common {
         bool isSigned() const;
         bool isNumberic() const;
         bool isBool() const;
+		bool isPositive() const;
         size_t size() const;
     };
 
