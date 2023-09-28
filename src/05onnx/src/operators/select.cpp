@@ -6,25 +6,6 @@
 namespace refactor::onnx {
     using namespace common;
 
-    enum class Ty {
-        Min,
-        Max
-    };
-
-    template<class T>
-    void calculate(Ty ty, T &dst, std::vector<T> inputs) {
-        switch (ty) {
-            case Ty::Min:
-                dst = std::min_element(std::execution::unseq, inputs.begin(), inputs.end());
-                break;
-            case Ty::Max:
-                dst = std::max_element(std::execution::unseq, inputs.begin(), inputs.end());
-                break;
-            default:
-                UNREACHABLE();
-        }
-    }
-
     InferResult inferSelect(Operator const &op, TensorRefs inputs, InferOptions const &options) {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
