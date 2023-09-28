@@ -19,18 +19,19 @@ namespace refactor::python_ffi {
         py::class_<Tensor   , std::shared_ptr<Tensor>   >(m, "Tensor"   );
         py::class_<Operator , std::shared_ptr<Operator> >(m, "Operator" );
 
-        m   .def("config_log"      , &configLog              , return_::automatic )
-            .def("_make_operator"  , &makeOp                 , return_::move      )
-            .def("_make_tensor"    , &makeTensor             , return_::move      )
-            .def("_make_data"      , &makeTensorWithData     , return_::move      )
-            .def("_make_compiler"  , &makeCompiler           , return_::move      );
+        m   .def("config_log"      , &configLog                  , return_::automatic )
+            .def("_make_operator"  , &makeOp                     , return_::move      )
+            .def("_make_tensor"    , &makeTensor                 , return_::move      )
+            .def("_make_data"      , &makeTensorWithData         , return_::move      )
+            .def("_make_data_ex"   , &makeTensorWithExternalData , return_::move      )
+            .def("_make_compiler"  , &makeCompiler               , return_::move      );
 
         py::class_<Compiler , std::shared_ptr<Compiler> >(m, "Compiler" )
-            .def("substitute"      , &Compiler::substitute   , return_::automatic )
-            .def("set_input"       , &Compiler::setInput     , return_::automatic )
-            .def("check_variables" , &Compiler::fillEdgeInfo , return_::move      )
-            .def("get_tensor"      , &Compiler::getTensor    , return_::move      )
-            .def("compile"         , &Compiler::compile      , return_::move      );
+            .def("substitute"      , &Compiler::substitute       , return_::automatic )
+            .def("set_input"       , &Compiler::setInput         , return_::automatic )
+            .def("check_variables" , &Compiler::fillEdgeInfo     , return_::move      )
+            .def("get_tensor"      , &Compiler::getTensor        , return_::move      )
+            .def("compile"         , &Compiler::compile          , return_::move      );
 
         py::class_<Executor , std::shared_ptr<Executor> >(m, "Executor" );
 

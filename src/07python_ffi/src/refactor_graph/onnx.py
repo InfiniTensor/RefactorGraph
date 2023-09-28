@@ -1,20 +1,32 @@
-﻿from onnx import ModelProto, NodeProto, AttributeProto, TensorProto
+﻿from onnx import ModelProto, NodeProto, AttributeProto
 from onnx.numpy_helper import to_array
+from onnx.external_data_helper import ExternalDataInfo
 from typing import Any
+from functools import reduce
 from python_ffi import (
     Compiler,
     Tensor,
     _make_data,
+    _make_data_ex,
     _make_tensor,
     _make_compiler,
     _make_operator,
 )
 
 
-def make_compiler(model: ModelProto) -> Compiler:
+def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
     edges: dict[str, Tensor] = dict()
     for tensor in model.graph.initializer:
-        edges[tensor.name] = _make_data(to_array(tensor))
+        if tensor.data_location == 1:
+            edi = ExternalDataInfo(tensor)
+            edges[tensor.name] = _make_data_ex(
+                tensor.data_type,
+                tensor.dims,
+                external_data_path + "/" + edi.location,
+                edi.offset,
+            )
+        else:
+            edges[tensor.name] = _make_data(to_array(tensor))
     for tensor in model.graph.input:
         if tensor.name not in edges:
             edges[tensor.name] = _make_tensor(
@@ -72,48 +84,3 @@ def _parse_attribute(node: NodeProto) -> dict[str, Any]:
         else _raise(attr)
         for attr in node.attribute
     }
-
-
-# def build_onnx(grpah_name: str, graph: backend.Graph) -> ModelProto:
-#     node_export = backend.NodeExport(graph)
-#     edge_export = backend.EdgeExport(graph)
-#     nodes = []
-#     edges = {}
-#     initializer = []
-
-#     while True:
-#         node = node_export.next()
-#         if node is None:
-#             break
-#         (name, op_type, attributes, inputs, outputs) = node
-#         nodes.append(make_node(op_type, inputs, outputs, name=name, **attributes))
-
-#     while True:
-#         edge = edge_export.next()
-#         if edge is None:
-#             break
-#         (name, data_type, shape, array) = edge
-#         edges[name] = make_tensor_value_info(name, data_type, shape)
-#         if array != None:
-#             initializer.append(numpy_helper.from_array(array, name))
-
-#     global_inputs = [
-#         edges.pop(name, make_tensor_value_info(name, TensorProto.UNDEFINED, None))
-#         for name in node_export.global_inputs()
-#     ]
-#     global_outputs = [
-#         edges.pop(name, make_tensor_value_info(name, TensorProto.UNDEFINED, None))
-#         for name in node_export.global_outputs()
-#     ]
-#     value_info = list(edges.values())
-
-#     return make_model(
-#         make_graph(
-#             nodes,
-#             grpah_name,
-#             global_inputs,
-#             global_outputs,
-#             initializer,
-#             value_info=value_info,
-#         )
-#     )

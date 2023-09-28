@@ -1,5 +1,6 @@
 ﻿#include "import.h"
 #include <execution>
+#include <fstream>
 
 namespace refactor::python_ffi {
     using namespace frontend;
@@ -17,6 +18,22 @@ namespace refactor::python_ffi {
                        [](auto const &d) { return DimExpr(d); });
         auto ans = Tensor::share(parseNumpyDType(data.dtype()), std::move(shape), {});
         std::memcpy(ans->malloc(), data.data(), data.nbytes());
+        return ans;
+    }
+
+    SharedTensor makeTensorWithExternalData(
+        int dataType,
+        std::vector<int64_t> shape,
+        std::string file,
+        int64_t offset) {
+        Shape shape_(shape.size(), DimExpr(1));
+        std::transform(std::execution::unseq,
+                       shape.begin(), shape.end(), shape_.begin(),
+                       [](auto d) { return DimExpr(d); });
+        auto ans = Tensor::share(*common::DataType::parse(dataType), std::move(shape_), {});
+        std::ifstream stream(file, std::ios::binary);
+        stream.seekg(offset);
+        stream.read(static_cast<char *>(ans->malloc()), ans->bytesSize());
         return ans;
     }
 

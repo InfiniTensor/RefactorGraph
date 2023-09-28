@@ -12,6 +12,11 @@ namespace refactor::python_ffi {
 
     SharedTensor makeTensor(int dataType, DimVec dims);
     SharedTensor makeTensorWithData(pybind11::array);
+    SharedTensor makeTensorWithExternalData(
+        int dataType,
+        std::vector<int64_t> shape,
+        std::string file,
+        int64_t offset);
     SharedOp makeOp(Name opType, AttributeMap);
     std::shared_ptr<Compiler> makeCompiler(
         std::unordered_map<Name, std::pair<NameVec, NameVec>> topology,
