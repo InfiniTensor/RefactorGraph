@@ -185,7 +185,8 @@ namespace refactor::frontend {
                                std::transform(std::execution::unseq,
                                               tensor->shape.begin(), tensor->shape.end(), shape.begin(),
                                               [](auto const &dim) { return dim.value(); });
-                               edges[i].tensor = std::make_shared<computation::Tensor>(computation::Tensor{tensor->dataType, std::move(shape), tensor->data});
+                               auto layout = shape.size() == 4 ? computation::LayoutType::NCHW : computation::LayoutType::Others;
+                               edges[i].tensor = computation::Tensor::share(tensor->dataType, std::move(shape), layout, tensor->data);
                                edges[i].name = name;
                            };
                            auto [op_, inputs] = op.lower(TensorRefs(_internal.edges, nodeRef.inputs));
