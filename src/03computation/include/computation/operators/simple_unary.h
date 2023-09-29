@@ -2,6 +2,7 @@
 #define COMPUTATION_SIMPLE_UNARY_H
 
 #include "../operator.h"
+#include "common/error_handler.h"
 
 namespace refactor::computation {
 
@@ -26,11 +27,15 @@ namespace refactor::computation {
         Not,
     };
 
-    struct SimpleUnary : public Operator {
+    struct SimpleUnary final : public Operator {
         SimpleUnaryType type;
 
         constexpr explicit SimpleUnary(SimpleUnaryType type_)
             : Operator(), type(type_) {}
+
+        static size_t typeId(SimpleUnaryType);
+        size_t opTypeId() const override;
+        std::string_view name() const override;
     };
 
 }// namespace refactor::computation

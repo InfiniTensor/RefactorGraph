@@ -1,10 +1,9 @@
-﻿#ifndef REFACTOR_OP_TYPE_H
-#define REFACTOR_OP_TYPE_H
+﻿#ifndef COMPUTATION_OP_TYPE_H
+#define COMPUTATION_OP_TYPE_H
 
 #include <string>
-#include <unordered_set>
 
-namespace refactor::common {
+namespace refactor::computation {
 
     struct OpType {
         using underlying_t = uint16_t;
@@ -199,54 +198,26 @@ namespace refactor::common {
             Upsample,
             Where,
             Xor,// Binary
-            // CUSTOM DEFINED
-            G2BMM,
-            GBMM,
-            MemBound,
-            // TODO
-            ConvTransNHWC,
-            ConvBackwardFilter,
-            ReluBackward,
-            SigmoidBackward,
-            TanhBackward,
-
-            Fill,
-            Extend,
-            MSELoss,
-            Hardtanh,
-            L2Loss,
-            Rsqrt,
-            FloorDiv,
-            FloorMod,
-            Square,
-            SquaredDifference,
         } type;
 
         constexpr OpType(decltype(type) t) : type(t) {}
-        constexpr explicit OpType(underlying_t val) : type((decltype(type)) val) {}
-        constexpr underlying_t underlying() const { return type; }
 
-        bool operator==(OpType others) const { return type == others.type; }
-        bool operator!=(OpType others) const { return type != others.type; }
-        bool operator<(OpType others) const { return type < others.type; }
+        bool operator==(OpType) const;
+        bool operator!=(OpType) const;
+        bool operator<(OpType) const;
+        bool operator>(OpType) const;
+        bool operator<=(OpType) const;
+        bool operator>=(OpType) const;
 
-        const char *toString() const;
+        std::string_view name() const;
         bool isUnary() const;
         bool isBinary() const;
         bool isElementWise() const;
         bool isCompair() const;
         bool isPool() const;
         bool isGlobalPool() const;
-        bool isMatMulOrConv() const;
     };
 
-    enum class ActType {
-        None,
-        Relu,
-        Sigmoid,
-        Tanh,
-    };
+}// namespace refactor::computation
 
-}// namespace refactor::common
-
-#endif// OP_TYPE_H
+#endif// COMPUTATION_OP_TYPE_H

@@ -6,11 +6,15 @@
 
 namespace refactor::computation {
 
-    struct Transpose : public Operator {
+    struct Transpose final : public Operator {
         absl::InlinedVector<size_t, 4> perm;
 
         explicit Transpose(absl::InlinedVector<size_t, 4> perm_)
             : Operator(), perm(std::move(perm_)) {}
+
+        static size_t typeId();
+        size_t opTypeId() const final;
+        std::string_view name() const final;
     };
 
 }// namespace refactor::computation

@@ -5,11 +5,15 @@
 
 namespace refactor::computation {
 
-    struct Concat : public Operator {
+    struct Concat final : public Operator {
         size_t axis;
 
         constexpr explicit Concat(size_t axis_)
             : Operator(), axis(axis_) {}
+
+        static size_t typeId();
+        size_t opTypeId() const final;
+        std::string_view name() const final;
     };
 
 }// namespace refactor::computation

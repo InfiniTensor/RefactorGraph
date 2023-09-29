@@ -6,11 +6,15 @@
 
 namespace refactor::computation {
 
-    struct CumSum : public Operator {
+    struct CumSum final : public Operator {
         bool exclusive, reverse;
 
         constexpr CumSum(bool exclusive_, bool reverse_)
             : Operator(), exclusive(exclusive_), reverse(reverse_) {}
+
+        static size_t typeId();
+        size_t opTypeId() const final;
+        std::string_view name() const final;
     };
 
 }// namespace refactor::computation

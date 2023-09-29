@@ -5,8 +5,12 @@
 
 namespace refactor::computation {
 
-    struct Where : public Operator {
+    struct Where final : public Operator {
         constexpr Where() : Operator() {}
+
+        static size_t typeId();
+        size_t opTypeId() const final;
+        std::string_view name() const final;
     };
 
 }// namespace refactor::computation

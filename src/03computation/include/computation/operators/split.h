@@ -5,10 +5,14 @@
 
 namespace refactor::computation {
 
-    struct Split : public Operator {
+    struct Split final : public Operator {
         size_t axis;
 
         constexpr Split(size_t axis_) : Operator(), axis(axis_) {}
+
+        static size_t typeId();
+        size_t opTypeId() const final;
+        std::string_view name() const final;
     };
 
 }// namespace refactor::computation

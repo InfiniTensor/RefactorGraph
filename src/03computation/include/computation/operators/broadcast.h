@@ -5,8 +5,13 @@
 
 namespace refactor::computation {
 
-    struct Broadcast : public Operator {
+    struct Broadcast final : public Operator {
         constexpr Broadcast() : Operator() {}
+
+        static size_t typeId();
+        size_t opTypeId() const final;
+        std::string_view name() const final;
+        bool isLayoutDependent() const final;
     };
 
 }// namespace refactor::computation

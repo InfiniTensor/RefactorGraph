@@ -2,6 +2,7 @@
 #define COMPUTATION_REDUCE_H
 
 #include "../operator.h"
+#include "common/error_handler.h"
 #include <absl/container/inlined_vector.h>
 
 namespace refactor::computation {
@@ -19,7 +20,7 @@ namespace refactor::computation {
         SumSquare,
     };
 
-    struct Reduce : public Operator {
+    struct Reduce final : public Operator {
         ReduceType type;
         absl::InlinedVector<size_t, 4> axes;// empty means reduce all axes
         bool keepDims;
@@ -31,6 +32,10 @@ namespace refactor::computation {
               type(type_),
               axes(std::move(axes_)),
               keepDims(keepDims_) {}
+
+        static size_t typeId(ReduceType);
+        size_t opTypeId() const override;
+        std::string_view name() const override;
     };
 
 }// namespace refactor::computation

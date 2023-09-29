@@ -1,7 +1,14 @@
-﻿#include "op_type.h"
+﻿#include "computation/op_type.h"
 
 namespace refactor::common {
-    const char *OpType::toString() const {
+    bool OpType::operator==(OpType rhs) const { return type == rhs.type; }
+    bool OpType::operator!=(OpType rhs) const { return type != rhs.type; }
+    bool OpType::operator<(OpType rhs) const { return type < rhs.type; }
+    bool OpType::operator>(OpType rhs) const { return type > rhs.type; }
+    bool OpType::operator<=(OpType rhs) const { return type <= rhs.type; }
+    bool OpType::operator>=(OpType rhs) const { return type >= rhs.type; }
+
+    std::string_view OpType::name() const {
 #define CASE(NAME)     \
     case OpType::NAME: \
         return #NAME
@@ -193,27 +200,6 @@ namespace refactor::common {
             CASE(Upsample);
             CASE(Where);
             CASE(Xor);
-            // CUSTOM DEFINED
-            CASE(G2BMM);
-            CASE(GBMM);
-            CASE(MemBound);
-            // TODO
-            CASE(ConvTransNHWC);
-            CASE(ConvBackwardFilter);
-            CASE(ReluBackward);
-            CASE(SigmoidBackward);
-            CASE(TanhBackward);
-
-            CASE(Fill);
-            CASE(Extend);
-            CASE(MSELoss);
-            CASE(Hardtanh);
-            CASE(L2Loss);
-            CASE(Rsqrt);
-            CASE(FloorDiv);
-            CASE(FloorMod);
-            CASE(Square);
-            CASE(SquaredDifference);
             default:
                 return "Unknown";
         }
@@ -300,21 +286,6 @@ namespace refactor::common {
             GlobalAveragePool,
             GlobalLpPool,
             GlobalMaxPool,
-        };
-
-        return set.find(type) != set.end();
-    }
-
-    bool OpType::isMatMulOrConv() const {
-        static const std::unordered_set<decltype(type)> set{
-            Conv,
-            ConvInteger,
-            ConvTranspose,
-            DeformConv,
-            QLinearConv,
-            MatMul,
-            MatMulInteger,
-            QLinearMatMul,
         };
 
         return set.find(type) != set.end();
