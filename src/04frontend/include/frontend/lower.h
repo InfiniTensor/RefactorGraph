@@ -3,13 +3,19 @@
 
 #include "computation/operator.h"
 #include "tensor.h"
+#include <absl/container/inlined_vector.h>
 
 namespace refactor::frontend {
 
-    class Operator;
-    using LowerFn = computation::SharedOp (*)(Operator const &, TensorRefs);
+    struct LowerOperator {
+        computation::SharedOp op;
+        absl::InlinedVector<size_t, 2> inputs;
+    };
 
-    computation::SharedOp unreachableLower(Operator const &, TensorRefs);
+    class Operator;
+    using LowerFn = LowerOperator (*)(Operator const &, TensorRefs);
+
+    LowerOperator unreachableLower(Operator const &, TensorRefs);
 
 }// namespace refactor::frontend
 

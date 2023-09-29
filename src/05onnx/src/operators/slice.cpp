@@ -144,7 +144,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerSlice(Operator const &, TensorRefs inputs) {
+    LowerOperator lowerSlice(Operator const &, TensorRefs inputs) {
         using namespace computation;
 
         auto const &data = inputs[0];
@@ -160,6 +160,6 @@ namespace refactor::onnx {
         auto rank = data.rank();
         auto size = starts_.shape[0].value();
 
-        return std::make_shared<Slice>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap());
+        return {std::make_shared<Slice>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap()), {0}};
     }
 }// namespace refactor::onnx

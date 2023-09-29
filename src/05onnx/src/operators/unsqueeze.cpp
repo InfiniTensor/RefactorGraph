@@ -41,9 +41,9 @@ namespace refactor::onnx {
                                         data.data)});
     }
 
-    computation::SharedOp lowerUnsqueeze(Operator const &, TensorRefs) {
+    LowerOperator lowerUnsqueeze(Operator const &, TensorRefs) {
         using namespace computation;
 
-        return nullptr;
+        return {std::make_shared<Reshape>(), {0}};
     }
 }// namespace refactor::onnx

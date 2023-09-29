@@ -48,9 +48,9 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
     }
 
-    computation::SharedOp lowerMatMul(Operator const &, TensorRefs) {
+    LowerOperator lowerMatMul(Operator const &, TensorRefs) {
         using namespace computation;
 
-        return std::make_shared<MatMul>(1.0, 1.0, false, false);
+        return {std::make_shared<MatMul>(1.0, 1.0, false, false), {0, 1}};
     }
 }// namespace refactor::onnx

@@ -58,7 +58,7 @@ namespace refactor::onnx {
         RUNTIME_ERROR(fmt::format("{} not support in reduce lowering", opType.name()));
     }
 
-    computation::SharedOp lowerReduce(Operator const &op, TensorRefs inputs) {
+    LowerOperator lowerReduce(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::ReduceMean")        ? ReduceType::Mean
@@ -77,9 +77,9 @@ namespace refactor::onnx {
         auto keepdims = op.attribute("keepdims", {1}).int_() != 0;
         if (inputs.size() == 1) {
             if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
-                return std::make_shared<Identity>();
+                return {std::make_shared<Identity>(), {0}};
             } else {
-                return std::make_shared<Reduce>(type, decltype(Reduce::axes){}, keepdims);
+                return {std::make_shared<Reduce>(type, decltype(Reduce::axes){}, keepdims), {0}};
             }
         }
         auto const &axes = inputs[1];
@@ -92,6 +92,6 @@ namespace refactor::onnx {
                            return axis < 0 ? axis + rank : axis;
                        });
 
-        return std::make_shared<Reduce>(type, std::move(axes__), keepdims);
+        return {std::make_shared<Reduce>(type, std::move(axes__), keepdims), {0}};
     }
 }// namespace refactor::onnx

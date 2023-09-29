@@ -26,13 +26,13 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerTranspose(Operator const &op, TensorRefs) {
+    LowerOperator lowerTranspose(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto perm = op.attribute("perm").ints();
-        decltype(Transpose::perm) ans(perm.size());
+        decltype(Transpose::perm) perm_(perm.size());
         std::transform(std::execution::unseq,
-                       perm.begin(), perm.end(), ans.begin(), [](auto i) { return static_cast<size_t>(i); });
-        return std::make_shared<Transpose>(std::move(ans));
+                       perm.begin(), perm.end(), perm_.begin(), [](auto i) { return static_cast<size_t>(i); });
+        return {std::make_shared<Transpose>(std::move(perm_)), {0}};
     }
 }// namespace refactor::onnx

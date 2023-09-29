@@ -38,9 +38,9 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerWhere(Operator const &, TensorRefs) {
+    LowerOperator lowerWhere(Operator const &, TensorRefs) {
         using namespace computation;
 
-        return std::make_shared<Where>();
+        return {std::make_shared<Where>(), {0, 1, 2}};
     }
 }// namespace refactor::onnx

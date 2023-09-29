@@ -7,12 +7,12 @@ namespace refactor::communication {
 
     void register_() {
         // clang-format off
-        OpType::register_("onnx::AllReduceSum"  , inferAllReduce , lowerAllReduce);
-        OpType::register_("onnx::AllReduceProd" , inferAllReduce , lowerAllReduce);
-        OpType::register_("onnx::AllReduceMin"  , inferAllReduce , lowerAllReduce);
-        OpType::register_("onnx::AllReduceMax"  , inferAllReduce , lowerAllReduce);
-        OpType::register_("onnx::AllReduceAvg"  , inferAllReduce , lowerAllReduce);
-        OpType::register_("onnx::AllGather"     , inferAllGather , lowerAllGather);
+        OpType::register_("onnx::AllReduceSum"  , inferAllReduce , unreachableLower);
+        OpType::register_("onnx::AllReduceProd" , inferAllReduce , unreachableLower);
+        OpType::register_("onnx::AllReduceMin"  , inferAllReduce , unreachableLower);
+        OpType::register_("onnx::AllReduceMax"  , inferAllReduce , unreachableLower);
+        OpType::register_("onnx::AllReduceAvg"  , inferAllReduce , unreachableLower);
+        OpType::register_("onnx::AllGather"     , inferAllGather , unreachableLower);
         // clang-format on
     }
 

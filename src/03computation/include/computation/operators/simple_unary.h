@@ -23,6 +23,7 @@ namespace refactor::computation {
         Sqrt,
         Sigmoid,
         Erf,
+        Not,
     };
 
     struct SimpleUnary : public Operator {

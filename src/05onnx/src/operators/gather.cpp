@@ -69,13 +69,13 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerGather(Operator const &op, TensorRefs inputs) {
+    LowerOperator lowerGather(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
         auto axis = op.attribute("axis", {0}).int_();
         if (axis < 0) {
             axis += inputs[0].rank();
         }
-        return std::make_shared<Gather>(static_cast<size_t>(axis));
+        return {std::make_shared<Gather>(static_cast<size_t>(axis)), {0, 1}};
     }
 }// namespace refactor::onnx

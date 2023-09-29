@@ -11,6 +11,9 @@ namespace refactor::computation {
         Mul,
         Div,
         Pow,
+        And,
+        Or,
+        Xor,
     };
 
     struct SimpleBinary : public Operator {
