@@ -11,6 +11,10 @@ namespace refactor::computation {
         virtual size_t opTypeId() const = 0;
         virtual std::string_view name() const = 0;
         virtual bool isLayoutDependent() const { return false; }
+
+        template<class T> bool is() const {
+            return opTypeId() == T::typeId();
+        }
     };
 
     using SharedOp = std::shared_ptr<Operator>;

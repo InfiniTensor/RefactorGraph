@@ -1,4 +1,5 @@
 ﻿#include "computation/graph.h"
+#include "computation/operators/conv.h"
 
 namespace refactor::computation {
 
@@ -76,6 +77,7 @@ namespace refactor::computation {
 
         struct Subgraph {
             bool dependent;
+            bool containsConv;
             std::vector<size_t> nodes;
         };
         std::unordered_map<SubgraphId, SubgraphId> subgraphMap;
@@ -89,13 +91,23 @@ namespace refactor::computation {
                 type = subgraphs[subgraph = type];
             }
             if (auto [it, ok] = subgraphMap.try_emplace(subgraph, subgraphs_.size()); ok) {
-                subgraphs_.push_back({type == DEPENDENT, {nodeIdx}});
+                subgraphs_.push_back({
+                    type == DEPENDENT,
+                    op->is<Conv>(),
+                    {nodeIdx},
+                });
             } else {
-                subgraphs_[it->second].nodes.push_back(nodeIdx);
+                auto &subgraph = subgraphs_[it->second];
+                subgraph.containsConv |= op->is<Conv>();
+                subgraph.nodes.push_back(nodeIdx);
             }
         }
         for (size_t i = 0; i < subgraphs_.size(); ++i) {
-            auto msg = fmt::format("Subgraph {} ({}): [ ", i, subgraphs_[i].dependent ? "dependent" : "independent");
+            auto msg = fmt::format("Subgraph {} ({})", i, subgraphs_[i].dependent ? "dependent" : "independent");
+            if (subgraphs_[i].containsConv) {
+                msg += " (contains conv)";
+            }
+            msg += " : [ ";
             for (auto nodeIdx : subgraphs_[i].nodes) {
                 auto const &[op, name] = _internal.nodes[nodeIdx];
                 msg += fmt::format("{} ", name);
