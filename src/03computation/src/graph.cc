@@ -15,6 +15,11 @@ namespace refactor::computation {
 
     void Graph::Transpose() {
         fmt::println("Transpose");
+        for (auto const &node : _internal.nodes) {
+            if (node.op->isLayoutDependent()) {
+                fmt::println("Layout dependent op detected: {}({})", node.name, node.op->name());
+            }
+        }
     }
 
 }// namespace refactor::computation
