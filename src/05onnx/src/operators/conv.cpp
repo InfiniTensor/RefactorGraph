@@ -1,5 +1,7 @@
-﻿#include "common.h"
+﻿#include "computation/operators/conv.h"
+#include "common.h"
 #include "common/range.h"
+#include <numeric>
 
 namespace refactor::onnx {
     using namespace common;
@@ -78,8 +80,15 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 
-    LowerOperator lowerConv(Operator const &, TensorRefs) {
-        UNREACHABLE();
+    LowerOperator lowerConv(Operator const &, TensorRefs inputs) {
+        using namespace computation;
+
+        decltype(LowerOperator::inputs) inputs_(inputs.size());
+        std::iota(inputs_.begin(), inputs_.end(), 0);
+        return {
+            std::make_shared<Conv>(),
+            std::move(inputs_),
+        };
     }
 
 }// namespace refactor::onnx

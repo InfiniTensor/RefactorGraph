@@ -1,4 +1,5 @@
 ﻿
+#include "computation/operators/global_pool.h"
 #include "common.h"
 
 namespace refactor::onnx {
@@ -21,8 +22,18 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 
-    LowerOperator lowerGlobalPool(Operator const &, TensorRefs) {
-        UNREACHABLE();
+    static computation::PoolType unsupport(OpType opType) {
+        RUNTIME_ERROR(fmt::format("{} not support in unary lowering", opType.name()));
+    }
+
+    LowerOperator lowerGlobalPool(Operator const &op, TensorRefs) {
+        using namespace computation;
+
+        auto type = op.opType.is("onnx::GlobalAveragePool") ? PoolType::Average
+                    : op.opType.is("onnx::GlobalLpPool")    ? PoolType::Lp
+                    : op.opType.is("onnx::GlobalMaxPool")   ? PoolType::Max
+                                                            : unsupport(op.opType);
+        return {std::make_shared<GlobalPool>(type), {0}};
     }
 
 }// namespace refactor::onnx

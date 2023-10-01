@@ -1,4 +1,6 @@
-﻿#include "common.h"
+﻿#include "computation/operators/batch_normalization.h"
+#include "common.h"
+#include <numeric>
 
 namespace refactor::onnx {
     using namespace common;
@@ -31,8 +33,15 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(x.dataType, x.shape, extractDependency(inputs))});
     }
 
-    LowerOperator lowerBatchNormalization(Operator const &, TensorRefs) {
-        UNREACHABLE();
+    LowerOperator lowerBatchNormalization(Operator const &, TensorRefs inputs) {
+        using namespace computation;
+
+        decltype(LowerOperator::inputs) inputs_(inputs.size());
+        std::iota(inputs_.begin(), inputs_.end(), 0);
+        return {
+            std::make_shared<BatchNormalization>(),
+            std::move(inputs_),
+        };
     }
 
 }// namespace refactor::onnx
