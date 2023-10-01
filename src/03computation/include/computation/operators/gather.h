@@ -5,11 +5,9 @@
 
 namespace refactor::computation {
 
-    struct Gather final : public Operator {
-        size_t axis;
-
-        constexpr explicit Gather(size_t axis_)
-            : Operator(), axis(axis_) {}
+    struct Gather final : public AxisRankOperator {
+        constexpr Gather(uint32_t axis, uint32_t rank)
+            : AxisRankOperator(axis, rank) {}
 
         static size_t typeId();
         size_t opTypeId() const final;

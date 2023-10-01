@@ -5,11 +5,9 @@
 
 namespace refactor::computation {
 
-    struct Softmax final : public Operator {
-        size_t axis;
-
-        constexpr explicit Softmax(size_t axis_)
-            : Operator(), axis(axis_) {}
+    struct Softmax final : public AxisRankOperator {
+        constexpr Softmax(uint32_t axis, uint32_t rank)
+            : AxisRankOperator(axis, rank) {}
 
         static size_t typeId();
         size_t opTypeId() const final;

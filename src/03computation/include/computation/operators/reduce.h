@@ -22,20 +22,20 @@ namespace refactor::computation {
 
     struct Reduce final : public Operator {
         ReduceType type;
-        absl::InlinedVector<size_t, 4> axes;// empty means reduce all axes
+        absl::InlinedVector<uint32_t, 4> axes;// empty means reduce all axes
+        uint32_t rank;
         bool keepDims;
 
-        Reduce(ReduceType type_,
-               absl::InlinedVector<size_t, 4> axes_,
-               bool keepDims_)
-            : Operator(),
-              type(type_),
-              axes(std::move(axes_)),
-              keepDims(keepDims_) {}
+        Reduce(ReduceType,
+               absl::InlinedVector<uint32_t, 4> axes,
+               uint32_t rank,
+               bool keepDims);
 
         static size_t typeId(ReduceType);
-        size_t opTypeId() const override;
-        std::string_view name() const override;
+        size_t opTypeId() const final;
+        std::string_view name() const final;
+        bool isLayoutDependent() const final;
+        void transposeTo(LayoutType target) final;
     };
 
 }// namespace refactor::computation

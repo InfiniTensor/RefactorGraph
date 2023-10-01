@@ -55,10 +55,8 @@ namespace refactor::onnx {
     LowerOperator lowerSplit(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
-        auto axis = op.attribute("axis", {-1}).int_();
-        if (axis < 0) {
-            axis += inputs[0].rank();
-        }
-        return {std::make_shared<Split>(static_cast<size_t>(axis)), {0}};
+        auto rank = inputs[0].rank();
+        auto axis = op.attribute("axis", {0}).int_();
+        return {std::make_shared<Split>(axis < 0 ? axis + rank : axis, rank), {0}};
     }
 }// namespace refactor::onnx

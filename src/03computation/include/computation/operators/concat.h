@@ -5,11 +5,9 @@
 
 namespace refactor::computation {
 
-    struct Concat final : public Operator {
-        size_t axis;
-
-        constexpr explicit Concat(size_t axis_)
-            : Operator(), axis(axis_) {}
+    struct Concat final : public AxisRankOperator {
+        constexpr Concat(uint32_t axis, uint32_t rank)
+            : AxisRankOperator(axis, rank) {}
 
         static size_t typeId();
         size_t opTypeId() const final;

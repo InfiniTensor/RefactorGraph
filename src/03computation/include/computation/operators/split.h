@@ -5,10 +5,9 @@
 
 namespace refactor::computation {
 
-    struct Split final : public Operator {
-        size_t axis;
-
-        constexpr Split(size_t axis_) : Operator(), axis(axis_) {}
+    struct Split final : public AxisRankOperator {
+        constexpr Split(uint32_t axis, uint32_t rank)
+            : AxisRankOperator(axis, rank) {}
 
         static size_t typeId();
         size_t opTypeId() const final;

@@ -24,8 +24,8 @@ namespace refactor::computation {
             : Operator(), type(type_) {}
 
         static size_t typeId(SimpleBinaryType);
-        size_t opTypeId() const override;
-        std::string_view name() const override;
+        size_t opTypeId() const final;
+        std::string_view name() const final;
     };
 
 }// namespace refactor::computation

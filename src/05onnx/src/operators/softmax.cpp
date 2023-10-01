@@ -15,10 +15,8 @@ namespace refactor::onnx {
     LowerOperator lowerSoftmax(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
+        auto rank = inputs[0].rank();
         auto axis = op.attribute("axis", {-1}).int_();
-        if (axis < 0) {
-            axis += inputs[0].rank();
-        }
-        return {std::make_shared<Softmax>(static_cast<size_t>(axis)), {0}};
+        return {std::make_shared<Softmax>(axis < 0 ? axis + rank : axis, rank), {0}};
     }
 }// namespace refactor::onnx

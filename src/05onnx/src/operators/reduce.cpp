@@ -77,7 +77,7 @@ namespace refactor::onnx {
             if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
                 return {std::make_shared<Identity>(), {0}};
             } else {
-                return {std::make_shared<Reduce>(type, decltype(Reduce::axes){}, keepdims), {0}};
+                return {std::make_shared<Reduce>(type, decltype(Reduce::axes){}, rank, keepdims), {0}};
             }
         }
         auto const &axes = inputs[1];
@@ -90,6 +90,6 @@ namespace refactor::onnx {
                            return axis < 0 ? axis + rank : axis;
                        });
 
-        return {std::make_shared<Reduce>(type, std::move(axes__), keepdims), {0}};
+        return {std::make_shared<Reduce>(type, std::move(axes__), rank, keepdims), {0}};
     }
 }// namespace refactor::onnx

@@ -6,11 +6,8 @@ namespace refactor::computation {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    size_t BatchNormalization::opTypeId() const {
-        return typeId();
-    }
-    std::string_view BatchNormalization::name() const {
-        return "BatchNormalization";
-    }
+    size_t BatchNormalization::opTypeId() const { return typeId(); }
+    std::string_view BatchNormalization::name() const { return "BatchNormalization"; }
+    void BatchNormalization::transposeTo(LayoutType) { TODO(""); }
 
 }// namespace refactor::computation

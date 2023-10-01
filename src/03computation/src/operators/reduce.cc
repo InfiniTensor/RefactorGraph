@@ -2,6 +2,16 @@
 
 namespace refactor::computation {
 
+    Reduce::Reduce(ReduceType type_,
+                   absl::InlinedVector<uint32_t, 4> axes_,
+                   uint32_t rank_,
+                   bool keepDims_)
+        : Operator(),
+          type(type_),
+          axes(std::move(axes_)),
+          rank(rank_),
+          keepDims(keepDims_) {}
+
     size_t Reduce::typeId(ReduceType type) {
         switch (type) {
             case ReduceType::Mean: {
@@ -73,6 +83,24 @@ namespace refactor::computation {
                 return "ReduceSum";
             case ReduceType::SumSquare:
                 return "ReduceSumSquare";
+            default:
+                UNREACHABLE();
+        }
+    }
+    bool Reduce::isLayoutDependent() const { return rank != 4; }
+    void Reduce::transposeTo(LayoutType target) {
+        Operator::transposeTo(target);
+        switch (target) {
+            case LayoutType::NCHW:
+                for (auto &axis : axes) {
+                    axis = (int[]){0, 2, 3, 1}[axis];
+                }
+                break;
+            case LayoutType::NHWC:
+                for (auto &axis : axes) {
+                    axis = (int[]){0, 3, 1, 2}[axis];
+                }
+                break;
             default:
                 UNREACHABLE();
         }

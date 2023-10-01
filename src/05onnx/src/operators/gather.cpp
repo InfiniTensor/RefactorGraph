@@ -72,10 +72,8 @@ namespace refactor::onnx {
     LowerOperator lowerGather(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
+        auto rank = inputs[0].rank();
         auto axis = op.attribute("axis", {0}).int_();
-        if (axis < 0) {
-            axis += inputs[0].rank();
-        }
-        return {std::make_shared<Gather>(static_cast<size_t>(axis)), {0, 1}};
+        return {std::make_shared<Gather>(axis < 0 ? axis + rank : axis, rank), {0, 1}};
     }
 }// namespace refactor::onnx

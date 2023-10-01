@@ -6,11 +6,7 @@ namespace refactor::computation {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    size_t Transpose::opTypeId() const {
-        return typeId();
-    }
-    std::string_view Transpose::name() const {
-        return "Transpose";
-    }
+    size_t Transpose::opTypeId() const { return typeId(); }
+    std::string_view Transpose::name() const { return "Transpose"; }
 
 }// namespace refactor::computation

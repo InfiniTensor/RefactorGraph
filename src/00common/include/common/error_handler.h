@@ -1,8 +1,8 @@
 ﻿#ifndef ERROR_HANDLER_H
 #define ERROR_HANDLER_H
 
+#include <fmt/format.h>
 #include <stdexcept>
-#include <string>
 
 inline std::string buildMsg(std::string msg, const char *file, int line) {
     msg += " Source ";

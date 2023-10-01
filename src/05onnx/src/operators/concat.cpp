@@ -67,15 +67,10 @@ namespace refactor::onnx {
     LowerOperator lowerConcat(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
+        auto rank = inputs[0].rank();
         auto axis = op.attribute("axis").int_();
-        if (axis < 0) {
-            axis += inputs[0].rank();
-        }
         decltype(LowerOperator::inputs) inputs_(inputs.size());
         std::iota(inputs_.begin(), inputs_.end(), 0);
-        return {
-            std::make_shared<Concat>(static_cast<size_t>(axis)),
-            std::move(inputs_),
-        };
+        return {std::make_shared<Concat>(axis < 0 ? axis + rank : axis, rank), std::move(inputs_)};
     }
 }// namespace refactor::onnx
