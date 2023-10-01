@@ -134,12 +134,11 @@ namespace refactor::onnx {
                          eleSize = data.dataType.size(),
                          dst = reinterpret_cast<uint8_t *>(ans->malloc())](auto i) {
                             auto indices = locateN(output, i);
-                            Indices indices_(indices.begin(), indices.end());
                             for (auto j : range0_(rank)) {
-                                indices_[j] *= dims[j].step;
-                                indices_[j] += dims[j].start;
+                                indices[j] *= dims[j].step;
+                                indices[j] += dims[j].start;
                             }
-                            std::memcpy(dst + i * eleSize, locate1(data, indices_), eleSize);
+                            std::memcpy(dst + i * eleSize, locate1(data, indices), eleSize);
                         });
         return Ok(Tensors{std::move(ans)});
     }

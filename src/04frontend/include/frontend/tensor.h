@@ -40,6 +40,9 @@ namespace refactor::frontend {
     using Shape = absl::InlinedVector<DimExpr, 4>;
     using ShapeSnapshot = absl::InlinedVector<std::variant<int64_t, DimVariable>, 4>;
 
+    template<size_t N>
+    using SmallInts = absl::InlinedVector<int64_t, N>;
+
     std::string shapeFormat(Shape const &);
 
     struct Tensor;

@@ -8,8 +8,8 @@
 
 namespace refactor::frontend {
 
-    using Int = long long;
-    using Ints = std::vector<long long>;
+    using Int = int64_t;
+    using Ints = std::vector<int64_t>;
     using Float = float;
     using Floats = std::vector<float>;
     using String = std::string;
