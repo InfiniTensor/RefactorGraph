@@ -1,5 +1,6 @@
 ﻿#include "graph_topo/searcher.hpp"
 #include "common/range.h"
+#include "common/slice.h"
 #include "internal.h"
 #include <algorithm>
 #include <unordered_set>
@@ -13,10 +14,8 @@ namespace refactor::graph_topo {
     constexpr static NodeIdx EXTERNAL = SIZE_MAX;
 
     struct __Node {
-        std::vector<EdgeIdx>
-            _inputs,
-            _outputs;
-        std::unordered_set<NodeIdx>
+        size_t _passEdges, _passConnections;
+        mutable std::unordered_set<NodeIdx>
             _predecessors,
             _successors;
     };
@@ -28,7 +27,9 @@ namespace refactor::graph_topo {
 
     class Searcher::__Implement {
     public:
-        std::vector<EdgeIdx> _globalInputs, _globalOutputs;
+        GraphTopo const &_graph;
+        range_t<EdgeIdx> _globalInputs;
+        slice_t<EdgeIdx> _globalOutputs;
         std::unordered_set<EdgeIdx> _localEdges;
         std::vector<__Node> _nodes;
         std::vector<__Edge> _edges;
@@ -38,54 +39,38 @@ namespace refactor::graph_topo {
         __Implement(__Implement &&) noexcept = default;
 
         __Implement(GraphTopo const &graph)
-            : _globalInputs(graph._impl->_globalInputsCount),
-              _globalOutputs(),
-              _localEdges(),
+            : _graph(graph),
               _nodes(graph._impl->_nodes.size()),
-              _edges() {
-
-            auto nodesCount = _nodes.size();
-            auto globalInputsCount = _globalInputs.size();
+              _edges(graph._impl->_globalInputsCount, {EXTERNAL, {}}),
+              _globalInputs{},
+              _globalOutputs{},
+              _localEdges{} {
 
             size_t passConnections = 0;
+            auto it = graph.begin();
+            while (it != graph.end()) {
+                auto [nodeIdx, inputs, outputs] = *it++;
+                auto localEdgesCount = graph._impl->_nodes[nodeIdx]._localEdgesCount;
 
-            for (auto i : range0_(globalInputsCount)) {
-                _globalInputs[i] = i;
-                _edges.push_back({EXTERNAL, {}});
-            }
-            for (auto nodeIdx : range0_(nodesCount)) {
-                auto const &node = graph._impl->_nodes[nodeIdx];
-                for ([[maybe_unused]] auto _ : range0_(node._localEdgesCount)) {
-                    _localEdges.insert(_edges.size());
-                    _edges.push_back({EXTERNAL, {}});
-                }
-                for ([[maybe_unused]] auto _ : range0_(node._outputsCount)) {
-                    _nodes[nodeIdx]._outputs.push_back(_edges.size());
-                    _edges.push_back({nodeIdx, {}});
-                }
-                for ([[maybe_unused]] auto _ : range0_(node._inputsCount)) {
-                    auto edgeIdx = graph._impl->_connections[passConnections++];
-                    auto &edge = _edges[edgeIdx];
+                auto edgeBegin = _edges.size();
+                _nodes[nodeIdx]._passEdges = edgeBegin;
+                _nodes[nodeIdx]._passConnections = passConnections;
 
-                    _nodes[nodeIdx]._inputs.push_back(edgeIdx);
-                    edge._targets.insert(nodeIdx);
+                passConnections += inputs.size();
+                _edges.resize(edgeBegin + localEdgesCount + outputs.size(), {nodeIdx, {}});
+                std::for_each_n(natural_t(edgeBegin), localEdgesCount, [this](auto i) {
+                    _localEdges.insert(i);
+                    _edges[i]._source = EXTERNAL;
+                });
 
-                    if (edge._source != EXTERNAL) {
-                        _nodes[nodeIdx]._predecessors.insert(edge._source);
-                        _nodes[edge._source]._successors.insert(nodeIdx);
-                    }
+                for (auto edgeIdx : inputs) {
+                    _edges[edgeIdx]._targets.insert(nodeIdx);
                 }
             }
-            auto const &connections = graph._impl->_connections;
-            for (auto i : range(passConnections, connections.size())) {
-                auto &edge = _edges[connections[i]];
-
-                _globalOutputs.push_back(connections[i]);
-                edge._targets.insert(EXTERNAL);
-
-                if (edge._source != EXTERNAL) {
-                    _nodes[edge._source]._successors.insert(EXTERNAL);
-                }
+            _globalInputs = it.globalInputs();
+            _globalOutputs = it.globalOutputs();
+            for (auto edgeIdx : _globalOutputs) {
+                _edges[edgeIdx]._targets.insert(EXTERNAL);
             }
         }
     };
@@ -158,36 +143,73 @@ namespace refactor::graph_topo {
     size_t Searcher::Edge::index() const { return _idx; }
 
     auto Searcher::Node::inputs() const -> std::vector<Edge> {
-        auto const &inputs = _internal._impl->_nodes[_idx]._inputs;
+        auto const &nodeIn = _internal._impl->_graph._impl->_nodes[_idx];
+        auto const &nodeEx = _internal._impl->_nodes[_idx];
+        auto const &connections = _internal._impl->_graph._impl->_connections.data();
         std::vector<Edge> ans;
-        ans.reserve(inputs.size());
-        for (auto edgeIdx : inputs) {
+        ans.reserve(nodeIn._inputsCount);
+        for (auto edgeIdx : slice(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
             ans.emplace_back(_internal, edgeIdx);
         }
         return ans;
     }
     auto Searcher::Node::outputs() const -> std::vector<Edge> {
-        auto const &outputs = _internal._impl->_nodes[_idx]._outputs;
+        auto const &nodeIn = _internal._impl->_graph._impl->_nodes[_idx];
+        auto const &nodeEx = _internal._impl->_nodes[_idx];
         std::vector<Edge> ans;
-        ans.reserve(outputs.size());
-        for (auto edgeIdx : outputs) {
+        ans.reserve(nodeIn._outputsCount);
+        auto begin = nodeEx._passEdges + nodeIn._localEdgesCount,
+             end = begin + nodeIn._outputsCount;
+        for (auto edgeIdx : range(begin, end)) {
             ans.emplace_back(_internal, edgeIdx);
         }
         return ans;
     }
     auto Searcher::Node::predecessors() const -> std::set<Node> {
-        auto const predecessors = _internal._impl->_nodes[_idx]._predecessors;
+        auto const &impl = *_internal._impl;
+        auto &predecessors = impl._nodes[_idx]._predecessors;
         std::set<Node> ans;
-        for (auto nodeIdx : predecessors) {
-            ans.emplace(_internal, nodeIdx);
+        if (predecessors.empty()) {
+            auto const &nodeIn = impl._graph._impl->_nodes[_idx];
+            auto const &nodeEx = impl._nodes[_idx];
+            auto const &connections = impl._graph._impl->_connections.data();
+            for (auto edgeIdx : slice(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
+                auto nodeIdx = impl._edges[edgeIdx]._source;
+                if (nodeIdx != EXTERNAL) {
+                    if (auto [it, ok] = predecessors.insert(nodeIdx); ok) {
+                        ans.emplace(_internal, nodeIdx);
+                    }
+                }
+            }
+        } else {
+            for (auto nodeIdx : predecessors) {
+                ans.emplace(_internal, nodeIdx);
+            }
         }
         return ans;
     }
     auto Searcher::Node::successors() const -> std::set<Node> {
-        auto const successors = _internal._impl->_nodes[_idx]._successors;
+        auto const &impl = *_internal._impl;
+        auto &successors = impl._nodes[_idx]._successors;
         std::set<Node> ans;
-        for (auto nodeIdx : successors) {
-            ans.emplace(_internal, nodeIdx);
+        if (successors.empty()) {
+            auto const &nodeIn = impl._graph._impl->_nodes[_idx];
+            auto const &nodeEx = impl._nodes[_idx];
+            auto begin = nodeEx._passEdges + nodeIn._localEdgesCount,
+                 end = begin + nodeIn._outputsCount;
+            for (auto edgeIdx : range(begin, end)) {
+                for (auto nodeIdx : impl._edges[edgeIdx]._targets) {
+                    if (nodeIdx != EXTERNAL) {
+                        if (auto [it, ok] = successors.emplace(nodeIdx); ok) {
+                            ans.emplace(_internal, nodeIdx);
+                        }
+                    }
+                }
+            }
+        } else {
+            for (auto nodeIdx : successors) {
+                ans.emplace(_internal, nodeIdx);
+            }
         }
         return ans;
     }
