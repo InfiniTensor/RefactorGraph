@@ -33,10 +33,6 @@ namespace refactor::onnx {
         RUNTIME_ERROR(fmt::format("{} not support in logic inference", opType));
     }
 
-    static computation::SimpleBinaryType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in logic lowering", opType.name()));
-    }
-
     LowerOperator lowerLogic(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
@@ -47,7 +43,9 @@ namespace refactor::onnx {
         auto type = op.opType.is("onnx::And")   ? SimpleBinaryType::And
                     : op.opType.is("onnx::Or")  ? SimpleBinaryType::Or
                     : op.opType.is("onnx::Xor") ? SimpleBinaryType::Xor
-                                                : unsupport(op.opType);
+                                                : UNREACHABLEX(SimpleBinaryType,
+                                                               "{} not support",
+                                                               op.opType.name());
         return {std::make_shared<SimpleBinary>(type), {0, 1}};
     }
 

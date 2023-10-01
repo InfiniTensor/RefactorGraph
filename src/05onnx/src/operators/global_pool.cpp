@@ -22,17 +22,15 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 
-    static computation::PoolType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in unary lowering", opType.name()));
-    }
-
     LowerOperator lowerGlobalPool(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::GlobalAveragePool") ? PoolType::Average
                     : op.opType.is("onnx::GlobalLpPool")    ? PoolType::Lp
                     : op.opType.is("onnx::GlobalMaxPool")   ? PoolType::Max
-                                                            : unsupport(op.opType);
+                                                            : UNREACHABLEX(PoolType,
+                                                                           "{} not support",
+                                                                           op.opType.name());
         return {std::make_shared<GlobalPool>(type), {0}};
     }
 

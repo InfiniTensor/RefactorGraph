@@ -54,10 +54,6 @@ namespace refactor::onnx {
                                         extractDependency(inputs))});
     }
 
-    static computation::ReduceType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in reduce lowering", opType.name()));
-    }
-
     LowerOperator lowerReduce(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
@@ -71,7 +67,9 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::ReduceProd")      ? ReduceType::Prod
                     : op.opType.is("onnx::ReduceSum")       ? ReduceType::Sum
                     : op.opType.is("onnx::ReduceSumSquare") ? ReduceType::SumSquare
-                                                            : unsupport(op.opType);
+                                                            : UNREACHABLEX(ReduceType,
+                                                                           "{} not support",
+                                                                           op.opType.name());
 
         auto rank = inputs[0].rank();
         auto keepdims = op.attribute("keepdims", {1}).int_() != 0;

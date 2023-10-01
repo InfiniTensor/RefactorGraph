@@ -59,7 +59,7 @@ namespace refactor::onnx {
                       : op.opType.is("onnx::Sub") ? Ty::Sub
                       : op.opType.is("onnx::Mul") ? Ty::Mul
                       : op.opType.is("onnx::Div") ? Ty::Div
-                                                  : UNREACHABLE();
+                                                  : UNREACHABLEX(Ty, "");
             auto indices = locateN(ans->shape, i);
             auto a_ = locate1(a, indices),
                  b_ = locate1(b, indices);
@@ -89,10 +89,6 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    static computation::SimpleBinaryType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in binary lowering", opType.name()));
-    }
-
     LowerOperator lowerArithmetic(Operator const &op, TensorRefs) {
         using namespace computation;
 
@@ -100,7 +96,9 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::Sub") ? SimpleBinaryType::Sub
                     : op.opType.is("onnx::Mul") ? SimpleBinaryType::Mul
                     : op.opType.is("onnx::Div") ? SimpleBinaryType::Div
-                                                : unsupport(op.opType);
+                                                : UNREACHABLEX(SimpleBinaryType,
+                                                               "{} not support",
+                                                               op.opType.name());
         return {std::make_shared<SimpleBinary>(type), {0, 1}};
     }
 }// namespace refactor::onnx

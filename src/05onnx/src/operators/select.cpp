@@ -67,16 +67,14 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    static computation::SelectType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in select lowering", opType.name()));
-    }
-
     LowerOperator lowerSelect(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::Max")   ? SelectType::Max
                     : op.opType.is("onnx::Min") ? SelectType::Min
-                                                : unsupport(op.opType);
+                                                : UNREACHABLEX(SelectType,
+                                                               "{} not support",
+                                                               op.opType.name());
         decltype(LowerOperator::inputs) inputs_(inputs.size());
         std::iota(inputs_.begin(), inputs_.end(), 0);
         return {std::make_shared<Select>(type), std::move(inputs_)};

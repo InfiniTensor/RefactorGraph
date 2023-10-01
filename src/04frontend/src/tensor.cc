@@ -27,7 +27,7 @@ namespace refactor::frontend {
                 case 1:
                     return std::get<1>(expr) == std::get<1>(rhs.expr);
                 default:
-                    RUNTIME_ERROR("Unreachable");
+                    UNREACHABLE();
             }
         }
     }

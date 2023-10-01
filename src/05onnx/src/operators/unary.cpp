@@ -104,10 +104,6 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    static computation::SimpleUnaryType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in unary lowering", opType.name()));
-    }
-
     LowerOperator lowerUnary(Operator const &op, TensorRefs) {
         using namespace computation;
 
@@ -128,7 +124,9 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::Sqrt")    ? SimpleUnaryType::Sqrt
                     : op.opType.is("onnx::Sigmoid") ? SimpleUnaryType::Sigmoid
                     : op.opType.is("onnx::Erf")     ? SimpleUnaryType::Erf
-                                                    : unsupport(op.opType);
+                                                    : UNREACHABLEX(SimpleUnaryType,
+                                                                   "{} not support",
+                                                                   op.opType.name());
         return {std::make_shared<SimpleUnary>(type), {0}};
     }
 }// namespace refactor::onnx

@@ -21,7 +21,7 @@ namespace refactor::frontend {
                 CASE(6);
                 CASE(7);
                 default:
-                    RUNTIME_ERROR("Unreachable");
+                    UNREACHABLE();
             }
 #undef CASE
         }

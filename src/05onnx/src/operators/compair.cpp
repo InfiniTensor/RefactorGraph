@@ -42,10 +42,6 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    static computation::CompairType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in compair lowering", opType.name()));
-    }
-
     LowerOperator lowerCompair(Operator const &op, TensorRefs) {
         using namespace computation;
 
@@ -54,7 +50,9 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::GreaterOrEqual") ? CompairType::GE
                     : op.opType.is("onnx::Less")           ? CompairType::LT
                     : op.opType.is("onnx::LessOrEqual")    ? CompairType::LE
-                                                           : unsupport(op.opType);
+                                                           : UNREACHABLEX(CompairType,
+                                                                          "{} not support",
+                                                                          op.opType.name());
         return {std::make_shared<Compair>(type), {0, 1}};
     }
 }// namespace refactor::onnx
