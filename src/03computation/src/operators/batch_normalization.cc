@@ -8,6 +8,5 @@ namespace refactor::computation {
     }
     size_t BatchNormalization::opTypeId() const { return typeId(); }
     std::string_view BatchNormalization::name() const { return "BatchNormalization"; }
-    void BatchNormalization::transposeTo(LayoutType) { TODO(""); }
 
 }// namespace refactor::computation

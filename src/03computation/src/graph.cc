@@ -30,8 +30,6 @@ namespace refactor::computation {
         // 用于记录每个节点所属的子图号。为了在子图融合中维持拓扑序，不直接记录子图到节点的映射。
         std::vector<SubgraphId> nodes(_internal.nodes.size());
 
-        fmt::println("Transpose");
-
         auto searcher = graph_topo::Searcher(_internal.topology);
         for (auto node : searcher.nodes()) {
             auto const &[op, name] = _internal.nodes[node.index()];
@@ -114,6 +112,20 @@ namespace refactor::computation {
             }
             fmt::println("{}]", msg);
         }
+
+        for (auto const &subgraph : subgraphs_) {
+            if (subgraph.dependent || !subgraph.containsConv) { continue; }
+            for (auto nodeIdx : subgraph.nodes) {
+                _internal.nodes[nodeIdx].op->transposeTo(LayoutType::NHWC);
+                for (auto edge : searcher.nodes()[nodeIdx].outputs()) {
+                    auto &e = _internal.edges[edge.index()];
+                    if (e.tensor->layout == LayoutType::NCHW) {
+                        e.tensor->layout = LayoutType::NHWC;
+                    }
+                }
+            }
+        }
+        fmt::println("Transpose finished");
     }
 
 }// namespace refactor::computation

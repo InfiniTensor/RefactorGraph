@@ -11,7 +11,6 @@ namespace refactor::computation {
         static size_t typeId();
         size_t opTypeId() const final;
         std::string_view name() const final;
-        void transposeTo(LayoutType) final;
     };
 
 }// namespace refactor::computation
