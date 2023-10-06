@@ -4,31 +4,35 @@
 #include <fmt/format.h>
 #include <stdexcept>
 
-inline std::string buildMsg(std::string msg, const char *file, int line) {
-    msg += " Source ";
-    msg += file;
-    msg += ':';
-    msg += std::to_string(line);
-    return msg;
-}
+namespace refactor::common::error {
+    inline std::string buildMsg(std::string msg, const char *file, int line) noexcept {
+        msg += " Source ";
+        msg += file;
+        msg += ':';
+        msg += std::to_string(line);
+        return msg;
+    }
 
-struct UnimplementError : public std::logic_error {
-    explicit UnimplementError(std::string msg)
-        : std::logic_error(std::move(msg)) {}
-};
+    struct UnimplementError : public std::logic_error {
+        explicit UnimplementError(std::string msg)
+            : std::logic_error(std::move(msg)) {}
+    };
 
-struct UnreachableError : public std::logic_error {
-    explicit UnreachableError(std::string msg)
-        : std::logic_error(std::move(msg)) {}
-};
+    struct UnreachableError : public std::logic_error {
+        explicit UnreachableError(std::string msg)
+            : std::logic_error(std::move(msg)) {}
+    };
 
-#define RUNTIME_ERROR(msg) throw std::runtime_error(buildMsg(msg, __FILE__, __LINE__))
-#define OUT_OF_RANGE(msg, a, b) throw std::out_of_range(buildMsg((std::to_string(a) + '/' + std::to_string(b) + ' ' + msg), __FILE__, __LINE__))
-#define TODO(msg) throw UnimplementError(buildMsg(msg, __FILE__, __LINE__))
+}// namespace refactor::common::error
 
-#define UNREACHABLEX(T, F, ...)                                                                               \
-    [&]() -> T {                                                                                              \
-        throw UnreachableError(buildMsg(fmt::format("Unreachable: " #F, ##__VA_ARGS__), __FILE__, __LINE__)); \
+#define ERROR_MSG(msg) refactor::common::error::buildMsg(msg, __FILE__, __LINE__)
+#define RUNTIME_ERROR(msg) throw std::runtime_error(ERROR_MSG(msg))
+#define OUT_OF_RANGE(msg, a, b) throw std::out_of_range(ERROR_MSG((std::to_string(a) + '/' + std::to_string(b) + ' ' + msg)))
+#define TODO(msg) throw refactor::common::error::UnimplementError(ERROR_MSG(msg))
+
+#define UNREACHABLEX(T, F, ...)                                                                                     \
+    [&]() -> T {                                                                                                    \
+        throw refactor::common::error::UnreachableError(ERROR_MSG(fmt::format("Unreachable: " #F, ##__VA_ARGS__))); \
     }()
 #define UNREACHABLE() UNREACHABLEX(void, "no message")
 

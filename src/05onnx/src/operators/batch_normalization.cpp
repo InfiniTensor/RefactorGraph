@@ -7,7 +7,7 @@ namespace refactor::onnx {
 
     InferResult inferBatchNormalization(Operator const &op, TensorRefs inputs, InferOptions const &) {
         if (op.attribute("training_mode", {0}).int_() != 0) {
-            RUNTIME_ERROR("training_mode is not supported");
+            return Err(InferError(ERROR_MSG("training_mode is not supported")));
         }
 
         EXPECT_SIZE(5)

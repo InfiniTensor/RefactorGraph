@@ -14,16 +14,16 @@ namespace refactor::common {
 
         using Iterator = common::natural_t<t>;
 
-        bool empty() const { return end_ == begin_; }
-        size_t size() const { return end_ - begin_; }
-        t at(size_t i) const {
+        bool empty() const noexcept { return end_ == begin_; }
+        size_t size() const noexcept { return end_ - begin_; }
+        t at(size_t i) const noexcept {
             ASSERT(i < size(), "Index out of range");
             return operator[](i);
         }
-        t operator[](size_t i) const { return begin_ + i; }
-        Iterator begin() const { return begin_; }
-        Iterator end() const { return end_; }
-        rev_range_t<t> rev() const { return {end_, begin_}; }
+        t operator[](size_t i) const noexcept { return begin_ + i; }
+        Iterator begin() const noexcept { return begin_; }
+        Iterator end() const noexcept { return end_; }
+        rev_range_t<t> rev() const noexcept { return {end_, begin_}; }
     };
 
     template<class t = size_t>
@@ -32,15 +32,15 @@ namespace refactor::common {
 
         using Iterator = common::rev_natural_t<t>;
 
-        bool empty() const { return end_ == begin_; }
-        size_t size() const { return end_ - begin_; }
+        bool empty() const noexcept { return end_ == begin_; }
+        size_t size() const noexcept { return end_ - begin_; }
         t at(size_t i) const {
             ASSERT(i < size(), "Index out of range");
             return operator[](i);
         }
-        t operator[](size_t i) const { return begin_ + i; }
-        Iterator begin() const { return begin_; }
-        Iterator end() const { return end_; }
+        t operator[](size_t i) const noexcept { return begin_ + i; }
+        Iterator begin() const noexcept { return begin_; }
+        Iterator end() const noexcept { return end_; }
     };
 
     template<class t = size_t> range_t<t> range0_(t end) {

@@ -8,7 +8,6 @@
 namespace refactor::onnx {
     using namespace frontend;
 
-#define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
     // clang-format off
     InferResult inferConstant           (Operator const &, TensorRefs, InferOptions const&);
     InferResult inferConstantOfShape    (Operator const &, TensorRefs, InferOptions const&);

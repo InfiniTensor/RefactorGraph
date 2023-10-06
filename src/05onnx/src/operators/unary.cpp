@@ -56,7 +56,7 @@ namespace refactor::onnx {
         } else if (SET[4].find(opType) != SET[4].end()) {
             // nothing to do
         } else {
-            RUNTIME_ERROR(fmt::format("{} not support in unary inference", opType));
+            return Err(InferError(ERROR_MSG(fmt::format("{} not support in unary inference", opType))));
         }
         auto ans = Tensor::share(dataType, inputs[0].shape, extractDependency(inputs));
         if (!options.shouldCalculate(inputs, {*ans})) {

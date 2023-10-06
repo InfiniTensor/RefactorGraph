@@ -30,7 +30,7 @@ namespace refactor::onnx {
             MULTIDIR_BROADCAST((ShapeRefs{a.shape, b.shape}))
             return Ok(Tensors{Tensor::share(a.dataType, std::move(output), extractDependency(inputs))});
         }
-        RUNTIME_ERROR(fmt::format("{} not support in logic inference", opType));
+        return Err(InferError(ERROR_MSG(fmt::format("{} not support in logic inference", opType))));
     }
 
     LowerOperator lowerLogic(Operator const &op, TensorRefs inputs) {

@@ -14,11 +14,11 @@ namespace refactor::common {
         const static uint16_t MASK_EXP_16 = 0b0'11111'0000000000;
         const static uint16_t MASK_TAIL16 = 0b0'00000'1111111111;
 
-        constexpr static uint16_t mask_low(int bits) {
+        constexpr static uint16_t mask_low(int bits) noexcept {
             return (1 << bits) - 1;
         }
 
-        constexpr static uint16_t from_f32(float val) {
+        constexpr static uint16_t from_f32(float val) noexcept {
             union {
                 float f32;
                 uint32_t u32;
@@ -37,11 +37,11 @@ namespace refactor::common {
         constexpr fp16_t(fp16_t const &) noexcept = default;
         constexpr fp16_t(fp16_t &&) noexcept = default;
 
-        constexpr uint16_t as_code() const {
+        constexpr uint16_t as_code() const noexcept {
             return code;
         }
 
-        constexpr float to_f32() const {
+        constexpr float to_f32() const noexcept {
             union {
                 uint32_t u32;
                 float f32;
@@ -52,27 +52,27 @@ namespace refactor::common {
             return ans.f32;
         }
 
-        constexpr bool is_inf() const {
+        constexpr bool is_inf() const noexcept {
             return MASK_EXP_16 == (code & MASK_EXP_16) && 0 == (code & MASK_TAIL16);
         }
 
-        constexpr bool is_nan() const {
+        constexpr bool is_nan() const noexcept {
             return MASK_EXP_16 == (code & MASK_EXP_16) && 0 != (code & MASK_TAIL16);
         }
 
-        constexpr fp16_t operator-() const {
+        constexpr fp16_t operator-() const noexcept {
             return (uint16_t) (code ^ (code | MASK_SIGN16));
         }
 
-        constexpr bool operator==(fp16_t const &others) const {
+        constexpr bool operator==(fp16_t const &others) const noexcept {
             return code == others.code && !is_nan();
         }
 
-        constexpr bool operator!=(fp16_t const &others) const {
+        constexpr bool operator!=(fp16_t const &others) const noexcept {
             return !operator==(others);
         }
 
-        constexpr std::array<char, 38> format() const {
+        constexpr std::array<char, 38> format() const noexcept {
             // 将 fp16 格式化字符串保存到栈上的内存块上。
             std::array<char, 38> ans{"0'00000'0000000000\n+ 2^-15x1.        "};
             ans[0] += (code >> 15);
@@ -94,7 +94,7 @@ namespace refactor::common {
             return ans;
         }
 
-        std::string to_string() const {
+        std::string to_string() const noexcept {
             return std::string(format().data());
         }
     };

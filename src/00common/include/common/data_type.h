@@ -30,25 +30,26 @@ namespace refactor::common {
             BF16 = 16,      // bf16_t
         } internal;
 
-        constexpr DataType(decltype(internal) i) : internal(i) {}
+        constexpr DataType(decltype(internal) i) noexcept
+            : internal(i) {}
 
-        static std::optional<DataType> parse(uint8_t);
+        static std::optional<DataType> parse(uint8_t) noexcept;
 
-        bool operator==(DataType const &) const;
-        bool operator!=(DataType const &) const;
-        bool operator<(DataType const &) const;
-        bool operator>(DataType const &) const;
-        bool operator<=(DataType const &) const;
-        bool operator>=(DataType const &) const;
+        bool operator==(DataType const &) const noexcept;
+        bool operator!=(DataType const &) const noexcept;
+        bool operator<(DataType const &) const noexcept;
+        bool operator>(DataType const &) const noexcept;
+        bool operator<=(DataType const &) const noexcept;
+        bool operator>=(DataType const &) const noexcept;
 
-        std::string_view name() const;
-        bool isIeee754() const;
-        bool isFloat() const;
-        bool isSignedLarge() const;
-        bool isSigned() const;
-        bool isNumberic() const;
-        bool isBool() const;
-        size_t size() const;
+        std::string_view name() const noexcept;
+        bool isIeee754() const noexcept;
+        bool isFloat() const noexcept;
+        bool isSignedLarge() const noexcept;
+        bool isSigned() const noexcept;
+        bool isNumberic() const noexcept;
+        bool isBool() const noexcept;
+        size_t size() const noexcept;
     };
 
     template<class T>
