@@ -8,41 +8,6 @@
 namespace refactor::onnx {
     using namespace frontend;
 
-    // clang-format off
-    InferResult inferConstant           (Operator const &, TensorRefs, InferOptions const&);
-    InferResult inferConstantOfShape    (Operator const &, TensorRefs, InferOptions const&);
-    InferResult inferRange              (Operator const &, TensorRefs, InferOptions const&);
-    InferResult inferShape              (Operator const &, TensorRefs, InferOptions const&);
-    InferResult inferArithmetic         (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerArithmetic         (Operator const &, TensorRefs);
-    InferResult inferBatchNormalization (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerBatchNormalization (Operator const &, TensorRefs);
-    InferResult inferCast               (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerCast               (Operator const &, TensorRefs);
-    InferResult inferCompair            (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerCompair            (Operator const &, TensorRefs);
-    InferResult inferConcat             (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerConcat             (Operator const &, TensorRefs);
-    InferResult inferConv               (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerConv               (Operator const &, TensorRefs);
-    InferResult inferCumSum             (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerCumSum             (Operator const &, TensorRefs);
-    InferResult inferExpand             (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerExpand             (Operator const &, TensorRefs);
-    InferResult inferGather             (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerGather             (Operator const &, TensorRefs);
-    InferResult inferGatherElements     (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerGatherElements     (Operator const &, TensorRefs);
-    InferResult inferGemm               (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerGemm               (Operator const &, TensorRefs);
-    InferResult inferGlobalPool         (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerGlobalPool         (Operator const &, TensorRefs);
-    InferResult inferMatMul             (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerMatMul             (Operator const &, TensorRefs);
-    InferResult inferPool               (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerPool               (Operator const &, TensorRefs);
-    InferResult inferPow                (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerPow                (Operator const &, TensorRefs);
-    InferResult inferReduce             (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerReduce             (Operator const &, TensorRefs);
-    InferResult inferReshape            (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerReshape            (Operator const &, TensorRefs);
-    InferResult inferSelect             (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerSelect             (Operator const &, TensorRefs);
-    InferResult inferSlice              (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerSlice              (Operator const &, TensorRefs);
-    InferResult inferSoftmax            (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerSoftmax            (Operator const &, TensorRefs);
-    InferResult inferSplit              (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerSplit              (Operator const &, TensorRefs);
-    InferResult inferSqueeze            (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerSqueeze            (Operator const &, TensorRefs);
-    InferResult inferTile               (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerTile               (Operator const &, TensorRefs);
-    InferResult inferTranspose          (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerTranspose          (Operator const &, TensorRefs);
-    InferResult inferUnary              (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerUnary              (Operator const &, TensorRefs);
-    InferResult inferLogic              (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerLogic              (Operator const &, TensorRefs);
-    InferResult inferUnsqueeze          (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerUnsqueeze          (Operator const &, TensorRefs);
-    InferResult inferWhere              (Operator const &, TensorRefs, InferOptions const&); LowerOperator lowerWhere              (Operator const &, TensorRefs);
-
-    // clang-format on
     using ShapeResult = Result<Shape, std::string>;
     using ShapeRefs = std::vector<std::reference_wrapper<Shape const>>;
     using OptionalInts = std::optional<std::reference_wrapper<Ints const>>;

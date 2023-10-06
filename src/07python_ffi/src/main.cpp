@@ -1,5 +1,4 @@
-﻿#include "communication/operators.h"
-#include "import.h"
+﻿#include "import.h"
 #include "onnx/operators.h"
 #include <pybind11/stl.h>// keep this line to convert stl types
 
@@ -12,19 +11,18 @@ namespace refactor::python_ffi {
         using namespace frontend;
 
         onnx::register_();
-        communication::register_();
 
         // clang-format off
 
         py::class_<Tensor   , std::shared_ptr<Tensor>   >(m, "Tensor"   );
-        py::class_<Operator , std::shared_ptr<Operator> >(m, "Operator" );
+        py::class_<Operator, std::shared_ptr<Operator>>(m, "Operator" );
 
-        m   .def("config_log"      , &configLog                  , return_::automatic )
-            .def("_make_operator"  , &makeOp                     , return_::move      )
-            .def("_make_tensor"    , &makeTensor                 , return_::move      )
-            .def("_make_data"      , &makeTensorWithData         , return_::move      )
-            .def("_make_data_ex"   , &makeTensorWithExternalData , return_::move      )
-            .def("_make_compiler"  , &makeCompiler               , return_::move      );
+        // m   .def("config_log"      , &configLog                  , return_::automatic )
+        //     .def("_make_operator"  , &makeOp                     , return_::move      )
+        //     .def("_make_tensor"    , &makeTensor                 , return_::move      )
+        //     .def("_make_data"      , &makeTensorWithData         , return_::move      )
+        //     .def("_make_data_ex"   , &makeTensorWithExternalData , return_::move      )
+        //     .def("_make_compiler"  , &makeCompiler               , return_::move      );
 
         py::class_<Compiler , std::shared_ptr<Compiler> >(m, "Compiler" )
             .def("substitute"      , &Compiler::substitute       , return_::automatic )
