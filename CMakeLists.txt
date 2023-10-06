@@ -49,7 +49,7 @@ add_subdirectory(src/04frontend)
 include_directories(src/05onnx/include)
 add_subdirectory(src/05onnx)
 
-include_directories(src/06communication/include)
-add_subdirectory(src/06communication)
+# include_directories(src/06communication/include)
+# add_subdirectory(src/06communication)
 
 add_subdirectory(src/07python_ffi)

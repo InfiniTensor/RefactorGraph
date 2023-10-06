@@ -43,11 +43,7 @@ namespace refactor::python_ffi {
         for (auto &[name, value] : attrs) {
             attrs_.insert({std::move(name), {std::move(value)}});
         }
-        return std::make_shared<Operator>(
-            Operator{
-                OpType::parse(fmt::format("onnx::{}", opType)),
-                std::move(attrs_),
-            });
+        return std::make_shared<OpBox>(Operator::build(fmt::format("onnx::{}", opType), std::move(attrs_)));
     }
 
     std::shared_ptr<Compiler>

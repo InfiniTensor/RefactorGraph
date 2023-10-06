@@ -5,7 +5,7 @@
 
 namespace refactor::python_ffi {
     using SharedTensor = std::shared_ptr<frontend::Tensor>;
-    using SharedOp = std::shared_ptr<frontend::Operator>;
+    using SharedOp = std::shared_ptr<frontend::OpBox>;
     using Name = std::string;
     using NameVec = std::vector<Name>;
     using AttributeMap = std::unordered_map<Name, decltype(frontend::Attribute::value)>;

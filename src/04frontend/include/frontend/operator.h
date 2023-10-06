@@ -33,37 +33,34 @@ namespace refactor::frontend {
     };
     using Attributes = std::unordered_map<std::string, Attribute>;
 
-    struct OpType {
-        size_t id;
+    class Operator;
+    using OpBox = std::unique_ptr<Operator>;
+    class Operator {
+    public:
+        virtual size_t opTypeId() const = 0;
+        virtual std::string_view opTypeName() const = 0;
+        virtual InferResult infer(TensorRefs, InferOptions const &) const = 0;
+        virtual LowerOperator lower(TensorRefs) const { UNREACHABLE(); }
 
-        bool operator==(OpType const &) const;
-        bool operator!=(OpType const &) const;
+        bool typeEqual(size_t opTypeId) const noexcept {
+            return this->opTypeId() == opTypeId;
+        }
 
-        static void register_(const char *, InferFn, LowerFn);
-        static OpType parse(std::string);
-        static std::optional<OpType> tryParse(const char *);
-
-        std::string_view name() const;
-        bool is(std::string_view) const;
-    };
-
-    struct Operator {
-        OpType opType;
-        Attributes attributes;
-
-        bool operator==(Operator const &) const;
-        bool operator!=(Operator const &) const;
-
-        Attribute const &attribute(const char *) const;
-        Attribute const &attribute(const char *, Attribute const &default_) const;
-
-        InferResult infer(TensorRefs, InferOptions const &) const;
-        LowerOperator lower(TensorRefs) const;
+        using Builder = OpBox (*)(std::string_view, Attributes);
+        static OpBox build(std::string, Attributes);
+        static void register_(std::string, Builder);
+        template<class T> static void register_(std::string opTypeName) {
+            register_(std::move(opTypeName), T::build);
+        }
     };
 
     struct Node {
-        Operator op;
+        OpBox op;
         std::string name;
+
+        template<class T> T *opAs() const {
+            return dynamic_cast<T *>(op.get());
+        }
     };
 
 }// namespace refactor::frontend

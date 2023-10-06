@@ -122,7 +122,7 @@ namespace refactor::frontend {
 #ifndef NDEBUG
             logd("infering: {}", _internal.nodes[nodeIdx].name);
 #endif
-            auto infered = _internal.nodes[nodeIdx].op.infer(TensorRefs(_internal.edges, inputs), options);
+            auto infered = _internal.nodes[nodeIdx].op->infer(TensorRefs(_internal.edges, inputs), options);
 
             if (infered.isOk()) {
                 // 推导成功，填充边信息
@@ -192,7 +192,7 @@ namespace refactor::frontend {
                                edges[i].tensor = computation::Tensor::share(tensor->dataType, std::move(shape), layout, tensor->data);
                                edges[i].name = name;
                            };
-                           auto [op_, inputs] = op.lower(TensorRefs(_internal.edges, nodeRef.inputs));
+                           auto [op_, inputs] = op->lower(TensorRefs(_internal.edges, nodeRef.inputs));
                            for (auto i : inputs) {
                                fn(nodeRef.inputs[i]);
                            }
@@ -218,9 +218,9 @@ namespace refactor::frontend {
                 auto [nodeIdx, inputs, outputs] = *it++;
                 if (!std::all_of(outputs.begin(), outputs.end(),
                                  [this](auto i) { return _internal.edges[i].tensor->hasData(); })) {
-                    auto node = _internal.nodes[nodeIdx];
+                    auto const &node = _internal.nodes[nodeIdx];
                     logi("{:>8}. {}", i++, node.name);
-                    auto opType = node.op.opType.name();
+                    auto opType = node.op->opTypeName();
                     dynamicNodes.insert(opType);
                     auto front = true;
                     for (auto i : inputs) {
