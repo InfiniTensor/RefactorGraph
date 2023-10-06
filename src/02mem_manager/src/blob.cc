@@ -10,7 +10,8 @@ namespace refactor::mem_manager {
     std::pair<std::shared_ptr<Blob>, void *>
     Blob::share(size_t bytes) {
         auto blob = std::shared_ptr<Blob>(new Blob(bytes));
-        return {blob, blob->ptr};
+        auto ptr = blob->ptr;
+        return {std::move(blob), ptr};
     }
 
 }// namespace refactor::mem_manager
