@@ -79,6 +79,9 @@ namespace refactor::frontend {
             // ASSERT(if edge is local, edge has no variable)
         }
     }
+    auto Graph::variables() const -> decltype(_variables) const & {
+        return _variables;
+    }
 
     auto Graph::internal() -> decltype(_internal) & { return _internal; }
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
