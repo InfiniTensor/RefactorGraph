@@ -2,7 +2,7 @@
 
 namespace refactor::computation {
 
-    size_t SimpleBinary::typeId(SimpleBinaryType type) {
+    size_t SimpleBinary::typeId(SimpleBinaryType type) noexcept {
         switch (type) {
             case SimpleBinaryType::Add: {
                 static uint8_t ID = 1;
@@ -40,10 +40,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t SimpleBinary::opTypeId() const {
+    size_t SimpleBinary::opTypeId() const noexcept {
         return typeId(type);
     }
-    std::string_view SimpleBinary::name() const {
+    std::string_view SimpleBinary::name() const noexcept {
         switch (type) {
             case SimpleBinaryType::Add:
                 return "Add";

@@ -2,7 +2,7 @@
 
 namespace refactor::computation {
 
-    size_t SimpleUnary::typeId(SimpleUnaryType type) {
+    size_t SimpleUnary::typeId(SimpleUnaryType type) noexcept {
         switch (type) {
             case SimpleUnaryType::Abs: {
                 static uint8_t ID = 1;
@@ -80,10 +80,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t SimpleUnary::opTypeId() const {
+    size_t SimpleUnary::opTypeId() const noexcept {
         return typeId(type);
     }
-    std::string_view SimpleUnary::name() const {
+    std::string_view SimpleUnary::name() const noexcept {
         switch (type) {
             case SimpleUnaryType::Abs:
                 return "Abs";

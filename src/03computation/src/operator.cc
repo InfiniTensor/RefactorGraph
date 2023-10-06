@@ -5,6 +5,9 @@ namespace refactor::computation {
     bool Operator::isLayoutDependent() const { return false; }
     void Operator::transposeTo(LayoutType) { isLayoutDependent() && UNREACHABLEX(bool, ""); }
 
+    bool LayoutDependentOperator::isLayoutDependent() const { return true; }
+    void LayoutDependentOperator::transposeTo(LayoutType) { UNREACHABLE(); }
+
     bool AxisRankOperator::isLayoutDependent() const { return rank != 4; }
     void AxisRankOperator::transposeTo(LayoutType target) {
         Operator::transposeTo(target);

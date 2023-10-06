@@ -20,12 +20,12 @@ namespace refactor::computation {
         Tensor(common::DataType,
                Shape,
                LayoutType,
-               std::shared_ptr<mem_manager::Blob>);
+               std::shared_ptr<mem_manager::Blob>) noexcept;
         static std::shared_ptr<Tensor>
             share(common::DataType,
                   Shape,
                   LayoutType = LayoutType::Others,
-                  std::shared_ptr<mem_manager::Blob> = nullptr);
+                  std::shared_ptr<mem_manager::Blob> = nullptr) noexcept;
     };
 
     struct Edge {

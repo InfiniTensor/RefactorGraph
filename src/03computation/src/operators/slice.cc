@@ -2,12 +2,11 @@
 
 namespace refactor::computation {
 
-    size_t Slice::typeId() {
+    size_t Slice::typeId() noexcept {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    size_t Slice::opTypeId() const { return typeId(); }
-    std::string_view Slice::name() const { return "Slice"; }
-    bool Slice::isLayoutDependent() const { return true; }
+    size_t Slice::opTypeId() const noexcept { return typeId(); }
+    std::string_view Slice::name() const noexcept { return "Slice"; }
 
 }// namespace refactor::computation

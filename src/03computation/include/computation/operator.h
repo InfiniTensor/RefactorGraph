@@ -19,6 +19,12 @@ namespace refactor::computation {
         }
     };
 
+    class LayoutDependentOperator : public Operator {
+    public:
+        virtual bool isLayoutDependent() const final;
+        virtual void transposeTo(LayoutType) final;
+    };
+
     class AxisRankOperator : public Operator {
     public:
         uint32_t axis, rank;

@@ -20,12 +20,12 @@ namespace refactor::computation {
     struct SimpleBinary final : public Operator {
         SimpleBinaryType type;
 
-        constexpr explicit SimpleBinary(SimpleBinaryType type_)
+        constexpr explicit SimpleBinary(SimpleBinaryType type_) noexcept
             : Operator(), type(type_) {}
 
-        static size_t typeId(SimpleBinaryType);
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId(SimpleBinaryType) noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

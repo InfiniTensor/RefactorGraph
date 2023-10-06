@@ -6,12 +6,12 @@
 namespace refactor::computation {
 
     struct Softmax final : public AxisRankOperator {
-        constexpr Softmax(uint32_t axis, uint32_t rank)
+        constexpr Softmax(uint32_t axis, uint32_t rank) noexcept
             : AxisRankOperator(axis, rank) {}
 
-        static size_t typeId();
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

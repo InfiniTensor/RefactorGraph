@@ -5,14 +5,14 @@ namespace refactor::computation {
     Reduce::Reduce(ReduceType type_,
                    absl::InlinedVector<uint32_t, 4> axes_,
                    uint32_t rank_,
-                   bool keepDims_)
+                   bool keepDims_) noexcept
         : Operator(),
           type(type_),
           axes(std::move(axes_)),
           rank(rank_),
           keepDims(keepDims_) {}
 
-    size_t Reduce::typeId(ReduceType type) {
+    size_t Reduce::typeId(ReduceType type) noexcept {
         switch (type) {
             case ReduceType::Mean: {
                 static uint8_t ID = 1;
@@ -58,10 +58,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t Reduce::opTypeId() const {
+    size_t Reduce::opTypeId() const noexcept {
         return typeId(type);
     }
-    std::string_view Reduce::name() const {
+    std::string_view Reduce::name() const noexcept {
         switch (type) {
             case ReduceType::Mean:
                 return "ReduceMean";
@@ -87,8 +87,8 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    bool Reduce::isLayoutDependent() const { return rank != 4; }
-    void Reduce::transposeTo(LayoutType target) {
+    bool Reduce::isLayoutDependent() const noexcept { return rank != 4; }
+    void Reduce::transposeTo(LayoutType target) noexcept {
         Operator::transposeTo(target);
         switch (target) {
             case LayoutType::NCHW:

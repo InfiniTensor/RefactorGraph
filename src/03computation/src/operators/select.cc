@@ -2,7 +2,7 @@
 
 namespace refactor::computation {
 
-    size_t Select::typeId(SelectType type) {
+    size_t Select::typeId(SelectType type) noexcept {
         switch (type) {
             case SelectType::Min: {
                 static uint8_t ID = 1;
@@ -16,10 +16,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t Select::opTypeId() const {
+    size_t Select::opTypeId() const noexcept {
         return typeId(type);
     }
-    std::string_view Select::name() const {
+    std::string_view Select::name() const noexcept {
         switch (type) {
             case SelectType::Min:
                 return "Min";

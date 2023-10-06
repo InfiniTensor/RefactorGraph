@@ -29,13 +29,13 @@ namespace refactor::computation {
         Reduce(ReduceType,
                absl::InlinedVector<uint32_t, 4> axes,
                uint32_t rank,
-               bool keepDims);
+               bool keepDims) noexcept;
 
-        static size_t typeId(ReduceType);
-        size_t opTypeId() const final;
-        std::string_view name() const final;
-        bool isLayoutDependent() const final;
-        void transposeTo(LayoutType target) final;
+        static size_t typeId(ReduceType) noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
+        bool isLayoutDependent() const noexcept final;
+        void transposeTo(LayoutType target) noexcept final;
     };
 
 }// namespace refactor::computation

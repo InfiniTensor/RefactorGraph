@@ -2,7 +2,7 @@
 
 namespace refactor::computation {
 
-    size_t Compair::typeId(CompairType type) {
+    size_t Compair::typeId(CompairType type) noexcept {
         switch (type) {
             case CompairType::EQ: {
                 static uint8_t ID = 1;
@@ -32,10 +32,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t Compair::opTypeId() const {
+    size_t Compair::opTypeId() const noexcept {
         return typeId(type);
     }
-    std::string_view Compair::name() const {
+    std::string_view Compair::name() const noexcept {
         switch (type) {
             case CompairType::EQ:
                 return "Equal";

@@ -4,7 +4,7 @@ namespace refactor::computation {
     Tensor::Tensor(common::DataType dataType_,
                    Shape shape_,
                    LayoutType layout_,
-                   std::shared_ptr<mem_manager::Blob> data_)
+                   std::shared_ptr<mem_manager::Blob> data_) noexcept
         : dataType(dataType_),
           shape(std::move(shape_)),
           layout(layout_),
@@ -14,7 +14,7 @@ namespace refactor::computation {
     Tensor::share(common::DataType dataType,
                   Shape shape,
                   LayoutType layout,
-                  std::shared_ptr<mem_manager::Blob> data) {
+                  std::shared_ptr<mem_manager::Blob> data) noexcept {
         return std::make_shared<Tensor>(dataType, std::move(shape), layout, std::move(data));
     }
 

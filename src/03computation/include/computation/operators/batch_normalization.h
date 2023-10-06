@@ -6,11 +6,11 @@
 namespace refactor::computation {
 
     struct BatchNormalization final : public Operator {
-        constexpr BatchNormalization() : Operator() {}
+        constexpr BatchNormalization() noexcept : Operator() {}
 
-        static size_t typeId();
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

@@ -5,13 +5,12 @@
 
 namespace refactor::computation {
 
-    struct Reshape final : public Operator {
-        constexpr Reshape() : Operator() {}
+    struct Reshape final : public LayoutDependentOperator {
+        constexpr Reshape() noexcept : LayoutDependentOperator() {}
 
-        static size_t typeId();
-        size_t opTypeId() const final;
-        std::string_view name() const final;
-        bool isLayoutDependent() const final;
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

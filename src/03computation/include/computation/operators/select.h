@@ -14,12 +14,12 @@ namespace refactor::computation {
     struct Select final : public Operator {
         SelectType type;
 
-        constexpr explicit Select(SelectType type_)
+        constexpr explicit Select(SelectType type_) noexcept
             : Operator(), type(type_) {}
 
-        static size_t typeId(SelectType);
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId(SelectType) noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

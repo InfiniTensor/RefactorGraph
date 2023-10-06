@@ -9,12 +9,12 @@ namespace refactor::computation {
     struct CumSum final : public Operator {
         bool exclusive, reverse;
 
-        constexpr CumSum(bool exclusive_, bool reverse_)
+        constexpr CumSum(bool exclusive_, bool reverse_) noexcept
             : Operator(), exclusive(exclusive_), reverse(reverse_) {}
 
-        static size_t typeId();
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

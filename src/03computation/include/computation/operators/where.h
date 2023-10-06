@@ -6,11 +6,11 @@
 namespace refactor::computation {
 
     struct Where final : public Operator {
-        constexpr Where() : Operator() {}
+        constexpr Where() noexcept : Operator() {}
 
-        static size_t typeId();
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

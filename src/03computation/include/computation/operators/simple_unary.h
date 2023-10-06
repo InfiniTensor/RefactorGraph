@@ -30,12 +30,12 @@ namespace refactor::computation {
     struct SimpleUnary final : public Operator {
         SimpleUnaryType type;
 
-        constexpr explicit SimpleUnary(SimpleUnaryType type_)
+        constexpr explicit SimpleUnary(SimpleUnaryType type_) noexcept
             : Operator(), type(type_) {}
 
-        static size_t typeId(SimpleUnaryType);
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId(SimpleUnaryType) noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

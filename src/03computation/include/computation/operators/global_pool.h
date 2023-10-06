@@ -9,12 +9,12 @@ namespace refactor::computation {
     struct GlobalPool final : public Operator {
         PoolType type;
 
-        constexpr GlobalPool(PoolType type_)
+        constexpr GlobalPool(PoolType type_) noexcept
             : Operator(), type(type_) {}
 
-        static size_t typeId(PoolType);
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId(PoolType) noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

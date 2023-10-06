@@ -7,14 +7,16 @@
 namespace refactor::computation {
 
     struct Transpose final : public Operator {
-        absl::InlinedVector<size_t, 4> perm;
+        absl::InlinedVector<uint32_t, 4> perm;
 
-        explicit Transpose(absl::InlinedVector<size_t, 4> perm_)
+        explicit Transpose(decltype(perm) perm_) noexcept
             : Operator(), perm(std::move(perm_)) {}
 
-        static size_t typeId();
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
+        virtual bool isLayoutDependent() const noexcept final;
+        void transposeTo(LayoutType) noexcept final;
     };
 
 }// namespace refactor::computation

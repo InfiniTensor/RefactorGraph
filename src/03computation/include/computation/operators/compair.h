@@ -18,12 +18,12 @@ namespace refactor::computation {
     struct Compair final : public Operator {
         CompairType type;
 
-        constexpr explicit Compair(CompairType type_)
+        constexpr explicit Compair(CompairType type_) noexcept
             : Operator(), type(type_) {}
 
-        static size_t typeId(CompairType);
-        size_t opTypeId() const final;
-        std::string_view name() const final;
+        static size_t typeId(CompairType) noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

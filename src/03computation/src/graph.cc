@@ -3,11 +3,11 @@
 
 namespace refactor::computation {
 
-    Graph::Graph(graph_topo::Graph<Node, Edge> internal)
+    Graph::Graph(graph_topo::Graph<Node, Edge> internal) noexcept
         : _internal(std::move(internal)) {}
     Graph::Graph(graph_topo::GraphTopo topology,
                  std::vector<Node> nodes,
-                 std::vector<Edge> edges)
+                 std::vector<Edge> edges) noexcept
         : Graph(graph_topo::Graph<Node, Edge>{
               std::move(topology),
               std::move(nodes),

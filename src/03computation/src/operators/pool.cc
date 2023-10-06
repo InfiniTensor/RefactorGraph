@@ -3,7 +3,7 @@
 
 namespace refactor::computation {
 
-    size_t Pool::typeId(PoolType type) {
+    size_t Pool::typeId(PoolType type) noexcept {
         switch (type) {
             case PoolType::Average: {
                 static uint8_t ID = 1;
@@ -21,10 +21,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t Pool::opTypeId() const {
+    size_t Pool::opTypeId() const noexcept {
         return typeId(type);
     }
-    std::string_view Pool::name() const {
+    std::string_view Pool::name() const noexcept {
         switch (type) {
             case PoolType::Average:
                 return "AveragePool";
