@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(onnx)
 
 file(GLOB_RECURSE ONNX_SRC src/*.cc src/*.cpp)
-add_library(onnx ${LIBRARY_TYPE} ${ONNX_SRC})
+add_library(onnx STATIC ${ONNX_SRC})
 target_link_libraries(onnx PUBLIC frontend)
 find_library(TBB_LIB NAMES tbb)
 # link tbb for some compiler to enable `std::execution::par` and `std::execution::par_unseq` in <execution> if found

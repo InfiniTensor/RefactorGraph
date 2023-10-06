@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(transformation)
 
 file(GLOB_RECURSE GRAPH_SRC src/*.cc src/*.cpp)
-add_library(transformation ${LIBRARY_TYPE} ${GRAPH_SRC})
+add_library(transformation STATIC ${GRAPH_SRC})
 target_link_libraries(transformation PUBLIC frontend)
 
 file(GLOB_RECURSE TRANSFORMATION_TEST test/*.cpp)

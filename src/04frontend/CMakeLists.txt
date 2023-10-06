@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(frontend)
 
 file(GLOB_RECURSE FRONTEND_SRC src/*.cc src/*.cpp)
-add_library(frontend ${LIBRARY_TYPE} ${FRONTEND_SRC})
+add_library(frontend STATIC ${FRONTEND_SRC})
 target_link_libraries(frontend PUBLIC computation)
 
 file(GLOB_RECURSE FRONTEND_TEST test/*.cpp)
