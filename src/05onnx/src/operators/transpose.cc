@@ -1,16 +1,31 @@
 ﻿#include "computation/operators/transpose.h"
 #include "common.h"
+#include "transpose.hh"
 #include <execution>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Transpose;
 
-    InferResult inferTranspose(Operator const &op, TensorRefs inputs, InferOptions const &) {
+    Op::Transpose(Ints perm_)
+        : Operator(), perm(perm_) {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        auto perm = defaultOr(attributes, "perm", {}).ints();
+        return OpBox(std::make_unique<Op>(std::move(perm)));
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Transpose"; }
+    auto Op::infer(TensorRefs inputs, InferOptions const &) const -> InferResult {
         EXPECT_SIZE(1)
 
         auto const &data = inputs[0];
-        if (auto it = op.attributes.find("perm"); it != op.attributes.end()) {
-            auto const &perm = it->second.ints();
+        if (!perm.empty()) {
             if (perm.size() != data.shape.size()) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
@@ -24,19 +39,18 @@ namespace refactor::onnx {
             return Ok(Tensors{Tensor::share(data.dataType, std::move(output), extractDependency(inputs))});
         }
     }
+    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+        using Op_ = computation::Transpose;
 
-    LowerOperator lowerTranspose(Operator const &op, TensorRefs inputs) {
-        using namespace computation;
-
-        decltype(Transpose::perm) perm_(inputs[0].rank());
-        if (auto it = op.attributes.find("perm"); it != op.attributes.end()) {
-            auto const &perm = it->second.ints();
+        decltype(Op_::perm) perm_(inputs[0].rank());
+        if (!perm.empty()) {
             std::transform(std::execution::unseq,
                            perm.begin(), perm.end(), perm_.begin(),
                            [](auto i) { return static_cast<uint32_t>(i); });
         } else {
             std::iota(perm_.rbegin(), perm_.rend(), 0);
         }
-        return {std::make_shared<Transpose>(std::move(perm_)), {0}};
+        return {std::make_shared<Op_>(std::move(perm_)), {0}};
     }
+
 }// namespace refactor::onnx

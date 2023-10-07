@@ -12,6 +12,9 @@ namespace refactor::onnx {
         Mul,
         Div,
         Pow,
+        And,
+        Or,
+        Xor,
     };
 
     struct SimpleBinary final : public Operator {
