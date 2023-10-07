@@ -1,11 +1,27 @@
 ﻿#include "computation/operators/slice.h"
 #include "common.h"
 #include "common/range.h"
+#include "slice.hh"
 #include <execution>
 
 namespace refactor::onnx {
     using namespace common;
     using computation::Dim;
+    using Op = Slice;
+
+    Op::Slice() : Operator() {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        ASSERT(attributes.empty(), "Simple binary operator should not have attributes");
+        return OpBox(std::make_unique<Op>());
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Slice"; }
 
     Result<std::vector<Dim>, InferError> buildDims(
         size_t rank,
@@ -63,7 +79,7 @@ namespace refactor::onnx {
         return Ok(std::move(dims));
     }
 
-    InferResult inferSlice(Operator const &op, TensorRefs inputs, InferOptions const &) {
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         if (inputs.size() < 3 || 5 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
@@ -143,8 +159,8 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    LowerOperator lowerSlice(Operator const &, TensorRefs inputs) {
-        using namespace computation;
+    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+        using Op_ = computation::Slice;
 
         auto const &data = inputs[0];
         auto const &starts_ = inputs[1];
@@ -159,6 +175,6 @@ namespace refactor::onnx {
         auto rank = data.rank();
         auto size = starts_.shape[0].value();
 
-        return {std::make_shared<Slice>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap()), {0}};
+        return {std::make_shared<Op_>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap()), {0}};
     }
 }// namespace refactor::onnx

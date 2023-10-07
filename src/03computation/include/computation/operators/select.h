@@ -8,7 +8,7 @@ namespace refactor::computation {
 
     enum class SelectType {
         Max,
-        Min
+        Min,
     };
 
     struct Select final : public Operator {

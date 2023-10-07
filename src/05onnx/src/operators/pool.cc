@@ -21,8 +21,6 @@ namespace refactor::onnx {
           strides(std::move(strides_)) {}
 
     auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Global pool operator should not have attributes");
-
         auto kernelShape = std::move(attributes.at("kernel_shape").ints());
         OptionalInts
             dilations = std::nullopt,
@@ -77,9 +75,7 @@ namespace refactor::onnx {
         }
     }
 
-    auto Op::opTypeId() const -> size_t {
-        return typeId(type);
-    }
+    auto Op::opTypeId() const -> size_t { return typeId(type); }
 
     auto Op::opTypeName() const -> std::string_view {
         switch (type) {

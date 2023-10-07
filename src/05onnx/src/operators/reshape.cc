@@ -2,11 +2,28 @@
 #include "common.h"
 #include "common/range.h"
 #include "common/slice.h"
+#include "reshape.hh"
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Reshape;
 
-    InferResult inferReshape(Operator const &op, TensorRefs inputs, InferOptions const &options) {
+    Op::Reshape(bool allowzero_)
+        : Operator(), allowzero(allowzero_) {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        auto allowzero = defaultOr(attributes, "allowzero", {0}).int_() != 0;
+        return OpBox(std::make_unique<Op>(allowzero));
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Reshape"; }
+
+    auto Op::infer(TensorRefs inputs, InferOptions const &) const -> InferResult {
         EXPECT_SIZE(2)
 
         auto const &data = inputs[0];
@@ -15,7 +32,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Shape not support")));
         }
 
-        ASSERT(op.attribute("allowzero", {0}).int_() == 0, "Not support allowzero");
+        ASSERT(!allowzero, "Not support allowzero");
 
         auto shape_ = shape.data->get<int64_t>();
         EXPECT_VAL(shape.shape[0], rank)
@@ -70,9 +87,10 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(data.dataType, std::move(output), extractDependency(inputs), data.data)});
     }
 
-    LowerOperator lowerReshape(Operator const &, TensorRefs) {
-        using namespace computation;
+    auto Op::lower(TensorRefs) const -> LowerOperator {
+        using Op_ = computation::Reshape;
 
-        return {std::make_shared<Reshape>(), {0}};
+        return {std::make_shared<Op_>(), {0}};
     }
+
 }// namespace refactor::onnx
