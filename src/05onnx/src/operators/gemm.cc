@@ -1,11 +1,35 @@
-﻿#include "common.h"
+﻿#include "gemm.hh"
+#include "common.h"
 #include "computation/operators/mat_mul.h"
 #include <numeric>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Gemm;
 
-    InferResult inferGemm(Operator const &op, TensorRefs inputs, InferOptions const &options) {
+    Op::Gemm(Float alpha_, Float beta_, bool transA_, bool transB_)
+        : Operator(),
+          alpha(alpha_),
+          beta(beta_),
+          transA(transA_),
+          transB(transB_) {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        auto alpha = defaultOr(attributes, "alpha", {1.0f}).float_();
+        auto beta = defaultOr(attributes, "beta", {1.0f}).float_();
+        auto transA = defaultOr(attributes, "transA", {0}).int_() != 0;
+        auto transB = defaultOr(attributes, "transB", {0}).int_() != 0;
+        return OpBox(std::make_unique<Op>(alpha, beta, transA, transB));
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Gemm"; }
+
+    auto Op::infer(TensorRefs inputs, InferOptions const &) const -> InferResult {
         if (auto size = inputs.size(); size < 2 || 3 < size) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
@@ -25,14 +49,14 @@ namespace refactor::onnx {
         EXPECT_VAL(b.shape[1], b1)
 
         int64_t m, n, k;
-        if (op.attribute("transA", {0}).int_() == 0) {
+        if (!transA) {
             m = a0;
             k = a1;
         } else {
             m = a1;
             k = a0;
         }
-        if (op.attribute("transB", {0}).int_() == 0) {
+        if (!transB) {
             if (b0 != k) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
@@ -55,18 +79,13 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(dataType, Shape{DimExpr(m), DimExpr(n)}, extractDependency(inputs))});
     }
 
-    LowerOperator lowerGemm(Operator const &op, TensorRefs inputs) {
-        using namespace computation;
-
-        auto alpha = op.attribute("alpha", {1.0f}).float_();
-        auto beta = op.attribute("beta", {1.0f}).float_();
-        auto transA = op.attribute("transA", {0}).int_() != 0;
-        auto transB = op.attribute("transB", {0}).int_() != 0;
+    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+        using Op_ = computation::MatMul;
 
         decltype(LowerOperator::inputs) inputs_(inputs.size());
         std::iota(inputs_.begin(), inputs_.end(), 0);
         return {
-            std::make_shared<MatMul>(alpha, beta, transA, transB),
+            std::make_shared<Op_>(alpha, beta, transA, transB),
             std::move(inputs_),
         };
     }

@@ -1,15 +1,13 @@
-﻿#ifndef ONNX_CONSTANT_OF_SHAPE_HH
-#define ONNX_CONSTANT_OF_SHAPE_HH
+﻿#ifndef ONNX_EXPAND_HH
+#define ONNX_EXPAND_HH
 
 #include "frontend/operator.h"
 
 namespace refactor::onnx {
     using namespace frontend;
 
-    struct ConstantOfShape final : public Operator {
-        Tensor_ value;
-
-        explicit ConstantOfShape(Tensor_);
+    struct Expand final : public Operator {
+        Expand();
 
         static OpBox build(std::string_view, Attributes);
         static size_t typeId();
@@ -17,8 +15,9 @@ namespace refactor::onnx {
         size_t opTypeId() const final;
         std::string_view opTypeName() const final;
         InferResult infer(TensorRefs, InferOptions const &) const final;
+        LowerOperator lower(TensorRefs) const final;
     };
 
 }// namespace refactor::onnx
 
-#endif// ONNX_CONSTANT_OF_SHAPE_HH
+#endif// ONNX_EXPAND_HH

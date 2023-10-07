@@ -7,7 +7,7 @@ namespace refactor::onnx {
     using namespace frontend;
 
     struct Concat final : public Operator {
-        int64_t axis;
+        Int axis;
 
         explicit Concat(int64_t);
 

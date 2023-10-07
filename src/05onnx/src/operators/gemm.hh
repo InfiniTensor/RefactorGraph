@@ -1,15 +1,16 @@
-﻿#ifndef ONNX_CONSTANT_OF_SHAPE_HH
-#define ONNX_CONSTANT_OF_SHAPE_HH
+﻿#ifndef ONNX_GEMM_HH
+#define ONNX_GEMM_HH
 
 #include "frontend/operator.h"
 
 namespace refactor::onnx {
     using namespace frontend;
 
-    struct ConstantOfShape final : public Operator {
-        Tensor_ value;
+    struct Gemm final : public Operator {
+        Float alpha, beta;
+        bool transA, transB;
 
-        explicit ConstantOfShape(Tensor_);
+        Gemm(Float, Float, bool, bool);
 
         static OpBox build(std::string_view, Attributes);
         static size_t typeId();
@@ -17,8 +18,9 @@ namespace refactor::onnx {
         size_t opTypeId() const final;
         std::string_view opTypeName() const final;
         InferResult infer(TensorRefs, InferOptions const &) const final;
+        LowerOperator lower(TensorRefs) const final;
     };
 
 }// namespace refactor::onnx
 
-#endif// ONNX_CONSTANT_OF_SHAPE_HH
+#endif// ONNX_GEMM_HH

@@ -11,6 +11,7 @@ namespace refactor::onnx {
         Sub,
         Mul,
         Div,
+        Pow,
     };
 
     struct SimpleBinary final : public Operator {

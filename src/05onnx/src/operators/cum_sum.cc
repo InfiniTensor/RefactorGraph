@@ -1,11 +1,31 @@
 ﻿#include "computation/operators/cum_sum.h"
 #include "common.h"
 #include "common/range.h"
+#include "cum_sum.hh"
 #include <execution>
 #include <numeric>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = CumSum;
+
+    Op::CumSum(bool exclusive_, bool reverse_)
+        : Operator(),
+          exclusive(exclusive_),
+          reverse(reverse_) {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        auto exclusive = defaultOr(attributes, "exclusive", {0}).int_() != 0;
+        auto reverse = defaultOr(attributes, "reverse", {0}).int_() != 0;
+        return OpBox(std::make_unique<Op>(exclusive, reverse));
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::CumSum"; }
 
     template<decltype(DataType::internal) T>
     void accumulate_(void *dst, void const *src, void *acc) {
@@ -35,7 +55,7 @@ namespace refactor::onnx {
         }
     }
 
-    InferResult inferCumSum(Operator const &op, TensorRefs inputs, InferOptions const &options) {
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(2)
 
         auto const &x = inputs[0];
@@ -53,8 +73,6 @@ namespace refactor::onnx {
         if (!options.shouldCalculate(inputs, {*ans})) {
             return Ok(Tensors{std::move(ans)});
         }
-        auto exclusive = op.attribute("exclusive", {0}).int_();
-        auto reverse = op.attribute("reverse", {0}).int_() != 0;
         if (reverse) {// TODO: support reverse
             return Ok(Tensors{std::move(ans)});
         }
@@ -71,7 +89,7 @@ namespace refactor::onnx {
         auto eleSize = dataType.size();
         if (!reverse) {
             std::for_each_n(std::execution::seq, natural_t(0), ans->elementsSize(),
-                            [&, axis_, exclusive, eleSize,
+                            [&, this, axis_, eleSize,
                              step = std::accumulate(ans->shape.begin() + axis_ + 1, ans->shape.end(), eleSize,
                                                     [](auto const acc, auto const &d) { return acc * d.value(); }),
                              src = x.data->get<uint8_t>(),
@@ -100,11 +118,9 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    LowerOperator lowerCumSum(Operator const &op, TensorRefs) {
-        using namespace computation;
-
-        auto exclusive = op.attribute("exclusive", {0}).int_() != 0;
-        auto reverse = op.attribute("reverse", {0}).int_() != 0;
-        return {std::make_shared<CumSum>(exclusive, reverse), {0, 1}};
+    auto Op::lower(TensorRefs) const -> LowerOperator {
+        using Op_ = computation::CumSum;
+        return {std::make_shared<Op_>(exclusive, reverse), {0, 1}};
     }
+
 }// namespace refactor::onnx

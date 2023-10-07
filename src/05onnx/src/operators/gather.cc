@@ -1,12 +1,29 @@
 ﻿#include "computation/operators/gather.h"
 #include "common.h"
 #include "common/range.h"
+#include "gather.hh"
 #include <execution>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Gather;
 
-    InferResult inferGather(Operator const &op, TensorRefs inputs, InferOptions const &options) {
+    Op::Gather(Int axis_)
+        : Operator(), axis(axis_) {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        auto axis = defaultOr(attributes, "axis", {0}).int_();
+        return OpBox(std::make_unique<Op>(axis));
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Gather"; }
+
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(2)
 
         auto const &data = inputs[0];
@@ -15,17 +32,14 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
 
-        auto const r = data.rank();
-        auto axis = op.attribute("axis", {0}).int_();
-        if (axis < 0) {
-            axis += r;
-        }
-        if (axis < 0 || r <= axis) {
+        auto const rank = data.rank();
+        auto axis_ = axis < 0 ? axis + rank : axis;
+        if (axis_ < 0 || rank <= axis_) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
         auto output = data.shape;
-        output.erase(output.begin() + axis);
-        output.insert(output.begin() + axis, indices.shape.begin(), indices.shape.end());
+        output.erase(output.begin() + axis_);
+        output.insert(output.begin() + axis_, indices.shape.begin(), indices.shape.end());
         auto ans = Tensor::share(data.dataType, std::move(output), extractDependency(inputs));
         if (!options.shouldCalculate(inputs, {*ans})) {
             return Ok(Tensors{std::move(ans)});
@@ -33,7 +47,7 @@ namespace refactor::onnx {
 
         std::for_each_n(std::execution::unseq, natural_t(0), ans->elementsSize(),
                         [&data, &indices, &output,
-                         axis,
+                         axis_,
                          q = indices.shape.size(),
                          ssz = output.size(),
                          src = data.data->get<uint8_t>(),
@@ -53,12 +67,12 @@ namespace refactor::onnx {
                             }
                             {
                                 size_t ii = 0, mul = 1;
-                                for (auto j : range(static_cast<decltype(q)>(axis) + q, ssz).rev()) {
+                                for (auto j : range(static_cast<decltype(q)>(axis_) + q, ssz).rev()) {
                                     ii += indices_[j] * mul;
                                     mul *= data.shape[j - q + 1].value();
                                 }
                                 ii += k * mul;
-                                for (auto j : range0_(axis).rev()) {
+                                for (auto j : range0_(axis_).rev()) {
                                     ii += indices_[j] * mul;
                                     mul *= data.shape[j].value();
                                 }
@@ -69,11 +83,10 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    LowerOperator lowerGather(Operator const &op, TensorRefs inputs) {
-        using namespace computation;
-
+    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+        using Op_ = computation::Gather;
         auto rank = inputs[0].rank();
-        auto axis = op.attribute("axis", {0}).int_();
-        return {std::make_shared<Gather>(axis < 0 ? axis + rank : axis, rank), {0, 1}};
+        return {std::make_shared<Op_>(axis < 0 ? axis + rank : axis, rank), {0, 1}};
     }
+
 }// namespace refactor::onnx

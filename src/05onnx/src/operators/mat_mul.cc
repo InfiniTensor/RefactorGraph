@@ -1,10 +1,26 @@
 ﻿#include "computation/operators/mat_mul.h"
 #include "common.h"
+#include "mat_mul.hh"
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = MatMul;
 
-    InferResult inferMatMul(Operator const &op, TensorRefs inputs, InferOptions const &options) {
+    Op::MatMul() : Operator() {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        ASSERT(attributes.empty(), "MatMul operator should not have attributes");
+        return OpBox(std::make_unique<Op>());
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::MatMul"; }
+
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];
@@ -48,9 +64,9 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
     }
 
-    LowerOperator lowerMatMul(Operator const &, TensorRefs) {
-        using namespace computation;
-
-        return {std::make_shared<MatMul>(1.0, 1.0, false, false), {0, 1}};
+    auto Op::lower(TensorRefs) const -> LowerOperator {
+        using Op_ = computation::MatMul;
+        return {std::make_shared<Op_>(1.0, 1.0, false, false), {0, 1}};
     }
+
 }// namespace refactor::onnx

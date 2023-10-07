@@ -8,7 +8,7 @@ namespace refactor::onnx {
     using namespace common;
     using Op = ConstantOfShape;
 
-    Op::ConstantOfShape(std::shared_ptr<Tensor> value_)
+    Op::ConstantOfShape(Tensor_ value_)
         : Operator(), value(std::move(value_)) {}
 
     auto Op::build(std::string_view, Attributes attributes) -> OpBox {
