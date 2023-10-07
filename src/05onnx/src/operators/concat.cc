@@ -1,23 +1,36 @@
 ﻿#include "computation/operators/concat.h"
 #include "common.h"
 #include "common/range.h"
+#include "concat.hh"
 #include <execution>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Concat;
 
-    InferResult inferConcat(Operator const &op, TensorRefs inputs, InferOptions const &options) {
+    Op::Concat(int64_t axis_)
+        : Operator(), axis(axis_) {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        auto axis = attributes.at("axis").int_();
+        return OpBox(std::make_unique<Op>(axis));
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Concat"; }
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
-        auto dataType = inputs[0].dataType;
         auto output = inputs[0].shape;
-        auto rank = inputs[0].rank();
-        auto axis = op.attribute("axis").int_();
-        if (axis < 0) {
-            axis += rank;
-        }
-        if (axis < 0 || rank <= axis) {
+        auto const dataType = inputs[0].dataType;
+        auto const rank = inputs[0].rank();
+        auto const axis_ = axis < 0 ? axis + rank : axis;
+        if (axis_ < 0 || rank <= axis_) {
             return Err(InferError(ERROR_MSG("Axis out of range")));
         }
         for (auto i : range(1ul, inputs.size())) {
@@ -64,13 +77,13 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    LowerOperator lowerConcat(Operator const &op, TensorRefs inputs) {
-        using namespace computation;
+    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+        using Op_ = computation::Concat;
 
         auto rank = inputs[0].rank();
-        auto axis = op.attribute("axis").int_();
         decltype(LowerOperator::inputs) inputs_(inputs.size());
         std::iota(inputs_.begin(), inputs_.end(), 0);
-        return {std::make_shared<Concat>(axis < 0 ? axis + rank : axis, rank), std::move(inputs_)};
+        return {std::make_shared<Op_>(axis < 0 ? axis + rank : axis, rank), std::move(inputs_)};
     }
+
 }// namespace refactor::onnx

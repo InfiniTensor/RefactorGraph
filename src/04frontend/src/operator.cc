@@ -30,6 +30,40 @@ namespace refactor::frontend {
         return !operator==(rhs);
     }
 
+#define CHECK(TYPE, NAME)                           \
+    bool Attribute::NAME() const {                  \
+        return std::holds_alternative<TYPE>(value); \
+    }
+
+    CHECK(Int, isInt)
+    CHECK(Ints, isInts)
+    CHECK(Float, isFloat)
+    CHECK(Floats, isFloats)
+    CHECK(String, isString)
+    CHECK(Strings, isStrings)
+    CHECK(Tensor_, isTensor)
+    CHECK(Tensors, isTensors)
+#undef CHECK
+
+#define CONVERT(TYPE, NAME)                        \
+    TYPE &Attribute::NAME() {                      \
+        if (std::holds_alternative<TYPE>(value)) { \
+            return std::get<TYPE>(value);          \
+        } else {                                   \
+            RUNTIME_ERROR("Attribute type error"); \
+        }                                          \
+    }
+
+    CONVERT(Int, int_)
+    CONVERT(Ints, ints)
+    CONVERT(Float, float_)
+    CONVERT(Floats, floats)
+    CONVERT(String, string)
+    CONVERT(Strings, strings)
+    CONVERT(Tensor_, tensor)
+    CONVERT(Tensors, tensors)
+#undef CONVERT
+
 #define CONVERT(TYPE, NAME)                        \
     TYPE const &Attribute::NAME() const {          \
         if (std::holds_alternative<TYPE>(value)) { \

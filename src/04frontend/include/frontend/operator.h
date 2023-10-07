@@ -22,6 +22,24 @@ namespace refactor::frontend {
         bool operator==(Attribute const &) const;
         bool operator!=(Attribute const &) const;
 
+        bool isInt() const;
+        bool isInts() const;
+        bool isFloat() const;
+        bool isFloats() const;
+        bool isString() const;
+        bool isStrings() const;
+        bool isTensor() const;
+        bool isTensors() const;
+
+        Int &int_();
+        Ints &ints();
+        Float &float_();
+        Floats &floats();
+        String &string();
+        Strings &strings();
+        Tensor_ &tensor();
+        Tensors &tensors();
+
         Int const &int_() const;
         Ints const &ints() const;
         Float const &float_() const;

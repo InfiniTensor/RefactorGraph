@@ -1,12 +1,46 @@
 ﻿#include "computation/operators/conv.h"
-#include "common.h"
 #include "common/range.h"
+#include "conv.hh"
 #include <numeric>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Conv;
 
-    InferResult inferConv(Operator const &op, TensorRefs inputs, InferOptions const &) {
+    Op::Conv(OptionalInts dilations_,
+             OptionalInts pads_,
+             OptionalInts strides_)
+        : Operator(),
+          dilations(std::move(dilations_)),
+          pads(std::move(pads_)),
+          strides(std::move(strides_)) {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        OptionalInts
+            dilations = std::nullopt,
+            pads = std::nullopt,
+            strides = std::nullopt;
+        if (auto it = attributes.find("dilations"); it != attributes.end()) {
+            dilations.emplace(it->second.ints());
+        }
+        if (auto it = attributes.find("pads"); it != attributes.end()) {
+            pads.emplace(it->second.ints());
+        }
+        if (auto it = attributes.find("strides"); it != attributes.end()) {
+            strides.emplace(it->second.ints());
+        }
+        return OpBox(std::make_unique<Op>(std::move(dilations), std::move(pads), std::move(strides)));
+    }
+
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Conv"; }
+
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         if (auto size = inputs.size(); size < 2 || 3 < size) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
@@ -54,20 +88,6 @@ namespace refactor::onnx {
             kernel_[i - 2] = d;
         }
 
-        OptionalInts
-            dilations = std::nullopt,
-            pads = std::nullopt,
-            strides = std::nullopt;
-        if (auto it = op.attributes.find("dilations"); it != op.attributes.end()) {
-            dilations.emplace(it->second.ints());
-        }
-        if (auto it = op.attributes.find("pads"); it != op.attributes.end()) {
-            pads.emplace(it->second.ints());
-        }
-        if (auto it = op.attributes.find("strides"); it != op.attributes.end()) {
-            strides.emplace(it->second.ints());
-        }
-
         auto res = pool(input_, kernel_, dilations, pads, strides);
         if (res.isErr()) {
             return Err(InferError(ERROR_MSG(res.unwrapErr())));
@@ -80,15 +100,11 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 
-    LowerOperator lowerConv(Operator const &, TensorRefs inputs) {
-        using namespace computation;
-
+    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+        using Op_ = computation::Conv;
         decltype(LowerOperator::inputs) inputs_(inputs.size());
         std::iota(inputs_.begin(), inputs_.end(), 0);
-        return {
-            std::make_shared<Conv>(),
-            std::move(inputs_),
-        };
+        return {std::make_shared<Op_>(), std::move(inputs_)};
     }
 
 }// namespace refactor::onnx
