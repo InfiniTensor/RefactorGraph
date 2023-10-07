@@ -1,25 +1,18 @@
-﻿#ifndef ONNX_BINARY_HH
-#define ONNX_BINARY_HH
+﻿#ifndef ONNX_BATCH_NORMALIZATION_HH
+#define ONNX_BATCH_NORMALIZATION_HH
 
 #include "frontend/operator.h"
 
 namespace refactor::onnx {
     using namespace frontend;
 
-    enum class BinaryType {
-        Add,
-        Sub,
-        Mul,
-        Div,
-    };
+    struct BatchNormalization final : public Operator {
+        bool trainingMode;
 
-    struct Binary final : public Operator {
-        BinaryType type;
-
-        explicit Binary(BinaryType);
+        explicit BatchNormalization(bool);
 
         static OpBox build(std::string_view, Attributes);
-        static size_t typeId(BinaryType);
+        static size_t typeId();
 
         size_t opTypeId() const final;
         std::string_view opTypeName() const final;
@@ -29,4 +22,4 @@ namespace refactor::onnx {
 
 }// namespace refactor::onnx
 
-#endif// ONNX_BINARY_HH
+#endif// ONNX_BATCH_NORMALIZATION_HH

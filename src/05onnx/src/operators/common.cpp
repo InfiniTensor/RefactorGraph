@@ -101,4 +101,10 @@ namespace refactor::onnx {
                        });
         return Ok(std::move(ans));
     }
+
+    Attribute defaultOr(Attributes &attrs, std::string const &name, Attribute defaultValue) {
+        auto iter = attrs.find(name);
+        return iter == attrs.end() ? defaultValue : std::move(iter->second);
+    }
+
 }// namespace refactor::onnx

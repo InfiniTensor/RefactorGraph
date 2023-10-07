@@ -1,10 +1,27 @@
 ﻿#include "computation/operators/cast.h"
+#include "cast.hh"
 #include "common.h"
 #include "common/natural.h"
 #include <execution>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Cast;
+
+    Op::Cast(DataType to_)
+        : Operator(), to(to_) {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        auto to = *DataType::parse(attributes.at("to").int_());
+        return OpBox(std::make_unique<Op>(to));
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Cast"; }
 
     template<class TS, class TD>
     void castData(void const *src, void *dst, size_t size) {
@@ -13,11 +30,10 @@ namespace refactor::onnx {
         std::transform(std::execution::unseq, src_, src_ + size, dst_, [](auto x) { return static_cast<TD>(x); });
     }
 
-    InferResult inferCast(Operator const &op, TensorRefs inputs, InferOptions const &options) {
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(1)
 
         auto const &input = inputs[0];
-        auto to = *DataType::parse(op.attribute("to").int_());
         auto ans = Tensor::share(to, input.shape, extractDependency(inputs));
         if (!options.shouldCalculate(inputs, {*ans})) {
             return Ok(Tensors{std::move(ans)});
@@ -103,10 +119,9 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    LowerOperator lowerCast(Operator const &op, TensorRefs) {
-        using namespace computation;
-
-        auto to = *DataType::parse(op.attribute("to").int_());
-        return {std::make_shared<Cast>(to), {0}};
+    auto Op::lower(TensorRefs) const -> LowerOperator {
+        using Op_ = computation::Cast;
+        return {std::make_shared<Op_>(to), {0}};
     }
+
 }// namespace refactor::onnx

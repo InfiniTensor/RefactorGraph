@@ -34,7 +34,8 @@ namespace refactor::frontend {
     using Attributes = std::unordered_map<std::string, Attribute>;
 
     class Operator;
-    using OpBox = std::unique_ptr<Operator>;
+    class OpBox;
+
     class Operator {
     public:
         virtual size_t opTypeId() const = 0;
@@ -54,12 +55,22 @@ namespace refactor::frontend {
         }
     };
 
+    class OpBox {
+        std::unique_ptr<Operator> op;
+
+    public:
+        explicit OpBox(std::unique_ptr<Operator> ptr) : op(std::move(ptr)) {}
+
+        Operator *operator->() { return op.get(); }
+        Operator const *operator->() const { return op.get(); }
+    };
+
     struct Node {
         OpBox op;
         std::string name;
 
-        template<class T> T *opAs() const {
-            return dynamic_cast<T *>(op.get());
+        template<class T> T const *opAs() const {
+            return dynamic_cast<T *>(op.operator->());
         }
     };
 

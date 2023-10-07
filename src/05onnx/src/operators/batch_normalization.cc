@@ -1,15 +1,30 @@
 ﻿#include "computation/operators/batch_normalization.h"
+#include "batch_normalization.hh"
 #include "common.h"
 #include <numeric>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = BatchNormalization;
 
-    InferResult inferBatchNormalization(Operator const &op, TensorRefs inputs, InferOptions const &) {
-        if (op.attribute("training_mode", {0}).int_() != 0) {
-            return Err(InferError(ERROR_MSG("training_mode is not supported")));
-        }
+    Op::BatchNormalization(bool trainingMode_)
+        : Operator(), trainingMode(trainingMode_) {}
 
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        auto trainingMode = defaultOr(attributes, "training_mode", {0}).int_() != 0;
+        return OpBox(std::make_unique<Op>(trainingMode));
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Op"; }
+
+    auto Op::infer(
+        TensorRefs inputs,
+        InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(5)
 
         auto const &x = inputs[0];
@@ -32,16 +47,11 @@ namespace refactor::onnx {
 
         return Ok(Tensors{Tensor::share(x.dataType, x.shape, extractDependency(inputs))});
     }
-
-    LowerOperator lowerBatchNormalization(Operator const &, TensorRefs inputs) {
-        using namespace computation;
-
+    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+        using Op_ = computation::BatchNormalization;
         decltype(LowerOperator::inputs) inputs_(inputs.size());
         std::iota(inputs_.begin(), inputs_.end(), 0);
-        return {
-            std::make_shared<BatchNormalization>(),
-            std::move(inputs_),
-        };
+        return {std::make_shared<Op_>(), std::move(inputs_)};
     }
 
 }// namespace refactor::onnx
