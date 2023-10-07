@@ -27,6 +27,9 @@ namespace refactor::onnx {
         if (opType == "onnx::Div") {
             return OpBox(std::make_unique<Op>(Ty::Div));
         }
+        if (opType == "onnx::Pow") {
+            return OpBox(std::make_unique<Op>(Ty::Pow));
+        }
         UNREACHABLEX(void, "Unsupported binary operator: {}", opType);
     }
 
@@ -48,6 +51,10 @@ namespace refactor::onnx {
                 static uint8_t ID = 4;
                 return reinterpret_cast<size_t>(&ID);
             }
+            case Ty::Pow: {
+                static uint8_t ID = 5;
+                return reinterpret_cast<size_t>(&ID);
+            }
             default:
                 UNREACHABLE();
         }
@@ -64,6 +71,8 @@ namespace refactor::onnx {
                 return "onnx::Mul";
             case Ty::Div:
                 return "onnx::Div";
+            case Ty::Pow:
+                return "onnx::Pow";
             default:
                 UNREACHABLE();
         }
@@ -99,13 +108,19 @@ namespace refactor::onnx {
         auto const &a = inputs[0];
         auto const &b = inputs[1];
         auto dataType = a.dataType;
-        if (!dataType.isNumberic() || b.dataType != dataType) {
-            return Err(InferError(ERROR_MSG("Data type not support")));
+        if (type == Ty::Pow) {
+            if (!dataType.isFloat() || !b.dataType.isNumberic()) {
+                return Err(InferError(ERROR_MSG("Data type not support")));
+            }
+        } else {
+            if (!dataType.isNumberic() || b.dataType != dataType) {
+                return Err(InferError(ERROR_MSG("Data type not support")));
+            }
         }
 
         MULTIDIR_BROADCAST((ShapeRefs{a.shape, b.shape}))
         auto ans = Tensor::share(dataType, std::move(output), extractDependency(inputs));
-        if (!options.shouldCalculate(inputs, {*ans})) {
+        if (!options.shouldCalculate(inputs, {*ans}) || type == Ty::Pow) {
             return Ok(Tensors{std::move(ans)});
         }
 
@@ -157,6 +172,9 @@ namespace refactor::onnx {
                 break;
             case Ty::Div:
                 type_ = Ty_::Div;
+                break;
+            case Ty::Pow:
+                type_ = Ty_::Pow;
                 break;
             default:
                 UNREACHABLE();

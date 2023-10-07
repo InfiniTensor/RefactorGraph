@@ -1,15 +1,15 @@
-﻿#ifndef ONNX_CONSTANT_OF_SHAPE_HH
-#define ONNX_CONSTANT_OF_SHAPE_HH
+﻿#ifndef ONNX_GATHER_HH
+#define ONNX_GATHER_HH
 
 #include "frontend/operator.h"
 
 namespace refactor::onnx {
     using namespace frontend;
 
-    struct ConstantOfShape final : public Operator {
-        Tensor_ value;
+    struct Gather final : public Operator {
+        Int axis;
 
-        explicit ConstantOfShape(Tensor_);
+        explicit Gather(Int);
 
         static OpBox build(std::string_view, Attributes);
         static size_t typeId();
@@ -17,8 +17,9 @@ namespace refactor::onnx {
         size_t opTypeId() const final;
         std::string_view opTypeName() const final;
         InferResult infer(TensorRefs, InferOptions const &) const final;
+        LowerOperator lower(TensorRefs) const final;
     };
 
 }// namespace refactor::onnx
 
-#endif// ONNX_CONSTANT_OF_SHAPE_HH
+#endif// ONNX_GATHER_ELEMENTS_HH

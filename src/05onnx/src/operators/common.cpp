@@ -60,9 +60,9 @@ namespace refactor::onnx {
 
     ShapeResult pool(SmallInts<4> const &input,
                      Ints const &kernel,
-                     OptionalInts const &dilations,
-                     OptionalInts const &pads,
-                     OptionalInts const &strides) {
+                     OptionalIntsRef const &dilations,
+                     OptionalIntsRef const &pads,
+                     OptionalIntsRef const &strides) {
         auto dim = input.size();
         if (dim != kernel.size()) {
             return Err(ERROR_MSG("Input shape not support"));

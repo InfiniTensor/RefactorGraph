@@ -10,7 +10,8 @@ namespace refactor::onnx {
 
     using ShapeResult = Result<Shape, std::string>;
     using ShapeRefs = std::vector<std::reference_wrapper<Shape const>>;
-    using OptionalInts = std::optional<std::reference_wrapper<Ints const>>;
+    using OptionalInts = std::optional<Ints>;
+    using OptionalIntsRef = std::optional<std::reference_wrapper<Ints const>>;
 
     /// @brief 多方向形状广播。
     /// @param inputs 所有输入的形状。
@@ -32,9 +33,9 @@ namespace refactor::onnx {
     /// @return 池化后的形状。
     ShapeResult pool(SmallInts<4> const &data,
                      Ints const &kernel,
-                     OptionalInts const &dilations,
-                     OptionalInts const &pads,
-                     OptionalInts const &strides);
+                     OptionalIntsRef const &dilations,
+                     OptionalIntsRef const &pads,
+                     OptionalIntsRef const &strides);
 
     Attribute defaultOr(Attributes &attrs,
                         std::string const &name,
