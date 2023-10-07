@@ -20,9 +20,15 @@
 #include "operators/select.hh"
 #include "operators/shape.hh"
 #include "operators/simple_binary.hh"
+#include "operators/simple_unary.hh"
 #include "operators/slice.hh"
 #include "operators/softmax.hh"
 #include "operators/split.hh"
+#include "operators/squeeze.hh"
+#include "operators/tile.hh"
+#include "operators/transpose.hh"
+#include "operators/unsqueeze.hh"
+#include "operators/where.hh"
 
 namespace refactor::onnx {
 
@@ -72,9 +78,38 @@ namespace refactor::onnx {
         REGISTER(Mul               , SimpleBinary      );
         REGISTER(Div               , SimpleBinary      );
         REGISTER(Pow               , SimpleBinary      );
+        REGISTER(And               , SimpleBinary      );
+        REGISTER(Or                , SimpleBinary      );
+        REGISTER(Xor               , SimpleBinary      );
+        REGISTER(Abs               , SimpleUnary       );
+        REGISTER(Acos              , SimpleUnary       );
+        REGISTER(Acosh             , SimpleUnary       );
+        REGISTER(Asin              , SimpleUnary       );
+        REGISTER(Asinh             , SimpleUnary       );
+        REGISTER(Atan              , SimpleUnary       );
+        REGISTER(Atanh             , SimpleUnary       );
+        REGISTER(Cos               , SimpleUnary       );
+        REGISTER(Cosh              , SimpleUnary       );
+        REGISTER(Sin               , SimpleUnary       );
+        REGISTER(Sinh              , SimpleUnary       );
+        REGISTER(Tan               , SimpleUnary       );
+        REGISTER(Tanh              , SimpleUnary       );
+        REGISTER(Relu              , SimpleUnary       );
+        REGISTER(Sqrt              , SimpleUnary       );
+        REGISTER(Sigmoid           , SimpleUnary       );
+        REGISTER(Erf               , SimpleUnary       );
+        REGISTER(Log               , SimpleUnary       );
+        REGISTER(Not               , SimpleUnary       );
+        REGISTER(Neg               , SimpleUnary       );
+        REGISTER(Identity          , SimpleUnary       );
         REGISTER(Slice             , Slice             );
         REGISTER(Softmax           , Softmax           );
         REGISTER(Split             , Split             );
+        REGISTER(Squeeze           , Squeeze           );
+        REGISTER(Tile              , Tile              );
+        REGISTER(Transpose         , Transpose         );
+        REGISTER(Unsqueeze         , Unsqueeze         );
+        REGISTER(Where             , Where             );
         #undef REGISTER
         // clang-format on
     }

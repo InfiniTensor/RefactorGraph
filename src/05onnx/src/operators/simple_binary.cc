@@ -14,23 +14,19 @@ namespace refactor::onnx {
 
     auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Simple binary operator should not have attributes");
-
-        if (opType == "onnx::Add") {
-            return OpBox(std::make_unique<Op>(Ty::Add));
-        }
-        if (opType == "onnx::Sub") {
-            return OpBox(std::make_unique<Op>(Ty::Sub));
-        }
-        if (opType == "onnx::Mul") {
-            return OpBox(std::make_unique<Op>(Ty::Mul));
-        }
-        if (opType == "onnx::Div") {
-            return OpBox(std::make_unique<Op>(Ty::Div));
-        }
-        if (opType == "onnx::Pow") {
-            return OpBox(std::make_unique<Op>(Ty::Pow));
-        }
-        UNREACHABLEX(void, "Unsupported binary operator: {}", opType);
+        // clang-format off
+        auto type =
+            opType == "onnx::Add" ? Ty::Add :
+            opType == "onnx::Sub" ? Ty::Sub :
+            opType == "onnx::Mul" ? Ty::Mul :
+            opType == "onnx::Div" ? Ty::Div :
+            opType == "onnx::Pow" ? Ty::Pow :
+            opType == "onnx::And" ? Ty::And :
+            opType == "onnx::Or"  ? Ty::Or  :
+            opType == "onnx::Xor" ? Ty::Xor :
+            UNREACHABLEX(Ty, "Unsupported binary operator: {}", opType);
+        // clang-format on
+        return OpBox(std::make_unique<Op>(type));
     }
 
     auto Op::typeId(Ty type) -> size_t {
@@ -62,20 +58,19 @@ namespace refactor::onnx {
 
     auto Op::opTypeId() const -> size_t { return typeId(type); }
     auto Op::opTypeName() const -> std::string_view {
+        // clang-format off
         switch (type) {
-            case Ty::Add:
-                return "onnx::Add";
-            case Ty::Sub:
-                return "onnx::Sub";
-            case Ty::Mul:
-                return "onnx::Mul";
-            case Ty::Div:
-                return "onnx::Div";
-            case Ty::Pow:
-                return "onnx::Pow";
-            default:
-                UNREACHABLE();
+            case Ty::Add: return "onnx::Add";
+            case Ty::Sub: return "onnx::Sub";
+            case Ty::Mul: return "onnx::Mul";
+            case Ty::Div: return "onnx::Div";
+            case Ty::Pow: return "onnx::Pow";
+            case Ty::And: return "onnx::And";
+            case Ty::Or : return "onnx::Or" ;
+            case Ty::Xor: return "onnx::Xor";
+            default: UNREACHABLE();
         }
+        // clang-format on
     }
 
     template<decltype(DataType::internal) T>
@@ -160,25 +155,19 @@ namespace refactor::onnx {
         using Op_ = computation::SimpleBinary;
         using Ty_ = computation::SimpleBinaryType;
         Ty_ type_;
+        // clang-format off
         switch (type) {
-            case Ty::Add:
-                type_ = Ty_::Add;
-                break;
-            case Ty::Sub:
-                type_ = Ty_::Sub;
-                break;
-            case Ty::Mul:
-                type_ = Ty_::Mul;
-                break;
-            case Ty::Div:
-                type_ = Ty_::Div;
-                break;
-            case Ty::Pow:
-                type_ = Ty_::Pow;
-                break;
-            default:
-                UNREACHABLE();
+            case Ty::Add : type_ = Ty_::Add; break;
+            case Ty::Sub : type_ = Ty_::Sub; break;
+            case Ty::Mul : type_ = Ty_::Mul; break;
+            case Ty::Div : type_ = Ty_::Div; break;
+            case Ty::Pow : type_ = Ty_::Pow; break;
+            case Ty::And : type_ = Ty_::And; break;
+            case Ty::Or  : type_ = Ty_::Or ; break;
+            case Ty::Xor : type_ = Ty_::Xor; break;
+            default: UNREACHABLE();
         }
+        // clang-format on
         return {std::make_shared<Op_>(type_), {0, 1}};
     }
 

@@ -1,11 +1,27 @@
-﻿#include "common.h"
+﻿#include "squeeze.hh"
+#include "common.h"
 #include "common/range.h"
 #include "computation/operators/reshape.h"
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Squeeze;
 
-    InferResult inferSqueeze(Operator const &op, TensorRefs inputs, InferOptions const &) {
+    Op::Squeeze() : Operator() {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        ASSERT(attributes.empty(), "Squeeze operator should not have attributes");
+        return OpBox(std::make_unique<Op>());
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Squeeze"; }
+
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         switch (inputs.size()) {
             case 1: {
                 auto const &data = inputs[0];
@@ -59,9 +75,9 @@ namespace refactor::onnx {
         }
     }
 
-    LowerOperator lowerSqueeze(Operator const &, TensorRefs) {
-        using namespace computation;
-
-        return {std::make_shared<Reshape>(), {0}};
+    auto Op::lower(TensorRefs) const -> LowerOperator {
+        using Op_ = computation::Reshape;
+        return {std::make_shared<Op_>(), {0}};
     }
+
 }// namespace refactor::onnx

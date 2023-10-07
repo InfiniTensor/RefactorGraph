@@ -1,11 +1,27 @@
+#include "tile.hh"
 #include "common.h"
 #include "common/range.h"
 #include <execution>
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Tile;
 
-    InferResult inferTile(Operator const &op, TensorRefs inputs, InferOptions const &options) {
+    Op::Tile() : Operator() {}
+
+    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+        ASSERT(attributes.empty(), "Tile operator should not have attributes");
+        return OpBox(std::make_unique<Op>());
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Tile"; }
+
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(2)
 
         auto const &input = inputs[0];
@@ -48,8 +64,8 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    LowerOperator lowerTile(Operator const &, TensorRefs) {
-        UNREACHABLE();
+    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+        TODO("");
     }
 
 }// namespace refactor::onnx
