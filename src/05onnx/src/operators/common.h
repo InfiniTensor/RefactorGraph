@@ -36,6 +36,10 @@ namespace refactor::onnx {
                      OptionalInts const &pads,
                      OptionalInts const &strides);
 
+    Attribute defaultOr(Attributes &attrs,
+                        std::string const &name,
+                        Attribute defaultValue);
+
 #define EXPECT_SIZE(N)                                         \
     if (inputs.size() != (N)) {                                \
         return Err(InferError(ERROR_MSG("Input size error"))); \

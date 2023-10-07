@@ -1,4 +1,4 @@
-﻿#include "binary.hh"
+﻿#include "simple_binary.hh"
 #include "common.h"
 #include "common/error_handler.h"
 #include "common/range.h"
@@ -6,42 +6,45 @@
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = SimpleBinary;
+    using Ty = SimpleBinaryType;
 
-    Binary::Binary(BinaryType type_) : type(type_) {}
+    Op::SimpleBinary(Ty type_)
+        : Operator(), type(type_) {}
 
-    auto Binary::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Simple binary operator should not have attributes");
 
         if (opType == "onnx::Add") {
-            return std::make_unique<Binary>(BinaryType::Add);
+            return OpBox(std::make_unique<Op>(Ty::Add));
         }
         if (opType == "onnx::Sub") {
-            return std::make_unique<Binary>(BinaryType::Sub);
+            return OpBox(std::make_unique<Op>(Ty::Sub));
         }
         if (opType == "onnx::Mul") {
-            return std::make_unique<Binary>(BinaryType::Mul);
+            return OpBox(std::make_unique<Op>(Ty::Mul));
         }
         if (opType == "onnx::Div") {
-            return std::make_unique<Binary>(BinaryType::Div);
+            return OpBox(std::make_unique<Op>(Ty::Div));
         }
         UNREACHABLEX(void, "Unsupported binary operator: {}", opType);
     }
 
-    auto Binary::typeId(BinaryType type) -> size_t {
+    auto Op::typeId(Ty type) -> size_t {
         switch (type) {
-            case BinaryType::Add: {
+            case Ty::Add: {
                 static uint8_t ID = 1;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case BinaryType::Sub: {
+            case Ty::Sub: {
                 static uint8_t ID = 2;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case BinaryType::Mul: {
+            case Ty::Mul: {
                 static uint8_t ID = 3;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case BinaryType::Div: {
+            case Ty::Div: {
                 static uint8_t ID = 4;
                 return reinterpret_cast<size_t>(&ID);
             }
@@ -50,16 +53,16 @@ namespace refactor::onnx {
         }
     }
 
-    auto Binary::opTypeId() const -> size_t { return typeId(type); }
-    auto Binary::opTypeName() const -> std::string_view {
+    auto Op::opTypeId() const -> size_t { return typeId(type); }
+    auto Op::opTypeName() const -> std::string_view {
         switch (type) {
-            case BinaryType::Add:
+            case Ty::Add:
                 return "onnx::Add";
-            case BinaryType::Sub:
+            case Ty::Sub:
                 return "onnx::Sub";
-            case BinaryType::Mul:
+            case Ty::Mul:
                 return "onnx::Mul";
-            case BinaryType::Div:
+            case Ty::Div:
                 return "onnx::Div";
             default:
                 UNREACHABLE();
@@ -67,22 +70,22 @@ namespace refactor::onnx {
     }
 
     template<decltype(DataType::internal) T>
-    void calculate(BinaryType ty, void *dst, void const *a, void const *b) {
+    void calculate(Ty ty, void *dst, void const *a, void const *b) {
         using T_ = typename primitive_t<T>::type;
         auto a_ = *reinterpret_cast<T_ const *>(a);
         auto b_ = *reinterpret_cast<T_ const *>(b);
         auto dst_ = reinterpret_cast<T_ *>(dst);
         switch (ty) {
-            case BinaryType::Add:
+            case Ty::Add:
                 *dst_ = a_ + b_;
                 break;
-            case BinaryType::Sub:
+            case Ty::Sub:
                 *dst_ = a_ - b_;
                 break;
-            case BinaryType::Mul:
+            case Ty::Mul:
                 *dst_ = a_ * b_;
                 break;
-            case BinaryType::Div:
+            case Ty::Div:
                 *dst_ = a_ / b_;
                 break;
             default:
@@ -90,7 +93,7 @@ namespace refactor::onnx {
         }
     }
 
-    auto Binary::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(2)
 
         auto const &a = inputs[0];
@@ -138,25 +141,27 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Binary::lower(TensorRefs) const -> LowerOperator {
-        computation::SimpleBinaryType type_;
+    auto Op::lower(TensorRefs) const -> LowerOperator {
+        using Op_ = computation::SimpleBinary;
+        using Ty_ = computation::SimpleBinaryType;
+        Ty_ type_;
         switch (type) {
-            case BinaryType::Add:
-                type_ = computation::SimpleBinaryType::Add;
+            case Ty::Add:
+                type_ = Ty_::Add;
                 break;
-            case BinaryType::Sub:
-                type_ = computation::SimpleBinaryType::Sub;
+            case Ty::Sub:
+                type_ = Ty_::Sub;
                 break;
-            case BinaryType::Mul:
-                type_ = computation::SimpleBinaryType::Mul;
+            case Ty::Mul:
+                type_ = Ty_::Mul;
                 break;
-            case BinaryType::Div:
-                type_ = computation::SimpleBinaryType::Div;
+            case Ty::Div:
+                type_ = Ty_::Div;
                 break;
             default:
-                break;
+                UNREACHABLE();
         }
-        return {std::make_shared<computation::SimpleBinary>(type_), {0, 1}};
+        return {std::make_shared<Op_>(type_), {0, 1}};
     }
 
 }// namespace refactor::onnx
