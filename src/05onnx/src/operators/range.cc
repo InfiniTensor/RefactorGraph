@@ -1,7 +1,22 @@
-﻿#include "common.h"
+﻿#include "range.hh"
+#include "common.h"
 
 namespace refactor::onnx {
     using namespace common;
+    using Op = Range;
+
+    Op::Range() : Operator() {}
+
+    auto Op::build(std::string_view, Attributes) -> OpBox {
+        return OpBox(std::make_unique<Op>());
+    }
+    auto Op::typeId() -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
+    }
+
+    auto Op::opTypeId() const -> size_t { return typeId(); }
+    auto Op::opTypeName() const -> std::string_view { return "onnx::Range"; }
 
     template<class T>
     InferResult calculate(void const *start,
@@ -26,7 +41,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    InferResult inferRange(Operator const &, TensorRefs inputs, InferOptions const &options) {
+    auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(3)
 
         auto const &start = inputs[0];
