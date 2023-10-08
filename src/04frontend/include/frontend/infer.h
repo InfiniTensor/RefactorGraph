@@ -31,7 +31,6 @@ namespace refactor::frontend {
     };
 
     using InferResult = Result<std::vector<Tensor_>, InferError>;
-    using InferFn = InferResult (*)(Operator const &, TensorRefs, InferOptions const &);
 
     std::unordered_set<DimVariable> extractDependency(TensorRefs);
 

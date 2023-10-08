@@ -22,6 +22,7 @@ namespace refactor::onnx {
 
     auto Op::opTypeId() const -> size_t { return typeId(); }
     auto Op::opTypeName() const -> std::string_view { return "onnx::Slice"; }
+    auto Op::valueDependentInputs() const -> InputVec { return {1, 2, 3, 4}; }
 
     Result<std::vector<Dim>, InferError> buildDims(
         size_t rank,
@@ -175,6 +176,6 @@ namespace refactor::onnx {
         auto rank = data.rank();
         auto size = starts_.shape[0].value();
 
-        return {std::make_shared<Op_>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap()), {0}};
+        return {std::make_unique<Op_>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap()), {0}};
     }
 }// namespace refactor::onnx

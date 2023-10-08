@@ -95,7 +95,7 @@ namespace refactor::onnx {
                 UNREACHABLE();
         }
 
-        return {std::make_shared<Op_>(type_), {0}};
+        return {std::make_unique<Op_>(type_), {0}};
     }
 
 }// namespace refactor::onnx

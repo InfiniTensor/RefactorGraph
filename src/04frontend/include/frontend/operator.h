@@ -56,8 +56,11 @@ namespace refactor::frontend {
 
     class Operator {
     public:
+        using InputVec = absl::InlinedVector<size_t, 1>;
+
         virtual size_t opTypeId() const = 0;
         virtual std::string_view opTypeName() const = 0;
+        virtual InputVec valueDependentInputs() const { return {}; }
         virtual InferResult infer(TensorRefs, InferOptions const &) const = 0;
         virtual LowerOperator lower(TensorRefs) const { UNREACHABLE(); }
 

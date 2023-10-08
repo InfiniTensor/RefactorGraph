@@ -17,6 +17,7 @@ namespace refactor::onnx {
 
     auto Op::opTypeId() const -> size_t { return typeId(); }
     auto Op::opTypeName() const -> std::string_view { return "onnx::Range"; }
+    auto Op::valueDependentInputs() const -> InputVec { return {0, 1, 2}; }
 
     template<class T>
     InferResult calculate(void const *start,

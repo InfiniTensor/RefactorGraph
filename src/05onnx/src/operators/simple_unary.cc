@@ -285,11 +285,11 @@ namespace refactor::onnx {
          // case Ty::Log      : type_ = Ty_::Log      ; break;
             case Ty::Not      : type_ = Ty_::Not      ; break;
          // case Ty::Neg      : type_ = Ty_::Neg      ; break;
-            case Ty::Identity : return {std::make_shared<computation::Identity>(), {0}};
+            case Ty::Identity : return {std::make_unique<computation::Identity>(), {0}};
             default: UNREACHABLE();
         }
         // clang-format on
-        return {std::make_shared<Op_>(type_), {0}};
+        return {std::make_unique<Op_>(type_), {0}};
     }
 
 }// namespace refactor::onnx

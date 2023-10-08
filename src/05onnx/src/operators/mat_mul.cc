@@ -66,7 +66,7 @@ namespace refactor::onnx {
 
     auto Op::lower(TensorRefs) const -> LowerOperator {
         using Op_ = computation::MatMul;
-        return {std::make_shared<Op_>(1.0, 1.0, false, false), {0, 1}};
+        return {std::make_unique<Op_>(1.0, 1.0, false, false), {0, 1}};
     }
 
 }// namespace refactor::onnx

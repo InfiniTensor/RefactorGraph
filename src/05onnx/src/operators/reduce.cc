@@ -122,6 +122,8 @@ namespace refactor::onnx {
         }
     }
 
+    auto Op::valueDependentInputs() const -> InputVec { return {1}; }
+
     auto Op::infer(TensorRefs inputs, InferOptions const &) const -> InferResult {
         if (inputs.empty() || 2 < inputs.size()) {
             return Err(InferError(ERROR_MSG("Input size error")));
@@ -211,9 +213,9 @@ namespace refactor::onnx {
         auto rank = inputs[0].rank();
         if (inputs.size() == 1) {
             if (noopWithEmptyAxes) {
-                return {std::make_shared<computation::Identity>(), {0}};
+                return {std::make_unique<computation::Identity>(), {0}};
             } else {
-                return {std::make_shared<Op_>(type_, decltype(Op_::axes){}, rank, keepdims), {0}};
+                return {std::make_unique<Op_>(type_, decltype(Op_::axes){}, rank, keepdims), {0}};
             }
         }
         auto const &axes = inputs[1];
@@ -226,6 +228,6 @@ namespace refactor::onnx {
                            return axis < 0 ? axis + rank : axis;
                        });
 
-        return {std::make_shared<Op_>(type_, std::move(axes__), rank, keepdims), {0}};
+        return {std::make_unique<Op_>(type_, std::move(axes__), rank, keepdims), {0}};
     }
 }// namespace refactor::onnx

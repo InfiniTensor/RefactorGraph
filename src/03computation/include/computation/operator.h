@@ -35,10 +35,10 @@ namespace refactor::computation {
         void transposeTo(LayoutType target) final;
     };
 
-    using SharedOp = std::shared_ptr<Operator>;
+    using OpBox = std::unique_ptr<Operator>;
 
     struct Node {
-        SharedOp op;
+        OpBox op;
         std::string name;
     };
 

@@ -23,6 +23,7 @@ namespace refactor::onnx {
 
     auto Op::opTypeId() const -> size_t { return typeId(); }
     auto Op::opTypeName() const -> std::string_view { return "onnx::ConstantOfShape"; }
+    auto Op::valueDependentInputs() const -> InputVec { return {0}; }
     auto Op::infer(TensorRefs inputs, InferOptions const &) const -> InferResult {
         EXPECT_SIZE(1)
 

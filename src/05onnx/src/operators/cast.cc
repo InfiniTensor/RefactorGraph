@@ -121,7 +121,7 @@ namespace refactor::onnx {
 
     auto Op::lower(TensorRefs) const -> LowerOperator {
         using Op_ = computation::Cast;
-        return {std::make_shared<Op_>(to), {0}};
+        return {std::make_unique<Op_>(to), {0}};
     }
 
 }// namespace refactor::onnx

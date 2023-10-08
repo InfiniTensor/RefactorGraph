@@ -21,6 +21,7 @@ namespace refactor::onnx {
 
     auto Op::opTypeId() const -> size_t { return typeId(); }
     auto Op::opTypeName() const -> std::string_view { return "onnx::Expand"; }
+    auto Op::valueDependentInputs() const -> InputVec { return {1}; }
 
     auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(2)
@@ -54,7 +55,7 @@ namespace refactor::onnx {
 
     auto Op::lower(TensorRefs) const -> LowerOperator {
         using Op_ = computation::Broadcast;
-        return {std::make_shared<Op_>(), {0}};
+        return {std::make_unique<Op_>(), {0}};
     }
 
 }// namespace refactor::onnx

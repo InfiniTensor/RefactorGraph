@@ -85,7 +85,7 @@ namespace refactor::onnx {
         decltype(LowerOperator::inputs) inputs_(inputs.size());
         std::iota(inputs_.begin(), inputs_.end(), 0);
         return {
-            std::make_shared<Op_>(alpha, beta, transA, transB),
+            std::make_unique<Op_>(alpha, beta, transA, transB),
             std::move(inputs_),
         };
     }
