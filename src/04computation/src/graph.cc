@@ -1,5 +1,7 @@
 ﻿#include "computation/graph.h"
+#include "common/range.h"
 #include "computation/operators/conv.h"
+#include "kernel/naive_selector.h"
 
 namespace refactor::computation {
 
@@ -14,7 +16,7 @@ namespace refactor::computation {
               std::move(edges),
           }) {}
 
-    void Graph::Transpose() {
+    void Graph::transpose() {
         using SubgraphId = uint16_t;
         constexpr static auto EXTERNAL = std::numeric_limits<SubgraphId>::max();
         constexpr static auto DEPENDENT = EXTERNAL;
@@ -126,6 +128,41 @@ namespace refactor::computation {
             }
         }
         fmt::println("Transpose finished");
+    }
+
+    kernel::Graph Graph::lower(mem_manager::MemFunctions const &fn) const {
+        kernel::NaiveSelector selector;
+
+        std::vector<kernel::Node> nodes(_internal.nodes.size());
+        std::vector<kernel::Edge> edges(_internal.edges.size());
+
+        for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
+            auto const &[op, name] = _internal.nodes[nodeIdx];
+            if (!op) { continue; }
+            kernel::TensorRefs inputs_, outputs_;
+            inputs_.reserve(inputs.size());
+            outputs_.reserve(outputs.size());
+            std::transform(inputs.begin(), inputs.end(),
+                           std::back_inserter(inputs_), [&](auto i) {
+                               return std::cref(*_internal.edges[i].tensor);
+                           });
+            std::transform(outputs.begin(), outputs.end(),
+                           std::back_inserter(outputs_), [&](auto i) {
+                               return std::cref(*_internal.edges[i].tensor);
+                           });
+            auto kernel = selector.select(op->candidateKernels(), inputs_, outputs_);
+            ASSERT(kernel, "No kernel selected");
+            nodes[nodeIdx] = {std::move(kernel), name};
+        }
+
+        for (auto i : common::range0_(edges.size())) {
+            auto const &[tensor, name] = _internal.edges[i];
+            if (!tensor || !tensor->data) { continue; }
+            auto blob = mem_manager::ForeignBlob::share(fn, tensor->bytesSize());
+            fn.copyHd(*blob, *(tensor->data), tensor->bytesSize());
+        }
+
+        return kernel::Graph(_internal.topology, std::move(nodes), std::move(edges));
     }
 
 }// namespace refactor::computation

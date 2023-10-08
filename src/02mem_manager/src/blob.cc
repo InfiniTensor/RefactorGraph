@@ -13,5 +13,6 @@ namespace refactor::mem_manager {
         auto ptr = blob->_ptr;
         return {std::move(blob), ptr};
     }
+    Blob::operator void const *() const noexcept { return _ptr; }
 
 }// namespace refactor::mem_manager

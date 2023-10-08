@@ -1,6 +1,8 @@
-﻿#include "computation/tensor.h"
+﻿#include "kernel/tensor.h"
+#include <numeric>
 
-namespace refactor::computation {
+namespace refactor::kernel {
+
     Tensor::Tensor(common::DataType dataType_,
                    Shape shape_,
                    LayoutType layout_,
@@ -18,4 +20,8 @@ namespace refactor::computation {
         return std::make_shared<Tensor>(dataType, std::move(shape), layout, std::move(data));
     }
 
-}// namespace refactor::computation
+    int64_t Tensor::rank() const { return shape.size(); }
+    size_t Tensor::elementsSize() const { return std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>()); }
+    size_t Tensor::bytesSize() const { return dataType.size() * elementsSize(); }
+
+}// namespace refactor::kernel

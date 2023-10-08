@@ -14,7 +14,7 @@ namespace refactor::mem_manager {
     ForeignBlob::share(MemFunctions const &f, size_t bytes) {
         return std::shared_ptr<ForeignBlob>(new ForeignBlob(f, bytes));
     }
-    void const *ForeignBlob::operator*() const noexcept { return _ptr; }
-    void *ForeignBlob::operator*() noexcept { return _ptr; }
+    ForeignBlob::operator void const *() const noexcept { return _ptr; }
+    ForeignBlob::operator void *() noexcept { return _ptr; }
 
 }// namespace refactor::mem_manager

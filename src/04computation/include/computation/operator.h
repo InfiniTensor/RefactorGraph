@@ -2,10 +2,11 @@
 #define COMPUTATION_OPERATOR_H
 
 #include "common/error_handler.h"
-#include "layout.h"
-#include <memory>
+#include "kernel/candidata.h"
+#include "kernel/kernel.h"
 
 namespace refactor::computation {
+    using kernel::LayoutType;
 
     class Operator {
     public:
@@ -13,8 +14,10 @@ namespace refactor::computation {
         virtual std::string_view name() const = 0;
         virtual bool isLayoutDependent() const;
         virtual void transposeTo(LayoutType);
+        std::vector<kernel::CandidateBox> candidateKernels() const;
 
-        template<class T> bool is() const {
+        template<class T>
+        bool is() const {
             return opTypeId() == T::typeId();
         }
     };
@@ -36,11 +39,6 @@ namespace refactor::computation {
     };
 
     using OpBox = std::unique_ptr<Operator>;
-
-    struct Node {
-        OpBox op;
-        std::string name;
-    };
 
 }// namespace refactor::computation
 

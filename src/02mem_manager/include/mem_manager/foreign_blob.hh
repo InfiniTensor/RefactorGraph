@@ -21,9 +21,12 @@ namespace refactor::mem_manager {
         ~ForeignBlob();
 
         static std::shared_ptr<ForeignBlob> share(MemFunctions const &, size_t bytes);
-        void const *operator*() const noexcept;
-        void *operator*() noexcept;
+
+        operator void const *() const noexcept;
+        operator void *() noexcept;
     };
+
+    using SharedForeignBlob = std::shared_ptr<ForeignBlob>;
 
 }// namespace refactor::mem_manager
 

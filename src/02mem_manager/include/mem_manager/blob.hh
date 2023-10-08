@@ -18,12 +18,13 @@ namespace refactor::mem_manager {
         ~Blob();
 
         static std::pair<std::shared_ptr<Blob>, void *> share(size_t);
-        void const *operator*() const noexcept;
+        operator void const *() const noexcept;
         template<class T> T const *get() const noexcept {
             return reinterpret_cast<T const *>(_ptr);
         }
     };
 
+    using SharedBlob = std::shared_ptr<Blob>;
 
 }// namespace refactor::mem_manager
 
