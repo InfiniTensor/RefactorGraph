@@ -3,29 +3,10 @@
 
 #include "../operator.h"
 #include "common/error_handler.h"
+#include "kernel/collectors/simple_unary.h"
 
 namespace refactor::computation {
-
-    enum class SimpleUnaryType {
-        Abs,
-        Acos,
-        Acosh,
-        Asin,
-        Asinh,
-        Atan,
-        Atanh,
-        Cos,
-        Cosh,
-        Sin,
-        Sinh,
-        Tan,
-        Tanh,
-        Relu,
-        Sqrt,
-        Sigmoid,
-        Erf,
-        Not,
-    };
+    using kernel::SimpleUnaryType;
 
     struct SimpleUnary final : public Operator {
         SimpleUnaryType type;
@@ -36,6 +17,7 @@ namespace refactor::computation {
         static size_t typeId(SimpleUnaryType) noexcept;
         size_t opTypeId() const noexcept final;
         std::string_view name() const noexcept final;
+        kernel::CollectorBox candidateKernels() const noexcept final;
     };
 
 }// namespace refactor::computation

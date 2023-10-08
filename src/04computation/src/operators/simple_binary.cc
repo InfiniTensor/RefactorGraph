@@ -66,4 +66,8 @@ namespace refactor::computation {
         }
     }
 
+    kernel::CollectorBox SimpleBinary::candidateKernels() const noexcept {
+        return std::make_unique<kernel::SimpleBinaryCollector>(type);
+    }
+
 }// namespace refactor::computation

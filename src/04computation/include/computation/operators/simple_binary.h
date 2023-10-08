@@ -3,19 +3,10 @@
 
 #include "../operator.h"
 #include "common/error_handler.h"
+#include "kernel/collectors/simple_binary.h"
 
 namespace refactor::computation {
-
-    enum class SimpleBinaryType {
-        Add,
-        Sub,
-        Mul,
-        Div,
-        Pow,
-        And,
-        Or,
-        Xor,
-    };
+    using kernel::SimpleBinaryType;
 
     struct SimpleBinary final : public Operator {
         SimpleBinaryType type;
@@ -26,6 +17,7 @@ namespace refactor::computation {
         static size_t typeId(SimpleBinaryType) noexcept;
         size_t opTypeId() const noexcept final;
         std::string_view name() const noexcept final;
+        kernel::CollectorBox candidateKernels() const noexcept final;
     };
 
 }// namespace refactor::computation
