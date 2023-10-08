@@ -1,5 +1,18 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(refactor_graph VERSION 0.0.0 LANGUAGES CXX)
+
+option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
+option(USE_CUDA "Build with cuda" OFF)
+
+if(USE_CUDA)
+    enable_language(CUDA)
+    set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+        set(CMAKE_CUDA_ARCHITECTURES 80)
+    endif()
+    message(STATUS "CMAKE_CUDA_HOST_COMPILER set to " ${CMAKE_CUDA_HOST_COMPILER})
+    message(STATUS "CMAKE_CUDA_ARCHITECTURES set to " ${CMAKE_CUDA_ARCHITECTURES})
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,8 +21,6 @@ add_compile_options(-Wall -Werror)
 add_compile_options(-fPIC)
 # add_compile_options(-march=native) # this will cause error in some machine
 add_compile_options(-mtune=native)
-
-option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
 
 add_subdirectory(3rd-party/backward-cpp)
 
