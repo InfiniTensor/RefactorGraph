@@ -70,9 +70,9 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(data.dataType, std::move(output), extractDependency(inputs), data.data)});
     }
 
-    computation::SharedOp lowerReshape(Operator const &op, TensorRefs inputs) {
+    LowerOperator lowerReshape(Operator const &, TensorRefs) {
         using namespace computation;
 
-        return std::make_shared<Reshape>();
+        return {std::make_shared<Reshape>(), {0}};
     }
 }// namespace refactor::onnx

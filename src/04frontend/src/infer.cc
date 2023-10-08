@@ -50,8 +50,8 @@ namespace refactor::frontend {
         return ans;
     }
 
-    Indices locateN(Shape const &shape, size_t k) {
-        Indices indices(shape.size());
+    SmallInts<4> locateN(Shape const &shape, size_t k) {
+        SmallInts<4> indices(shape.size());
         auto i = indices.rbegin();
         auto j = shape.rbegin(),
              ej = shape.rend();
@@ -63,7 +63,7 @@ namespace refactor::frontend {
         return indices;
     }
 
-    void const *locate1(Tensor const &tensor, Indices const &indices) {
+    void const *locate1(Tensor const &tensor, SmallInts<4> const &indices) {
         auto i = indices.rbegin();
         auto j = tensor.shape.rbegin(),
              ej = tensor.shape.rend();

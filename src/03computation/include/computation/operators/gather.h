@@ -5,11 +5,13 @@
 
 namespace refactor::computation {
 
-    struct Gather : public Operator {
-        size_t axis;
+    struct Gather final : public AxisRankOperator {
+        constexpr Gather(uint32_t axis, uint32_t rank) noexcept
+            : AxisRankOperator(axis, rank) {}
 
-        constexpr explicit Gather(size_t axis_)
-            : Operator(), axis(axis_) {}
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

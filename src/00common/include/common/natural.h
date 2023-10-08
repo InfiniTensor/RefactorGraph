@@ -10,23 +10,23 @@ namespace refactor::common {
         size_t _i;
 
     public:
-        natural_t(t val) : _i(val) {}
-        bool operator==(natural_t const &rhs) const { return _i == rhs._i; }
-        bool operator!=(natural_t const &rhs) const { return _i != rhs._i; }
-        bool operator<(natural_t const &rhs) const { return _i < rhs._i; }
-        bool operator>(natural_t const &rhs) const { return _i > rhs._i; }
-        bool operator<=(natural_t const &rhs) const { return _i <= rhs._i; }
-        bool operator>=(natural_t const &rhs) const { return _i >= rhs._i; }
-        natural_t &operator++() {
+        natural_t(t val) noexcept : _i(val) {}
+        bool operator==(natural_t const &rhs) const noexcept { return _i == rhs._i; }
+        bool operator!=(natural_t const &rhs) const noexcept { return _i != rhs._i; }
+        bool operator<(natural_t const &rhs) const noexcept { return _i < rhs._i; }
+        bool operator>(natural_t const &rhs) const noexcept { return _i > rhs._i; }
+        bool operator<=(natural_t const &rhs) const noexcept { return _i <= rhs._i; }
+        bool operator>=(natural_t const &rhs) const noexcept { return _i >= rhs._i; }
+        natural_t &operator++() noexcept {
             ++_i;
             return *this;
         }
-        natural_t operator++(int) {
+        natural_t operator++(int) noexcept {
             auto ans = *this;
             operator++();
             return ans;
         }
-        t operator*() const {
+        t operator*() const noexcept {
             return _i;
         }
     };
@@ -36,23 +36,23 @@ namespace refactor::common {
         size_t _i;
 
     public:
-        rev_natural_t(t val) : _i(val - 1) {}
-        bool operator==(rev_natural_t const &rhs) const { return _i == rhs._i; }
-        bool operator!=(rev_natural_t const &rhs) const { return _i != rhs._i; }
-        bool operator<(rev_natural_t const &rhs) const { return _i > rhs._i; }
-        bool operator>(rev_natural_t const &rhs) const { return _i < rhs._i; }
-        bool operator<=(rev_natural_t const &rhs) const { return _i >= rhs._i; }
-        bool operator>=(rev_natural_t const &rhs) const { return _i <= rhs._i; }
-        rev_natural_t &operator++() {
+        rev_natural_t(t val) noexcept : _i(val - 1) {}
+        bool operator==(rev_natural_t const &rhs) const noexcept { return _i == rhs._i; }
+        bool operator!=(rev_natural_t const &rhs) const noexcept { return _i != rhs._i; }
+        bool operator<(rev_natural_t const &rhs) const noexcept { return _i > rhs._i; }
+        bool operator>(rev_natural_t const &rhs) const noexcept { return _i < rhs._i; }
+        bool operator<=(rev_natural_t const &rhs) const noexcept { return _i >= rhs._i; }
+        bool operator>=(rev_natural_t const &rhs) const noexcept { return _i <= rhs._i; }
+        rev_natural_t &operator++() noexcept {
             --_i;
             return *this;
         }
-        rev_natural_t operator++(int) {
+        rev_natural_t operator++(int) noexcept {
             auto ans = *this;
             operator++();
             return ans;
         }
-        t operator*() const {
+        t operator*() const noexcept {
             return _i;
         }
     };

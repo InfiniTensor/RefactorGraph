@@ -64,13 +64,13 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerConcat(Operator const &op, TensorRefs inputs) {
+    LowerOperator lowerConcat(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
+        auto rank = inputs[0].rank();
         auto axis = op.attribute("axis").int_();
-        if (axis < 0) {
-            axis += inputs[0].rank();
-        }
-        return std::make_shared<Concat>(static_cast<size_t>(axis));
+        decltype(LowerOperator::inputs) inputs_(inputs.size());
+        std::iota(inputs_.begin(), inputs_.end(), 0);
+        return {std::make_shared<Concat>(axis < 0 ? axis + rank : axis, rank), std::move(inputs_)};
     }
 }// namespace refactor::onnx

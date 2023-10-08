@@ -1,3 +1,4 @@
+#include "computation/operators/gather_elements.h"
 #include "common.h"
 #include "common/range.h"
 #include <execution>
@@ -33,4 +34,11 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
+    LowerOperator lowerGatherElements(Operator const &op, TensorRefs inputs) {
+        using namespace computation;
+
+        auto rank = inputs[0].rank();
+        auto axis = op.attribute("axis", {0}).int_();
+        return {std::make_shared<GatherElements>(axis < 0 ? axis + rank : axis, rank), {0, 1}};
+    }
 }// namespace refactor::onnx

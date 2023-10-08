@@ -48,4 +48,8 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
+    LowerOperator lowerTile(Operator const &, TensorRefs) {
+        UNREACHABLE();
+    }
+
 }// namespace refactor::onnx

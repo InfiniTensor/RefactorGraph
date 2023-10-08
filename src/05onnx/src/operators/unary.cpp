@@ -56,7 +56,7 @@ namespace refactor::onnx {
         } else if (SET[4].find(opType) != SET[4].end()) {
             // nothing to do
         } else {
-            RUNTIME_ERROR(fmt::format("{} not support in unary inference", opType));
+            return Err(InferError(ERROR_MSG(fmt::format("{} not support in unary inference", opType))));
         }
         auto ans = Tensor::share(dataType, inputs[0].shape, extractDependency(inputs));
         if (!options.shouldCalculate(inputs, {*ans})) {
@@ -104,11 +104,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    static computation::SimpleUnaryType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in unary lowering", opType.name()));
-    }
-
-    computation::SharedOp lowerUnary(Operator const &op, TensorRefs) {
+    LowerOperator lowerUnary(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::Abs")       ? SimpleUnaryType::Abs
@@ -128,7 +124,9 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::Sqrt")    ? SimpleUnaryType::Sqrt
                     : op.opType.is("onnx::Sigmoid") ? SimpleUnaryType::Sigmoid
                     : op.opType.is("onnx::Erf")     ? SimpleUnaryType::Erf
-                                                    : unsupport(op.opType);
-        return std::make_shared<SimpleUnary>(type);
+                                                    : UNREACHABLEX(SimpleUnaryType,
+                                                                   "{} not support",
+                                                                   op.opType.name());
+        return {std::make_shared<SimpleUnary>(type), {0}};
     }
 }// namespace refactor::onnx

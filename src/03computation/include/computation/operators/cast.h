@@ -6,11 +6,15 @@
 
 namespace refactor::computation {
 
-    struct Cast : public Operator {
+    struct Cast final : public Operator {
         common::DataType targetDataType;
 
-        constexpr explicit Cast(common::DataType targetDataType_)
+        constexpr explicit Cast(common::DataType targetDataType_) noexcept
             : Operator(), targetDataType(targetDataType_) {}
+
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

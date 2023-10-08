@@ -5,11 +5,13 @@
 
 namespace refactor::computation {
 
-    struct Softmax : public Operator {
-        size_t axis;
+    struct Softmax final : public AxisRankOperator {
+        constexpr Softmax(uint32_t axis, uint32_t rank) noexcept
+            : AxisRankOperator(axis, rank) {}
 
-        constexpr explicit Softmax(size_t axis_)
-            : Operator(), axis(axis_) {}
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

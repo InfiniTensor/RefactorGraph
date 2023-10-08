@@ -7,11 +7,9 @@
 namespace refactor::communication {
     using namespace frontend;
 
-#define ERROR_MSG(msg) buildMsg(msg, __FILE__, __LINE__)
-
     // clang-format off
-    InferResult inferAllReduce(Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerAllReduce(Operator const &, TensorRefs);
-    InferResult inferAllGather(Operator const &, TensorRefs, InferOptions const&); computation::SharedOp lowerAllGather(Operator const &, TensorRefs);
+    InferResult inferAllReduce(Operator const &, TensorRefs, InferOptions const&);
+    InferResult inferAllGather(Operator const &, TensorRefs, InferOptions const&);
     // clang-format on
 
 #define EXPECT_SIZE(N)                                         \

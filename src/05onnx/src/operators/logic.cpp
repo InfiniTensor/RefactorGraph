@@ -1,4 +1,6 @@
 ﻿#include "common.h"
+#include "computation/operators/simple_binary.h"
+#include "computation/operators/simple_unary.h"
 #include <unordered_set>
 
 namespace refactor::onnx {
@@ -28,7 +30,23 @@ namespace refactor::onnx {
             MULTIDIR_BROADCAST((ShapeRefs{a.shape, b.shape}))
             return Ok(Tensors{Tensor::share(a.dataType, std::move(output), extractDependency(inputs))});
         }
-        RUNTIME_ERROR(fmt::format("{} not support in logic inference", opType));
+        return Err(InferError(ERROR_MSG(fmt::format("{} not support in logic inference", opType))));
+    }
+
+    LowerOperator lowerLogic(Operator const &op, TensorRefs inputs) {
+        using namespace computation;
+
+        if (op.opType.is("onnx::Not")) {
+            return {std::make_shared<SimpleUnary>(SimpleUnaryType::Not), {0}};
+        }
+
+        auto type = op.opType.is("onnx::And")   ? SimpleBinaryType::And
+                    : op.opType.is("onnx::Or")  ? SimpleBinaryType::Or
+                    : op.opType.is("onnx::Xor") ? SimpleBinaryType::Xor
+                                                : UNREACHABLEX(SimpleBinaryType,
+                                                               "{} not support",
+                                                               op.opType.name());
+        return {std::make_shared<SimpleBinary>(type), {0, 1}};
     }
 
 }// namespace refactor::onnx

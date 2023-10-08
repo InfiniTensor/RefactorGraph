@@ -5,8 +5,12 @@
 
 namespace refactor::computation {
 
-    struct Broadcast : public Operator {
-        constexpr Broadcast() : Operator() {}
+    struct Broadcast final : public LayoutDependentOperator {
+        constexpr Broadcast() noexcept : LayoutDependentOperator() {}
+
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

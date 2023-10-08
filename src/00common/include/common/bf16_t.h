@@ -24,38 +24,38 @@ namespace refactor::common {
         constexpr bf16_t(bf16_t const &) noexcept = default;
         constexpr bf16_t(bf16_t &&) noexcept = default;
 
-        constexpr uint16_t as_code() const {
+        constexpr uint16_t as_code() const noexcept {
             return code;
         }
 
-        constexpr float to_f32() const {
+        constexpr float to_f32() const noexcept {
             converter c{};
             c.u16[1] = code;
             c.u16[0] = 0;
             return c.f32;
         }
 
-        constexpr bool is_inf() const {
+        constexpr bool is_inf() const noexcept {
             return std::isinf(to_f32());
         }
 
-        constexpr bool is_nan() const {
+        constexpr bool is_nan() const noexcept {
             return std::isnan(to_f32());
         }
 
-        constexpr bf16_t operator-() const {
-            return (uint16_t) (code ^ (code | MASK_SIGN16));
+        constexpr bf16_t operator-() const noexcept {
+            return static_cast<decltype(code)>(code ^ (code | MASK_SIGN16));
         }
 
-        constexpr bool operator==(bf16_t const &others) const {
+        constexpr bool operator==(bf16_t const &others) const noexcept {
             return code == others.code && !is_nan();
         }
 
-        constexpr bool operator!=(bf16_t const &others) const {
+        constexpr bool operator!=(bf16_t const &others) const noexcept {
             return !operator==(others);
         }
 
-        std::string to_string() const {
+        std::string to_string() const noexcept {
             return std::to_string(to_f32());
         }
     };

@@ -9,8 +9,7 @@ namespace refactor::onnx {
         EXPECT_SIZE(1)
 
         auto const &data = inputs[0];
-        auto const &attrs = op.attributes;
-        if (auto it = attrs.find("perm"); it != attrs.end()) {
+        if (auto it = op.attributes.find("perm"); it != op.attributes.end()) {
             auto const &perm = it->second.ints();
             if (perm.size() != data.shape.size()) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
@@ -26,13 +25,18 @@ namespace refactor::onnx {
         }
     }
 
-    computation::SharedOp lowerTranspose(Operator const &op, TensorRefs) {
+    LowerOperator lowerTranspose(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
-        auto perm = op.attribute("perm").ints();
-        decltype(Transpose::perm) ans(perm.size());
-        std::transform(std::execution::unseq,
-                       perm.begin(), perm.end(), ans.begin(), [](auto i) { return static_cast<size_t>(i); });
-        return std::make_shared<Transpose>(std::move(ans));
+        decltype(Transpose::perm) perm_(inputs[0].rank());
+        if (auto it = op.attributes.find("perm"); it != op.attributes.end()) {
+            auto const &perm = it->second.ints();
+            std::transform(std::execution::unseq,
+                           perm.begin(), perm.end(), perm_.begin(),
+                           [](auto i) { return static_cast<uint32_t>(i); });
+        } else {
+            std::iota(perm_.rbegin(), perm_.rend(), 0);
+        }
+        return {std::make_shared<Transpose>(std::move(perm_)), {0}};
     }
 }// namespace refactor::onnx

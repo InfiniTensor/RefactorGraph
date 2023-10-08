@@ -1,7 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_INTERNAL_H
 #define GRAPH_TOPO_INTERNAL_H
 
-#include "graph_topo/container.hpp"
+#include "graph_topo/container.h"
 #include <cstdint>
 
 namespace refactor::graph_topo {
@@ -21,10 +21,10 @@ namespace refactor::graph_topo {
         std::vector<Node> _nodes;
         std::vector<OutputEdge> _connections;
 
-        __Implement() = default;
-        __Implement(__Implement const &) = default;
+        __Implement() noexcept = default;
+        __Implement(__Implement const &) noexcept = default;
         __Implement(__Implement &&) noexcept = default;
-        __Implement(GraphTopo const &others) : __Implement(*others._impl) {}
+        __Implement(GraphTopo const &others) noexcept : __Implement(*others._impl) {}
     };
 
 }// namespace refactor::graph_topo

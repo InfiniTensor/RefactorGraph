@@ -1,7 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_BUILDER_HPP
 #define GRAPH_TOPO_BUILDER_HPP
 
-#include "container.hpp"
+#include "container.h"
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
@@ -27,7 +27,7 @@ namespace refactor::graph_topo {
         std::unordered_map<NodeKey, Node> nodes;
         std::unordered_map<EdgeKey, Edge> edges;
 
-        Graph<Node, Edge> build() {
+        Graph<Node, Edge> build() noexcept {
             auto topology = GraphTopo::__withGlobalInputs(globalInputs.size());
             std::vector<Node> nodes;
             std::vector<Edge> edges;

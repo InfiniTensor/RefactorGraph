@@ -9,15 +9,7 @@ add_compile_options(-fPIC)
 # add_compile_options(-march=native) # this will cause error in some machine
 add_compile_options(-mtune=native)
 
-option(BUILD_SHARED "Build shared library" OFF)
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
-
-if(BUILD_SHARED)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    set(LIBRARY_TYPE SHARED)
-else()
-    set(LIBRARY_TYPE STATIC)
-endif()
 
 add_subdirectory(3rd-party/backward-cpp)
 

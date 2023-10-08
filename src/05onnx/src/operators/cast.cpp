@@ -103,10 +103,10 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerCast(Operator const &op, TensorRefs) {
+    LowerOperator lowerCast(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto to = *DataType::parse(op.attribute("to").int_());
-        return std::make_shared<Cast>(to);
+        return {std::make_shared<Cast>(to), {0}};
     }
 }// namespace refactor::onnx

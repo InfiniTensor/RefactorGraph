@@ -5,11 +5,13 @@
 
 namespace refactor::computation {
 
-    struct Concat : public Operator {
-        size_t axis;
+    struct Concat final : public AxisRankOperator {
+        constexpr Concat(uint32_t axis, uint32_t rank) noexcept
+            : AxisRankOperator(axis, rank) {}
 
-        constexpr explicit Concat(size_t axis_)
-            : Operator(), axis(axis_) {}
+        static size_t typeId() noexcept;
+        size_t opTypeId() const noexcept final;
+        std::string_view name() const noexcept final;
     };
 
 }// namespace refactor::computation

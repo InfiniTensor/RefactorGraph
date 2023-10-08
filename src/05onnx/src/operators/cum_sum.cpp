@@ -100,11 +100,11 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    computation::SharedOp lowerCumSum(Operator const &op, TensorRefs) {
+    LowerOperator lowerCumSum(Operator const &op, TensorRefs) {
         using namespace computation;
 
         auto exclusive = op.attribute("exclusive", {0}).int_() != 0;
         auto reverse = op.attribute("reverse", {0}).int_() != 0;
-        return std::make_shared<CumSum>(exclusive, reverse);
+        return {std::make_shared<CumSum>(exclusive, reverse), {0, 1}};
     }
 }// namespace refactor::onnx

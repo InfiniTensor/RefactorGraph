@@ -6,17 +6,17 @@
 
 namespace refactor::graph_topo {
 
-    GraphTopo::GraphTopo()
+    GraphTopo::GraphTopo() noexcept
         : _impl(new __Implement) {}
-    GraphTopo::GraphTopo(GraphTopo const &others)
+    GraphTopo::GraphTopo(GraphTopo const &others) noexcept
         : _impl(others._impl ? new __Implement(*others._impl) : nullptr) {}
     GraphTopo::GraphTopo(GraphTopo &&others) noexcept
         : _impl(std::exchange(others._impl, nullptr)) {}
-    GraphTopo::~GraphTopo() {
+    GraphTopo::~GraphTopo() noexcept {
         delete std::exchange(_impl, nullptr);
     }
 
-    auto GraphTopo::operator=(GraphTopo const &others) -> GraphTopo & {
+    auto GraphTopo::operator=(GraphTopo const &others) noexcept -> GraphTopo & {
         if (this != &others) {
             delete std::exchange(_impl, others._impl ? new __Implement(*others._impl) : nullptr);
         }
@@ -39,22 +39,22 @@ namespace refactor::graph_topo {
           _passConnections(passConnections),
           _passEdges(passEdges) {}
 
-    auto GraphTopo::Iterator::begin(GraphTopo const *internal) -> Iterator {
+    auto GraphTopo::Iterator::begin(GraphTopo const *internal) noexcept -> Iterator {
         return Iterator(*internal, 0, 0, internal->_impl->_globalInputsCount);
     }
 
-    auto GraphTopo::Iterator::end(GraphTopo const *internal) -> Iterator {
+    auto GraphTopo::Iterator::end(GraphTopo const *internal) noexcept -> Iterator {
         return Iterator(*internal, internal->_impl->_nodes.size(), -1, -1);
     }
 
-    bool GraphTopo::Iterator::operator==(Iterator const &rhs) const { return &_internal == &rhs._internal && _idx == rhs._idx; }
-    bool GraphTopo::Iterator::operator!=(Iterator const &rhs) const { return &_internal == &rhs._internal && _idx != rhs._idx; }
-    bool GraphTopo::Iterator::operator<(Iterator const &rhs) const { return &_internal == &rhs._internal && _idx < rhs._idx; }
-    bool GraphTopo::Iterator::operator>(Iterator const &rhs) const { return &_internal == &rhs._internal && _idx > rhs._idx; }
-    bool GraphTopo::Iterator::operator<=(Iterator const &rhs) const { return &_internal == &rhs._internal && _idx <= rhs._idx; }
-    bool GraphTopo::Iterator::operator>=(Iterator const &rhs) const { return &_internal == &rhs._internal && _idx >= rhs._idx; }
+    bool GraphTopo::Iterator::operator==(Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx == rhs._idx; }
+    bool GraphTopo::Iterator::operator!=(Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx != rhs._idx; }
+    bool GraphTopo::Iterator::operator<(Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx < rhs._idx; }
+    bool GraphTopo::Iterator::operator>(Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx > rhs._idx; }
+    bool GraphTopo::Iterator::operator<=(Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx <= rhs._idx; }
+    bool GraphTopo::Iterator::operator>=(Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx >= rhs._idx; }
 
-    auto GraphTopo::Iterator::operator++() -> Iterator & {
+    auto GraphTopo::Iterator::operator++() noexcept -> Iterator & {
         if (_idx < _internal._impl->_nodes.size()) {
             auto const &node = _internal._impl->_nodes[_idx++];
             _passConnections += node._inputsCount;
@@ -63,13 +63,13 @@ namespace refactor::graph_topo {
         return *this;
     }
 
-    auto GraphTopo::Iterator::operator++(int) -> Iterator {
+    auto GraphTopo::Iterator::operator++(int) noexcept -> Iterator {
         auto ans = *this;
         operator++();
         return ans;
     }
 
-    auto GraphTopo::Iterator::operator*() const -> NodeRef {
+    auto GraphTopo::Iterator::operator*() const noexcept -> NodeRef {
         if (_idx >= _internal._impl->_nodes.size()) {
             OUT_OF_RANGE("Iterator out of range", _idx, _internal._impl->_nodes.size());
         }
@@ -84,39 +84,44 @@ namespace refactor::graph_topo {
             {outputsBegin, outputsEnd}};
     }
 
-    common::range_t<size_t> GraphTopo::Iterator::globalInputs() const {
+    common::range_t<size_t> GraphTopo::Iterator::globalInputs() const noexcept {
         return {0, _internal._impl->_globalInputsCount};
     }
-    common::slice_t<size_t> GraphTopo::Iterator::globalOutputs() const {
+    common::slice_t<size_t> GraphTopo::Iterator::globalOutputs() const noexcept {
         ASSERT(_idx == _internal._impl->_nodes.size(), "Iterator not at end");
         auto const &connections = _internal._impl->_connections;
         auto begin = reinterpret_cast<size_t const *>(connections.data());
         return {begin + _passConnections, begin + connections.size()};
     }
 
-    auto GraphTopo::begin() const -> Iterator { return Iterator::begin(this); }
-    auto GraphTopo::end() const -> Iterator { return Iterator::end(this); }
-    size_t GraphTopo::size() const { return _impl->_nodes.size(); }
-    size_t GraphTopo::globalInputsCount() const { return _impl->_globalInputsCount; }
-    common::slice_t<size_t> GraphTopo::globalOutputs() const {
+    auto GraphTopo::begin() const noexcept -> Iterator { return Iterator::begin(this); }
+    auto GraphTopo::end() const noexcept -> Iterator { return Iterator::end(this); }
+    size_t GraphTopo::size() const noexcept { return _impl->_nodes.size(); }
+    size_t GraphTopo::globalInputsCount() const noexcept { return _impl->_globalInputsCount; }
+    common::slice_t<size_t> GraphTopo::globalOutputs() const noexcept {
         auto i = std::accumulate(_impl->_nodes.begin(), _impl->_nodes.end(), 0,
                                  [](auto const acc, auto const &n) { return acc + n._inputsCount; });
         auto const &connections = _impl->_connections;
         return {connections.data() + i, connections.data() + connections.size()};
     }
 
-    GraphTopo GraphTopo::__withGlobalInputs(size_t globalInputsCount) {
+    GraphTopo GraphTopo::__withGlobalInputs(
+        size_t globalInputsCount) noexcept {
         GraphTopo ans;
         ans._impl->_globalInputsCount = globalInputsCount;
         return ans;
     }
-    void GraphTopo::__addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount) {
+    void GraphTopo::__addNode(
+        size_t newLocalEdgesCount,
+        std::vector<size_t> inputs,
+        size_t outputsCount) noexcept {
         _impl->_nodes.push_back({newLocalEdgesCount, inputs.size(), outputsCount});
         for (auto const &edge : inputs) {
             _impl->_connections.push_back(OutputEdge{edge});
         }
     }
-    void GraphTopo::__setGlobalOutputs(std::vector<size_t> outputs) {
+    void GraphTopo::__setGlobalOutputs(
+        std::vector<size_t> outputs) noexcept {
         for (auto const &edge : outputs) {
             _impl->_connections.push_back(OutputEdge{edge});
         }

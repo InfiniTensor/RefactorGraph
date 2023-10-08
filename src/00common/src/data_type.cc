@@ -6,7 +6,7 @@
 namespace refactor::common {
     using Enum = decltype(DataType::internal);
 
-    std::optional<DataType> DataType::parse(uint8_t value) {
+    std::optional<DataType> DataType::parse(uint8_t value) noexcept {
         switch (value) {
             case 1:
             case 2:
@@ -26,14 +26,14 @@ namespace refactor::common {
         }
     }
 
-    bool DataType::operator==(DataType const &rhs) const { return internal == rhs.internal; }
-    bool DataType::operator!=(DataType const &rhs) const { return internal != rhs.internal; }
-    bool DataType::operator<(DataType const &rhs) const { return internal < rhs.internal; }
-    bool DataType::operator>(DataType const &rhs) const { return internal > rhs.internal; }
-    bool DataType::operator<=(DataType const &rhs) const { return internal <= rhs.internal; }
-    bool DataType::operator>=(DataType const &rhs) const { return internal >= rhs.internal; }
+    bool DataType::operator==(DataType const &rhs) const noexcept { return internal == rhs.internal; }
+    bool DataType::operator!=(DataType const &rhs) const noexcept { return internal != rhs.internal; }
+    bool DataType::operator<(DataType const &rhs) const noexcept { return internal < rhs.internal; }
+    bool DataType::operator>(DataType const &rhs) const noexcept { return internal > rhs.internal; }
+    bool DataType::operator<=(DataType const &rhs) const noexcept { return internal <= rhs.internal; }
+    bool DataType::operator>=(DataType const &rhs) const noexcept { return internal >= rhs.internal; }
 
-    std::string_view DataType::name() const {
+    std::string_view DataType::name() const noexcept {
         switch (internal) {
             case DataType::F32:
                 return "F32";
@@ -66,40 +66,40 @@ namespace refactor::common {
             case DataType::BF16:
                 return "BF16";
             default:
-                RUNTIME_ERROR("Unreachable");
+                UNREACHABLE();
         }
     }
 
-    bool DataType::isIeee754() const {
+    bool DataType::isIeee754() const noexcept {
         static const std::unordered_set<Enum> set{DataType::F32, DataType::FP16, DataType::F64};
         return set.find(internal) != set.end();
     }
-    bool DataType::isFloat() const {
+    bool DataType::isFloat() const noexcept {
         static const std::unordered_set<Enum> set{DataType::F32, DataType::FP16, DataType::F64, DataType::BF16};
         return set.find(internal) != set.end();
     }
-    bool DataType::isSignedLarge() const {
+    bool DataType::isSignedLarge() const noexcept {
         static const std::unordered_set<Enum> set{
             DataType::F32, DataType::FP16, DataType::BF16, DataType::F64, DataType::I32, DataType::I64};
         return set.find(internal) != set.end();
     }
-    bool DataType::isSigned() const {
+    bool DataType::isSigned() const noexcept {
         static const std::unordered_set<Enum> set{
             DataType::F32, DataType::FP16, DataType::BF16, DataType::F64, DataType::I8, DataType::I16,
             DataType::I32, DataType::I64};
         return set.find(internal) != set.end();
     }
-    bool DataType::isNumberic() const {
+    bool DataType::isNumberic() const noexcept {
         static const std::unordered_set<Enum> set{
             DataType::F32, DataType::U8, DataType::I8, DataType::U16, DataType::I16, DataType::I32,
             DataType::I64, DataType::FP16, DataType::F64, DataType::U32, DataType::U64, DataType::BF16};
         return set.find(internal) != set.end();
     }
-    bool DataType::isBool() const {
+    bool DataType::isBool() const noexcept {
         return internal == DataType::Bool;
     }
 
-    size_t DataType::size() const {
+    size_t DataType::size() const noexcept {
 #define RETURN_SIZE(TYPE) \
     case DataType::TYPE:  \
         return sizeof(primitive_t<DataType::TYPE>::type)
@@ -121,7 +121,7 @@ namespace refactor::common {
             RETURN_SIZE(Complex128);
             RETURN_SIZE(BF16);
             default:
-                RUNTIME_ERROR("Unreachable");
+                UNREACHABLE();
         }
     }
 

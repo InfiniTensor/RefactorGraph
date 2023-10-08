@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(graph_topo)
 
 file(GLOB_RECURSE GRAPH_TOPO_SRC src/*.cc src/*.cpp)
-add_library(graph_topo ${LIBRARY_TYPE} ${GRAPH_TOPO_SRC})
+add_library(graph_topo STATIC ${GRAPH_TOPO_SRC})
 target_link_libraries(graph_topo PUBLIC common)
 
 file(GLOB_RECURSE GRAPH_TEST test/*.cpp)

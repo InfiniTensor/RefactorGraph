@@ -54,11 +54,7 @@ namespace refactor::onnx {
                                         extractDependency(inputs))});
     }
 
-    static computation::ReduceType unsupport(OpType opType) {
-        RUNTIME_ERROR(fmt::format("{} not support in reduce lowering", opType.name()));
-    }
-
-    computation::SharedOp lowerReduce(Operator const &op, TensorRefs inputs) {
+    LowerOperator lowerReduce(Operator const &op, TensorRefs inputs) {
         using namespace computation;
 
         auto type = op.opType.is("onnx::ReduceMean")        ? ReduceType::Mean
@@ -71,15 +67,17 @@ namespace refactor::onnx {
                     : op.opType.is("onnx::ReduceProd")      ? ReduceType::Prod
                     : op.opType.is("onnx::ReduceSum")       ? ReduceType::Sum
                     : op.opType.is("onnx::ReduceSumSquare") ? ReduceType::SumSquare
-                                                            : unsupport(op.opType);
+                                                            : UNREACHABLEX(ReduceType,
+                                                                           "{} not support",
+                                                                           op.opType.name());
 
         auto rank = inputs[0].rank();
         auto keepdims = op.attribute("keepdims", {1}).int_() != 0;
         if (inputs.size() == 1) {
             if (op.attribute("noop_with_empty_axes", {0}).int_() != 0) {
-                return std::make_shared<Identity>();
+                return {std::make_shared<Identity>(), {0}};
             } else {
-                return std::make_shared<Reduce>(type, decltype(Reduce::axes){}, keepdims);
+                return {std::make_shared<Reduce>(type, decltype(Reduce::axes){}, rank, keepdims), {0}};
             }
         }
         auto const &axes = inputs[1];
@@ -92,6 +90,6 @@ namespace refactor::onnx {
                            return axis < 0 ? axis + rank : axis;
                        });
 
-        return std::make_shared<Reduce>(type, std::move(axes__), keepdims);
+        return {std::make_shared<Reduce>(type, std::move(axes__), rank, keepdims), {0}};
     }
 }// namespace refactor::onnx

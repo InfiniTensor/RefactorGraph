@@ -24,12 +24,27 @@ namespace refactor::python_ffi {
     }
 
     std::unordered_set<std::string>
-    Compiler::fillEdgeInfo() { return _g.fillEdgeInfo(); }
+    Compiler::fillEdgeInfo(bool calculate) { return _g.fillEdgeInfo(calculate); }
 
     std::shared_ptr<Executor>
     Compiler::compile(bool calculate) {
         _g.collectVariables();
-        ASSERT(_g.fillEdgeInfo().empty(), "Graph not fully specified");
+        std::vector<std::string_view> unknownVariables;
+        for (auto const &[_, v] : _g.variables()) {
+            if (!v->value.has_value()) {
+                unknownVariables.emplace_back(v->name);
+            }
+        }
+        if (!unknownVariables.empty()) {
+            std::string msg = "Unknown variables: [ ";
+            for (auto const &v : unknownVariables) {
+                msg += v;
+                msg += ' ';
+            }
+            msg += ']';
+            RUNTIME_ERROR(std::move(msg));
+        }
+        _g.fillEdgeInfo(true);
         return std::make_shared<Executor>(_g.lower());
     }
 

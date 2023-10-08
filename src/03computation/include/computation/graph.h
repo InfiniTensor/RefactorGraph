@@ -11,8 +11,10 @@ namespace refactor::computation {
         graph_topo::Graph<Node, Edge> _internal;
 
     public:
-        explicit Graph(graph_topo::Graph<Node, Edge>);
-        Graph(graph_topo::GraphTopo, std::vector<Node>, std::vector<Edge>);
+        explicit Graph(graph_topo::Graph<Node, Edge>) noexcept;
+        Graph(graph_topo::GraphTopo, std::vector<Node>, std::vector<Edge>) noexcept;
+
+        void Transpose();
     };
 
 }// namespace refactor::computation
