@@ -3,4 +3,4 @@ project(kernel)
 
 file(GLOB_RECURSE KERNEL_SRC src/*.cc src/*.cpp)
 add_library(kernel STATIC ${KERNEL_SRC})
-target_link_libraries(kernel PUBLIC mem_manager)
+target_link_libraries(kernel PUBLIC graph_topo mem_manager)

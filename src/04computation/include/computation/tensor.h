@@ -3,7 +3,7 @@
 
 #include "common/data_type.h"
 #include "layout.h"
-#include "mem_manager/blob.h"
+#include "mem_manager/blob.hh"
 #include <absl/container/inlined_vector.h>
 #include <string>
 

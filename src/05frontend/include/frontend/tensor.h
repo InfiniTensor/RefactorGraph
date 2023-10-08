@@ -4,7 +4,7 @@
 #include "absl/container/inlined_vector.h"
 #include "common/data_type.h"
 #include "common/slice.h"
-#include "mem_manager/blob.h"
+#include "mem_manager/blob.hh"
 #include <unordered_set>
 #include <variant>
 
