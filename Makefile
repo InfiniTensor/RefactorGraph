@@ -11,8 +11,8 @@ build:
 	cd build/$(TYPE) && cmake $(CMAKE_OPT) ../.. && make -j
 
 install-python: build
-	cp build/$(TYPE)/src/07python_ffi/python_ffi*.so src/07python_ffi/src/refactor_graph
-	pip install -e src/07python_ffi/
+	cp build/$(TYPE)/src/08python_ffi/python_ffi*.so src/08python_ffi/src/refactor_graph
+	pip install -e src/08python_ffi/
 
 clean:
 	rm -rf build

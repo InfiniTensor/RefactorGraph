@@ -40,16 +40,19 @@ add_subdirectory(src/01graph_topo)
 include_directories(src/02mem_manager/include)
 add_subdirectory(src/02mem_manager)
 
-include_directories(src/03computation/include)
-add_subdirectory(src/03computation)
+include_directories(src/03kernel/include)
+add_subdirectory(src/03kernel)
 
-include_directories(src/04frontend/include)
-add_subdirectory(src/04frontend)
+include_directories(src/04computation/include)
+add_subdirectory(src/04computation)
 
-include_directories(src/05onnx/include)
-add_subdirectory(src/05onnx)
+include_directories(src/05frontend/include)
+add_subdirectory(src/05frontend)
 
-include_directories(src/06communication/include)
-add_subdirectory(src/06communication)
+include_directories(src/06onnx/include)
+add_subdirectory(src/06onnx)
 
-add_subdirectory(src/07python_ffi)
+include_directories(src/07communication/include)
+add_subdirectory(src/07communication)
+
+add_subdirectory(src/08python_ffi)
