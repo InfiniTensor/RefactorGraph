@@ -30,7 +30,7 @@ namespace refactor::onnx {
     auto Op::lower(TensorRefs inputs) const -> LowerOperator {
         using Op_ = computation::Softmax;
         auto rank = inputs[0].rank();
-        return {std::make_shared<Op_>(axis < 0 ? axis + rank : axis, rank), {0}};
+        return {std::make_unique<Op_>(axis < 0 ? axis + rank : axis, rank), {0}};
     }
 
 }// namespace refactor::onnx

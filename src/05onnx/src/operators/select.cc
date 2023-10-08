@@ -132,7 +132,7 @@ namespace refactor::onnx {
 
         decltype(LowerOperator::inputs) inputs_(inputs.size());
         std::iota(inputs_.begin(), inputs_.end(), 0);
-        return {std::make_shared<Op_>(type_), std::move(inputs_)};
+        return {std::make_unique<Op_>(type_), std::move(inputs_)};
     }
 
 }// namespace refactor::onnx

@@ -20,6 +20,7 @@ namespace refactor::onnx {
 
     auto Op::opTypeId() const -> size_t { return typeId(); }
     auto Op::opTypeName() const -> std::string_view { return "onnx::Tile"; }
+    auto Op::valueDependentInputs() const -> InputVec { return {1}; }
 
     auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(2)

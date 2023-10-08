@@ -143,7 +143,7 @@ namespace refactor::onnx {
             default:
                 UNREACHABLE();
         }
-        return {std::make_shared<Op_>(type_), {0, 1}};
+        return {std::make_unique<Op_>(type_), {0, 1}};
     }
 
 }// namespace refactor::onnx

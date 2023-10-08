@@ -50,7 +50,7 @@ namespace refactor::onnx {
         } else {
             std::iota(perm_.rbegin(), perm_.rend(), 0);
         }
-        return {std::make_shared<Op_>(std::move(perm_)), {0}};
+        return {std::make_unique<Op_>(std::move(perm_)), {0}};
     }
 
 }// namespace refactor::onnx

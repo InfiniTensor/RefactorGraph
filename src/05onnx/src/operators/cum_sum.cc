@@ -120,7 +120,7 @@ namespace refactor::onnx {
 
     auto Op::lower(TensorRefs) const -> LowerOperator {
         using Op_ = computation::CumSum;
-        return {std::make_shared<Op_>(exclusive, reverse), {0, 1}};
+        return {std::make_unique<Op_>(exclusive, reverse), {0, 1}};
     }
 
 }// namespace refactor::onnx

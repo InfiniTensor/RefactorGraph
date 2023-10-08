@@ -25,6 +25,7 @@ namespace refactor::onnx {
 
     auto Op::opTypeId() const -> size_t { return typeId(); }
     auto Op::opTypeName() const -> std::string_view { return "onnx::Softmax"; }
+    auto Op::valueDependentInputs() const -> InputVec { return {1}; }
 
     auto Op::infer(TensorRefs inputs, InferOptions const &) const -> InferResult {
         if (inputs.empty() || inputs.size() > 2) {
@@ -71,7 +72,7 @@ namespace refactor::onnx {
     auto Op::lower(TensorRefs inputs) const -> LowerOperator {
         using Op_ = computation::Split;
         auto rank = inputs[0].rank();
-        return {std::make_shared<Op_>(axis < 0 ? axis + rank : axis, rank), {0}};
+        return {std::make_unique<Op_>(axis < 0 ? axis + rank : axis, rank), {0}};
     }
 
 }// namespace refactor::onnx
