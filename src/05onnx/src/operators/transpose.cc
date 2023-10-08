@@ -39,7 +39,7 @@ namespace refactor::onnx {
             return Ok(Tensors{Tensor::share(data.dataType, std::move(output), extractDependency(inputs))});
         }
     }
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::Transpose;
 
         decltype(Op_::perm) perm_(inputs[0].rank());
@@ -50,7 +50,7 @@ namespace refactor::onnx {
         } else {
             std::iota(perm_.rbegin(), perm_.rend(), 0);
         }
-        return {std::make_unique<Op_>(std::move(perm_)), {0}};
+        return std::make_unique<Op_>(std::move(perm_));
     }
 
 }// namespace refactor::onnx

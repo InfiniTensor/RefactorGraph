@@ -160,7 +160,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::Slice;
 
         auto const &data = inputs[0];
@@ -176,6 +176,6 @@ namespace refactor::onnx {
         auto rank = data.rank();
         auto size = starts_.shape[0].value();
 
-        return {std::make_unique<Op_>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap()), {0}};
+        return std::make_unique<Op_>(buildDims(rank, size, data.shape, starts, ends, axes, steps).unwrap());
     }
 }// namespace refactor::onnx

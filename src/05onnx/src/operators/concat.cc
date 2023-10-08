@@ -77,13 +77,11 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::Concat;
 
         auto rank = inputs[0].rank();
-        decltype(LowerOperator::inputs) inputs_(inputs.size());
-        std::iota(inputs_.begin(), inputs_.end(), 0);
-        return {std::make_unique<Op_>(axis < 0 ? axis + rank : axis, rank), std::move(inputs_)};
+        return std::make_unique<Op_>(axis < 0 ? axis + rank : axis, rank);
     }
 
 }// namespace refactor::onnx

@@ -76,9 +76,9 @@ namespace refactor::onnx {
         }
     }
 
-    auto Op::lower(TensorRefs) const -> LowerOperator {
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::Reshape;
-        return {std::make_unique<Op_>(), {0}};
+        return std::make_unique<Op_>();
     }
 
 }// namespace refactor::onnx

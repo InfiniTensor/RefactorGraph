@@ -27,10 +27,10 @@ namespace refactor::onnx {
         }
         return Ok(Tensors{Tensor::share(inputs[0])});
     }
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::Softmax;
         auto rank = inputs[0].rank();
-        return {std::make_unique<Op_>(axis < 0 ? axis + rank : axis, rank), {0}};
+        return std::make_unique<Op_>(axis < 0 ? axis + rank : axis, rank);
     }
 
 }// namespace refactor::onnx

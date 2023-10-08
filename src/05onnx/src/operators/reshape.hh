@@ -18,7 +18,7 @@ namespace refactor::onnx {
         std::string_view opTypeName() const final;
         InputVec valueDependentInputs() const final;
         InferResult infer(TensorRefs, InferOptions const &) const final;
-        LowerOperator lower(TensorRefs) const final;
+        computation::OpBox lower(TensorRefs) const final;
     };
 
 }// namespace refactor::onnx

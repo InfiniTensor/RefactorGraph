@@ -65,7 +65,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         TODO("");
     }
 

@@ -24,7 +24,7 @@ namespace refactor::onnx {
         size_t opTypeId() const final;
         std::string_view opTypeName() const final;
         InferResult infer(TensorRefs, InferOptions const &) const final;
-        LowerOperator lower(TensorRefs) const final;
+        computation::OpBox lower(TensorRefs) const final;
     };
 
 }// namespace refactor::onnx

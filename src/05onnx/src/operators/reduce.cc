@@ -170,7 +170,7 @@ namespace refactor::onnx {
                                         extractDependency(inputs))});
     }
 
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::Reduce;
         using Ty_ = computation::ReduceType;
 
@@ -213,9 +213,9 @@ namespace refactor::onnx {
         auto rank = inputs[0].rank();
         if (inputs.size() == 1) {
             if (noopWithEmptyAxes) {
-                return {std::make_unique<computation::Identity>(), {0}};
+                return std::make_unique<computation::Identity>();
             } else {
-                return {std::make_unique<Op_>(type_, decltype(Op_::axes){}, rank, keepdims), {0}};
+                return std::make_unique<Op_>(type_, decltype(Op_::axes){}, rank, keepdims);
             }
         }
         auto const &axes = inputs[1];
@@ -228,6 +228,6 @@ namespace refactor::onnx {
                            return axis < 0 ? axis + rank : axis;
                        });
 
-        return {std::make_unique<Op_>(type_, std::move(axes__), rank, keepdims), {0}};
+        return std::make_unique<Op_>(type_, std::move(axes__), rank, keepdims);
     }
 }// namespace refactor::onnx

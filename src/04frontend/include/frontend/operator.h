@@ -1,8 +1,8 @@
 ﻿#ifndef FRONTEND_OPERATOR_H
 #define FRONTEND_OPERATOR_H
 
+#include "computation/operator.h"
 #include "infer.h"
-#include "lower.h"
 #include "tensor.h"
 #include <variant>
 
@@ -62,7 +62,7 @@ namespace refactor::frontend {
         virtual std::string_view opTypeName() const = 0;
         virtual InputVec valueDependentInputs() const { return {}; }
         virtual InferResult infer(TensorRefs, InferOptions const &) const = 0;
-        virtual LowerOperator lower(TensorRefs) const { UNREACHABLE(); }
+        virtual computation::OpBox lower(TensorRefs) const { UNREACHABLE(); }
 
         bool typeEqual(size_t opTypeId) const noexcept {
             return this->opTypeId() == opTypeId;

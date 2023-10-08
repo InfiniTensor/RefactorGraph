@@ -119,9 +119,9 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Op::lower(TensorRefs) const -> LowerOperator {
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::Cast;
-        return {std::make_unique<Op_>(to), {0}};
+        return std::make_unique<Op_>(to);
     }
 
 }// namespace refactor::onnx

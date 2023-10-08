@@ -71,13 +71,6 @@ namespace refactor::frontend {
             }
             edge.tensor->depVariables = std::move(depVariables);
         }
-        for (auto i : range(globalInputsCount, _internal.edges.size())) {
-            auto const &edge = _internal.edges[i];
-            if (!edge.tensor) {
-                continue;
-            }
-            // ASSERT(if edge is local, edge has no variable)
-        }
     }
     auto Graph::variables() const -> decltype(_variables) const & {
         return _variables;
@@ -192,8 +185,14 @@ namespace refactor::frontend {
                                edges[i].tensor = computation::Tensor::share(tensor->dataType, std::move(shape), layout, tensor->data);
                                edges[i].name = name;
                            };
-                           auto [op_, inputs] = op->lower(TensorRefs(_internal.edges, nodeRef.inputs));
-                           for (auto i : inputs) {
+                           auto op_ = op->lower(TensorRefs(_internal.edges, nodeRef.inputs));
+                           auto valueDependentInputs = op->valueDependentInputs();
+                           auto it = valueDependentInputs.begin();
+                           for (auto i : range0_(nodeRef.inputs.size())) {
+                               if (it != valueDependentInputs.end() && i == *it) {
+                                   ++it;
+                                   continue;
+                               }
                                fn(nodeRef.inputs[i]);
                            }
                            std::for_each(std::execution::unseq, nodeRef.outputs.begin(), nodeRef.outputs.end(), fn);

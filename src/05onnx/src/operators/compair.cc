@@ -120,7 +120,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Op::lower(TensorRefs) const -> LowerOperator {
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::Compair;
         using Ty_ = computation::CompairType;
         Ty_ type_;
@@ -143,7 +143,7 @@ namespace refactor::onnx {
             default:
                 UNREACHABLE();
         }
-        return {std::make_unique<Op_>(type_), {0, 1}};
+        return std::make_unique<Op_>(type_);
     }
 
 }// namespace refactor::onnx

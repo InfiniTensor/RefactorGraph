@@ -48,10 +48,10 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::GatherElements;
         auto rank = inputs[0].rank();
-        return {std::make_unique<Op_>(axis < 0 ? axis + rank : axis, rank), {0, 1}};
+        return std::make_unique<Op_>(axis < 0 ? axis + rank : axis, rank);
     }
 
 }// namespace refactor::onnx

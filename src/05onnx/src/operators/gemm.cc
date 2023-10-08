@@ -79,14 +79,8 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(dataType, Shape{DimExpr(m), DimExpr(n)}, extractDependency(inputs))});
     }
 
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::MatMul;
-
-        decltype(LowerOperator::inputs) inputs_(inputs.size());
-        std::iota(inputs_.begin(), inputs_.end(), 0);
-        return {
-            std::make_unique<Op_>(alpha, beta, transA, transB),
-            std::move(inputs_),
-        };
+        return std::make_unique<Op_>(alpha, beta, transA, transB);
     }
 }// namespace refactor::onnx

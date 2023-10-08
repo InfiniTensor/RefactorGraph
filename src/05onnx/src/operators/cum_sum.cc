@@ -118,9 +118,9 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Op::lower(TensorRefs) const -> LowerOperator {
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::CumSum;
-        return {std::make_unique<Op_>(exclusive, reverse), {0, 1}};
+        return std::make_unique<Op_>(exclusive, reverse);
     }
 
 }// namespace refactor::onnx

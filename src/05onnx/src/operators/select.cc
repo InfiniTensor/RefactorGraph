@@ -114,7 +114,7 @@ namespace refactor::onnx {
         return Ok(Tensors{std::move(ans)});
     }
 
-    auto Op::lower(TensorRefs inputs) const -> LowerOperator {
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::Select;
         using Ty_ = computation::SelectType;
 
@@ -130,9 +130,7 @@ namespace refactor::onnx {
                 UNREACHABLE();
         }
 
-        decltype(LowerOperator::inputs) inputs_(inputs.size());
-        std::iota(inputs_.begin(), inputs_.end(), 0);
-        return {std::make_unique<Op_>(type_), std::move(inputs_)};
+        return std::make_unique<Op_>(type_);
     }
 
 }// namespace refactor::onnx

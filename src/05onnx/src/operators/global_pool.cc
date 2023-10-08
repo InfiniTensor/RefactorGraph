@@ -76,7 +76,7 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 
-    auto Op::lower(TensorRefs) const -> LowerOperator {
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::GlobalPool;
         using Ty_ = computation::PoolType;
 
@@ -95,7 +95,7 @@ namespace refactor::onnx {
                 UNREACHABLE();
         }
 
-        return {std::make_unique<Op_>(type_), {0}};
+        return std::make_unique<Op_>(type_);
     }
 
 }// namespace refactor::onnx

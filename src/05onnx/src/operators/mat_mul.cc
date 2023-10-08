@@ -64,9 +64,9 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
     }
 
-    auto Op::lower(TensorRefs) const -> LowerOperator {
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::MatMul;
-        return {std::make_unique<Op_>(1.0, 1.0, false, false), {0, 1}};
+        return std::make_unique<Op_>(1.0, 1.0, false, false);
     }
 
 }// namespace refactor::onnx
