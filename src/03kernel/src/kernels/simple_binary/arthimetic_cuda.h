@@ -1,0 +1,4 @@
+﻿#ifndef ARTHIMETIC_CUDA_H
+#define ARTHIMETIC_CUDA_H
+
+#endif// ARTHIMETIC_CUDA_H
