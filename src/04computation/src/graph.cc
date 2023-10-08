@@ -1,7 +1,6 @@
 ﻿#include "computation/graph.h"
 #include "common/range.h"
 #include "computation/operators/conv.h"
-#include "kernel/naive_selector.h"
 
 namespace refactor::computation {
 
@@ -131,8 +130,6 @@ namespace refactor::computation {
     }
 
     kernel::Graph Graph::lower(mem_manager::MemFunctions const &fn) const {
-        kernel::NaiveSelector selector;
-
         std::vector<kernel::Node> nodes(_internal.nodes.size());
         std::vector<kernel::Edge> edges(_internal.edges.size());
 
@@ -150,9 +147,9 @@ namespace refactor::computation {
                            std::back_inserter(outputs_), [&](auto i) {
                                return std::cref(*_internal.edges[i].tensor);
                            });
-            auto kernel = selector.select(op->candidateKernels(), inputs_, outputs_);
-            ASSERT(kernel, "No kernel selected");
-            nodes[nodeIdx] = {std::move(kernel), name};
+            auto candidates = op->candidateKernels()->filter(std::move(inputs_), std::move(outputs_));
+            ASSERT(!candidates.empty(), "No kernel selected");
+            nodes[nodeIdx] = {std::move(candidates.front()), name};
         }
 
         for (auto i : common::range0_(edges.size())) {

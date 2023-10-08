@@ -2,8 +2,7 @@
 #define COMPUTATION_OPERATOR_H
 
 #include "common/error_handler.h"
-#include "kernel/candidata.h"
-#include "kernel/kernel.h"
+#include "kernel/collector.h"
 
 namespace refactor::computation {
     using kernel::LayoutType;
@@ -14,7 +13,7 @@ namespace refactor::computation {
         virtual std::string_view name() const = 0;
         virtual bool isLayoutDependent() const;
         virtual void transposeTo(LayoutType);
-        std::vector<kernel::CandidateBox> candidateKernels() const;
+        virtual kernel::CollectorBox candidateKernels() const { TODO(""); }
 
         template<class T>
         bool is() const {

@@ -4,7 +4,6 @@ namespace refactor::computation {
 
     bool Operator::isLayoutDependent() const { return false; }
     void Operator::transposeTo(LayoutType) { isLayoutDependent() && UNREACHABLEX(bool, ""); }
-    std::vector<kernel::CandidateBox> Operator::candidateKernels() const { return {}; }
 
     bool LayoutDependentOperator::isLayoutDependent() const { return true; }
     void LayoutDependentOperator::transposeTo(LayoutType) { UNREACHABLE(); }

@@ -3,6 +3,7 @@
 
 #include <absl/container/inlined_vector.h>
 #include <functional>
+#include <memory>
 #include <string_view>
 
 namespace refactor::kernel {
@@ -11,9 +12,12 @@ namespace refactor::kernel {
 
     class Kernel {
     public:
+        virtual size_t kernelTypeId() const = 0;
         virtual std::string_view description() const = 0;
         virtual std::function<void(Addresses, Addresses)> lower() const = 0;
     };
+
+    using KernelBox = std::unique_ptr<Kernel>;
 
 }// namespace refactor::kernel
 
