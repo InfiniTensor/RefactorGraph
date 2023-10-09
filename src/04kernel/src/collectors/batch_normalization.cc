@@ -1,4 +1,5 @@
 ﻿#include "kernel/collectors/batch_normalization.h"
+#include "../kernels/batch_normalization/batch_normalization.hh"
 #include "../kernels/batch_normalization/batch_normalization_cudnn.hh"
 #include "common/error_handler.h"
 
@@ -15,6 +16,7 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (target) {
             case Target::Cpu:
+                REGISTER(BatchNormalization)
                 break;
             case Target::NvidiaGpu:
                 REGISTER(BatchNormalizationCudnn)

@@ -1,11 +1,11 @@
-﻿#include "batch_normalization_cudnn.hh"
-#include "cudnn_impl.h"
+﻿#include "batch_normalization.hh"
+#include "common/error_handler.h"
 
 namespace refactor::kernel {
-    using K = BatchNormalizationCudnn;
+    using K = BatchNormalization;
     using DT = common::DataType;
 
-    K::BatchNormalizationCudnn(
+    K::BatchNormalization(
         float epsilon_,
         std::array<DT, 3> dts_,
         Shape shape_,
@@ -17,28 +17,10 @@ namespace refactor::kernel {
           paramSize(paramSize_) {}
 
     auto K::build(float epsilon, TensorRefs inputs) noexcept -> KernelBox {
-#ifndef USE_CUDA
-        return nullptr;
-#endif
-
         auto const &x = inputs[0].get();
         auto const &scale = inputs[1].get();
-        auto const &bias = inputs[2].get();
         auto const &mean = inputs[3].get();
-        auto const &var = inputs[4].get();
-
         std::array<DT, 3> dts{x.dataType, scale.dataType, mean.dataType};
-        // see "Supported Configurations for `cudnnBatchNormalizationForwardInference`"
-        if (DT::F64 == dts[0]) {
-            if (DT::F64 != dts[1] || DT::F64 != dts[2]) {
-                return nullptr;
-            }
-        } else {
-            if (DT::F32 != dts[1] || DT::F32 != dts[2]) {
-                return nullptr;
-            }
-        }
-
         return std::make_unique<K>(epsilon, dts, x.shape, scale.shape[0]);
     }
     auto K::typeId() noexcept -> size_t {
@@ -48,10 +30,20 @@ namespace refactor::kernel {
 
     auto K::kernelTypeId() const noexcept -> size_t { return typeId(); }
     auto K::description() const noexcept -> std::string_view {
-        return "Performing batch normalization for non-training-mode using CUDNN";
+        return "Performing batch normalization for non-training-mode on generic cpu";
     }
     auto K::lower() const noexcept -> Operation {
-        cudnn::lower(epsilon, dts, shape, paramSize);
+        using namespace runtime;
+        return [](Resources &, Addresses inputs, Addresses outputs) {
+            auto x = inputs[0],
+                 scale = inputs[1],
+                 bias = inputs[2],
+                 mean = inputs[3],
+                 var = inputs[4];
+            auto y = outputs[0];
+
+            TODO("");
+        };
     }
 
 }// namespace refactor::kernel
