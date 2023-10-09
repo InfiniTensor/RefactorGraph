@@ -4,6 +4,7 @@ project(frontend)
 file(GLOB_RECURSE FRONTEND_SRC src/*.cc src/*.cpp)
 add_library(frontend STATIC ${FRONTEND_SRC})
 target_link_libraries(frontend PUBLIC computation)
+target_include_directories(frontend PUBLIC include)
 
 # file(GLOB_RECURSE FRONTEND_TEST test/*.cpp)
 # add_executable(frontend_test ${FRONTEND_TEST})

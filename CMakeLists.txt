@@ -48,28 +48,13 @@ add_compile_options(-Wall)
 
 include_directories(3rd-party/result)
 
-include_directories(src/00common/include)
 add_subdirectory(src/00common)
-
-include_directories(src/01graph_topo/include)
 add_subdirectory(src/01graph_topo)
-
-include_directories(src/02mem_manager/include)
 add_subdirectory(src/02mem_manager)
-
-include_directories(src/03kernel/include)
-add_subdirectory(src/03kernel)
-
-include_directories(src/04computation/include)
-add_subdirectory(src/04computation)
-
-include_directories(src/05frontend/include)
-add_subdirectory(src/05frontend)
-
-include_directories(src/06onnx/include)
-add_subdirectory(src/06onnx)
-
-include_directories(src/07communication/include)
-add_subdirectory(src/07communication)
-
-add_subdirectory(src/08python_ffi)
+add_subdirectory(src/03runtime)
+add_subdirectory(src/04kernel)
+add_subdirectory(src/05computation)
+add_subdirectory(src/06frontend)
+add_subdirectory(src/07onnx)
+add_subdirectory(src/08communication)
+add_subdirectory(src/09python_ffi)

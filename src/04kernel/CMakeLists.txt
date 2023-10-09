@@ -4,7 +4,8 @@ project(kernel)
 file(GLOB_RECURSE KERNEL_SRC src/*.cc src/*.cpp)
 
 add_library(kernel STATIC ${KERNEL_SRC})
-target_link_libraries(kernel PUBLIC graph_topo mem_manager)
+target_link_libraries(kernel PUBLIC graph_topo runtime)
+target_include_directories(kernel PUBLIC include)
 
 # link tbb for some compiler to enable `std::execution::par` and `std::execution::par_unseq` in <execution> if found
 find_library(TBB_LIB NAMES tbb)
