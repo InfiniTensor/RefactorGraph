@@ -4,30 +4,19 @@
 
 namespace refactor::kernel::cudnn {
 
-    class CudnnContext::__Implement {
-    public:
-        cudnnHandle_t handle;
-
-        __Implement() {
-            if (cudnnCreate(&handle) != CUDNN_STATUS_SUCCESS) {
-                RUNTIME_ERROR("Failed to create cudnn handle");
-            }
-        }
-        ~__Implement() {
-            if (cudnnDestroy(handle) != CUDNN_STATUS_SUCCESS) {
-                RUNTIME_ERROR("Failed to destroy cudnn handle");
-            }
-        }
-
-        __Implement(const __Implement &) = delete;
-        __Implement &operator=(const __Implement &) = delete;
-    };
-
     CudnnContext::CudnnContext() noexcept
-        : runtime::Resource(), _impl(new __Implement) {}
+        : runtime::Resource() {
+        cudnnHandle_t handle_;
+        if (cudnnCreate(&handle_) != CUDNN_STATUS_SUCCESS) {
+            RUNTIME_ERROR("Failed to create cudnn handle");
+        }
+        handle = handle_;
+    }
     CudnnContext::~CudnnContext() noexcept {
-        delete _impl;
-        _impl = nullptr;
+        auto handle_ = std::any_cast<cudnnHandle_t>(handle);
+        if (cudnnDestroy(handle_) != CUDNN_STATUS_SUCCESS) {
+            RUNTIME_ERROR("Failed to destroy cudnn handle");
+        }
     }
 
     auto CudnnContext::typeId() noexcept -> size_t {
@@ -43,9 +32,6 @@ namespace refactor::kernel::cudnn {
     }
     auto CudnnContext::description() const noexcept -> std::string_view {
         return "CudnnContext";
-    }
-    auto CudnnContext::handle() const noexcept -> std::any {
-        return _impl->handle;
     }
 
 }// namespace refactor::kernel::cudnn

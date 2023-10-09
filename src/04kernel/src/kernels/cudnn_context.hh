@@ -6,11 +6,9 @@
 
 namespace refactor::kernel::cudnn {
 
-    class CudnnContext final : public runtime::Resource {
-        class __Implement;
-        __Implement *_impl;
+    struct CudnnContext final : public runtime::Resource {
+        std::any handle;
 
-    public:
         CudnnContext() noexcept;
         ~CudnnContext() noexcept;
         CudnnContext(CudnnContext const &) noexcept = delete;
@@ -21,8 +19,6 @@ namespace refactor::kernel::cudnn {
 
         size_t resourceTypeId() const noexcept final;
         std::string_view description() const noexcept final;
-
-        std::any handle() const noexcept;
     };
 
 }// namespace refactor::kernel::cudnn

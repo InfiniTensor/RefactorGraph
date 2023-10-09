@@ -13,7 +13,13 @@ namespace refactor::kernel::cudnn {
         Shape shape,
         uint32_t valueSize) {
         return [](Resources &res, Addresses inputs, Addresses outputs) {
-            auto handle = std::any_cast<cudnnHandle_t>(res.fetchOrStore<CudnnContext>()->handle());
+            auto handle = std::any_cast<cudnnHandle_t>(res.fetchOrStore<CudnnContext>()->handle);
+            auto x = inputs[0],
+                 scale = inputs[1],
+                 bias = inputs[2],
+                 mean = inputs[3],
+                 var = inputs[4];
+            auto y = outputs[0];
         };
     }
 
