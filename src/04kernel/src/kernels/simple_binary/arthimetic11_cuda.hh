@@ -7,6 +7,7 @@
 #include "kernel/tensor.h"
 
 namespace refactor::kernel {
+
     struct Arthimetic11Cuda final : public Kernel {
         common::DataType dataType;
         SimpleBinaryType opType;

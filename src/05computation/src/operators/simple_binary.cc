@@ -1,38 +1,41 @@
 ﻿#include "computation/operators/simple_binary.h"
 
 namespace refactor::computation {
+    using Op = SimpleBinary;
+    using Ty = SimpleBinaryType;
+    using Collector_ = kernel::SimpleBinaryCollector;
 
-    size_t SimpleBinary::typeId(SimpleBinaryType type) noexcept {
+    auto Op::typeId(Ty type) noexcept -> size_t {
         switch (type) {
-            case SimpleBinaryType::Add: {
+            case Ty::Add: {
                 static uint8_t ID = 1;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case SimpleBinaryType::Sub: {
+            case Ty::Sub: {
                 static uint8_t ID = 2;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case SimpleBinaryType::Mul: {
+            case Ty::Mul: {
                 static uint8_t ID = 3;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case SimpleBinaryType::Div: {
+            case Ty::Div: {
                 static uint8_t ID = 4;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case SimpleBinaryType::Pow: {
+            case Ty::Pow: {
                 static uint8_t ID = 5;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case SimpleBinaryType::And: {
+            case Ty::And: {
                 static uint8_t ID = 6;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case SimpleBinaryType::Or: {
+            case Ty::Or: {
                 static uint8_t ID = 7;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case SimpleBinaryType::Xor: {
+            case Ty::Xor: {
                 static uint8_t ID = 8;
                 return reinterpret_cast<size_t>(&ID);
             }
@@ -40,34 +43,34 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t SimpleBinary::opTypeId() const noexcept {
+    auto Op::opTypeId() const noexcept -> size_t {
         return typeId(type);
     }
-    std::string_view SimpleBinary::name() const noexcept {
+    auto Op::name() const noexcept -> std::string_view {
         switch (type) {
-            case SimpleBinaryType::Add:
+            case Ty::Add:
                 return "Add";
-            case SimpleBinaryType::Sub:
+            case Ty::Sub:
                 return "Sub";
-            case SimpleBinaryType::Mul:
+            case Ty::Mul:
                 return "Mul";
-            case SimpleBinaryType::Div:
+            case Ty::Div:
                 return "Div";
-            case SimpleBinaryType::Pow:
+            case Ty::Pow:
                 return "Pow";
-            case SimpleBinaryType::And:
+            case Ty::And:
                 return "And";
-            case SimpleBinaryType::Or:
+            case Ty::Or:
                 return "Or";
-            case SimpleBinaryType::Xor:
+            case Ty::Xor:
                 return "Xor";
             default:
                 UNREACHABLE();
         }
     }
 
-    kernel::CollectorBox SimpleBinary::candidateKernels(Target target) const noexcept {
-        return std::make_unique<kernel::SimpleBinaryCollector>(target, type);
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        return std::make_unique<Collector_>(target, type);
     }
 
 }// namespace refactor::computation

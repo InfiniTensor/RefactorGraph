@@ -7,12 +7,15 @@ namespace refactor::onnx {
     using namespace common;
     using Op = BatchNormalization;
 
-    Op::BatchNormalization(bool trainingMode_)
-        : Operator(), trainingMode(trainingMode_) {}
+    Op::BatchNormalization(bool trainingMode_, float epsilon_)
+        : Operator(),
+          trainingMode(trainingMode_),
+          epsilon(epsilon_) {}
 
     auto Op::build(std::string_view, Attributes attributes) -> OpBox {
         auto trainingMode = defaultOr(attributes, "training_mode", {0}).int_() != 0;
-        return OpBox(std::make_unique<Op>(trainingMode));
+        auto epsilon = defaultOr(attributes, "epsilon", {1e-5f}).float_();
+        return OpBox(std::make_unique<Op>(trainingMode, epsilon));
     }
     auto Op::typeId() -> size_t {
         static uint8_t ID = 1;
@@ -39,6 +42,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
         if (x.rank() <= 2 ||
+            scale.rank() != 1 ||
             bias.shape != scale.shape ||
             mean.shape != scale.shape ||
             var.shape != scale.shape) {
@@ -50,7 +54,7 @@ namespace refactor::onnx {
 
     auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::BatchNormalization;
-        return std::make_unique<Op_>();
+        return std::make_unique<Op_>(epsilon);
     }
 
 }// namespace refactor::onnx

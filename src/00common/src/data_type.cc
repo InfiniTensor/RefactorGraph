@@ -26,13 +26,6 @@ namespace refactor::common {
         }
     }
 
-    bool DataType::operator==(DataType const &rhs) const noexcept { return internal == rhs.internal; }
-    bool DataType::operator!=(DataType const &rhs) const noexcept { return internal != rhs.internal; }
-    bool DataType::operator<(DataType const &rhs) const noexcept { return internal < rhs.internal; }
-    bool DataType::operator>(DataType const &rhs) const noexcept { return internal > rhs.internal; }
-    bool DataType::operator<=(DataType const &rhs) const noexcept { return internal <= rhs.internal; }
-    bool DataType::operator>=(DataType const &rhs) const noexcept { return internal >= rhs.internal; }
-
     std::string_view DataType::name() const noexcept {
         switch (internal) {
             case DataType::F32:

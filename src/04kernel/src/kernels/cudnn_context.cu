@@ -2,12 +2,12 @@
 #include "cudnn_context.hh"
 #include <cudnn.h>
 
-namespace refactor::kernel::cuda {
+namespace refactor::kernel::cudnn {
 
     class CudnnContext::__Implement {
+    public:
         cudnnHandle_t handle;
 
-    public:
         __Implement() {
             if (cudnnCreate(&handle) != CUDNN_STATUS_SUCCESS) {
                 RUNTIME_ERROR("Failed to create cudnn handle");
@@ -34,10 +34,18 @@ namespace refactor::kernel::cuda {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
+    auto CudnnContext::build() noexcept -> runtime::ResourceBox {
+        return std::make_unique<CudnnContext>();
+    }
 
-    auto CudnnContext::resourceTypeId() const noexcept -> size_t { return typeId(); }
+    auto CudnnContext::resourceTypeId() const noexcept -> size_t {
+        return typeId();
+    }
     auto CudnnContext::description() const noexcept -> std::string_view {
         return "CudnnContext";
     }
+    auto CudnnContext::handle() const noexcept -> std::any {
+        return _impl->handle;
+    }
 
-}// namespace refactor::kernel::cuda
+}// namespace refactor::kernel::cudnn

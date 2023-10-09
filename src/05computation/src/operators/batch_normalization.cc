@@ -1,12 +1,18 @@
 ﻿#include "computation/operators/batch_normalization.h"
+#include "kernel/collectors/batch_normalization.h"
 
 namespace refactor::computation {
+    using Op = BatchNormalization;
+    using Collector_ = kernel::BatchNormalizationCollector;
 
-    size_t BatchNormalization::typeId() noexcept {
+    auto Op::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    size_t BatchNormalization::opTypeId() const noexcept { return typeId(); }
-    std::string_view BatchNormalization::name() const noexcept { return "BatchNormalization"; }
+    auto Op::opTypeId() const noexcept -> size_t { return typeId(); }
+    auto Op::name() const noexcept -> std::string_view { return "BatchNormalization"; }
+    auto Op::candidateKernels(Target target) const -> kernel::CollectorBox {
+        return std::make_unique<Collector_>(target, epsilon);
+    }
 
 }// namespace refactor::computation

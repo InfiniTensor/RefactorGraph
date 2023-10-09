@@ -8,8 +8,9 @@ namespace refactor::onnx {
 
     struct BatchNormalization final : public Operator {
         bool trainingMode;
+        float epsilon;
 
-        explicit BatchNormalization(bool);
+        BatchNormalization(bool, float);
 
         static OpBox build(std::string_view, Attributes);
         static size_t typeId();

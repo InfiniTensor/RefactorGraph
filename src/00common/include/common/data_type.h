@@ -32,17 +32,10 @@ namespace refactor::common {
             // clang-format on
         } internal;
 
-        constexpr DataType(decltype(internal) i) noexcept
-            : internal(i) {}
+        constexpr DataType(decltype(internal) i) noexcept : internal(i) {}
+        constexpr operator decltype(internal)() const noexcept { return internal; }
 
         static std::optional<DataType> parse(uint8_t) noexcept;
-
-        bool operator==(DataType const &) const noexcept;
-        bool operator!=(DataType const &) const noexcept;
-        bool operator<(DataType const &) const noexcept;
-        bool operator>(DataType const &) const noexcept;
-        bool operator<=(DataType const &) const noexcept;
-        bool operator>=(DataType const &) const noexcept;
 
         std::string_view name() const noexcept;
         bool isIeee754() const noexcept;
@@ -53,6 +46,25 @@ namespace refactor::common {
         bool isBool() const noexcept;
         size_t size() const noexcept;
     };
+
+    constexpr bool operator==(DataType const &lhs, DataType const &rhs) noexcept {
+        return lhs.internal == rhs.internal;
+    }
+    constexpr bool operator!=(DataType const &lhs, DataType const &rhs) noexcept {
+        return !operator==(lhs, rhs);
+    }
+    constexpr bool operator==(DataType const &lhs, decltype(DataType::internal) const &rhs) noexcept {
+        return lhs.internal == rhs;
+    }
+    constexpr bool operator!=(DataType const &lhs, decltype(DataType::internal) const &rhs) noexcept {
+        return !operator==(lhs, rhs);
+    }
+    constexpr bool operator==(decltype(DataType::internal) const &lhs, DataType const &rhs) noexcept {
+        return lhs == rhs.internal;
+    }
+    constexpr bool operator!=(decltype(DataType::internal) const &lhs, DataType const &rhs) noexcept {
+        return !operator==(lhs, rhs);
+    }
 
     template<class T>
     DataType dataType();
