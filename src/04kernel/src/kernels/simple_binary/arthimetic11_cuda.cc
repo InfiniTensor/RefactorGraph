@@ -50,7 +50,7 @@ namespace refactor::kernel {
         return "Performing add/sub/mul/div of 2 tensors of same shape on nvidia gpu";
     }
 
-    auto K::lower() const noexcept -> std::function<void(Addresses, Addresses)> {
+    auto K::lower() const noexcept -> Operation {
         TODO("");
     }
 

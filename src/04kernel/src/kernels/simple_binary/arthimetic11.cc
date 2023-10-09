@@ -42,16 +42,16 @@ namespace refactor::kernel {
         return "Performing add/sub/mul/div of 2 tensors of same shape on generic cpu";
     }
 
-#define CASE_DT(OP, T)                                                   \
-    case DT::T:                                                          \
-        return [n = this->size](Addresses inputs, Addresses outputs) {   \
-            using T_ = common::primitive_t<DT::T>::type;                 \
-            auto a = static_cast<T_ const *>(inputs[0]);                 \
-            auto b = static_cast<T_ const *>(inputs[1]);                 \
-            auto c = static_cast<T_ *>(outputs[0]);                      \
-            std::for_each_n(std::execution::par_unseq,                   \
-                            common::natural_t(0), n,                     \
-                            [c, a, b](auto i) { c[i] = a[i] OP b[i]; }); \
+#define CASE_DT(OP, T)                                                                       \
+    case DT::T:                                                                              \
+        return [n = this->size](runtime::Resources &, Addresses inputs, Addresses outputs) { \
+            using T_ = common::primitive_t<DT::T>::type;                                     \
+            auto a = static_cast<T_ const *>(inputs[0]);                                     \
+            auto b = static_cast<T_ const *>(inputs[1]);                                     \
+            auto c = static_cast<T_ *>(outputs[0]);                                          \
+            std::for_each_n(std::execution::par_unseq,                                       \
+                            common::natural_t(0), n,                                         \
+                            [c, a, b](auto i) { c[i] = a[i] OP b[i]; });                     \
         }
 
 #define CASE_OP(NAME, SYMBOL)        \
@@ -71,7 +71,7 @@ namespace refactor::kernel {
                 UNREACHABLE();       \
         }
 
-    auto K::lower() const noexcept -> std::function<void(Addresses, Addresses)> {
+    auto K::lower() const noexcept -> Operation {
         switch (opType) {
             CASE_OP(Add, +)
             CASE_OP(Sub, -)
