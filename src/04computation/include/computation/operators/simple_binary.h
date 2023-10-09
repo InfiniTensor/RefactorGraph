@@ -17,7 +17,7 @@ namespace refactor::computation {
         static size_t typeId(SimpleBinaryType) noexcept;
         size_t opTypeId() const noexcept final;
         std::string_view name() const noexcept final;
-        kernel::CollectorBox candidateKernels() const noexcept final;
+        kernel::CollectorBox candidateKernels(Target) const noexcept final;
     };
 
 }// namespace refactor::computation

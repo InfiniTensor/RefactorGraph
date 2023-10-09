@@ -3,9 +3,11 @@
 
 #include "common/error_handler.h"
 #include "kernel/collector.h"
+#include "kernel/target.h"
 
 namespace refactor::computation {
     using kernel::LayoutType;
+    using kernel::Target;
 
     class Operator {
     public:
@@ -13,7 +15,7 @@ namespace refactor::computation {
         virtual std::string_view name() const = 0;
         virtual bool isLayoutDependent() const;
         virtual void transposeTo(LayoutType);
-        virtual kernel::CollectorBox candidateKernels() const { TODO(""); }
+        virtual kernel::CollectorBox candidateKernels(Target) const;
 
         template<class T>
         bool is() const {

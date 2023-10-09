@@ -10,6 +10,15 @@ endif()
 add_library(kernel STATIC ${KERNEL_SRC} ${KERNEL_CUDA_SRC})
 target_link_libraries(kernel PUBLIC graph_topo mem_manager)
 
+find_library(TBB_LIB NAMES tbb)
+# link tbb for some compiler to enable `std::execution::par` and `std::execution::par_unseq` in <execution> if found
+if (TBB_LIB)
+    message(STATUS "Found tbb: " ${TBB_LIB})
+    target_link_libraries(kernel PUBLIC ${TBB_LIB})
+else()
+    message(STATUS "Could NOT found tbb")
+endif()
+
 if(USE_CUDA)
-set_target_properties(kernel PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_property(TARGET kernel PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 endif()

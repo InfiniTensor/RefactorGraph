@@ -27,7 +27,7 @@ namespace refactor::python_ffi {
     Compiler::fillEdgeInfo(bool calculate) { return _g.fillEdgeInfo(calculate); }
 
     std::shared_ptr<Executor>
-    Compiler::compile(bool calculate) {
+    Compiler::compile(bool calculate, std::string target) {
         _g.collectVariables();
         std::vector<std::string_view> unknownVariables;
         for (auto const &[_, v] : _g.variables()) {
@@ -45,7 +45,17 @@ namespace refactor::python_ffi {
             RUNTIME_ERROR(std::move(msg));
         }
         _g.fillEdgeInfo(true);
-        return std::make_shared<Executor>(_g.lower());
+        auto computation = _g.lower();
+        computation.transpose();
+        kernel::Target target_ = kernel::Target::Cpu;
+        if (target == "cpu") {
+            target_ = kernel::Target::Cpu;
+        } else if (target == "cuda") {
+            target_ = kernel::Target::NvidiaGpu;
+        } else {
+            UNREACHABLE();
+        }
+        return std::make_shared<Executor>(std::move(computation), target_);
     }
 
     std::optional<py::array>

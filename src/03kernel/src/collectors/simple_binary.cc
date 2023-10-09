@@ -5,6 +5,11 @@
 
 namespace refactor::kernel {
 
+#define REGISTER(T)                                \
+    if (auto box = T::build(type, a, b, c); box) { \
+        result.emplace_back(std::move(box));       \
+    }
+
     std::vector<KernelBox>
     SimpleBinaryCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         std::vector<KernelBox> result;
@@ -12,13 +17,16 @@ namespace refactor::kernel {
         auto const &b = inputs[1].get();
         auto const &c = outputs[0].get();
 
-#define REGISTER(T)                                \
-    if (auto box = T::build(type, a, b, c); box) { \
-        result.emplace_back(std::move(box));       \
-    }
-
-        REGISTER(Arthimetic11)
-        REGISTER(Arthimetic11Cuda)
+        switch (target) {
+            case Target::Cpu:
+                REGISTER(Arthimetic11)
+                break;
+            case Target::NvidiaGpu:
+                REGISTER(Arthimetic11Cuda)
+                break;
+            default:
+                UNREACHABLEX(void, "Unknown target");
+        }
 
         return result;
     }

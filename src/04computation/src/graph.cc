@@ -129,7 +129,7 @@ namespace refactor::computation {
         fmt::println("Transpose finished");
     }
 
-    kernel::Graph Graph::lower(mem_manager::MemFunctions const &fn) const {
+    kernel::Graph Graph::lower(kernel::Target target) const {
         std::vector<kernel::Node> nodes(_internal.nodes.size());
         std::vector<kernel::Edge> edges(_internal.edges.size());
 
@@ -147,7 +147,7 @@ namespace refactor::computation {
                            std::back_inserter(outputs_), [&](auto i) {
                                return std::cref(*_internal.edges[i].tensor);
                            });
-            auto candidates = op->candidateKernels()->filter(std::move(inputs_), std::move(outputs_));
+            auto candidates = op->candidateKernels(target)->filter(std::move(inputs_), std::move(outputs_));
             ASSERT(!candidates.empty(), "No kernel selected");
             nodes[nodeIdx] = {std::move(candidates.front()), name};
         }
@@ -155,6 +155,7 @@ namespace refactor::computation {
         for (auto i : common::range0_(edges.size())) {
             auto const &[tensor, name] = _internal.edges[i];
             if (!tensor || !tensor->data) { continue; }
+            auto fn = target.memFunc();
             auto blob = mem_manager::ForeignBlob::share(fn, tensor->bytesSize());
             fn.copyHd(*blob, *(tensor->data), tensor->bytesSize());
         }

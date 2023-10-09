@@ -7,9 +7,9 @@ namespace refactor::mem_manager {
 
     using Malloc = void *(*) (size_t);
     using Free = void (*)(void *);
-    using CopyHD = void (*)(void *dst, void const *src, size_t bytes);// dst <- src ; n
-    using CopyDH = void (*)(void *dst, void const *src, size_t bytes);// dst <- src ; n
-    using CopyDD = void (*)(void *dst, void const *src, size_t bytes);// dst <- src ; n
+    using CopyHD = void *(*) (void *dst, void const *src, size_t bytes) noexcept;// dst <- src ; n
+    using CopyDH = void *(*) (void *dst, void const *src, size_t bytes) noexcept;// dst <- src ; n
+    using CopyDD = void *(*) (void *dst, void const *src, size_t bytes) noexcept;// dst <- src ; n
 
     struct MemFunctions {
         Malloc malloc;

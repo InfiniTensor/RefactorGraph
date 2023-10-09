@@ -2,9 +2,8 @@
 
 namespace refactor::python_ffi {
 
-    Executor::Executor(computation::Graph g)
-        : _g(std::move(g)) {
-        _g.transpose();
+    Executor::Executor(computation::Graph g, kernel::Target t)
+        : _g(g.lower(t)) {
     }
 
 }// namespace refactor::python_ffi
