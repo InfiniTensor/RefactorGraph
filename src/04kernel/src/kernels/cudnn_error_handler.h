@@ -1,0 +1,9 @@
+﻿#ifndef KERNEL_CUDNN_ERROR_HANDLER_H
+#define KERNEL_CUDNN_ERROR_HANDLER_H
+
+#include "common/error_handler.h"
+
+#define CUDNN_ASSERT(STATUS, MSG) \
+    ASSERT((STATUS) == CUDNN_STATUS_SUCCESS, MSG)
+
+#endif// KERNEL_CUDNN_ERROR_HANDLER_H
