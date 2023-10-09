@@ -9,11 +9,11 @@
 namespace refactor::kernel {
     struct BatchNormalizationCudnn final : public Kernel {
         float epsilon;
-        common::DataType dataType;
+        std::array<common::DataType, 3> dts;
         Shape shape;
-        uint32_t valueSize;
+        uint32_t paramSize;
 
-        BatchNormalizationCudnn(float, common::DataType, Shape, uint32_t) noexcept;
+        BatchNormalizationCudnn(float, std::array<common::DataType, 3>, Shape, uint32_t) noexcept;
 
         static KernelBox build(float, TensorRefs) noexcept;
         static size_t typeId() noexcept;

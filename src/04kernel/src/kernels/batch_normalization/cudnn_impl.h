@@ -9,9 +9,9 @@ namespace refactor::kernel::cudnn {
 
     Operation lower(
         float epsilon,
-        common::DataType dataType,
-        Shape shape,
-        uint32_t valueSize);
+        std::array<common::DataType, 3>,
+        Shape,
+        uint32_t paramSize);
 
 }// namespace refactor::kernel::cudnn
 
