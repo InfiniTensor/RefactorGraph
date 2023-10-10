@@ -1,11 +1,29 @@
 ﻿#include "kernel/collectors/simple_unary.h"
+#include "../kernels/simple_unary/cudnn_activation_kernel.hh"
 #include "common/error_handler.h"
 
 namespace refactor::kernel {
 
+#define REGISTER(T)                          \
+    if (auto box = T::build(type, a); box) { \
+        ans.emplace_back(std::move(box));    \
+    }
+
     std::vector<KernelBox>
     SimpleUnaryCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-        TODO("");
+        auto const &a = inputs[0].get();
+
+        std::vector<KernelBox> ans;
+        switch (target) {
+            case Target::Cpu:
+                break;
+            case Target::NvidiaGpu:
+                REGISTER(ActivationCudnn)
+                break;
+            default:
+                UNREACHABLEX(void, "Unknown target");
+        }
+        return ans;
     }
 
 }// namespace refactor::kernel

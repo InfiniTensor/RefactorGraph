@@ -16,7 +16,6 @@ namespace refactor::kernel::cudnn {
         Operation lower() const;
     };
 
-
 }// namespace refactor::kernel::cudnn
 
 #endif// KERNEL_BATCH_NORMALIZATION_CUDNN_IMPL_H

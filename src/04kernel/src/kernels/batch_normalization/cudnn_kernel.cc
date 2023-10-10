@@ -1,4 +1,4 @@
-﻿#include "batch_normalization_cudnn.hh"
+﻿#include "cudnn_kernel.hh"
 
 namespace refactor::kernel {
     using K = BatchNormalizationCudnn;

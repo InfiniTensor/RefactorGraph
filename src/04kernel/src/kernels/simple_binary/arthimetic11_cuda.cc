@@ -16,7 +16,7 @@ namespace refactor::kernel {
     K::Arthimetic11Cuda(Op opType_, DT dataType_, size_t size_) noexcept
         : Kernel(), dataType(dataType_), opType(opType_), size(size_) {}
 
-    auto K::build(Op op, Tensor const &a, Tensor const &b, Tensor const &c) noexcept -> KernelBox {
+    auto K::build(Op op, Tensor const &a, Tensor const &b) noexcept -> KernelBox {
         static const std::unordered_set<decltype(DT::internal)> TYPE{
             DT::F32, DT::U8, DT::I8, DT::U16, DT::I16,
             DT::I32, DT::I64, DT::F64, DT::U32, DT::U64};
@@ -27,16 +27,13 @@ namespace refactor::kernel {
         return nullptr;
 #endif
 
-        auto dataType = a.dataType;
         if (a.shape != b.shape ||
-            a.shape != c.shape ||
-            dataType != b.dataType ||
-            dataType != c.dataType ||
+            a.dataType != b.dataType ||
             ARTHIMETIC.find(op) == ARTHIMETIC.end() ||
-            TYPE.find(dataType.internal) == TYPE.end()) {
+            TYPE.find(a.dataType) == TYPE.end()) {
             return nullptr;
         }
-        return std::make_unique<K>(op, dataType, a.elementsSize());
+        return std::make_unique<K>(op, a.dataType, a.elementsSize());
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

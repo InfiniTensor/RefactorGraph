@@ -1,4 +1,4 @@
-﻿#include "batch_normalization.hh"
+﻿#include "cpu_kernel.hh"
 #include "common/error_handler.h"
 
 namespace refactor::kernel {

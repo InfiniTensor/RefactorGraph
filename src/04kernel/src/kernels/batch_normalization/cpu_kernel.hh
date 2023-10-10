@@ -2,11 +2,11 @@
 #define KERNEL_BATCH_NORMALIZATION_CPU_KERNEL_HH
 
 #include "common/data_type.h"
-#include "kernel/collectors/batch_normalization.h"
 #include "kernel/kernel.h"
 #include "kernel/tensor.h"
 
 namespace refactor::kernel {
+
     struct BatchNormalization final : public Kernel {
         float epsilon;
         std::array<common::DataType, 3> dts;

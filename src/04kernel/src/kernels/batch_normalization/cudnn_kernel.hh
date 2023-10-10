@@ -2,9 +2,9 @@
 #define KERNEL_BATCH_NORMALIZATION_CUDNN_KERNEL_HH
 
 #include "cudnn_impl.h"
-#include "kernel/collectors/batch_normalization.h"
 
 namespace refactor::kernel {
+
     /// @brief Use `cudnnBatchNormalizationForwardInference`.
     ///        It only supports 4D and 5D tensor.
     struct BatchNormalizationCudnn final : public Kernel {
