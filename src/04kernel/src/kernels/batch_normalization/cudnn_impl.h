@@ -1,5 +1,5 @@
-﻿#ifndef KERNEL_BATCH_NORMALIZATION_CUDNN_H
-#define KERNEL_BATCH_NORMALIZATION_CUDNN_H
+﻿#ifndef KERNEL_BATCH_NORMALIZATION_CUDNN_IMPL_H
+#define KERNEL_BATCH_NORMALIZATION_CUDNN_IMPL_H
 
 #include "common/data_type.h"
 #include "kernel/kernel.h"
@@ -19,4 +19,4 @@ namespace refactor::kernel::cudnn {
 
 }// namespace refactor::kernel::cudnn
 
-#endif// KERNEL_BATCH_NORMALIZATION_CUDNN_H
+#endif// KERNEL_BATCH_NORMALIZATION_CUDNN_IMPL_H

@@ -1,18 +1,17 @@
-﻿#ifndef KERNEL_BATCH_NORMALIZATION_CUDNN_KERNEL_HH
-#define KERNEL_BATCH_NORMALIZATION_CUDNN_KERNEL_HH
+﻿#ifndef KERNEL_CONV_CUDNN_KERNEL_HH
+#define KERNEL_CONV_CUDNN_KERNEL_HH
 
 #include "cudnn_impl.h"
-#include "kernel/collectors/batch_normalization.h"
+#include "kernel/collectors/conv.h"
 
 namespace refactor::kernel {
     /// @brief Use `cudnnBatchNormalizationForwardInference`.
     ///        It only supports 4D and 5D tensor.
-    struct BatchNormalizationCudnn final : public Kernel {
-        cudnn::Info info;
+    struct ConvCudnn final : public Kernel {
 
-        BatchNormalizationCudnn(cudnn::Info) noexcept;
+        ConvCudnn() noexcept;
 
-        static KernelBox build(float, TensorRefs) noexcept;
+        static KernelBox build() noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
@@ -22,4 +21,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_BATCH_NORMALIZATION_CUDNN_KERNEL_HH
+#endif// KERNEL_CONV_CUDNN_KERNEL_HH

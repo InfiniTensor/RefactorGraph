@@ -1,12 +1,17 @@
 ﻿#include "computation/operators/conv.h"
+#include "kernel/collectors/conv.h"
 
 namespace refactor::computation {
+    using Op = Conv;
 
-    size_t Conv::typeId() noexcept {
+    auto Op::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    size_t Conv::opTypeId() const noexcept { return typeId(); }
-    std::string_view Conv::name() const noexcept { return "Conv"; }
+    auto Op::opTypeId() const noexcept -> size_t { return typeId(); }
+    auto Op::name() const noexcept -> std::string_view { return "Conv"; }
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        return std::make_unique<kernel::ConvCollector>(target);
+    }
 
 }// namespace refactor::computation

@@ -1,5 +1,5 @@
-﻿#ifndef KERNEL_BATCH_NORMALIZATION_HH
-#define KERNEL_BATCH_NORMALIZATION_HH
+﻿#ifndef KERNEL_BATCH_NORMALIZATION_CPU_KERNEL_HH
+#define KERNEL_BATCH_NORMALIZATION_CPU_KERNEL_HH
 
 #include "common/data_type.h"
 #include "kernel/collectors/batch_normalization.h"
@@ -25,4 +25,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_BATCH_NORMALIZATION_HH
+#endif// KERNEL_BATCH_NORMALIZATION_CPU_KERNEL_HH
