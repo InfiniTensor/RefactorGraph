@@ -1,15 +1,16 @@
 ﻿#ifndef KERNEL_CONV_CUDNN_KERNEL_HH
 #define KERNEL_CONV_CUDNN_KERNEL_HH
 
-#include "cudnn_activation_impl.hh"
 #include "kernel/collectors/simple_unary.h"
 
 namespace refactor::kernel {
 
     struct ActivationCudnn final : public Kernel {
         SimpleUnaryType type;
+        common::DataType dataType;
+        size_t size;
 
-        ActivationCudnn(SimpleUnaryType) noexcept;
+        ActivationCudnn(SimpleUnaryType, common::DataType, size_t) noexcept;
 
         static KernelBox build(SimpleUnaryType, Tensor const &) noexcept;
         static size_t typeId() noexcept;

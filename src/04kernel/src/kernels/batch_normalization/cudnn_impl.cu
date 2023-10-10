@@ -1,9 +1,7 @@
 ﻿#include "../cudnn_context.hh"
-#include "../cudnn_error_handler.h"
+#include "../cudnn_functions.h"
 #include "cudnn_impl.h"
-#include "runtime/resource.h"
 #include <cudnn.h>
-#include <utility>
 
 namespace refactor::kernel::cudnn {
     using namespace runtime;
@@ -11,6 +9,24 @@ namespace refactor::kernel::cudnn {
     using DT = common::DataType;
 
     Operation Info::lower() const {
+        // RAII for closure
+        struct Descriptors {
+            cudnnTensorDescriptor_t x, param;
+
+            Descriptors() : x(nullptr), param(nullptr) {
+                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
+                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&param));
+            }
+            ~Descriptors() {
+                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(x));
+                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(param));
+            }
+
+            Descriptors(const Descriptors &) = delete;
+            Descriptors(Descriptors &&) = delete;
+        };
+        auto d = std::make_shared<Descriptors>();
+
         int strideAx[4]{0, 0, 0, 1},       // to calculate
             dimAp[4]{1, dimAx[1], 1, 1},   // 1xCx1x1
             strideAp[4]{dimAx[1], 1, 1, 1};// Cx1x1x1
@@ -19,43 +35,8 @@ namespace refactor::kernel::cudnn {
             strideAx[i - 1] = strideAx[i] * dimAx[i];
         }
 
-        // RAII for closure
-        struct Descriptors {
-            cudnnTensorDescriptor_t x, param;
-
-            Descriptors() : x(nullptr), param(nullptr) {
-                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x),
-                             "cudnnCreateTensorDescriptor failed");
-                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&param),
-                             "cudnnCreateTensorDescriptor failed");
-            }
-            ~Descriptors() {
-                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(x),
-                             "cudnnDestroyTensorDescriptor failed");
-                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(param),
-                             "cudnnDestroyTensorDescriptor failed");
-            }
-
-            Descriptors(const Descriptors &) = delete;
-            Descriptors(Descriptors &&) = delete;
-        };
-        auto d = std::make_shared<Descriptors>();
-        // clang-format off
-        cudnnDataType_t
-            dtX_ = dtX == DT::F32  ? CUDNN_DATA_FLOAT
-                 : dtX == DT::F64  ? CUDNN_DATA_DOUBLE
-                 : dtX == DT::FP16 ? CUDNN_DATA_HALF
-                 : dtX == DT::BF16 ? CUDNN_DATA_BFLOAT16
-                 : UNREACHABLEX(cudnnDataType_t, ""),
-            dtParam_ = dtParam == DT::F32 ? CUDNN_DATA_FLOAT
-                     : dtParam == DT::F64 ? CUDNN_DATA_DOUBLE
-                     : UNREACHABLEX(cudnnDataType_t, "");
-        // clang-format on
-
-        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->x, dtX_, 4, dimAx, strideAx),
-                     "cudnnSetTensorNdDescriptor failed");
-        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->param, dtParam_, 4, dimAp, strideAp),
-                     "cudnnSetTensorNdDescriptor failed");
+        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->x, cudnnDataTypeConvert(dtX), 4, dimAx, strideAx));
+        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->param, cudnnDataTypeConvert(dtParam), 4, dimAp, strideAp));
 
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d),
@@ -88,13 +69,12 @@ namespace refactor::kernel::cudnn {
                 beta = f64 + 1;
             }
             CUDNN_ASSERT(cudnnBatchNormalizationForwardInference(
-                             handle, CUDNN_BATCHNORM_SPATIAL, alpha, beta,
-                             d->x, x,
-                             d->x, y, // desc(x) === desc(y) for onnx
-                             d->param,// scale, bias, mean, var
-                             scale, bias, mean, var,
-                             epsilon),
-                         "cudnnBatchNormalizationForwardInference failed");
+                handle, CUDNN_BATCHNORM_SPATIAL, alpha, beta,
+                d->x, x,
+                d->x, y, // desc(x) === desc(y) for onnx
+                d->param,// scale, bias, mean, var
+                scale, bias, mean, var,
+                epsilon));
         };
     }
 
