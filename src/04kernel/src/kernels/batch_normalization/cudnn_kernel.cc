@@ -4,7 +4,7 @@ namespace refactor::kernel {
     using K = BatchNormalizationCudnn;
     using DT = common::DataType;
 
-    K::BatchNormalizationCudnn(cudnn::Info info_) noexcept
+    K::BatchNormalizationCudnn(cudnn::BNInfo info_) noexcept
         : Kernel(), info(info_) {}
 
     auto K::build(float epsilon, TensorRefs inputs) noexcept -> KernelBox {
@@ -35,7 +35,7 @@ namespace refactor::kernel {
         }
 
         return std::make_unique<K>(
-            cudnn::Info{
+            cudnn::BNInfo{
                 epsilon,
                 x.dataType,
                 scale.dataType,

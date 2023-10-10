@@ -2,11 +2,15 @@
 #define COMPUTATION_CONV_H
 
 #include "../operator.h"
+#include "kernel/collectors/pool_attributes.hh"
 
 namespace refactor::computation {
+    using kernel::PoolAttributes;
 
     struct Conv final : public Operator {
-        constexpr Conv() noexcept : Operator() {}
+        PoolAttributes poolAttributes;
+
+        explicit Conv(PoolAttributes) noexcept;
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;

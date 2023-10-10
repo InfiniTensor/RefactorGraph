@@ -6,8 +6,8 @@
 namespace refactor::kernel {
 
 #define REGISTER(T)                             \
-    if (auto box = T::build(type, a, b); box) { \
-        ans.emplace_back(std::move(box));       \
+    if (auto ptr = T::build(type, a, b); ptr) { \
+        ans.emplace_back(std::move(ptr));       \
     }
 
     std::vector<KernelBox>

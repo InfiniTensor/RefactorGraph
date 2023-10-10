@@ -1,5 +1,5 @@
-﻿#include "../cudnn_context.hh"
-#include "../cudnn_functions.h"
+﻿#include "../../utilities/cuda/cudnn_context.hh"
+#include "../../utilities/cuda/cudnn_functions.h"
 #include "cudnn_activation_impl.hh"
 #include <cudnn.h>
 
@@ -42,7 +42,7 @@ namespace refactor::kernel::cudnn {
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d)](Resources &res, Addresses inputs, Addresses outputs) {
             // fetch cudnn handle from resources
-            auto handle = std::any_cast<cudnnHandle_t>(res.fetchOrStore<CudnnContext>()->handle);
+            auto handle = res.fetchOrStore<CudnnContext>()->handle;
             // name inputs and outputs
             auto x = inputs[0];
             auto y = outputs[0];

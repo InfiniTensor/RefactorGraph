@@ -1,5 +1,5 @@
-﻿#include "../cudnn_context.hh"
-#include "../cudnn_functions.h"
+﻿#include "../../utilities/cuda/cudnn_context.hh"
+#include "../../utilities/cuda/cudnn_functions.h"
 #include "cudnn_impl.h"
 #include <cudnn.h>
 
@@ -8,7 +8,7 @@ namespace refactor::kernel::cudnn {
     using Ctx = CudnnContext;
     using DT = common::DataType;
 
-    Operation Info::lower() const {
+    Operation BNInfo::lower() const {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, param;
@@ -43,7 +43,7 @@ namespace refactor::kernel::cudnn {
                 param64 = dtParam == DT::F64,
                 epsilon = this->epsilon](Resources &res, Addresses inputs, Addresses outputs) {
             // fetch cudnn handle from resources
-            auto handle = std::any_cast<cudnnHandle_t>(res.fetchOrStore<CudnnContext>()->handle);
+            auto handle = res.fetchOrStore<CudnnContext>()->handle;
             // name inputs and outputs
             auto x = inputs[0],
                  scale = inputs[1],

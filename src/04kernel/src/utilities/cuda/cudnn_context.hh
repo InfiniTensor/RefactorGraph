@@ -2,12 +2,12 @@
 #define KERNEL_CUDNN_CONTEXT_HH
 
 #include "runtime/resource.h"
-#include <any>
+#include <cudnn.h>
 
 namespace refactor::kernel::cudnn {
 
     struct CudnnContext final : public runtime::Resource {
-        std::any handle;
+        cudnnHandle_t handle;
 
         CudnnContext() noexcept;
         ~CudnnContext() noexcept;

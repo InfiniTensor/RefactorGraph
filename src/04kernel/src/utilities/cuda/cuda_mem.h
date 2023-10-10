@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_CUDA_MEM_H
 #define KERNEL_CUDA_MEM_H
 
-#include <cstdlib>
+#include "mem_manager/mem_functions.h"
 
 namespace refactor::kernel::cuda {
 
@@ -10,6 +10,8 @@ namespace refactor::kernel::cuda {
     void *memcpy_h2d(void *dst, void const *src, size_t bytes) noexcept;
     void *memcpy_d2h(void *dst, void const *src, size_t bytes) noexcept;
     void *memcpy_d2d(void *dst, void const *src, size_t bytes) noexcept;
+
+    mem_manager::MemFunctions const &memFunc();
 
 }// namespace refactor::kernel::cuda
 

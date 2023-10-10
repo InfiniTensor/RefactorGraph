@@ -1,20 +1,15 @@
 ﻿#include "common/error_handler.h"
 #include "cudnn_context.hh"
-#include <cudnn.h>
 
 namespace refactor::kernel::cudnn {
 
-    CudnnContext::CudnnContext() noexcept
-        : runtime::Resource() {
-        cudnnHandle_t handle_;
-        if (cudnnCreate(&handle_) != CUDNN_STATUS_SUCCESS) {
+    CudnnContext::CudnnContext() noexcept : runtime::Resource() {
+        if (cudnnCreate(&handle) != CUDNN_STATUS_SUCCESS) {
             RUNTIME_ERROR("Failed to create cudnn handle");
         }
-        handle = handle_;
     }
     CudnnContext::~CudnnContext() noexcept {
-        auto handle_ = std::any_cast<cudnnHandle_t>(handle);
-        if (cudnnDestroy(handle_) != CUDNN_STATUS_SUCCESS) {
+        if (cudnnDestroy(handle) != CUDNN_STATUS_SUCCESS) {
             RUNTIME_ERROR("Failed to destroy cudnn handle");
         }
     }

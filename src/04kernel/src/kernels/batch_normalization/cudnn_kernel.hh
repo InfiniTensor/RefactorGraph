@@ -8,9 +8,9 @@ namespace refactor::kernel {
     /// @brief Use `cudnnBatchNormalizationForwardInference`.
     ///        It only supports 4D and 5D tensor.
     struct BatchNormalizationCudnn final : public Kernel {
-        cudnn::Info info;
+        cudnn::BNInfo info;
 
-        BatchNormalizationCudnn(cudnn::Info) noexcept;
+        BatchNormalizationCudnn(cudnn::BNInfo) noexcept;
 
         static KernelBox build(float, TensorRefs) noexcept;
         static size_t typeId() noexcept;

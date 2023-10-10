@@ -7,7 +7,7 @@
 
 namespace refactor::kernel::cudnn {
 
-    struct Info {
+    struct BNInfo {
         float epsilon;
         common::DataType dtX, dtParam;
         LayoutType layout;

@@ -1,5 +1,5 @@
-﻿#ifndef KERNEL_CUDNN_ERROR_HANDLER_H
-#define KERNEL_CUDNN_ERROR_HANDLER_H
+﻿#ifndef KERNEL_CUDNN_FUNCTIONS_H
+#define KERNEL_CUDNN_FUNCTIONS_H
 
 #include "common/data_type.h"
 #include "common/error_handler.h"
@@ -13,4 +13,4 @@ namespace refactor::kernel::cudnn {
 
 }// namespace refactor::kernel::cudnn
 
-#endif// KERNEL_CUDNN_ERROR_HANDLER_H
+#endif// KERNEL_CUDNN_FUNCTIONS_H
