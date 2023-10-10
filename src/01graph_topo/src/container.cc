@@ -96,12 +96,17 @@ namespace refactor::graph_topo {
 
     auto GraphTopo::begin() const noexcept -> Iterator { return Iterator::begin(this); }
     auto GraphTopo::end() const noexcept -> Iterator { return Iterator::end(this); }
-    size_t GraphTopo::size() const noexcept { return _impl->_nodes.size(); }
-    size_t GraphTopo::globalInputsCount() const noexcept { return _impl->_globalInputsCount; }
-    common::range_t<size_t> GraphTopo::globalInputs() const noexcept {
+    auto GraphTopo::size() const noexcept -> size_t { return _impl->_nodes.size(); }
+    auto GraphTopo::globalInputsCount() const noexcept -> size_t { return _impl->_globalInputsCount; }
+    auto GraphTopo::nodeCount() const noexcept -> size_t { return _impl->_nodes.size(); }
+    auto GraphTopo::edgeCount() const noexcept -> size_t {
+        return std::accumulate(_impl->_nodes.begin(), _impl->_nodes.end(), _impl->_globalInputsCount,
+                               [](auto const acc, auto const &n) { return acc + n._localEdgesCount + n._outputsCount; });
+    }
+    auto GraphTopo::globalInputs() const noexcept -> common::range_t<size_t> {
         return common::range0_(_impl->_globalInputsCount);
     }
-    common::slice_t<size_t> GraphTopo::globalOutputs() const noexcept {
+    auto GraphTopo::globalOutputs() const noexcept -> common::slice_t<size_t> {
         auto i = std::accumulate(_impl->_nodes.begin(), _impl->_nodes.end(), 0,
                                  [](auto const acc, auto const &n) { return acc + n._inputsCount; });
         auto const &connections = _impl->_connections;

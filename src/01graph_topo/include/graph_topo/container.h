@@ -57,6 +57,8 @@ namespace refactor::graph_topo {
         Iterator end() const noexcept;
         size_t size() const noexcept;
         size_t globalInputsCount() const noexcept;
+        size_t nodeCount() const noexcept;
+        size_t edgeCount() const noexcept;
         common::range_t<size_t> globalInputs() const noexcept;
         common::slice_t<size_t> globalOutputs() const noexcept;
 
