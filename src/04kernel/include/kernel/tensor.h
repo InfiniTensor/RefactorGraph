@@ -9,7 +9,7 @@ namespace refactor::kernel {
 
     using Shape = absl::InlinedVector<int64_t, 4>;
 
-    enum class LayoutType {
+    enum class LayoutType : uint8_t {
         NCHW,
         NHWC,
         Others,

@@ -1,20 +1,11 @@
 ﻿#include "batch_normalization_cudnn.hh"
-#include "cudnn_impl.h"
 
 namespace refactor::kernel {
     using K = BatchNormalizationCudnn;
     using DT = common::DataType;
 
-    K::BatchNormalizationCudnn(
-        float epsilon_,
-        std::array<DT, 3> dts_,
-        Shape shape_,
-        uint32_t paramSize_) noexcept
-        : Kernel(),
-          epsilon(epsilon_),
-          dts(dts_),
-          shape(std::move(shape_)),
-          paramSize(paramSize_) {}
+    K::BatchNormalizationCudnn(cudnn::Info info_) noexcept
+        : Kernel(), info(info_) {}
 
     auto K::build(float epsilon, TensorRefs inputs) noexcept -> KernelBox {
 #ifndef USE_CUDA
@@ -23,23 +14,38 @@ namespace refactor::kernel {
 
         auto const &x = inputs[0].get();
         auto const &scale = inputs[1].get();
-        auto const &bias = inputs[2].get();
         auto const &mean = inputs[3].get();
-        auto const &var = inputs[4].get();
 
-        std::array<DT, 3> dts{x.dataType, scale.dataType, mean.dataType};
+        if (x.rank() != 4) {
+            return nullptr;
+        }
+
         // see "Supported Configurations for `cudnnBatchNormalizationForwardInference`"
-        if (DT::F64 == dts[0]) {
-            if (DT::F64 != dts[1] || DT::F64 != dts[2]) {
+        if (scale.dataType != mean.dataType) {
+            return nullptr;
+        }
+        if (x.dataType == DT::F64) {
+            if (scale.dataType != DT::F64) {
                 return nullptr;
             }
         } else {
-            if (DT::F32 != dts[1] || DT::F32 != dts[2]) {
+            if (scale.dataType != DT::F64) {
                 return nullptr;
             }
         }
 
-        return std::make_unique<K>(epsilon, dts, x.shape, scale.shape[0]);
+        return std::make_unique<K>(
+            cudnn::Info{
+                epsilon,
+                x.dataType,
+                scale.dataType,
+                x.layout,
+                {
+                    static_cast<int>(x.shape[0]),
+                    static_cast<int>(x.shape[1]),
+                    static_cast<int>(x.shape[2]),
+                    static_cast<int>(x.shape[3]),
+                }});
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -51,7 +57,7 @@ namespace refactor::kernel {
         return "Performing batch normalization for non-training-mode using CUDNN";
     }
     auto K::lower() const noexcept -> Operation {
-        cudnn::lower(epsilon, dts, shape, paramSize);
+        return info.lower();
     }
 
 }// namespace refactor::kernel

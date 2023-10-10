@@ -1,19 +1,16 @@
 ﻿#ifndef KERNEL_BATCH_NORMALIZATION_CUDNN_HH
 #define KERNEL_BATCH_NORMALIZATION_CUDNN_HH
 
-#include "common/data_type.h"
+#include "cudnn_impl.h"
 #include "kernel/collectors/batch_normalization.h"
-#include "kernel/kernel.h"
-#include "kernel/tensor.h"
 
 namespace refactor::kernel {
+    /// @brief Use `cudnnBatchNormalizationForwardInference`.
+    ///        It only supports 4D and 5D tensor.
     struct BatchNormalizationCudnn final : public Kernel {
-        float epsilon;
-        std::array<common::DataType, 3> dts;
-        Shape shape;
-        uint32_t paramSize;
+        cudnn::Info info;
 
-        BatchNormalizationCudnn(float, std::array<common::DataType, 3>, Shape, uint32_t) noexcept;
+        BatchNormalizationCudnn(cudnn::Info) noexcept;
 
         static KernelBox build(float, TensorRefs) noexcept;
         static size_t typeId() noexcept;

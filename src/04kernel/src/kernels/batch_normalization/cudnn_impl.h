@@ -7,11 +7,15 @@
 
 namespace refactor::kernel::cudnn {
 
-    Operation lower(
-        float epsilon,
-        std::array<common::DataType, 3>,
-        Shape,
-        uint32_t paramSize);
+    struct Info {
+        float epsilon;
+        common::DataType dtX, dtParam;
+        LayoutType layout;
+        int dimAx[4];// dimA for x, cudnn naming convension
+
+        Operation lower() const;
+    };
+
 
 }// namespace refactor::kernel::cudnn
 

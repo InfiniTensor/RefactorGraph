@@ -43,6 +43,7 @@ namespace refactor::onnx {
         }
         if (x.rank() <= 2 ||
             scale.rank() != 1 ||
+            scale.shape[0] != x.shape[1] ||
             bias.shape != scale.shape ||
             mean.shape != scale.shape ||
             var.shape != scale.shape) {
