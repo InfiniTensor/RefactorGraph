@@ -52,7 +52,7 @@ namespace refactor::graph_topo {
         /// @brief 在图拓扑上搭桥。
         /// @param 桥接描述。
         /// @return 搭好的桥梁节点坐标，与描述对应。
-        std::vector<BridgePos> insert(std::vector<Bridge>) noexcept;
+        BridgePos insert(Bridge) noexcept;
     };
 
 }// namespace refactor::graph_topo

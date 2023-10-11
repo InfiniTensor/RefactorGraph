@@ -62,6 +62,8 @@ namespace refactor::graph_topo {
         common::range_t<size_t> globalInputs() const noexcept;
         common::slice_t<size_t> globalOutputs() const noexcept;
 
+        std::string toString() const;
+
         static GraphTopo __withGlobalInputs(size_t globalInputsCount) noexcept;
         void __addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount) noexcept;
         void __setGlobalOutputs(std::vector<size_t> outputs) noexcept;

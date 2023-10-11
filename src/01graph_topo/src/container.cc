@@ -2,6 +2,7 @@
 #include "internal.h"
 #include <algorithm>
 #include <numeric>
+#include <sstream>
 #include <utility>
 
 namespace refactor::graph_topo {
@@ -111,6 +112,24 @@ namespace refactor::graph_topo {
                                  [](auto const acc, auto const &n) { return acc + n._inputsCount; });
         auto const &connections = _impl->_connections;
         return {connections.data() + i, connections.data() + connections.size()};
+    }
+
+    std::string GraphTopo::toString() const {
+        std::stringstream ans;
+        auto it = begin(), end_ = end();
+        while (it != end_) {
+            auto [nodeIdx, inputs, outputs] = *it++;
+            ans << nodeIdx << ". ( ";
+            for (auto i : inputs) {
+                ans << i << ' ';
+            }
+            ans << ") -> ( ";
+            for (auto i : outputs) {
+                ans << i << ' ';
+            }
+            ans << ")" << std::endl;
+        }
+        return ans.str();
     }
 
     GraphTopo GraphTopo::__withGlobalInputs(
