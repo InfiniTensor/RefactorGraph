@@ -115,21 +115,31 @@ namespace refactor::graph_topo {
     }
 
     std::string GraphTopo::toString() const {
-        std::stringstream ans;
+        std::stringstream ss;
         auto it = begin(), end_ = end();
+        ss << "*. -> ( ";
+        for (auto i : it.globalInputs()) {
+            ss << i << ' ';
+        }
+        ss << ')' << std::endl;
         while (it != end_) {
             auto [nodeIdx, inputs, outputs] = *it++;
-            ans << nodeIdx << ". ( ";
+            ss << nodeIdx << ". ( ";
             for (auto i : inputs) {
-                ans << i << ' ';
+                ss << i << ' ';
             }
-            ans << ") -> ( ";
+            ss << ") -> ( ";
             for (auto i : outputs) {
-                ans << i << ' ';
+                ss << i << ' ';
             }
-            ans << ")" << std::endl;
+            ss << ')' << std::endl;
         }
-        return ans.str();
+        ss << "*. <- ( ";
+        for (auto i : it.globalOutputs()) {
+            ss << i << ' ';
+        }
+        ss << ')' << std::endl;
+        return ss.str();
     }
 
     GraphTopo GraphTopo::__withGlobalInputs(
