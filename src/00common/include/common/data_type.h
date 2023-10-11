@@ -43,6 +43,7 @@ namespace refactor::common {
         bool isSignedLarge() const noexcept;
         bool isSigned() const noexcept;
         bool isNumberic() const noexcept;
+        bool isCpuNumberic() const noexcept;
         bool isBool() const noexcept;
         size_t size() const noexcept;
     };

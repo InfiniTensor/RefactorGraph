@@ -4,9 +4,10 @@
 #include <unordered_set>
 
 namespace refactor::common {
-    using Enum = decltype(DataType::internal);
+    using DT = DataType;
+    using Enum = decltype(DT::internal);
 
-    std::optional<DataType> DataType::parse(uint8_t value) noexcept {
+    std::optional<DT> DT::parse(uint8_t value) noexcept {
         switch (value) {
             case 1:
             case 2:
@@ -26,76 +27,83 @@ namespace refactor::common {
         }
     }
 
-    std::string_view DataType::name() const noexcept {
+    std::string_view DT::name() const noexcept {
         switch (internal) {
-            case DataType::F32:
+            case DT::F32:
                 return "F32";
-            case DataType::U8:
+            case DT::U8:
                 return "U8 ";
-            case DataType::I8:
+            case DT::I8:
                 return "I8 ";
-            case DataType::U16:
+            case DT::U16:
                 return "U16";
-            case DataType::I16:
+            case DT::I16:
                 return "I16";
-            case DataType::I32:
+            case DT::I32:
                 return "I32";
-            case DataType::I64:
+            case DT::I64:
                 return "I64";
-            case DataType::Bool:
+            case DT::Bool:
                 return "Bool";
-            case DataType::FP16:
+            case DT::FP16:
                 return "FP16";
-            case DataType::F64:
+            case DT::F64:
                 return "F64";
-            case DataType::U32:
+            case DT::U32:
                 return "U32";
-            case DataType::U64:
+            case DT::U64:
                 return "U64";
-            case DataType::Complex64:
+            case DT::Complex64:
                 return "Complex64";
-            case DataType::Complex128:
+            case DT::Complex128:
                 return "Complex128";
-            case DataType::BF16:
+            case DT::BF16:
                 return "BF16";
             default:
                 UNREACHABLE();
         }
     }
 
-    bool DataType::isIeee754() const noexcept {
-        static const std::unordered_set<Enum> set{DataType::F32, DataType::FP16, DataType::F64};
+    bool DT::isIeee754() const noexcept {
+        static const std::unordered_set<Enum> set{DT::F32, DT::FP16, DT::F64};
         return set.find(internal) != set.end();
     }
-    bool DataType::isFloat() const noexcept {
-        static const std::unordered_set<Enum> set{DataType::F32, DataType::FP16, DataType::F64, DataType::BF16};
+    bool DT::isFloat() const noexcept {
+        static const std::unordered_set<Enum> set{DT::F32, DT::FP16, DT::F64, DT::BF16};
         return set.find(internal) != set.end();
     }
-    bool DataType::isSignedLarge() const noexcept {
+    bool DT::isSignedLarge() const noexcept {
         static const std::unordered_set<Enum> set{
-            DataType::F32, DataType::FP16, DataType::BF16, DataType::F64, DataType::I32, DataType::I64};
+            DT::F32, DT::FP16, DT::BF16, DT::F64, DT::I32, DT::I64};
         return set.find(internal) != set.end();
     }
-    bool DataType::isSigned() const noexcept {
+    bool DT::isSigned() const noexcept {
         static const std::unordered_set<Enum> set{
-            DataType::F32, DataType::FP16, DataType::BF16, DataType::F64, DataType::I8, DataType::I16,
-            DataType::I32, DataType::I64};
+            DT::F32, DT::FP16, DT::BF16, DT::F64,
+            DT::I8, DT::I16, DT::I32, DT::I64};
         return set.find(internal) != set.end();
     }
-    bool DataType::isNumberic() const noexcept {
+    bool DT::isNumberic() const noexcept {
         static const std::unordered_set<Enum> set{
-            DataType::F32, DataType::U8, DataType::I8, DataType::U16, DataType::I16, DataType::I32,
-            DataType::I64, DataType::FP16, DataType::F64, DataType::U32, DataType::U64, DataType::BF16};
+            DT::F32, DT::U8, DT::I8, DT::U16, DT::I16,
+            DT::I32, DT::I64, DT::FP16, DT::F64,
+            DT::U32, DT::U64, DT::BF16};
         return set.find(internal) != set.end();
     }
-    bool DataType::isBool() const noexcept {
-        return internal == DataType::Bool;
+    bool DT::isCpuNumberic() const noexcept {
+        static const std::unordered_set<Enum> set{
+            DT::F32, DT::U8, DT::I8, DT::U16, DT::I16,
+            DT::I32, DT::I64, DT::F64, DT::U32, DT::U64};
+        return set.find(internal) != set.end();
+    }
+    bool DT::isBool() const noexcept {
+        return internal == DT::Bool;
     }
 
-    size_t DataType::size() const noexcept {
+    size_t DT::size() const noexcept {
 #define RETURN_SIZE(TYPE) \
-    case DataType::TYPE:  \
-        return sizeof(primitive_t<DataType::TYPE>::type)
+    case DT::TYPE:        \
+        return sizeof(primitive_t<DT::TYPE>::type)
 
         switch (internal) {
             RETURN_SIZE(F32);
