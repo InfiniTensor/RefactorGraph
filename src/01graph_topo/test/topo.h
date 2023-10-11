@@ -4,17 +4,17 @@
 #include "graph_topo/graph_topo.h"
 
 namespace refactor::graph_topo {
-    //  `a` (b)
-    //    \ /
-    // ┌--[A]--┐
-    // └(c)-(d)┘(e)
-    //   |    \ /
-    //   |   ┌[B]┐
-    //   |   └(f)┘
-    //    \   /
-    //     \ /
-    //    ┌[C]┐
-    //    └`z`┘
+    //  `a` (b)      `0` (1)
+    //    \ /          \ /
+    // ┌--[A]--┐    ┌--[0]--┐
+    // └(c)-(d)┘(e) └(2)-(3)┘(4)
+    //   |    \ /     |    \ /
+    //   |   ┌[B]┐    |   ┌[1]┐
+    //   |   └(f)┘    |   └(5)┘
+    //    \   /        \   /
+    //     \ /          \ /
+    //    ┌[C]┐        ┌[2]┐
+    //    └`z`┘        └`6`┘
     inline auto
     testTopo() -> Builder<const char *, const char *, const char *, const char *> {
         return {
