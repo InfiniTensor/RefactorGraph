@@ -1,33 +1,11 @@
-﻿#include "graph_topo/graph_topo.h"
+﻿#include "topo.h"
 #include <gtest/gtest.h>
 
 using namespace refactor::graph_topo;
 
 TEST(GraphTopo, Builder) {
     // fmtlog::setLogLevel(fmtlog::LogLevel::DBG);
-    auto builder = Builder<const char *, const char *, const char *, const char *>{
-        {
-
-            {"A", {{"a", "b"}, {"c", "d"}}},
-            {"B", {{"d", "e"}, {"f"}}},
-            {"C", {{"f", "c"}, {"z"}}},
-        },    // -> topology
-        {"a"},// -> global inputs
-        {"z"},// -> global outputs
-        {
-            {"A", {"*0"}},
-            {"B", {"*1"}},
-            {"C", {"*2"}},
-        },// -> nodes
-        {
-            {"a", {"|0"}},
-            {"b", {"|1"}},
-            {"e", {"|4"}},
-            {"z", {"!"}},
-        },// -> edges
-    };
-
-    auto [topology, nodes, edges] = builder.build();
+    auto [topology, nodes, edges] = testTopo().build();
     auto searcher = Searcher(topology);
     {
         auto const inputs = searcher.globalInputs();

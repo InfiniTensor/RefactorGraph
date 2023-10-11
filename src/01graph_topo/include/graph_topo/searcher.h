@@ -1,5 +1,5 @@
-﻿#ifndef GRAPH_TOPO_SEARCHER_HPP
-#define GRAPH_TOPO_SEARCHER_HPP
+﻿#ifndef GRAPH_TOPO_SEARCHER_H
+#define GRAPH_TOPO_SEARCHER_H
 
 #include "container.h"
 #include <set>
@@ -125,4 +125,4 @@ namespace refactor::graph_topo {
     };
 }// namespace refactor::graph_topo
 
-#endif// GRAPH_TOPO_SEARCHER_HPP
+#endif// GRAPH_TOPO_SEARCHER_H

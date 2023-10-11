@@ -1,5 +1,5 @@
-﻿#ifndef GRAPH_TOPO_CONTAINER_HPP
-#define GRAPH_TOPO_CONTAINER_HPP
+﻿#ifndef GRAPH_TOPO_CONTAINER_H
+#define GRAPH_TOPO_CONTAINER_H
 
 #include "common/range.h"
 #include "common/slice.h"
@@ -8,9 +8,11 @@
 
 namespace refactor::graph_topo {
     class Searcher;
+    class Modifier;
 
     class GraphTopo {
         friend class Searcher;
+        friend class Modifier;
 
         class __Implement;
         __Implement *_impl;
@@ -55,7 +57,12 @@ namespace refactor::graph_topo {
         Iterator end() const noexcept;
         size_t size() const noexcept;
         size_t globalInputsCount() const noexcept;
+        size_t nodeCount() const noexcept;
+        size_t edgeCount() const noexcept;
+        common::range_t<size_t> globalInputs() const noexcept;
         common::slice_t<size_t> globalOutputs() const noexcept;
+
+        std::string toString() const;
 
         static GraphTopo __withGlobalInputs(size_t globalInputsCount) noexcept;
         void __addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount) noexcept;
@@ -64,4 +71,4 @@ namespace refactor::graph_topo {
 
 }// namespace refactor::graph_topo
 
-#endif// GRAPH_TOPO_CONTAINER_HPP
+#endif// GRAPH_TOPO_CONTAINER_H
