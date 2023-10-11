@@ -1,4 +1,4 @@
-﻿#include "graph_topo/modifier.h"
+﻿#include "graph_topo/inplace_modifier.h"
 #include "common/error_handler.h"
 #include "common/range.h"
 #include "internal.h"
@@ -18,14 +18,14 @@ namespace refactor::graph_topo {
     bool OnNode::isOutput() const noexcept { return (edge & 1) == 1; }
     size_t OnNode::index() const noexcept { return edge >> 1; }
 
-    Modifier::Modifier(GraphTopo g) noexcept
+    InplaceModifier::InplaceModifier(GraphTopo g) noexcept
         : _g(std::move(g)) {}
 
-    auto Modifier::take() noexcept -> GraphTopo {
+    auto InplaceModifier::take() noexcept -> GraphTopo {
         return std::move(_g);
     }
 
-    auto Modifier::insert(Bridge bridge) noexcept -> BridgePos {
+    auto InplaceModifier::insert(Bridge bridge) noexcept -> BridgePos {
         auto n = bridge.node;
         auto idx = bridge.edge.index();
         auto &g = *_g._impl;

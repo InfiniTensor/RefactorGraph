@@ -8,13 +8,6 @@
 
 namespace refactor::graph_topo {
 
-    template<class Node, class Edge>
-    struct Graph {
-        GraphTopo topology;
-        std::vector<Node> nodes;
-        std::vector<Edge> edges;
-    };
-
     template<class EdgeKey>
     struct BuilderNode {
         std::vector<EdgeKey> inputs, outputs;

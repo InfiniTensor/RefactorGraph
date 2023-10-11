@@ -8,11 +8,11 @@
 
 namespace refactor::graph_topo {
     class Searcher;
-    class Modifier;
+    class InplaceModifier;
 
     class GraphTopo {
         friend class Searcher;
-        friend class Modifier;
+        friend class InplaceModifier;
 
         class __Implement;
         __Implement *_impl;
@@ -67,6 +67,13 @@ namespace refactor::graph_topo {
         static GraphTopo __withGlobalInputs(size_t globalInputsCount) noexcept;
         void __addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount) noexcept;
         void __setGlobalOutputs(std::vector<size_t> outputs) noexcept;
+    };
+
+    template<class Node, class Edge>
+    struct Graph {
+        GraphTopo topology;
+        std::vector<Node> nodes;
+        std::vector<Edge> edges;
     };
 
 }// namespace refactor::graph_topo

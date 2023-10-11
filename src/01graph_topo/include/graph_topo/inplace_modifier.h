@@ -1,5 +1,5 @@
-﻿#ifndef GRAPH_TOPO_MODIFIER_H
-#define GRAPH_TOPO_MODIFIER_H
+﻿#ifndef GRAPH_TOPO_INPLACE_MODIFIER_H
+#define GRAPH_TOPO_INPLACE_MODIFIER_H
 
 #include "container.h"
 
@@ -37,14 +37,14 @@ namespace refactor::graph_topo {
         size_t node, edge;
     };
 
-    class Modifier {
+    class InplaceModifier {
         GraphTopo _g;
 
     public:
-        Modifier() noexcept = default;
+        InplaceModifier() noexcept = default;
 
         /// @brief 把图拓扑存入修改器。
-        explicit Modifier(GraphTopo) noexcept;
+        explicit InplaceModifier(GraphTopo) noexcept;
 
         /// @brief 将图拓扑从修改器中取出。
         GraphTopo take() noexcept;
@@ -57,4 +57,4 @@ namespace refactor::graph_topo {
 
 }// namespace refactor::graph_topo
 
-#endif// GRAPH_TOPO_MODIFIER_H
+#endif// GRAPH_TOPO_INPLACE_MODIFIER_H
