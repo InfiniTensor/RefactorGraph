@@ -8,7 +8,7 @@ TEST(GraphTopo, LinkedGraph) {
     auto g = testTopo().build();
     LinkedGraph<const char *, const char *> g_(g);
     fmt::println("{}", g_.toString());
-    auto g__ = g_.toGraph();
+    auto g__ = LinkedGraph(g_).intoGraph();
     EXPECT_EQ(g__.nodes, g.nodes);
     EXPECT_EQ(g__.edges, g.edges);
 

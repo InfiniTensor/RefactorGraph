@@ -24,8 +24,6 @@ namespace refactor::graph_topo {
         std::vector<NodeRc> _nodes;
         std::vector<EdgeRc> _inputs, _outputs;
 
-        Graph<TN, TE> toGraph(bool) const;
-
     public:
         LinkedGraph() = default;
         explicit LinkedGraph(Graph<TN, TE>);
@@ -33,7 +31,6 @@ namespace refactor::graph_topo {
         static auto shareEdge(TE) -> EdgeRc;
 
         std::string toString() const;
-        Graph<TN, TE> toGraph() const;
         Graph<TN, TE> intoGraph() const;
         std::vector<NodeRc> const &nodes() const;
         std::vector<EdgeRc> const &inputs() const;
@@ -257,7 +254,7 @@ namespace refactor::graph_topo {
                        [&edges](auto i) { return std::move(edges[i]); });
     }
 
-    LINKED_GRAPH_FN toGraph(bool copy) const->Graph<TN, TE> {
+    LINKED_GRAPH_FN intoGraph() const->Graph<TN, TE> {
         auto topology = GraphTopo::__withGlobalInputs(_inputs.size());
         std::vector<TN> nodes;
         std::vector<TE> edges;
@@ -268,19 +265,11 @@ namespace refactor::graph_topo {
         std::unordered_map<size_t, size_t> edgeIndices;
         for (auto &e : _inputs) {
             edgeIndices.insert({reinterpret_cast<size_t>(e.get()), edges.size()});
-            if (copy) {
-                edges.push_back(e->_info);
-            } else {
-                edges.emplace_back(std::move(e->_info));
-            }
+            edges.emplace_back(std::move(e->_info));
         }
 
         for (auto &n : _nodes) {
-            if (copy) {
-                nodes.push_back(n->_info);
-            } else {
-                nodes.emplace_back(std::move(n->_info));
-            }
+            nodes.emplace_back(std::move(n->_info));
 
             std::vector<size_t> newLocal, nodeInputs;
             nodeInputs.reserve(n->_inputs.size());
@@ -290,22 +279,14 @@ namespace refactor::graph_topo {
                 if (ok) {
                     ASSERT(!e->_source, "Local edge should not have source node");
                     newLocal.push_back(it->second);
-                    if (copy) {
-                        edges.push_back(e->_info);
-                    } else {
-                        edges.emplace_back(std::move(e->_info));
-                    }
+                    edges.emplace_back(std::move(e->_info));
                 }
                 nodeInputs.push_back(it->second);
             }
 
             for (auto &e : n->_outputs) {
                 edgeIndices.insert({reinterpret_cast<size_t>(e.get()), edges.size()});
-                if (copy) {
-                    edges.push_back(e->_info);
-                } else {
-                    edges.emplace_back(std::move(e->_info));
-                }
+                edges.emplace_back(std::move(e->_info));
             }
 
             topology.__addNode(newLocal.size(), std::move(nodeInputs), n->_outputs.size());
@@ -321,14 +302,6 @@ namespace refactor::graph_topo {
             std::move(nodes),
             std::move(edges),
         };
-    }
-
-    LINKED_GRAPH_FN toGraph() const->Graph<TN, TE> {
-        return toGraph(true);
-    }
-
-    LINKED_GRAPH_FN intoGraph() const->Graph<TN, TE> {
-        return toGraph(false);
     }
 
 }// namespace refactor::graph_topo
