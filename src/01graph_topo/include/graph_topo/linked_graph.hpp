@@ -41,7 +41,7 @@ namespace refactor::graph_topo {
         NodeRc pushNode(TN, std::vector<EdgeRc>);
         void eraseNode(size_t);
         void eraseNode(NodeRc);
-        void sort();
+        bool sort();
     };
 
     template<class TN, class TE>
@@ -176,11 +176,12 @@ namespace refactor::graph_topo {
         }
     }
 
-    LINKED_GRAPH_FN sort()->void {
+    LINKED_GRAPH_FN sort()->bool {
         std::vector<NodeRc> ans;
         ans.reserve(_nodes.size());
         std::unordered_set<void *> known;
         while (known.size() < _nodes.size()) {
+            auto before = known.size();
             for (auto &n : _nodes) {
                 if (!n) { continue; }
                 if (std::all_of(n->_inputs.begin(), n->_inputs.end(),
@@ -189,8 +190,12 @@ namespace refactor::graph_topo {
                     ans.push_back(std::move(n));
                 }
             }
+            if (before == known.size()) {
+                return false;
+            }
         }
         _nodes = std::move(ans);
+        return true;
     }
 
     LINKED_GRAPH_FN Node::share(TN info, std::vector<EdgeRc> outputs)

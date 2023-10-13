@@ -24,12 +24,11 @@ TEST(GraphTopo, LinkedGraph) {
     n2->disconnect(0);
     fmt::println("{}", g_.toString());
 
-    n2->connect(0, g_.inputs()[0]);
+    n2->connect(0, g_.outputs()[0]);
     fmt::println("{}", g_.toString());
 
-    g_.eraseNode(n2);
+    g_.eraseNode(n1);
     fmt::println("{}", g_.toString());
 
-    g_.sort();
-    fmt::println("{}", g_.toString());
+    EXPECT_FALSE(g_.sort());
 }
