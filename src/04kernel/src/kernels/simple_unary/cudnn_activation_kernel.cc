@@ -36,7 +36,7 @@ namespace refactor::kernel {
     auto K::description() const noexcept -> std::string_view {
         return "Performing activation using CUDNN";
     }
-    auto K::lower() const noexcept -> Operation {
+    auto K::lower() const noexcept -> Routine {
         return cudnn::lower(type, dataType, size);
     }
 

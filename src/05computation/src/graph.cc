@@ -158,9 +158,10 @@ namespace refactor::computation {
             auto fn = target.memFunc();
             auto blob = mem_manager::ForeignBlob::share(fn, tensor->bytesSize());
             fn.copyHd(*blob, *(tensor->data), tensor->bytesSize());
+            edges[i] = {std::move(blob), tensor->bytesSize(), name};
         }
 
-        return kernel::Graph(_internal.topology, std::move(nodes), std::move(edges));
+        return kernel::Graph(target, _internal.topology, std::move(nodes), std::move(edges));
     }
 
 }// namespace refactor::computation

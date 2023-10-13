@@ -24,6 +24,7 @@ namespace refactor::mem_manager {
 
         operator void const *() const noexcept;
         operator void *() noexcept;
+        uint8_t *ptr() noexcept;
     };
 
     using SharedForeignBlob = std::shared_ptr<ForeignBlob>;

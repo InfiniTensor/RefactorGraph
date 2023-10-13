@@ -4,6 +4,7 @@
 #include "graph_topo/graph_topo.h"
 #include "kernel.h"
 #include "mem_manager/foreign_blob.hh"
+#include "target.h"
 
 namespace refactor::kernel {
     using mem_manager::SharedForeignBlob;
@@ -15,6 +16,7 @@ namespace refactor::kernel {
 
     struct Edge {
         mem_manager::SharedForeignBlob data;
+        size_t size;
         std::string name;
     };
 
@@ -23,11 +25,12 @@ namespace refactor::kernel {
         using _E = Edge;
         using _G = graph_topo::Graph<_N, _E>;
 
+        Target _target;
         _G _internal;
 
     public:
-        explicit Graph(_G) noexcept;
-        Graph(graph_topo::GraphTopo, std::vector<_N>, std::vector<_E>) noexcept;
+        Graph(Target, graph_topo::GraphTopo, std::vector<_N>, std::vector<_E>) noexcept;
+        runtime::Stream lower() const;
     };
 
 }// namespace refactor::kernel

@@ -7,7 +7,7 @@ namespace refactor::kernel::cudnn {
     using namespace runtime;
     using Op = SimpleUnaryType;
 
-    Operation lower(Op op, common::DataType dt, int size) noexcept {
+    Routine lower(Op op, common::DataType dt, int size) noexcept {
         // RAII for closure
         struct Descriptors {
             cudnnActivationDescriptor_t activation;

@@ -13,7 +13,7 @@ namespace refactor::kernel::cudnn {
         LayoutType layout;
         int dimAx[4];// dimA for x, cudnn naming convension
 
-        Operation lower() const;
+        Routine lower() const;
     };
 
 }// namespace refactor::kernel::cudnn

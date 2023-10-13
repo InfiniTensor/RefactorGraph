@@ -8,7 +8,7 @@ namespace refactor::kernel::cudnn {
     using Ctx = CudnnContext;
     using DT = common::DataType;
 
-    Operation BNInfo::lower() const {
+    Routine BNInfo::lower() const {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, param;

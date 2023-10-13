@@ -61,7 +61,7 @@ namespace refactor::kernel {
                 UNREACHABLE();       \
         }
 
-    auto K::lower() const noexcept -> Operation {
+    auto K::lower() const noexcept -> Routine {
         // clang-format off
         switch (opType) {
             // CASE(Abs    , )

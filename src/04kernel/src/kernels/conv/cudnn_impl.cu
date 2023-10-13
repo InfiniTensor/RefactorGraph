@@ -6,7 +6,7 @@
 namespace refactor::kernel::cudnn {
     using namespace runtime;
 
-    Operation ConvInfo::lower() const {
+    Routine ConvInfo::lower() const {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, y;

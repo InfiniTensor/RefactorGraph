@@ -16,5 +16,8 @@ namespace refactor::mem_manager {
     }
     ForeignBlob::operator void const *() const noexcept { return _ptr; }
     ForeignBlob::operator void *() noexcept { return _ptr; }
+    uint8_t *ForeignBlob::ptr() noexcept {
+        return reinterpret_cast<uint8_t *>(_ptr);
+    }
 
 }// namespace refactor::mem_manager
