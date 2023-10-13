@@ -9,11 +9,19 @@ namespace refactor::kernel {
     }
 
     AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &g) {
-        size_t size = 0;
-        std::vector<size_t> offsets(g.edges.size());
-        for (size_t i = 0; i < offsets.size(); ++i) {
-            offsets[i] = size;
-            size += align(g.edges[i].size, 8);
+        constexpr static auto INVALID = SIZE_MAX;
+        size_t size = 0,
+               globalInputsCount = g.topology.globalInputsCount();
+        auto globalOutputs_ = g.topology.globalOutputs();
+        std::unordered_set<size_t> globalOutputs(globalOutputs_.begin(), globalOutputs_.end());
+        std::vector<size_t> offsets(g.edges.size(), INVALID);
+        for (auto [nodeIdx, inputs, outputs] : g.topology) {
+            for (auto i : outputs) {
+                if (globalOutputs.find(i) == globalOutputs.end()) {
+                    offsets[i] = size;
+                    size += align(g.edges[i].size, 8);
+                }
+            }
         }
         return {size, std::move(offsets)};
     }
