@@ -7,6 +7,7 @@
 #include <memory>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace refactor::graph_topo {
     using namespace common;
@@ -40,6 +41,7 @@ namespace refactor::graph_topo {
         NodeRc pushNode(TN, std::vector<EdgeRc>);
         void eraseNode(size_t);
         void eraseNode(NodeRc);
+        void sort();
     };
 
     template<class TN, class TE>
@@ -57,6 +59,8 @@ namespace refactor::graph_topo {
         TN const &info() const;
         std::vector<EdgeRc> const &inputs() const;
         std::vector<EdgeRc> const &outputs() const;
+        std::unordered_set<NodeRc> const &predecessors() const;
+        std::unordered_set<NodeRc> const &successors() const;
         void connect(size_t i, EdgeRc);
         void disconnect(size_t i);
     };
@@ -124,6 +128,9 @@ namespace refactor::graph_topo {
 
     LINKED_GRAPH_FN setInputs(std::vector<EdgeRc> inputs)->void {
         _inputs = std::move(inputs);
+        for (auto &e : _inputs) {
+            e->_source = nullptr;
+        }
     }
 
     LINKED_GRAPH_FN setOutputs(std::vector<EdgeRc> outputs)->void {
@@ -169,6 +176,23 @@ namespace refactor::graph_topo {
         }
     }
 
+    LINKED_GRAPH_FN sort()->void {
+        std::vector<NodeRc> ans;
+        ans.reserve(_nodes.size());
+        std::unordered_set<void *> known;
+        while (known.size() < _nodes.size()) {
+            for (auto &n : _nodes) {
+                if (!n) { continue; }
+                if (std::all_of(n->_inputs.begin(), n->_inputs.end(),
+                                [&known](auto const &e) { return !e || !e->_source || known.find(e->_source.get()) != known.end(); })) {
+                    known.insert(n.get());
+                    ans.push_back(std::move(n));
+                }
+            }
+        }
+        _nodes = std::move(ans);
+    }
+
     LINKED_GRAPH_FN Node::share(TN info, std::vector<EdgeRc> outputs)
         ->NodeRc {
         auto ans = std::shared_ptr<Node>(new Node(std::move(info), std::move(outputs)));
@@ -188,6 +212,26 @@ namespace refactor::graph_topo {
 
     LINKED_GRAPH_FN Node::outputs() const->std::vector<EdgeRc> const & {
         return _outputs;
+    }
+
+    LINKED_GRAPH_FN Node::predecessors() const->std::unordered_set<NodeRc> const & {
+        std::unordered_set<NodeRc> ans;
+        for (auto const &e : _inputs) {
+            if (e->_source) {
+                ans.insert(e->_source);
+            }
+        }
+        return ans;
+    }
+
+    LINKED_GRAPH_FN Node::successors() const->std::unordered_set<NodeRc> const & {
+        std::unordered_set<NodeRc> ans;
+        for (auto const &e : _outputs) {
+            for (auto const &[n, _] : e->_targets) {
+                ans.insert(n);
+            }
+        }
+        return ans;
     }
 
     LINKED_GRAPH_FN Node::connect(size_t i, EdgeRc input)->void {

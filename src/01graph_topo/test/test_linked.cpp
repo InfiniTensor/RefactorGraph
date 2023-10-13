@@ -1,4 +1,4 @@
-﻿#include "graph_topo/linked_graph.h"
+﻿#include "graph_topo/linked_graph.hpp"
 #include "topo.h"
 #include <gtest/gtest.h>
 
@@ -28,5 +28,8 @@ TEST(GraphTopo, LinkedGraph) {
     fmt::println("{}", g_.toString());
 
     g_.eraseNode(n2);
+    fmt::println("{}", g_.toString());
+
+    g_.sort();
     fmt::println("{}", g_.toString());
 }

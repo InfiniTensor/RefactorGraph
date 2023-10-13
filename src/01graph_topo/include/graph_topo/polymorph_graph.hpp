@@ -2,7 +2,7 @@
 #define GRAPH_TOPO_POLYMORPH_GRAPH_H
 
 #include "container.h"
-#include "linked_graph.h"
+#include "linked_graph.hpp"
 #include <variant>
 
 namespace refactor::graph_topo {
