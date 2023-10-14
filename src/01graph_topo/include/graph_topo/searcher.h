@@ -3,12 +3,30 @@
 
 #include "container.h"
 #include <set>
+#include <unordered_set>
 
 namespace refactor::graph_topo {
 
     class Searcher {
-        class __Implement;
-        __Implement *_impl;
+        using EdgeIdx = idx_t;
+        using NodeIdx = idx_t;
+
+        struct __Node {
+            idx_t _passEdges, _passConnections;
+            mutable std::unordered_set<NodeIdx>
+                _predecessors,
+                _successors;
+        };
+
+        struct __Edge {
+            NodeIdx _source;
+            std::unordered_set<NodeIdx> _targets;
+        };
+
+        GraphTopo const &_graph;
+        std::unordered_set<EdgeIdx> _localEdges;
+        std::vector<__Node> _nodes;
+        std::vector<__Edge> _edges;
 
     public:
         class Node;
@@ -16,14 +34,7 @@ namespace refactor::graph_topo {
         class Nodes;
         class Edges;
 
-        Searcher() noexcept;
         explicit Searcher(GraphTopo const &) noexcept;
-        Searcher(Searcher const &) noexcept;
-        Searcher(Searcher &&) noexcept;
-        ~Searcher() noexcept;
-
-        Searcher &operator=(Searcher const &) noexcept;
-        Searcher &operator=(Searcher &&) noexcept;
 
         Nodes nodes() const noexcept;
         Edges edges() const noexcept;

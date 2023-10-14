@@ -16,7 +16,7 @@ namespace refactor::computation {
           }) {}
 
     void Graph::transpose() {
-        using SubgraphId = uint16_t;
+        using SubgraphId = uint_lv1;
         constexpr static auto EXTERNAL = std::numeric_limits<SubgraphId>::max();
         constexpr static auto DEPENDENT = EXTERNAL;
         constexpr static auto INDEPENDENT = DEPENDENT - 1;
