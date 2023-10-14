@@ -6,39 +6,46 @@
 #include <vector>
 
 namespace refactor::graph_topo {
-    class Searcher;
-    class InplaceModifier;
+
+    using idx_t = uint_lv2;
 
     class GraphTopo {
+        template<class NodeKey, class Node, class EdgeKey, class Edge>
+        friend class Builder;
         friend class Searcher;
         friend class InplaceModifier;
+        template<class Node, class Edge>
+        friend class LinkedGraph;
 
-        class __Implement;
-        __Implement *_impl;
+        struct Node {
+            idx_t
+                _localEdgesCount,
+                _inputsCount,
+                _outputsCount;
+        };
+        using OutputEdge = idx_t;
+
+        idx_t _lenIn, _lenOut;
+        std::vector<OutputEdge> _connections;
+        std::vector<Node> _nodes;
+
+        GraphTopo(idx_t lenIn, idx_t lenOut) noexcept;
 
     public:
-        GraphTopo() noexcept;
-        GraphTopo(GraphTopo const &) noexcept;
-        GraphTopo(GraphTopo &&) noexcept;
-        ~GraphTopo() noexcept;
-
-        GraphTopo &operator=(GraphTopo const &) noexcept;
-        GraphTopo &operator=(GraphTopo &&) noexcept;
-
         struct NodeRef {
-            size_t idx;
-            slice_t<size_t> inputs;
-            range_t<size_t> outputs;
+            idx_t idx;
+            slice_t<idx_t> inputs;
+            range_t<idx_t> outputs;
         };
 
         class Iterator {
             GraphTopo const &_internal;
-            size_t _idx, _passConnections, _passEdges;
-            Iterator(GraphTopo const &, size_t, size_t, size_t);
+            idx_t _idx, _passConnections, _passEdges;
+            Iterator(GraphTopo const &, idx_t, idx_t, idx_t);
 
         public:
-            static Iterator begin(GraphTopo const *) noexcept;
-            static Iterator end(GraphTopo const *) noexcept;
+            static Iterator begin(GraphTopo const &) noexcept;
+            static Iterator end(GraphTopo const &) noexcept;
             bool operator==(Iterator const &) const noexcept;
             bool operator!=(Iterator const &) const noexcept;
             bool operator<(Iterator const &) const noexcept;
@@ -48,24 +55,20 @@ namespace refactor::graph_topo {
             Iterator &operator++() noexcept;
             Iterator operator++(int) noexcept;
             NodeRef operator*() const noexcept;
-            range_t<size_t> globalInputs() const noexcept;
-            slice_t<size_t> globalOutputs() const noexcept;
+            range_t<idx_t> globalInputs() const noexcept;
+            slice_t<idx_t> globalOutputs() const noexcept;
         };
 
         Iterator begin() const noexcept;
         Iterator end() const noexcept;
-        size_t size() const noexcept;
         size_t globalInputsCount() const noexcept;
+        size_t globalOutputsCount() const noexcept;
         size_t nodeCount() const noexcept;
         size_t edgeCount() const noexcept;
-        range_t<size_t> globalInputs() const noexcept;
-        slice_t<size_t> globalOutputs() const noexcept;
+        range_t<idx_t> globalInputs() const noexcept;
+        slice_t<idx_t> globalOutputs() const noexcept;
 
         std::string toString() const;
-
-        static GraphTopo __withGlobalInputs(size_t globalInputsCount) noexcept;
-        void __addNode(size_t newLocalEdgesCount, std::vector<size_t> inputs, size_t outputsCount) noexcept;
-        void __setGlobalOutputs(std::vector<size_t> outputs) noexcept;
     };
 
     template<class Node, class Edge>

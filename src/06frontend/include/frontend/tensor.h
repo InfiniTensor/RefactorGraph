@@ -2,8 +2,8 @@
 #define FRONTEND_TENSOR_H
 
 #include "absl/container/inlined_vector.h"
+#include "graph_topo/container.h"
 #include "mem_manager/blob.hh"
-#include "refactor/common.h"
 #include <unordered_set>
 #include <variant>
 
@@ -92,10 +92,10 @@ namespace refactor::frontend {
 
     class TensorRefs {
         std::vector<Edge> const &_edges;
-        slice_t<size_t> _slice;
+        slice_t<graph_topo::idx_t> _slice;
 
     public:
-        TensorRefs(std::vector<Edge> const &, slice_t<size_t>);
+        TensorRefs(decltype(_edges) const &, decltype(_slice));
         Tensor const &operator[](size_t) const;
         size_t size() const;
         bool empty() const;

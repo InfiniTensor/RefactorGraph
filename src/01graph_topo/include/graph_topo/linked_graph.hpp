@@ -38,7 +38,7 @@ namespace refactor::graph_topo {
         void setInputs(std::vector<EdgeRc>);
         void setOutputs(std::vector<EdgeRc>);
         NodeRc pushNode(TN, std::vector<EdgeRc>);
-        void eraseNode(size_t);
+        void eraseNode(idx_t);
         void eraseNode(NodeRc);
         bool sort();
     };
@@ -60,8 +60,8 @@ namespace refactor::graph_topo {
         std::vector<EdgeRc> const &outputs() const;
         std::unordered_set<NodeRc> const &predecessors() const;
         std::unordered_set<NodeRc> const &successors() const;
-        void connect(size_t i, EdgeRc);
-        void disconnect(size_t i);
+        void connect(idx_t i, EdgeRc);
+        void disconnect(idx_t i);
     };
 
     template<class TN, class TE>
@@ -71,7 +71,7 @@ namespace refactor::graph_topo {
 
         TE _info;
         NodeRc _source;
-        std::unordered_map<NodeRc, size_t> _targets;
+        std::unordered_map<NodeRc, idx_t> _targets;
 
     public:
         explicit Edge(TE);
@@ -86,11 +86,11 @@ namespace refactor::graph_topo {
     }
 
     LINKED_GRAPH_FN toString() const->std::string {
-        std::unordered_map<size_t, size_t> indices;
+        std::unordered_map<void *, size_t> indices;
         std::stringstream ss;
         auto f = [&indices, &ss](EdgeRc const &e) {
             if (e) {
-                auto [it, ok] = indices.try_emplace(reinterpret_cast<size_t>(e.get()), indices.size());
+                auto [it, ok] = indices.try_emplace(e.get(), indices.size());
                 ss << it->second << ' ';
             } else {
                 ss << "? ";
@@ -142,7 +142,7 @@ namespace refactor::graph_topo {
         return ans;
     }
 
-    LINKED_GRAPH_FN eraseNode(size_t i)->void {
+    LINKED_GRAPH_FN eraseNode(idx_t i)->void {
         auto &node = _nodes.at(i);
         for (auto i : range0_(node->_inputs.size())) {
             node->disconnect(i);
@@ -238,7 +238,7 @@ namespace refactor::graph_topo {
         return ans;
     }
 
-    LINKED_GRAPH_FN Node::connect(size_t i, EdgeRc input)->void {
+    LINKED_GRAPH_FN Node::connect(idx_t i, EdgeRc input)->void {
         if (i < _inputs.size()) {
             disconnect(i);
         } else {
@@ -250,7 +250,7 @@ namespace refactor::graph_topo {
         }
     }
 
-    LINKED_GRAPH_FN Node::disconnect(size_t i)->void {
+    LINKED_GRAPH_FN Node::disconnect(idx_t i)->void {
         if (auto edge = std::exchange(_inputs.at(i), nullptr); edge) {
             auto it = edge->_targets.find(this->shared_from_this());
             if (0 == --it->second) {
@@ -303,47 +303,52 @@ namespace refactor::graph_topo {
     }
 
     LINKED_GRAPH_FN intoGraph() const->Graph<TN, TE> {
-        auto topology = GraphTopo::__withGlobalInputs(_inputs.size());
+        auto topology = GraphTopo(
+            static_cast<idx_t>(_inputs.size()),
+            static_cast<idx_t>(_outputs.size()));
         std::vector<TN> nodes;
         std::vector<TE> edges;
 
         nodes.reserve(_nodes.size());
         edges.reserve(_inputs.size());
 
-        std::unordered_map<size_t, size_t> edgeIndices;
+        std::unordered_map<void *, GraphTopo::OutputEdge> edgeIndices;
         for (auto &e : _inputs) {
-            edgeIndices.insert({reinterpret_cast<size_t>(e.get()), edges.size()});
+            edgeIndices.try_emplace(e.get(), edges.size());
             edges.emplace_back(std::move(e->_info));
         }
 
         for (auto &n : _nodes) {
             nodes.emplace_back(std::move(n->_info));
 
-            std::vector<size_t> newLocal, nodeInputs;
-            nodeInputs.reserve(n->_inputs.size());
+            idx_t newLocalCount = 0;
+            topology._connections.reserve(topology._connections.size() + n->_inputs.size());
             for (auto &e : n->_inputs) {
                 ASSERT(e, "Input edge is not connected");
-                auto [it, ok] = edgeIndices.try_emplace(reinterpret_cast<size_t>(e.get()), edges.size());
+                auto [it, ok] = edgeIndices.try_emplace(e.get(), edges.size());
                 if (ok) {
                     ASSERT(!e->_source, "Local edge should not have source node");
-                    newLocal.push_back(it->second);
+                    ++newLocalCount;
                     edges.emplace_back(std::move(e->_info));
                 }
-                nodeInputs.push_back(it->second);
+                topology._connections.push_back(it->second);
             }
 
             for (auto &e : n->_outputs) {
-                edgeIndices.insert({reinterpret_cast<size_t>(e.get()), edges.size()});
+                edgeIndices[e.get()] = edges.size();
                 edges.emplace_back(std::move(e->_info));
             }
 
-            topology.__addNode(newLocal.size(), std::move(nodeInputs), n->_outputs.size());
+            topology._nodes.push_back({
+                newLocalCount,
+                static_cast<idx_t>(n->_inputs.size()),
+                static_cast<idx_t>(n->_outputs.size()),
+            });
         }
 
-        std::vector<size_t> outputs(_outputs.size());
-        std::transform(_outputs.begin(), _outputs.end(), outputs.begin(),
-                       [&](auto &e) { return edgeIndices.at(reinterpret_cast<size_t>(e.get())); });
-        topology.__setGlobalOutputs(std::move(outputs));
+        std::transform(_outputs.begin(), _outputs.end(),
+                       topology._connections.begin(),
+                       [&](auto &e) { return edgeIndices.at(e.get()); });
 
         return {
             std::move(topology),

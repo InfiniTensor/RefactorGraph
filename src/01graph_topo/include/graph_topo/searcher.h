@@ -34,10 +34,10 @@ namespace refactor::graph_topo {
 
     class Searcher::Node {
         Searcher const &_internal;
-        size_t _idx;
+        idx_t _idx;
 
     public:
-        Node(Searcher const &, size_t) noexcept;
+        Node(Searcher const &, idx_t) noexcept;
         bool operator==(Node const &) const noexcept;
         bool operator!=(Node const &) const noexcept;
         bool operator<(Node const &) const noexcept;
@@ -45,7 +45,7 @@ namespace refactor::graph_topo {
         bool operator<=(Node const &) const noexcept;
         bool operator>=(Node const &) const noexcept;
 
-        size_t index() const noexcept;
+        idx_t index() const noexcept;
         std::vector<Edge> inputs() const noexcept;
         std::vector<Edge> outputs() const noexcept;
         std::set<Node> predecessors() const noexcept;
@@ -53,10 +53,10 @@ namespace refactor::graph_topo {
     };
     class Searcher::Edge {
         Searcher const &_internal;
-        size_t _idx;
+        idx_t _idx;
 
     public:
-        Edge(Searcher const &, size_t) noexcept;
+        Edge(Searcher const &, idx_t) noexcept;
         bool operator==(Edge const &) const noexcept;
         bool operator!=(Edge const &) const noexcept;
         bool operator<(Edge const &) const noexcept;
@@ -64,7 +64,7 @@ namespace refactor::graph_topo {
         bool operator<=(Edge const &) const noexcept;
         bool operator>=(Edge const &) const noexcept;
 
-        size_t index() const noexcept;
+        idx_t index() const noexcept;
         Node source() const noexcept;
         std::set<Node> targets() const noexcept;
     };
@@ -75,10 +75,10 @@ namespace refactor::graph_topo {
     public:
         class Iterator {
             Searcher const &_internal;
-            size_t _idx;
+            idx_t _idx;
 
         public:
-            Iterator(Searcher const &, size_t) noexcept;
+            Iterator(Searcher const &, idx_t) noexcept;
             bool operator==(Iterator const &) const noexcept;
             bool operator!=(Iterator const &) const noexcept;
             bool operator<(Iterator const &) const noexcept;
@@ -93,8 +93,8 @@ namespace refactor::graph_topo {
         Iterator begin() const noexcept;
         Iterator end() const noexcept;
         size_t size() const noexcept;
-        Node operator[](size_t) const noexcept;
-        Node at(size_t) const;
+        Node operator[](idx_t) const noexcept;
+        Node at(idx_t) const;
     };
     class Searcher::Edges {
         Searcher const &_internal;
@@ -102,10 +102,10 @@ namespace refactor::graph_topo {
     public:
         class Iterator {
             Searcher const &_internal;
-            size_t _idx;
+            idx_t _idx;
 
         public:
-            Iterator(Searcher const &, size_t) noexcept;
+            Iterator(Searcher const &, idx_t) noexcept;
             bool operator==(Iterator const &) const noexcept;
             bool operator!=(Iterator const &) const noexcept;
             bool operator<(Iterator const &) const noexcept;
@@ -120,8 +120,8 @@ namespace refactor::graph_topo {
         Iterator begin() const noexcept;
         Iterator end() const noexcept;
         size_t size() const noexcept;
-        Edge operator[](size_t idx) const noexcept;
-        Edge at(size_t) const;
+        Edge operator[](idx_t idx) const noexcept;
+        Edge at(idx_t) const;
     };
 }// namespace refactor::graph_topo
 

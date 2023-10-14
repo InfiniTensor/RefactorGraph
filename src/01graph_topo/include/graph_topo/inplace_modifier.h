@@ -6,27 +6,27 @@
 namespace refactor::graph_topo {
     /// @brief 描述连接节点的边。
     class OnNode {
-        size_t edge;
+        idx_t edge;
 
-        explicit OnNode(size_t) noexcept;
+        explicit OnNode(idx_t) noexcept;
 
     public:
         /// @brief 节点的入边。
-        static OnNode input(size_t) noexcept;
+        static OnNode input(idx_t) noexcept;
         /// @brief 节点的出边。
-        static OnNode output(size_t) noexcept;
+        static OnNode output(idx_t) noexcept;
         /// @brief 判断是否为入边。
         bool isInput() const noexcept;
         /// @brief 判断是否为出边。
         bool isOutput() const noexcept;
         /// @brief 获取边的索引。
-        size_t index() const noexcept;
+        idx_t index() const noexcept;
     };
 
     /// @brief 搭建桥梁节点，即入度出度都为 1 的节点。
     struct Bridge {
         /// @brief 桥接到的节点号。
-        size_t node;
+        idx_t node;
         /// @brief 要桥接的边。
         OnNode edge;
     };
@@ -34,7 +34,7 @@ namespace refactor::graph_topo {
     /// @brief 建好的桥梁节点坐标。
     struct BridgePos {
         /// @brief 桥梁节点和其出边的序号。
-        size_t node, edge;
+        idx_t node, edge;
     };
 
     class InplaceModifier {

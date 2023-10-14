@@ -20,7 +20,6 @@ namespace refactor {
     };
 
     template<class t> slice_t<t> slice(t const *begin, t const *end) noexcept { return {begin, end}; }
-    template<class t> slice_t<t> slice(t const *begin, int64_t size) noexcept { return {begin, begin + size}; }
     template<class t> slice_t<t> slice(t const *begin, size_t size) noexcept { return {begin, begin + size}; }
 }// namespace refactor
 

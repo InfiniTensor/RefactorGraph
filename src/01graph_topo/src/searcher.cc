@@ -1,5 +1,4 @@
 ﻿#include "graph_topo/searcher.h"
-#include "internal.h"
 #include "refactor/common.h"
 #include <algorithm>
 #include <unordered_set>
@@ -7,12 +6,12 @@
 
 namespace refactor::graph_topo {
 
-    using EdgeIdx = size_t;
-    using NodeIdx = size_t;
-    constexpr static NodeIdx EXTERNAL = SIZE_MAX;
+    using EdgeIdx = idx_t;
+    using NodeIdx = idx_t;
+    constexpr static NodeIdx EXTERNAL = std::numeric_limits<idx_t>::max();
 
     struct __Node {
-        size_t _passEdges, _passConnections;
+        idx_t _passEdges, _passConnections;
         mutable std::unordered_set<NodeIdx>
             _predecessors,
             _successors;
@@ -38,17 +37,17 @@ namespace refactor::graph_topo {
 
         __Implement(GraphTopo const &graph) noexcept
             : _graph(graph),
-              _nodes(graph._impl->_nodes.size()),
-              _edges(graph._impl->_globalInputsCount, {EXTERNAL, {}}),
+              _nodes(graph._nodes.size()),
+              _edges(graph._lenIn, {EXTERNAL, {}}),
               _globalInputs{},
               _globalOutputs{},
               _localEdges{} {
 
-            size_t passConnections = 0;
+            idx_t passConnections = 0;
             auto it = graph.begin();
             while (it != graph.end()) {
                 auto [nodeIdx, inputs, outputs] = *it++;
-                auto localEdgesCount = graph._impl->_nodes[nodeIdx]._localEdgesCount;
+                auto localEdgesCount = graph._nodes[nodeIdx]._localEdgesCount;
 
                 auto edgeBegin = _edges.size();
                 _nodes[nodeIdx]._passEdges = edgeBegin;
@@ -125,8 +124,8 @@ namespace refactor::graph_topo {
 
 #define COMPARE(NAME) bool Searcher::NAME::operator
 
-    Searcher::Node::Node(Searcher const &internal, size_t idx) noexcept : _internal(internal), _idx(idx) {}
-    Searcher::Edge::Edge(Searcher const &internal, size_t idx) noexcept : _internal(internal), _idx(idx) {}
+    Searcher::Node::Node(Searcher const &internal, idx_t idx) noexcept : _internal(internal), _idx(idx) {}
+    Searcher::Edge::Edge(Searcher const &internal, idx_t idx) noexcept : _internal(internal), _idx(idx) {}
     COMPARE(Node) == (Node const &rhs) const noexcept { return &_internal == &rhs._internal && _idx == rhs._idx; }
     COMPARE(Node) != (Node const &rhs) const noexcept { return &_internal == &rhs._internal && _idx != rhs._idx; }
     COMPARE(Node) < (Node const &rhs) const noexcept { return &_internal == &rhs._internal && _idx < rhs._idx; }
@@ -139,13 +138,13 @@ namespace refactor::graph_topo {
     COMPARE(Edge) > (Edge const &rhs) const noexcept { return &_internal == &rhs._internal && _idx > rhs._idx; }
     COMPARE(Edge) <= (Edge const &rhs) const noexcept { return &_internal == &rhs._internal && _idx <= rhs._idx; }
     COMPARE(Edge) >= (Edge const &rhs) const noexcept { return &_internal == &rhs._internal && _idx >= rhs._idx; }
-    size_t Searcher::Node::index() const noexcept { return _idx; }
-    size_t Searcher::Edge::index() const noexcept { return _idx; }
+    idx_t Searcher::Node::index() const noexcept { return _idx; }
+    idx_t Searcher::Edge::index() const noexcept { return _idx; }
 
     auto Searcher::Node::inputs() const noexcept -> std::vector<Edge> {
-        auto const &nodeIn = _internal._impl->_graph._impl->_nodes[_idx];
+        auto const &nodeIn = _internal._impl->_graph._nodes[_idx];
         auto const &nodeEx = _internal._impl->_nodes[_idx];
-        auto const &connections = _internal._impl->_graph._impl->_connections.data();
+        auto const &connections = _internal._impl->_graph._connections.data();
         std::vector<Edge> ans;
         ans.reserve(nodeIn._inputsCount);
         for (auto edgeIdx : slice(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
@@ -154,7 +153,7 @@ namespace refactor::graph_topo {
         return ans;
     }
     auto Searcher::Node::outputs() const noexcept -> std::vector<Edge> {
-        auto const &nodeIn = _internal._impl->_graph._impl->_nodes[_idx];
+        auto const &nodeIn = _internal._impl->_graph._nodes[_idx];
         auto const &nodeEx = _internal._impl->_nodes[_idx];
         std::vector<Edge> ans;
         ans.reserve(nodeIn._outputsCount);
@@ -170,9 +169,9 @@ namespace refactor::graph_topo {
         auto &predecessors = impl._nodes[_idx]._predecessors;
         std::set<Node> ans;
         if (predecessors.empty()) {
-            auto const &nodeIn = impl._graph._impl->_nodes[_idx];
+            auto const &nodeIn = impl._graph._nodes[_idx];
             auto const &nodeEx = impl._nodes[_idx];
-            auto const &connections = impl._graph._impl->_connections.data();
+            auto const &connections = impl._graph._connections.data();
             for (auto edgeIdx : slice(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
                 auto nodeIdx = impl._edges[edgeIdx]._source;
                 if (nodeIdx != EXTERNAL) {
@@ -193,7 +192,7 @@ namespace refactor::graph_topo {
         auto &successors = impl._nodes[_idx]._successors;
         std::set<Node> ans;
         if (successors.empty()) {
-            auto const &nodeIn = impl._graph._impl->_nodes[_idx];
+            auto const &nodeIn = impl._graph._nodes[_idx];
             auto const &nodeEx = impl._nodes[_idx];
             auto begin = nodeEx._passEdges + nodeIn._localEdgesCount,
                  end = begin + nodeIn._outputsCount;
@@ -233,23 +232,23 @@ namespace refactor::graph_topo {
     auto Searcher::Edges::end() const noexcept -> Iterator { return {_internal, size()}; }
     auto Searcher::Nodes::size() const noexcept -> size_t { return _internal._impl->_nodes.size(); }
     auto Searcher::Edges::size() const noexcept -> size_t { return _internal._impl->_edges.size(); }
-    auto Searcher::Nodes::operator[](size_t idx) const noexcept -> Node { return {_internal, idx}; }
-    auto Searcher::Edges::operator[](size_t idx) const noexcept -> Edge { return {_internal, idx}; }
-    auto Searcher::Nodes::at(size_t idx) const -> Node {
+    auto Searcher::Nodes::operator[](idx_t idx) const noexcept -> Node { return {_internal, idx}; }
+    auto Searcher::Edges::operator[](idx_t idx) const noexcept -> Edge { return {_internal, idx}; }
+    auto Searcher::Nodes::at(idx_t idx) const -> Node {
         if (auto s = size(); idx >= s) {
             OUT_OF_RANGE("Searcher::Nodes::at", idx, s);
         }
         return {_internal, idx};
     }
-    auto Searcher::Edges::at(size_t idx) const -> Edge {
+    auto Searcher::Edges::at(idx_t idx) const -> Edge {
         if (auto s = size(); idx >= s) {
             OUT_OF_RANGE("Searcher::Edges::at", idx, s);
         }
         return {_internal, idx};
     }
 
-    Searcher::Nodes::Iterator::Iterator(Searcher const &internal, size_t idx) noexcept : _internal(internal), _idx(idx) {}
-    Searcher::Edges::Iterator::Iterator(Searcher const &internal, size_t idx) noexcept : _internal(internal), _idx(idx) {}
+    Searcher::Nodes::Iterator::Iterator(Searcher const &internal, idx_t idx) noexcept : _internal(internal), _idx(idx) {}
+    Searcher::Edges::Iterator::Iterator(Searcher const &internal, idx_t idx) noexcept : _internal(internal), _idx(idx) {}
     COMPARE(Nodes::Iterator) == (Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx == rhs._idx; }
     COMPARE(Nodes::Iterator) != (Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx != rhs._idx; }
     COMPARE(Nodes::Iterator) < (Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx < rhs._idx; }

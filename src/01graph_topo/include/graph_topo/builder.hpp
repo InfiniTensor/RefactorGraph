@@ -21,19 +21,20 @@ namespace refactor::graph_topo {
         std::unordered_map<EdgeKey, Edge> edges;
 
         Graph<Node, Edge> build() noexcept {
-            auto topology = GraphTopo::__withGlobalInputs(globalInputs.size());
+            auto topology = GraphTopo(
+                static_cast<idx_t>(globalInputs.size()),
+                static_cast<idx_t>(globalOutputs.size()));
             std::vector<Node> nodes;
             std::vector<Edge> edges;
 
-            std::unordered_map<EdgeKey, size_t> keyToIdx;
+            std::unordered_map<EdgeKey, idx_t> keyToIdx;
             std::unordered_set<EdgeKey> generatedEdges;
             for (auto const &edge : globalInputs) {
-                keyToIdx.insert({edge, edges.size()});
-                auto it = this->edges.find(edge);
-                if (it == this->edges.end()) {
-                    edges.push_back({});
+                keyToIdx[edge] = static_cast<idx_t>(edges.size());
+                if (auto it = this->edges.find(edge); it == this->edges.end()) {
+                    edges.emplace_back();
                 } else {
-                    edges.push_back(std::move(it->second));
+                    edges.emplace_back(std::move(it->second));
                 }
                 generatedEdges.insert(edge);
             }
@@ -60,38 +61,38 @@ namespace refactor::graph_topo {
                                  [&](auto const &edge) { return keyToIdx.find(edge) == keyToIdx.end() &&
                                                                 generatedEdges.find(edge) == generatedEdges.end(); });
                     for (auto const &edge : newLocal) {
-                        keyToIdx.insert({edge, edges.size()});
-                        auto it = this->edges.find(edge);
-                        if (it == this->edges.end()) {
-                            edges.push_back({});
+                        keyToIdx[edge] = static_cast<idx_t>(edges.size());
+                        if (auto it = this->edges.find(edge); it == this->edges.end()) {
+                            edges.emplace_back();
                         } else {
-                            edges.push_back(std::move(it->second));
+                            edges.emplace_back(std::move(it->second));
                         }
                     }
-                    nodes.push_back(std::move(this->nodes.at(kn)));
+                    nodes.emplace_back(std::move(this->nodes.at(kn)));
                     {
-                        std::vector<size_t> nodeInputs(inputs.size());
-                        std::transform(inputs.begin(), inputs.end(), nodeInputs.begin(),
-                                       [&](auto const &edge) { return keyToIdx.at(edge); });
-                        topology.__addNode(newLocal.size(), std::move(nodeInputs), outputs.size());
+                        topology._nodes.push_back({
+                            static_cast<idx_t>(newLocal.size()),
+                            static_cast<idx_t>(inputs.size()),
+                            static_cast<idx_t>(outputs.size()),
+                        });
+                        topology._connections.reserve(topology._connections.size() + inputs.size());
+                        for (auto const &input : inputs) {
+                            topology._connections.push_back(keyToIdx.at(input));
+                        }
                     }
                     for (auto const &edge : outputs) {
-                        keyToIdx.insert({edge, edges.size()});
-                        auto it = this->edges.find(edge);
-                        if (it == this->edges.end()) {
-                            edges.push_back({});
+                        keyToIdx[edge] = static_cast<idx_t>(edges.size());
+                        if (auto it = this->edges.find(edge); it == this->edges.end()) {
+                            edges.emplace_back();
                         } else {
-                            edges.push_back(std::move(it->second));
+                            edges.emplace_back(std::move(it->second));
                         }
                     }
                 }
             }
-            {
-                std::vector<size_t> globalOutputs;
-                std::transform(this->globalOutputs.begin(), this->globalOutputs.end(), std::back_inserter(globalOutputs),
-                               [&](auto const &edge) { return keyToIdx.at(edge); });
-                topology.__setGlobalOutputs(std::move(globalOutputs));
-            }
+            std::transform(globalOutputs.begin(), globalOutputs.end(),
+                           topology._connections.begin(),
+                           [&](auto const &edge) { return keyToIdx.at(edge); });
 
             return {
                 std::move(topology),
