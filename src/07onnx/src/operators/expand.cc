@@ -1,11 +1,10 @@
 ﻿#include "expand.hh"
 #include "common.h"
-#include "common/range.h"
 #include "computation/operators/broadcast.h"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Expand;
 
     Op::Expand() : Operator() {}

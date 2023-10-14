@@ -1,11 +1,9 @@
 ﻿#include "simple_binary.hh"
 #include "common.h"
-#include "common/error_handler.h"
-#include "common/range.h"
 #include "computation/operators/simple_binary.h"
+#include "refactor/common.h"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = SimpleBinary;
     using Ty = SimpleBinaryType;
 

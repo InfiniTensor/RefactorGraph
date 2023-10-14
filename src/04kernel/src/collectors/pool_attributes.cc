@@ -1,6 +1,6 @@
 ﻿#include "kernel/collectors/pool_attributes.hh"
-#include "common/error_handler.h"
-#include "common/range.h"
+#include "refactor/common.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel {
 
@@ -15,7 +15,7 @@ namespace refactor::kernel {
         uint16_t *dilations_ = _values.data(),
                  *strides_ = dilations_ + rank,
                  *pads_ = dilations_ + rank;
-        auto range = common::range0_(rank);
+        auto range = range0_(rank);
         if (dilations) {
             for (auto i : range) {
                 auto dilation = dilations[i];

@@ -1,8 +1,8 @@
-﻿#include "common/fp16_t.h"
+﻿#include "refactor/common.h"
 #include <cassert>
 #include <fmt/core.h>
 
-using namespace refactor::common;
+using namespace refactor;
 
 int main() {
     float val = 2047;

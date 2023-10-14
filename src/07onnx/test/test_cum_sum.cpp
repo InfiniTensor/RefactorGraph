@@ -1,5 +1,5 @@
 ﻿#include "../src/operators/common.h"
-#include "common/range.h"
+#include "refactor/common.h"
 #include "onnx/operators.h"
 #include <gtest/gtest.h>
 

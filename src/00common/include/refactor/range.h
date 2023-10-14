@@ -4,7 +4,7 @@
 #include "error_handler.h"
 #include "natural.h"
 
-namespace refactor::common {
+namespace refactor {
     template<class t> struct range_t;
     template<class t> struct rev_range_t;
 
@@ -12,7 +12,7 @@ namespace refactor::common {
     struct range_t {
         t begin_, end_;
 
-        using Iterator = common::natural_t<t>;
+        using Iterator = natural_t<t>;
 
         bool empty() const noexcept { return end_ == begin_; }
         size_t size() const noexcept { return end_ - begin_; }
@@ -30,7 +30,7 @@ namespace refactor::common {
     struct rev_range_t {
         t begin_, end_;
 
-        using Iterator = common::rev_natural_t<t>;
+        using Iterator = rev_natural_t<t>;
 
         bool empty() const noexcept { return end_ == begin_; }
         size_t size() const noexcept { return end_ - begin_; }
@@ -51,7 +51,7 @@ namespace refactor::common {
         ASSERT(begin <= end, "begin must be less than end");
         return {begin, end};
     }
-}// namespace refactor::common
+}// namespace refactor
 
 
 #endif// RANGE_H

@@ -4,7 +4,6 @@
 #include <numeric>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = BatchNormalization;
 
     Op::BatchNormalization(bool trainingMode_, float epsilon_)

@@ -1,8 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_CONTAINER_H
 #define GRAPH_TOPO_CONTAINER_H
 
-#include "common/range.h"
-#include "common/slice.h"
+#include "refactor/common.h"
 #include <cstddef>
 #include <vector>
 
@@ -28,8 +27,8 @@ namespace refactor::graph_topo {
 
         struct NodeRef {
             size_t idx;
-            common::slice_t<size_t> inputs;
-            common::range_t<size_t> outputs;
+            slice_t<size_t> inputs;
+            range_t<size_t> outputs;
         };
 
         class Iterator {
@@ -49,8 +48,8 @@ namespace refactor::graph_topo {
             Iterator &operator++() noexcept;
             Iterator operator++(int) noexcept;
             NodeRef operator*() const noexcept;
-            common::range_t<size_t> globalInputs() const noexcept;
-            common::slice_t<size_t> globalOutputs() const noexcept;
+            range_t<size_t> globalInputs() const noexcept;
+            slice_t<size_t> globalOutputs() const noexcept;
         };
 
         Iterator begin() const noexcept;
@@ -59,8 +58,8 @@ namespace refactor::graph_topo {
         size_t globalInputsCount() const noexcept;
         size_t nodeCount() const noexcept;
         size_t edgeCount() const noexcept;
-        common::range_t<size_t> globalInputs() const noexcept;
-        common::slice_t<size_t> globalOutputs() const noexcept;
+        range_t<size_t> globalInputs() const noexcept;
+        slice_t<size_t> globalOutputs() const noexcept;
 
         std::string toString() const;
 

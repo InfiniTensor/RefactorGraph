@@ -19,7 +19,7 @@ namespace refactor::kernel::cudnn {
     };
 
     struct ConvInfo {
-        common::DataType dt;
+        DataType dt;
         ConvolutionFwdAlgo algo;
         int xShape[4],
             wShape[4],

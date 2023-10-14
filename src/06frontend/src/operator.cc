@@ -1,5 +1,5 @@
 ﻿#include "frontend/operator.h"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 #include "frontend/graph.h"
 
 namespace refactor::frontend {

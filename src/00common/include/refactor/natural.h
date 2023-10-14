@@ -3,7 +3,7 @@
 
 #include <iterator>
 
-namespace refactor::common {
+namespace refactor {
 
     template<class t = size_t>
     class natural_t : public std::iterator<std::input_iterator_tag, t> {
@@ -57,6 +57,6 @@ namespace refactor::common {
         }
     };
 
-}// namespace refactor::common
+}// namespace refactor
 
 #endif// NATURAL_H

@@ -4,7 +4,7 @@
 
 namespace refactor::kernel {
     using K = ActivationCudnn;
-    using DT = common::DataType;
+    using DT = DataType;
     using Op = SimpleUnaryType;
 
     K::ActivationCudnn(Op type_, DT dataType_, size_t size_) noexcept

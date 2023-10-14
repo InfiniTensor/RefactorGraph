@@ -5,7 +5,6 @@
 #include <unordered_set>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = SimpleUnary;
     using Ty = SimpleUnaryType;
 

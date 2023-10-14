@@ -1,10 +1,9 @@
 ﻿#include "computation/operators/conv.h"
-#include "common/range.h"
 #include "conv.hh"
+#include "refactor/common.h"
 #include <numeric>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Conv;
 
     Op::Conv(OptionalInts dilations_,

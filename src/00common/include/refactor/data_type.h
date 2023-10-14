@@ -6,7 +6,7 @@
 #include <complex>
 #include <optional>
 
-namespace refactor::common {
+namespace refactor {
 
     struct DataType {
         /// @brief 数据类型。
@@ -148,6 +148,6 @@ namespace refactor::common {
         using type = bf16_t;
     };
 
-}// namespace refactor::common
+}// namespace refactor
 
 #endif// REFACTOR_DATA_TYPE

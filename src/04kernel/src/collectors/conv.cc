@@ -1,6 +1,6 @@
 ﻿#include "kernel/collectors/conv.h"
 #include "../kernels/conv/cudnn_kernel.hh"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel {
 

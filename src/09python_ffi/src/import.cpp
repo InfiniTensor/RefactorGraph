@@ -7,7 +7,7 @@ namespace refactor::python_ffi {
 
     SharedTensor
     makeTensor(int dataType, DimVec dims) {
-        return Tensor::share(*common::DataType::parse(dataType), dimVec2Shape(dims), {});
+        return Tensor::share(*DataType::parse(dataType), dimVec2Shape(dims), {});
     }
 
     SharedTensor
@@ -30,7 +30,7 @@ namespace refactor::python_ffi {
         std::transform(std::execution::unseq,
                        shape.begin(), shape.end(), shape_.begin(),
                        [](auto d) { return DimExpr(d); });
-        auto ans = Tensor::share(*common::DataType::parse(dataType), std::move(shape_), {});
+        auto ans = Tensor::share(*DataType::parse(dataType), std::move(shape_), {});
         std::ifstream stream(file, std::ios::binary);
         stream.seekg(offset);
         stream.read(static_cast<char *>(ans->malloc()), ans->bytesSize());

@@ -1,13 +1,12 @@
 ﻿#include "cpu_kernel.hh"
-#include "common/error_handler.h"
-#include "common/natural.h"
+#include "refactor/common.h"
 #include <execution>
 #include <unordered_set>
 
 namespace refactor::kernel {
     using K = SimpleUnary;
     using Op = SimpleUnaryType;
-    using DT = common::DataType;
+    using DT = DataType;
 
     K::SimpleUnary(Op opType_, DT dataType_, size_t size_) noexcept
         : Kernel(), dataType(dataType_), opType(opType_), size(size_) {}
@@ -36,11 +35,11 @@ namespace refactor::kernel {
 #define CASE_DT(OP, T)                                                                       \
     case DT::T:                                                                              \
         return [n = this->size](runtime::Resources &, Addresses inputs, Addresses outputs) { \
-            using T_ = common::primitive_t<DT::T>::type;                                     \
+            using T_ = primitive_t<DT::T>::type;                                             \
             auto x = static_cast<T_ const *>(inputs[0]);                                     \
             auto y = static_cast<T_ *>(outputs[0]);                                          \
             std::for_each_n(std::execution::par_unseq,                                       \
-                            common::natural_t(0), n,                                         \
+                            natural_t(0), n,                                                 \
                             [y, x](auto i) { y[i] = OP(x[i]); });                            \
         }
 

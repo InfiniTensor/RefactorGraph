@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_TENSOR_H
 #define KERNEL_TENSOR_H
 
-#include "common/data_type.h"
+#include "refactor/common.h"
 #include "mem_manager/blob.hh"
 #include <absl/container/inlined_vector.h>
 
@@ -16,17 +16,17 @@ namespace refactor::kernel {
     };
 
     struct Tensor {
-        common::DataType dataType;
+        DataType dataType;
         Shape shape;
         LayoutType layout;
         std::shared_ptr<mem_manager::Blob> data;
 
-        Tensor(common::DataType,
+        Tensor(DataType,
                Shape,
                LayoutType,
                std::shared_ptr<mem_manager::Blob>) noexcept;
         static std::shared_ptr<Tensor>
-            share(common::DataType,
+            share(DataType,
                   Shape,
                   LayoutType = LayoutType::Others,
                   std::shared_ptr<mem_manager::Blob> = nullptr) noexcept;

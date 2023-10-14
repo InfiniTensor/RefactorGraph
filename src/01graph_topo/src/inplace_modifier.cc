@@ -1,6 +1,6 @@
 ﻿#include "graph_topo/inplace_modifier.h"
-#include "common/error_handler.h"
-#include "common/range.h"
+#include "refactor/common.h"
+#include "refactor/common.h"
 #include "internal.h"
 #include <algorithm>
 
@@ -31,7 +31,7 @@ namespace refactor::graph_topo {
         auto &g = *_g._impl;
         auto passConnections = 0ul,
              passEdges = g._globalInputsCount;
-        for (auto i : common::range0_(n)) {
+        for (auto i : range0_(n)) {
             auto const &n_ = g._nodes[i];
             passConnections += n_._inputsCount;
             passEdges += n_._localEdgesCount + n_._outputsCount;

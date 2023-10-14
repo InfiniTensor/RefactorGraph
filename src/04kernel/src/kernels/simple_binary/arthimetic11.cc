@@ -1,13 +1,12 @@
 ﻿#include "arthimetic11.hh"
-#include "common/error_handler.h"
-#include "common/natural.h"
+#include "refactor/common.h"
 #include <execution>
 #include <unordered_set>
 
 namespace refactor::kernel {
     using K = Arthimetic11;
     using Op = SimpleBinaryType;
-    using DT = common::DataType;
+    using DT = DataType;
 
     K::Arthimetic11(Op opType_, DT dataType_, size_t size_) noexcept
         : Kernel(), dataType(dataType_), opType(opType_), size(size_) {}
@@ -39,12 +38,12 @@ namespace refactor::kernel {
 #define CASE_DT(OP, T)                                                                       \
     case DT::T:                                                                              \
         return [n = this->size](runtime::Resources &, Addresses inputs, Addresses outputs) { \
-            using T_ = common::primitive_t<DT::T>::type;                                     \
+            using T_ = primitive_t<DT::T>::type;                                             \
             auto a = static_cast<T_ const *>(inputs[0]);                                     \
             auto b = static_cast<T_ const *>(inputs[1]);                                     \
             auto c = static_cast<T_ *>(outputs[0]);                                          \
             std::for_each_n(std::execution::par_unseq,                                       \
-                            common::natural_t(0), n,                                         \
+                            natural_t(0), n,                                                 \
                             [c, a, b](auto i) { c[i] = a[i] OP b[i]; });                     \
         }
 

@@ -1,11 +1,10 @@
 ﻿#include "computation/operators/split.h"
 #include "common.h"
-#include "common/range.h"
+#include "refactor/common.h"
 #include "split.hh"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Split;
 
     Op::Split(Int axis_, Int numOutputs_)

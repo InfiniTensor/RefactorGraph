@@ -2,7 +2,7 @@
 
 namespace refactor::kernel {
     using K = BatchNormalizationCudnn;
-    using DT = common::DataType;
+    using DT = DataType;
 
     K::BatchNormalizationCudnn(cudnn::BNInfo info_) noexcept
         : Kernel(), info(info_) {}

@@ -1,6 +1,5 @@
 ﻿#include "arthimetic11_cuda.hh"
-#include "common/error_handler.h"
-#include "common/natural.h"
+#include "refactor/common.h"
 #include <execution>
 #include <unordered_set>
 
@@ -11,7 +10,7 @@
 namespace refactor::kernel {
     using K = Arthimetic11Cuda;
     using Op = SimpleBinaryType;
-    using DT = common::DataType;
+    using DT = DataType;
 
     K::Arthimetic11Cuda(Op opType_, DT dataType_, size_t size_) noexcept
         : Kernel(), dataType(dataType_), opType(opType_), size(size_) {}

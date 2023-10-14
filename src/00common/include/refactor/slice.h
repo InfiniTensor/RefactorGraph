@@ -1,7 +1,7 @@
 ﻿#ifndef SLICE_H
 #define SLICE_H
 
-namespace refactor::common {
+namespace refactor {
     template<class t>
     struct slice_t {
         t const *begin_, *end_;
@@ -22,6 +22,6 @@ namespace refactor::common {
     template<class t> slice_t<t> slice(t const *begin, t const *end) noexcept { return {begin, end}; }
     template<class t> slice_t<t> slice(t const *begin, int64_t size) noexcept { return {begin, begin + size}; }
     template<class t> slice_t<t> slice(t const *begin, size_t size) noexcept { return {begin, begin + size}; }
-}// namespace refactor::common
+}// namespace refactor
 
 #endif// SLICE_H

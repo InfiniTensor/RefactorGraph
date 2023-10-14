@@ -1,11 +1,9 @@
 ﻿#include "constant_of_shape.hh"
 #include "common.h"
-#include "common/range.h"
-#include "common/slice.h"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = ConstantOfShape;
 
     Op::ConstantOfShape(Tensor_ value_)

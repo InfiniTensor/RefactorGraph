@@ -1,8 +1,8 @@
 ﻿#ifndef GRAPH_TOPO_LINKED_GRAPH_H
 #define GRAPH_TOPO_LINKED_GRAPH_H
 
-#include "common/range.h"
 #include "container.h"
+#include "refactor/common.h"
 #include <algorithm>
 #include <memory>
 #include <sstream>
@@ -10,7 +10,6 @@
 #include <unordered_set>
 
 namespace refactor::graph_topo {
-    using namespace common;
 
     template<class TN, class TE>
     class LinkedGraph {

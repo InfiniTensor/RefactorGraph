@@ -4,7 +4,7 @@
 #include <fmt/format.h>
 #include <stdexcept>
 
-namespace refactor::common::error {
+namespace refactor::error {
     inline std::string buildMsg(std::string msg, const char *file, int line) noexcept {
         msg += " Source ";
         msg += file;
@@ -23,16 +23,16 @@ namespace refactor::common::error {
             : std::logic_error(std::move(msg)) {}
     };
 
-}// namespace refactor::common::error
+}// namespace refactor::error
 
-#define ERROR_MSG(msg) refactor::common::error::buildMsg(msg, __FILE__, __LINE__)
+#define ERROR_MSG(msg) refactor::error::buildMsg(msg, __FILE__, __LINE__)
 #define RUNTIME_ERROR(msg) throw std::runtime_error(ERROR_MSG(msg))
 #define OUT_OF_RANGE(msg, a, b) throw std::out_of_range(ERROR_MSG((std::to_string(a) + '/' + std::to_string(b) + ' ' + msg)))
-#define TODO(msg) throw refactor::common::error::UnimplementError(ERROR_MSG(msg))
+#define TODO(msg) throw refactor::error::UnimplementError(ERROR_MSG(msg))
 
-#define UNREACHABLEX(T, F, ...)                                                                                     \
-    [&]() -> T {                                                                                                    \
-        throw refactor::common::error::UnreachableError(ERROR_MSG(fmt::format("Unreachable: " #F, ##__VA_ARGS__))); \
+#define UNREACHABLEX(T, F, ...)                                                                             \
+    [&]() -> T {                                                                                            \
+        throw refactor::error::UnreachableError(ERROR_MSG(fmt::format("Unreachable: " #F, ##__VA_ARGS__))); \
     }()
 #define UNREACHABLE() UNREACHABLEX(void, "no message")
 

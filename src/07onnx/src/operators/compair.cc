@@ -1,10 +1,9 @@
 ﻿#include "computation/operators/compair.h"
 #include "common.h"
-#include "common/range.h"
 #include "compair.hh"
+#include "refactor/common.h"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Compair;
     using Ty = CompairType;
 

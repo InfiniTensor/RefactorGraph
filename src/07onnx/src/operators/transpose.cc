@@ -4,7 +4,6 @@
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Transpose;
 
     Op::Transpose(Ints perm_)

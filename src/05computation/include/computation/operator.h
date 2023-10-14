@@ -1,7 +1,7 @@
 ﻿#ifndef COMPUTATION_OPERATOR_H
 #define COMPUTATION_OPERATOR_H
 
-#include "common/error_handler.h"
+#include "refactor/common.h"
 #include "kernel/collector.h"
 #include "kernel/target.h"
 

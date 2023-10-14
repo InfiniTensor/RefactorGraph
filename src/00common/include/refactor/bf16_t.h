@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string>
 
-namespace refactor::common {
+namespace refactor {
 
     class bf16_t final {
         uint16_t code;
@@ -60,6 +60,6 @@ namespace refactor::common {
         }
     };
 
-}// namespace refactor::common
+}// namespace refactor
 
 #endif// BF16_H

@@ -1,7 +1,7 @@
 ﻿#include "kernel/collectors/simple_binary.h"
 #include "../kernels/simple_binary/arthimetic11.hh"
 #include "../kernels/simple_binary/arthimetic11_cuda.hh"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel {
 

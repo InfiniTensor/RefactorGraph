@@ -1,10 +1,9 @@
 #include "tile.hh"
 #include "common.h"
-#include "common/range.h"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Tile;
 
     Op::Tile() : Operator() {}

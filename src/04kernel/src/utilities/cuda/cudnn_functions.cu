@@ -1,7 +1,7 @@
 ﻿#include "cudnn_functions.h"
 
 namespace refactor::kernel::cudnn {
-    using DT = common::DataType;
+    using DT = DataType;
 
     cudnnDataType_t cudnnDataTypeConvert(DT dataType) {
         switch (dataType) {

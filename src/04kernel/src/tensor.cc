@@ -3,7 +3,7 @@
 
 namespace refactor::kernel {
 
-    Tensor::Tensor(common::DataType dataType_,
+    Tensor::Tensor(DataType dataType_,
                    Shape shape_,
                    LayoutType layout_,
                    std::shared_ptr<mem_manager::Blob> data_) noexcept
@@ -13,7 +13,7 @@ namespace refactor::kernel {
           data(std::move(data_)) {}
 
     std::shared_ptr<Tensor>
-    Tensor::share(common::DataType dataType,
+    Tensor::share(DataType dataType,
                   Shape shape,
                   LayoutType layout,
                   std::shared_ptr<mem_manager::Blob> data) noexcept {

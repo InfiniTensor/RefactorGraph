@@ -1,11 +1,10 @@
 ﻿#include "computation/operators/concat.h"
 #include "common.h"
-#include "common/range.h"
 #include "concat.hh"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Concat;
 
     Op::Concat(int64_t axis_)

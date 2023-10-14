@@ -1,10 +1,9 @@
 ﻿#include "computation/operators/pool.h"
 #include "common.h"
-#include "common/range.h"
 #include "pool.hh"
+#include "refactor/common.h"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Pool;
     using Ty = PoolType;
 

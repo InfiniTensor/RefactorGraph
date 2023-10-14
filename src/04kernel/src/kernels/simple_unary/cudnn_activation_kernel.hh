@@ -7,10 +7,10 @@ namespace refactor::kernel {
 
     struct ActivationCudnn final : public Kernel {
         SimpleUnaryType type;
-        common::DataType dataType;
+        DataType dataType;
         size_t size;
 
-        ActivationCudnn(SimpleUnaryType, common::DataType, size_t) noexcept;
+        ActivationCudnn(SimpleUnaryType, DataType, size_t) noexcept;
 
         static KernelBox build(SimpleUnaryType, Tensor const &) noexcept;
         static size_t typeId() noexcept;

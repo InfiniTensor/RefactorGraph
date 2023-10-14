@@ -1,5 +1,5 @@
 ﻿#include "kernel/target.h"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 #include "utilities/cuda/cuda_mem.h"
 #include <cstdlib>
 #include <cstring>

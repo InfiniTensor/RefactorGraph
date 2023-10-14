@@ -6,7 +6,7 @@
 namespace refactor::kernel::cudnn {
     using namespace runtime;
     using Ctx = CudnnContext;
-    using DT = common::DataType;
+    using DT = DataType;
 
     Routine BNInfo::lower() const {
         // RAII for closure

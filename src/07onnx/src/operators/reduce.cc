@@ -1,12 +1,11 @@
 ﻿#include "computation/operators/reduce.h"
 #include "common.h"
-#include "common/range.h"
 #include "computation/operators/identity.h"
 #include "reduce.hh"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Reduce;
     using Ty = ReduceType;
 

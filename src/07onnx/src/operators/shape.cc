@@ -1,9 +1,8 @@
 ﻿#include "shape.hh"
 #include "common.h"
-#include "common/range.h"
+#include "refactor/common.h"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Shape;
 
     Op::Shape(Int start_, std::optional<Int> end_)

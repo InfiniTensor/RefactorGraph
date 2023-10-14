@@ -1,11 +1,10 @@
 ﻿#include "computation/operators/slice.h"
 #include "common.h"
-#include "common/range.h"
+#include "refactor/common.h"
 #include "slice.hh"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using computation::Dim;
     using Op = Slice;
 

@@ -7,9 +7,9 @@ namespace refactor::onnx {
     using namespace frontend;
 
     struct Cast final : public Operator {
-        common::DataType to;
+        DataType to;
 
-        explicit Cast(common::DataType);
+        explicit Cast(DataType);
 
         static OpBox build(std::string_view, Attributes);
         static size_t typeId();

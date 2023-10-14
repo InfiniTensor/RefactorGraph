@@ -1,6 +1,6 @@
 ﻿#include "frontend/graph.h"
-#include "common/error_handler.h"
 #include "frontend/tensor.h"
+#include "refactor/common.h"
 #include <chrono>
 #include <execution>
 #include <filesystem>
@@ -8,7 +8,6 @@
 #include <mutex>
 
 namespace refactor::frontend {
-    using namespace common;
     using namespace std::chrono;
     namespace fs = std::filesystem;
 

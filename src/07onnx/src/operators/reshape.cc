@@ -1,11 +1,9 @@
 ﻿#include "computation/operators/reshape.h"
 #include "common.h"
-#include "common/range.h"
-#include "common/slice.h"
+#include "refactor/common.h"
 #include "reshape.hh"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Reshape;
 
     Op::Reshape(bool allowzero_)

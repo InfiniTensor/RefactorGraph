@@ -1,12 +1,11 @@
 ﻿#include "computation/operators/cum_sum.h"
 #include "common.h"
-#include "common/range.h"
 #include "cum_sum.hh"
+#include "refactor/common.h"
 #include <execution>
 #include <numeric>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = CumSum;
 
     Op::CumSum(bool exclusive_, bool reverse_)

@@ -1,13 +1,11 @@
 ﻿#include "graph_topo/searcher.h"
-#include "common/range.h"
-#include "common/slice.h"
 #include "internal.h"
+#include "refactor/common.h"
 #include <algorithm>
 #include <unordered_set>
 #include <utility>
 
 namespace refactor::graph_topo {
-    using namespace common;
 
     using EdgeIdx = size_t;
     using NodeIdx = size_t;

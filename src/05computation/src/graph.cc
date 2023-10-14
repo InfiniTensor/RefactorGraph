@@ -1,5 +1,5 @@
 ﻿#include "computation/graph.h"
-#include "common/range.h"
+#include "refactor/common.h"
 #include "computation/operators/conv.h"
 
 namespace refactor::computation {
@@ -81,7 +81,7 @@ namespace refactor::computation {
         };
         std::unordered_map<SubgraphId, SubgraphId> subgraphMap;
         std::vector<Subgraph> subgraphs_;
-        for (auto nodeIdx : common::range0_(nodes.size())) {
+        for (auto nodeIdx : range0_(nodes.size())) {
             auto const &[op, name] = _internal.nodes[nodeIdx];
             if (!op) { continue; }
             auto subgraph = nodes[nodeIdx];
@@ -152,7 +152,7 @@ namespace refactor::computation {
             nodes[nodeIdx] = {std::move(candidates.front()), name};
         }
 
-        for (auto i : common::range0_(edges.size())) {
+        for (auto i : range0_(edges.size())) {
             auto const &[tensor, name] = _internal.edges[i];
             if (!tensor || !tensor->data) { continue; }
             auto fn = target.memFunc();

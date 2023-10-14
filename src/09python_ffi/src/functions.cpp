@@ -1,13 +1,12 @@
 ﻿#include "functions.h"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::python_ffi {
-    using namespace common;
     using namespace frontend;
     namespace py = pybind11;
 
-    common::DataType parseNumpyDType(py::dtype const &dt) {
+    DataType parseNumpyDType(py::dtype const &dt) {
 
 #define CASE(T)                                                   \
     if (dt.is(py::dtype::of<primitive_t<DataType::T>::type>())) { \
@@ -31,7 +30,7 @@ namespace refactor::python_ffi {
     }
 
     // A helper function that converts DataType to python format string
-    pybind11::dtype buildNumpyDType(common::DataType dt) {
+    pybind11::dtype buildNumpyDType(DataType dt) {
 
 #define CASE(T)       \
     case DataType::T: \

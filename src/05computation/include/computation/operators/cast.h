@@ -2,14 +2,14 @@
 #define COMPUTATION_CAST_H
 
 #include "../operator.h"
-#include "common/data_type.h"
+#include "refactor/common.h"
 
 namespace refactor::computation {
 
     struct Cast final : public Operator {
-        common::DataType targetDataType;
+        DataType targetDataType;
 
-        constexpr explicit Cast(common::DataType targetDataType_) noexcept
+        constexpr explicit Cast(DataType targetDataType_) noexcept
             : Operator(), targetDataType(targetDataType_) {}
 
         static size_t typeId() noexcept;

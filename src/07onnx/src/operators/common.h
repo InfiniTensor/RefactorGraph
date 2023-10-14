@@ -1,7 +1,7 @@
 ﻿#ifndef ONNX_INFER_H
 #define ONNX_INFER_H
 
-#include "common/error_handler.h"
+#include "refactor/common.h"
 #include "frontend/operator.h"
 #include <optional>
 

@@ -3,7 +3,6 @@
 #include "mat_mul.hh"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = MatMul;
 
     Op::MatMul() : Operator() {}

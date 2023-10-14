@@ -1,11 +1,10 @@
 ﻿#include "computation/operators/cast.h"
 #include "cast.hh"
 #include "common.h"
-#include "common/natural.h"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Cast;
 
     Op::Cast(DataType to_)

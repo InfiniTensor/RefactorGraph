@@ -1,7 +1,7 @@
 ﻿#include "kernel/collectors/simple_unary.h"
 #include "../kernels/simple_unary/cpu_kernel.hh"
 #include "../kernels/simple_unary/cudnn_activation_kernel.hh"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel {
 

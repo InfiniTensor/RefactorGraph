@@ -1,5 +1,5 @@
 ﻿#include "compiler.h"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::python_ffi {
@@ -19,7 +19,7 @@ namespace refactor::python_ffi {
         ASSERT(index < _g.internal().topology.globalInputsCount(),
                fmt::format("Input {} not exist", index));
 
-        auto dataType_ = *common::DataType::parse(dataType);
+        auto dataType_ = *DataType::parse(dataType);
         _g.internal().edges[index].tensor = Tensor::share(dataType_, dimVec2Shape(dims), {});
     }
 

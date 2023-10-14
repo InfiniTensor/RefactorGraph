@@ -1,11 +1,10 @@
 #include "computation/operators/gather_elements.h"
 #include "common.h"
-#include "common/range.h"
 #include "gather_elements.hh"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = GatherElements;
 
     Op::GatherElements(Int axis_)

@@ -4,7 +4,6 @@
 #include <numeric>
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Gemm;
 
     Op::Gemm(Float alpha_, Float beta_, bool transA_, bool transB_)

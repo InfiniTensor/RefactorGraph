@@ -1,11 +1,10 @@
 ﻿#include "common.h"
-#include "common/range.h"
+#include "refactor/common.h"
 #include <fmtlog.h>
 #include <numeric>
 #include <vector>
 
 namespace refactor::onnx {
-    using namespace common;
 
     ShapeResult multidirBroadcast(ShapeRefs const &inputs) {
         using Iter = std::reverse_iterator<Shape::const_iterator>;

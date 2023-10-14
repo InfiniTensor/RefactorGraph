@@ -4,7 +4,6 @@
 #include "global_pool.hh"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = GlobalPool;
     using Ty = PoolType;
 

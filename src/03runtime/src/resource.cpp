@@ -1,5 +1,5 @@
 ﻿#include "runtime/resource.h"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 
 namespace refactor::runtime {
 

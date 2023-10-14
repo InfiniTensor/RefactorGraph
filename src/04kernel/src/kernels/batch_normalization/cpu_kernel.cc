@@ -1,9 +1,9 @@
 ﻿#include "cpu_kernel.hh"
-#include "common/error_handler.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel {
     using K = BatchNormalization;
-    using DT = common::DataType;
+    using DT = DataType;
 
     K::BatchNormalization(
         float epsilon_,

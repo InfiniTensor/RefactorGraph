@@ -3,7 +3,6 @@
 #include "softmax.hh"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Softmax;
 
     Op::Softmax(Int axis_)

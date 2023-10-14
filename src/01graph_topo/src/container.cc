@@ -1,4 +1,4 @@
-﻿#include "common/error_handler.h"
+﻿#include "refactor/common.h"
 #include "internal.h"
 #include <algorithm>
 #include <numeric>
@@ -85,10 +85,10 @@ namespace refactor::graph_topo {
             {outputsBegin, outputsEnd}};
     }
 
-    common::range_t<size_t> GraphTopo::Iterator::globalInputs() const noexcept {
+    range_t<size_t> GraphTopo::Iterator::globalInputs() const noexcept {
         return {0, _internal._impl->_globalInputsCount};
     }
-    common::slice_t<size_t> GraphTopo::Iterator::globalOutputs() const noexcept {
+    slice_t<size_t> GraphTopo::Iterator::globalOutputs() const noexcept {
         ASSERT(_idx == _internal._impl->_nodes.size(), "Iterator not at end");
         auto const &connections = _internal._impl->_connections;
         auto begin = reinterpret_cast<size_t const *>(connections.data());
@@ -104,10 +104,10 @@ namespace refactor::graph_topo {
         return std::accumulate(_impl->_nodes.begin(), _impl->_nodes.end(), _impl->_globalInputsCount,
                                [](auto const acc, auto const &n) { return acc + n._localEdgesCount + n._outputsCount; });
     }
-    auto GraphTopo::globalInputs() const noexcept -> common::range_t<size_t> {
-        return common::range0_(_impl->_globalInputsCount);
+    auto GraphTopo::globalInputs() const noexcept -> range_t<size_t> {
+        return range0_(_impl->_globalInputsCount);
     }
-    auto GraphTopo::globalOutputs() const noexcept -> common::slice_t<size_t> {
+    auto GraphTopo::globalOutputs() const noexcept -> slice_t<size_t> {
         auto i = std::accumulate(_impl->_nodes.begin(), _impl->_nodes.end(), 0,
                                  [](auto const acc, auto const &n) { return acc + n._inputsCount; });
         auto const &connections = _impl->_connections;

@@ -1,10 +1,9 @@
 ﻿#include "squeeze.hh"
 #include "common.h"
-#include "common/range.h"
 #include "computation/operators/reshape.h"
+#include "refactor/common.h"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Squeeze;
 
     Op::Squeeze() : Operator() {}

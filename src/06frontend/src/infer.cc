@@ -1,5 +1,5 @@
 ﻿#include "frontend/infer.h"
-#include "common/natural.h"
+#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::frontend {
@@ -35,7 +35,7 @@ namespace refactor::frontend {
 
     std::unordered_set<DimVariable> extractDependency(TensorRefs inputs) {
         std::unordered_set<DimVariable> ans;
-        std::for_each_n(common::natural_t(0), inputs.size(),
+        std::for_each_n(natural_t(0), inputs.size(),
                         [&inputs, &ans](auto const i) {
                             Tensor const &input = inputs[i];
                             for (auto const &dim : input.shape) {

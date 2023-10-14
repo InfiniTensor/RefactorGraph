@@ -1,9 +1,9 @@
-﻿#include "common/data_type.h"
-#include "common/error_handler.h"
+﻿#include "refactor/data_type.h"
+#include "refactor/error_handler.h"
 #include <fmt/core.h>
 #include <unordered_set>
 
-namespace refactor::common {
+namespace refactor {
     using DT = DataType;
     using Enum = decltype(DT::internal);
 
@@ -126,4 +126,4 @@ namespace refactor::common {
         }
     }
 
-}// namespace refactor::common
+}// namespace refactor

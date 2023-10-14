@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <fmt/core.h>
 
-namespace refactor::common {
+namespace refactor {
 
     class fp16_t final {
         uint16_t code;
@@ -105,6 +105,6 @@ namespace refactor::common {
     inline const fp16_t fp16_t::INF = fp16_t((uint16_t) 0b0'11111'0000000000);
     // inline const fp16_t fp16_t::NAN = fp16_t((uint16_t) 0b0'11111'1000000000);
 
-}// namespace refactor::common
+}// namespace refactor
 
 #endif// FP16_H

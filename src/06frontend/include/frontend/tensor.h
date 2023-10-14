@@ -2,9 +2,8 @@
 #define FRONTEND_TENSOR_H
 
 #include "absl/container/inlined_vector.h"
-#include "common/data_type.h"
-#include "common/slice.h"
 #include "mem_manager/blob.hh"
+#include "refactor/common.h"
 #include <unordered_set>
 #include <variant>
 
@@ -48,7 +47,7 @@ namespace refactor::frontend {
     struct Tensor;
 
     struct TensorSnapshot {
-        common::DataType dataType;
+        DataType dataType;
         ShapeSnapshot shape;
         std::weak_ptr<mem_manager::Blob> dataPtr;
 
@@ -60,16 +59,16 @@ namespace refactor::frontend {
 
     /// @brief 张量边。
     struct Tensor {
-        common::DataType dataType;
+        DataType dataType;
         Shape shape;
         std::shared_ptr<mem_manager::Blob> data;
 
         std::unordered_set<DimVariable> depVariables;
 
-        Tensor(common::DataType, Shape, std::shared_ptr<mem_manager::Blob>, std::unordered_set<DimVariable>);
+        Tensor(DataType, Shape, std::shared_ptr<mem_manager::Blob>, std::unordered_set<DimVariable>);
         static std::shared_ptr<Tensor> share(const Tensor &);
         static std::shared_ptr<Tensor> share(
-            common::DataType,
+            DataType,
             Shape,
             std::unordered_set<DimVariable>,
             std::shared_ptr<mem_manager::Blob> = nullptr);
@@ -93,10 +92,10 @@ namespace refactor::frontend {
 
     class TensorRefs {
         std::vector<Edge> const &_edges;
-        common::slice_t<size_t> _slice;
+        slice_t<size_t> _slice;
 
     public:
-        TensorRefs(std::vector<Edge> const &, common::slice_t<size_t>);
+        TensorRefs(std::vector<Edge> const &, slice_t<size_t>);
         Tensor const &operator[](size_t) const;
         size_t size() const;
         bool empty() const;

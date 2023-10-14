@@ -2,7 +2,6 @@
 #include "common.h"
 
 namespace refactor::onnx {
-    using namespace common;
     using Op = Range;
 
     Op::Range() : Operator() {}
