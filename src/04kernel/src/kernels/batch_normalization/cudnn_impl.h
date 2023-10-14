@@ -1,9 +1,9 @@
 ﻿#ifndef KERNEL_BATCH_NORMALIZATION_CUDNN_IMPL_H
 #define KERNEL_BATCH_NORMALIZATION_CUDNN_IMPL_H
 
-#include "refactor/common.h"
 #include "kernel/kernel.h"
 #include "kernel/tensor.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel::cudnn {
 
@@ -13,7 +13,7 @@ namespace refactor::kernel::cudnn {
         LayoutType layout;
         int dimAx[4];// dimA for x, cudnn naming convension
 
-        Routine lower() const;
+        Routine lower() const __attribute__((weak));
     };
 
 }// namespace refactor::kernel::cudnn

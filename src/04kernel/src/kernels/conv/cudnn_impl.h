@@ -28,7 +28,7 @@ namespace refactor::kernel::cudnn {
             pad[2],
             stride[2];
 
-        Routine lower() const;
+        Routine lower() const __attribute__((weak));
     };
 
 }// namespace refactor::kernel::cudnn

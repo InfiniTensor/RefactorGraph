@@ -1,6 +1,5 @@
 ﻿#include "kernel/collectors/pool_attributes.hh"
 #include "refactor/common.h"
-#include "refactor/common.h"
 
 namespace refactor::kernel {
 
@@ -34,10 +33,10 @@ namespace refactor::kernel {
             for (auto i : range) {
                 auto begin = pads[i], end = (pads + rank)[i];
 
-                ASSERT(0 < begin && begin <= LIMIT, "pad out of range");
+                ASSERT(0 <= begin && begin <= LIMIT, "pad out of range");
                 pads_[i] = static_cast<uint16_t>(begin);
 
-                ASSERT(0 < end && end <= LIMIT, "pad out of range");
+                ASSERT(0 <= end && end <= LIMIT, "pad out of range");
                 (pads_ + rank)[i] = static_cast<uint16_t>(end);
             }
         } else {

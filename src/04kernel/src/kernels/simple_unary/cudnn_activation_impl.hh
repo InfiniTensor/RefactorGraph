@@ -7,7 +7,7 @@
 
 namespace refactor::kernel::cudnn {
 
-    Routine lower(SimpleUnaryType, DataType, int) noexcept;
+    Routine lower(SimpleUnaryType, DataType, int) noexcept __attribute__((weak));
 
 }// namespace refactor::kernel::cudnn
 

@@ -104,7 +104,7 @@ namespace refactor::onnx {
 
         auto rank = inputs[0].rank();
         return std::make_unique<Op_>(computation::PoolAttributes(
-            rank,
+            rank - 2,
             dilations ? dilations->data() : nullptr,
             pads ? pads->data() : nullptr,
             strides ? strides->data() : nullptr));
