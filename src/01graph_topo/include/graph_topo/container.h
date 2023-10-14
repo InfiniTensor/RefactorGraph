@@ -29,7 +29,7 @@ namespace refactor::graph_topo {
         std::vector<OutputEdge> _connections;
         std::vector<Node> _nodes;
 
-        GraphTopo(idx_t lenIn, idx_t lenOut) noexcept;
+        GraphTopo(idx_t lenIn, idx_t lenOut, size_t lenNode) noexcept;
 
     public:
         struct NodeRef {

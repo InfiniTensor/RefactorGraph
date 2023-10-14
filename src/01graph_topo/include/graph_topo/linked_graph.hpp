@@ -305,7 +305,8 @@ namespace refactor::graph_topo {
     LINKED_GRAPH_FN intoGraph() const->Graph<TN, TE> {
         auto topology = GraphTopo(
             static_cast<idx_t>(_inputs.size()),
-            static_cast<idx_t>(_outputs.size()));
+            static_cast<idx_t>(_outputs.size()),
+            _nodes.size());
         std::vector<TN> nodes;
         std::vector<TE> edges;
 

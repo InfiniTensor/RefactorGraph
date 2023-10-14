@@ -1,6 +1,6 @@
 ﻿#include "computation/graph.h"
-#include "refactor/common.h"
 #include "computation/operators/conv.h"
+#include "refactor/common.h"
 
 namespace refactor::computation {
 

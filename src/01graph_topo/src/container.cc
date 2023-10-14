@@ -70,11 +70,13 @@ namespace refactor::graph_topo {
         return {begin, begin + _internal._lenOut};
     }
 
-    GraphTopo::GraphTopo(idx_t lenIn, idx_t lenOut) noexcept
+    GraphTopo::GraphTopo(idx_t lenIn, idx_t lenOut, size_t lenNode) noexcept
         : _lenIn(lenIn),
           _lenOut(lenOut),
           _connections(lenOut),
-          _nodes() {}
+          _nodes() {
+        _nodes.reserve(lenNode);
+    }
     auto GraphTopo::begin() const noexcept -> Iterator { return Iterator::begin(*this); }
     auto GraphTopo::end() const noexcept -> Iterator { return Iterator::end(*this); }
     auto GraphTopo::globalInputsCount() const noexcept -> size_t { return _lenIn; }
