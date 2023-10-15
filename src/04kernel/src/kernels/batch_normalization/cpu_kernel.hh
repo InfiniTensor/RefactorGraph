@@ -1,19 +1,18 @@
 ﻿#ifndef KERNEL_BATCH_NORMALIZATION_CPU_KERNEL_HH
 #define KERNEL_BATCH_NORMALIZATION_CPU_KERNEL_HH
 
-#include "refactor/common.h"
 #include "kernel/kernel.h"
 #include "kernel/tensor.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel {
 
     struct BatchNormalization final : public Kernel {
         float epsilon;
-        std::array<DataType, 3> dts;
+        DataType dts[3];
         Shape shape;
-        uint32_t paramSize;
 
-        BatchNormalization(float, std::array<DataType, 3>, Shape, uint32_t) noexcept;
+        BatchNormalization(float, DataType, DataType, DataType, Shape) noexcept;
 
         static KernelBox build(float, TensorRefs) noexcept;
         static size_t typeId() noexcept;

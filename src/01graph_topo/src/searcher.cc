@@ -1,8 +1,6 @@
 ﻿#include "graph_topo/searcher.h"
 #include "refactor/common.h"
 #include <algorithm>
-#include <unordered_set>
-#include <utility>
 
 namespace refactor::graph_topo {
     constexpr static idx_t EXTERNAL = std::numeric_limits<idx_t>::max();

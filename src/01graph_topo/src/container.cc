@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <numeric>
 #include <sstream>
-#include <utility>
 
 namespace refactor::graph_topo {
 
