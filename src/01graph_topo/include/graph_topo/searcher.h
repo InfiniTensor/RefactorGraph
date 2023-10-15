@@ -56,6 +56,7 @@ namespace refactor::graph_topo {
         bool operator<=(Node const &) const noexcept;
         bool operator>=(Node const &) const noexcept;
 
+        operator idx_t() const noexcept;
         idx_t index() const noexcept;
         std::vector<Edge> inputs() const noexcept;
         std::vector<Edge> outputs() const noexcept;
@@ -75,6 +76,7 @@ namespace refactor::graph_topo {
         bool operator<=(Edge const &) const noexcept;
         bool operator>=(Edge const &) const noexcept;
 
+        operator idx_t() const noexcept;
         idx_t index() const noexcept;
         Node source() const noexcept;
         std::set<Node> targets() const noexcept;

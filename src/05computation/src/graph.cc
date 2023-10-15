@@ -29,49 +29,38 @@ namespace refactor::computation {
         // - else: 用于融合子图。如果发现两个子图相连，则将较大的子图号视作较小的子图号的别名。
         std::vector<SubgraphId> subgraphs;
         // 用于记录每个节点所属的子图号。为了在子图融合中维持拓扑序，不直接记录子图到节点的映射。
-        std::vector<SubgraphId> nodes(_internal.nodes.size());
+        std::vector<SubgraphId> nodes(_internal.nodes.size(), EXTERNAL);
 
         auto searcher = graph_topo::Searcher(_internal.topology);
         for (auto node : searcher.nodes()) {
-            auto const &[op, name] = _internal.nodes[node.index()];
+            auto const &[op, name] = _internal.nodes[node];
             if (!op) { continue; }
-            auto type = op->isLayoutDependent() ? DEPENDENT : INDEPENDENT;
-            auto this_ = EXTERNAL;
+            auto &id = nodes[node];
+            auto const type = op->isLayoutDependent() ? DEPENDENT : INDEPENDENT;
             // 遍历前驱节点
             for (auto node_ : node.predecessors()) {
-                // 搜索前驱的子图类型
-                auto pre = nodes[node_.index()];
-                auto preType = subgraphs[pre];
-                while (preType < REAL_SUBGRAPH) {
-                    preType = subgraphs[pre = preType];
+                // 搜索前驱的真子图号
+                auto preId = nodes[node_];
+                {
+                    auto t = subgraphs[preId];
+                    while (t < REAL_SUBGRAPH) { t = subgraphs[preId = t]; }
+                    if (type != t) { continue; }// 节点与前驱不联通
                 }
-                // 如果节点与前驱联通
-                if (type == preType) {
-                    if (this_ == EXTERNAL) {
-                        // 当前节点子图未定，更新为前驱的子图号
-                        this_ = pre;
-                    } else {
-                        // 当前节点有子图号，子图融合
-                        if (this_ < pre) {
-                            // 当前节点的子图号为真实子图，前驱的子图号为别名
-                            pre = std::exchange(nodes[node_.index()], this_);
-                            do {
-                                pre = std::exchange(subgraphs[pre], this_);
-                            } while (pre < REAL_SUBGRAPH);
-                        } else if (this_ > pre) {
-                            // 当前节点的子图号为别名，前驱的子图号为真实子图
-                            this_ = subgraphs[this_] = pre;
-                        }
-                    }
-                }
+                // update subgraph id ------------|cur|pre|
+                if (id == EXTERNAL) {          // |---|---|
+                    id = preId;                // | ? | √ |
+                } else if (id < preId) {       // |---|---|
+                    subgraphs[preId] = id;     // | √ | × |
+                } else if (preId < id) {       // |---|---|
+                    id = subgraphs[id] = preId;// | × | √ |
+                }                              // |---|---|
             }
             // 没有前驱与当前节点联通
-            if (this_ == EXTERNAL) {
+            if (id == EXTERNAL) {
                 // 新建子图
-                this_ = subgraphs.size();
+                id = subgraphs.size();
                 subgraphs.push_back(type);
             }
-            nodes[node.index()] = this_;
         }
 
         struct Subgraph {
@@ -119,7 +108,7 @@ namespace refactor::computation {
             for (auto nodeIdx : subgraph.nodes) {
                 _internal.nodes[nodeIdx].op->transposeTo(LayoutType::NHWC);
                 for (auto edge : searcher.nodes()[nodeIdx].outputs()) {
-                    auto &e = _internal.edges[edge.index()];
+                    auto &e = _internal.edges[edge];
                     if (e.tensor->layout == LayoutType::NCHW) {
                         e.tensor->layout = LayoutType::NHWC;
                     }

@@ -83,6 +83,8 @@ namespace refactor::graph_topo {
     COMPARE(Edge) >= (Edge const &rhs) const noexcept { return &_internal == &rhs._internal && _idx >= rhs._idx; }
     idx_t Searcher::Node::index() const noexcept { return _idx; }
     idx_t Searcher::Edge::index() const noexcept { return _idx; }
+    Searcher::Node::operator idx_t() const noexcept { return _idx; }
+    Searcher::Edge::operator idx_t() const noexcept { return _idx; }
 
     auto Searcher::Node::inputs() const noexcept -> std::vector<Edge> {
         auto const &nodeIn = _internal._graph._nodes[_idx];
