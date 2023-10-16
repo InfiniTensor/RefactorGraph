@@ -2,8 +2,8 @@
 #define COMPUTATION_SIMPLE_UNARY_H
 
 #include "../operator.h"
-#include "refactor/common.h"
 #include "kernel/collectors/simple_unary.h"
+#include "refactor/common.h"
 
 namespace refactor::computation {
     using kernel::SimpleUnaryType;

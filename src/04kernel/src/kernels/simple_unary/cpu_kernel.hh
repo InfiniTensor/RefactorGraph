@@ -1,9 +1,9 @@
 ﻿#ifndef KERNEL_SIMPLE_UNARY_CPU_KERNEL_HH
 #define KERNEL_SIMPLE_UNARY_CPU_KERNEL_HH
 
-#include "refactor/common.h"
 #include "kernel/collectors/simple_unary.h"
 #include "kernel/tensor.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel {
 

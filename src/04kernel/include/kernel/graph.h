@@ -10,7 +10,7 @@ namespace refactor::kernel {
     using mem_manager::SharedForeignBlob;
 
     struct Node {
-        std::unique_ptr<Kernel> kernel;
+        KernelBox kernel;
         std::string name;
     };
 

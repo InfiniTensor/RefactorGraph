@@ -1,6 +1,5 @@
 ﻿#include "cudnn_kernel.hh"
 #include "refactor/common.h"
-#include "refactor/common.h"
 
 namespace refactor::kernel {
     using K = ConvCudnn;

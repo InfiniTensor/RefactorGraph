@@ -2,8 +2,8 @@
 #define COMPUTATION_SIMPLE_BINARY_H
 
 #include "../operator.h"
-#include "refactor/common.h"
 #include "kernel/collectors/simple_binary.h"
+#include "refactor/common.h"
 
 namespace refactor::computation {
     using kernel::SimpleBinaryType;

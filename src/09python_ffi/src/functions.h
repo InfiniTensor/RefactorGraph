@@ -1,8 +1,8 @@
 ﻿#ifndef PYTHON_FFI_FUNCTIONS_H
 #define PYTHON_FFI_FUNCTIONS_H
 
-#include "refactor/common.h"
 #include "frontend/tensor.h"
+#include "refactor/common.h"
 #include <pybind11/numpy.h>
 
 namespace refactor::python_ffi {

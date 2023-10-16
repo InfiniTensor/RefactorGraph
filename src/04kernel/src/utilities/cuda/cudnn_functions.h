@@ -2,7 +2,6 @@
 #define KERNEL_CUDNN_FUNCTIONS_H
 
 #include "refactor/common.h"
-#include "refactor/common.h"
 #include <cudnn.h>
 
 #define CUDNN_ASSERT(STATUS) ASSERT((STATUS) == CUDNN_STATUS_SUCCESS, "cudnn not success")

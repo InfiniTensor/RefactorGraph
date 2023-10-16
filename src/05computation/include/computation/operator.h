@@ -1,9 +1,9 @@
 ﻿#ifndef COMPUTATION_OPERATOR_H
 #define COMPUTATION_OPERATOR_H
 
-#include "refactor/common.h"
 #include "kernel/collector.h"
 #include "kernel/target.h"
+#include "refactor/common.h"
 
 namespace refactor::computation {
     using kernel::LayoutType;

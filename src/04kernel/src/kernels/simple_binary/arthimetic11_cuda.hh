@@ -1,9 +1,9 @@
 ﻿#ifndef KERNEL_ARTHIMETIC11_CUDA_HH
 #define KERNEL_ARTHIMETIC11_CUDA_HH
 
-#include "refactor/common.h"
 #include "kernel/collectors/simple_binary.h"
 #include "kernel/tensor.h"
+#include "refactor/common.h"
 
 namespace refactor::kernel {
 
