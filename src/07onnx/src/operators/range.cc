@@ -56,9 +56,9 @@ namespace refactor::onnx {
             delta.shape.size() != 0) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
-        if (!start.hasData() ||
-            !limit.hasData() ||
-            !delta.hasData()) {
+        if (!start.data ||
+            !limit.data ||
+            !delta.data) {
             return Err(InferError(ERROR_MSG("Input data not support")));
         }
         //-------------------------------------

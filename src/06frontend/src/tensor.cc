@@ -86,13 +86,16 @@ namespace refactor::frontend {
     }
     bool TensorSnapshot::operator!=(Tensor const &rhs) const { return !operator==(rhs); }
 
-    Tensor::Tensor(DataType dataType_, Shape shape_, std::shared_ptr<Blob> data_, std::unordered_set<DimVariable> depVariables_)
+    Tensor::Tensor(DataType dataType_,
+                   Shape shape_,
+                   std::shared_ptr<Blob> data_,
+                   std::unordered_set<DimVariable> depVariables_)
         : dataType(dataType_),
           shape(std::move(shape_)),
           data(std::move(data_)),
           depVariables(std::move(depVariables_)) {}
     std::shared_ptr<Tensor>
-    Tensor::share(const Tensor &rhs) {
+    Tensor::share(Tensor const &rhs) {
         return std::make_shared<Tensor>(rhs);
     }
     std::shared_ptr<Tensor>
@@ -102,13 +105,23 @@ namespace refactor::frontend {
                   std::shared_ptr<Blob> data) {
         return std::make_shared<Tensor>(dt, std::move(shape), std::move(data), std::move(depVariables));
     }
-    bool Tensor::hasData() const { return data.get(); }
+
     int64_t Tensor::rank() const { return shape.size(); }
     size_t Tensor::elementsSize() const {
         return std::accumulate(shape.begin(), shape.end(), 1,
                                [](auto acc, auto const &it) { return acc * it.value(); });
     }
     size_t Tensor::bytesSize() const { return dataType.size() * elementsSize(); }
+
+    void *Tensor::malloc() {
+        auto [data_, ptr] = Blob::share(bytesSize());
+        data = std::move(data_);
+        return ptr;
+    }
+    void Tensor::free() {
+        data = nullptr;
+    }
+
     TensorSnapshot Tensor::snapshot() const {
         ShapeSnapshot shape_(shape.size());
         std::transform(std::execution::unseq,
@@ -121,14 +134,6 @@ namespace refactor::frontend {
                            }
                        });
         return TensorSnapshot{dataType, std::move(shape_), data};
-    }
-    void *Tensor::malloc() {
-        auto [data_, ptr] = Blob::share(bytesSize());
-        data = std::move(data_);
-        return ptr;
-    }
-    void Tensor::free() {
-        data = nullptr;
     }
 
     TensorRefs::TensorRefs(

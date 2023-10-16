@@ -65,22 +65,25 @@ namespace refactor::frontend {
 
         std::unordered_set<DimVariable> depVariables;
 
-        Tensor(DataType, Shape, std::shared_ptr<mem_manager::Blob>, std::unordered_set<DimVariable>);
-        static std::shared_ptr<Tensor> share(const Tensor &);
+        Tensor(DataType,
+               Shape,
+               std::shared_ptr<mem_manager::Blob>,
+               std::unordered_set<DimVariable>);
+        static std::shared_ptr<Tensor> share(Tensor const &);
         static std::shared_ptr<Tensor> share(
             DataType,
             Shape,
             std::unordered_set<DimVariable>,
             std::shared_ptr<mem_manager::Blob> = nullptr);
 
-        bool hasData() const;
         int64_t rank() const;
         size_t elementsSize() const;
         size_t bytesSize() const;
-        TensorSnapshot snapshot() const;
 
         void *malloc();
         void free();
+
+        TensorSnapshot snapshot() const;
     };
 
     using Tensor_ = std::shared_ptr<Tensor>;

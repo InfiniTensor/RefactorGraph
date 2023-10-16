@@ -24,4 +24,13 @@ namespace refactor::kernel {
     size_t Tensor::elementsSize() const { return std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>()); }
     size_t Tensor::bytesSize() const { return dataType.size() * elementsSize(); }
 
+    void *Tensor::malloc() {
+        auto [data_, ptr] = mem_manager::Blob::share(bytesSize());
+        data = std::move(data_);
+        return ptr;
+    }
+    void Tensor::free() {
+        data = nullptr;
+    }
+
 }// namespace refactor::kernel

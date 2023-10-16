@@ -17,7 +17,7 @@ namespace refactor::frontend {
         if (!calculate) { return false; }
         size_t sizeI = 0;
         for (auto const &input : inputs) {
-            if (!input.hasData()) {
+            if (!input.data) {
                 return false;
             }
             if (!input.depVariables.empty()) {

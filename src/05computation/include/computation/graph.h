@@ -28,7 +28,7 @@ namespace refactor::computation {
 
         void transpose();
         kernel::Graph lower(Target) const;
-    };
+        };
 
 }// namespace refactor::computation
 
