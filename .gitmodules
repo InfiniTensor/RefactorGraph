@@ -16,6 +16,6 @@
 [submodule "3rd-party/abseil-cpp"]
 	path = 3rd-party/abseil-cpp
 	url = git@github.com:abseil/abseil-cpp.git
-[submodule "src/07python_ffi/pybind11"]
-	path = src/07python_ffi/pybind11
+[submodule "src/09python_ffi/pybind11"]
+	path = src/09python_ffi/pybind11
 	url = git@github.com:pybind/pybind11.git

@@ -1,15 +1,32 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(refactor_graph VERSION 0.0.0 LANGUAGES CXX)
+
+option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
+option(USE_CUDA "Build with cuda" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-add_compile_options(-Wall -Werror)
-add_compile_options(-fPIC)
+
+if(USE_CUDA)
+    add_compile_definitions(USE_CUDA)
+    enable_language(CUDA)
+    set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+        set(CMAKE_CUDA_ARCHITECTURES 80)
+    endif()
+    if(NOT DEFINED CMAKE_CUDA_STANDARD)
+        set(CMAKE_CUDA_STANDARD 17)
+        set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+        set(CMAKE_CUDA_CXX_EXTENSIONS OFF)
+    endif()
+    message(STATUS "CMAKE_CUDA_HOST_COMPILER set to " ${CMAKE_CUDA_HOST_COMPILER})
+    message(STATUS "CMAKE_CUDA_ARCHITECTURES set to " ${CMAKE_CUDA_ARCHITECTURES})
+endif()
+
 # add_compile_options(-march=native) # this will cause error in some machine
 add_compile_options(-mtune=native)
-
-option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
+add_compile_options(-fPIC)
 
 add_subdirectory(3rd-party/backward-cpp)
 
@@ -31,25 +48,13 @@ add_compile_options(-Wall)
 
 include_directories(3rd-party/result)
 
-include_directories(src/00common/include)
 add_subdirectory(src/00common)
-
-include_directories(src/01graph_topo/include)
 add_subdirectory(src/01graph_topo)
-
-include_directories(src/02mem_manager/include)
 add_subdirectory(src/02mem_manager)
-
-include_directories(src/03computation/include)
-add_subdirectory(src/03computation)
-
-include_directories(src/04frontend/include)
-add_subdirectory(src/04frontend)
-
-include_directories(src/05onnx/include)
-add_subdirectory(src/05onnx)
-
-include_directories(src/06communication/include)
-add_subdirectory(src/06communication)
-
-add_subdirectory(src/07python_ffi)
+add_subdirectory(src/03runtime)
+add_subdirectory(src/04kernel)
+add_subdirectory(src/05computation)
+add_subdirectory(src/06frontend)
+add_subdirectory(src/07onnx)
+add_subdirectory(src/08communication)
+add_subdirectory(src/09python_ffi)
