@@ -31,10 +31,12 @@ namespace refactor::kernel {
                   LayoutType = LayoutType::Others,
                   std::shared_ptr<mem_manager::Blob> = nullptr) noexcept;
 
-        bool hasData() const;
         int64_t rank() const;
         size_t elementsSize() const;
         size_t bytesSize() const;
+
+        void *malloc();
+        void free();
     };
 
     using TensorRefs = absl::InlinedVector<std::reference_wrapper<Tensor const>, 2>;

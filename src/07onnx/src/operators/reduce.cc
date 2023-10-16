@@ -145,7 +145,7 @@ namespace refactor::onnx {
             }
         }
         auto const &axes = inputs[1];
-        if (axes.dataType != DataType::I64 || axes.rank() != 1 || !axes.hasData()) {
+        if (axes.dataType != DataType::I64 || axes.rank() != 1 || !axes.data) {
             return Err(InferError(ERROR_MSG("Axes not support")));
         }
         auto axes_ = axes.data->get<int64_t>();

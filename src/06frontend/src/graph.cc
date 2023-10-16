@@ -167,7 +167,7 @@ namespace refactor::frontend {
                            auto const &[op, name] = _internal.nodes[nodeRef.idx];
                            auto constant = std::all_of(std::execution::unseq,
                                                        nodeRef.outputs.begin(), nodeRef.outputs.end(),
-                                                       [this](auto i) { return _internal.edges[i].tensor->hasData(); });
+                                                       [this](auto i) { return _internal.edges[i].tensor->data; });
                            if (constant) {
                                return computation::Node{nullptr, name};
                            }
@@ -215,14 +215,14 @@ namespace refactor::frontend {
             while (it != end) {
                 auto [nodeIdx, inputs, outputs] = *it++;
                 if (!std::all_of(outputs.begin(), outputs.end(),
-                                 [this](auto i) { return _internal.edges[i].tensor->hasData(); })) {
+                                 [this](auto i) { return _internal.edges[i].tensor->data; })) {
                     auto const &node = _internal.nodes[nodeIdx];
                     logi("{:>8}. {}", i++, node.name);
                     auto opType = node.op->opTypeName();
                     dynamicNodes.insert(opType);
                     auto front = true;
                     for (auto i : inputs) {
-                        if (_internal.edges[i].tensor->hasData()) {
+                        if (_internal.edges[i].tensor->data) {
                             dataEdges.insert(i);
                         } else {
                             front = false;
