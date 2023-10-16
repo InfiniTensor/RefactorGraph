@@ -40,7 +40,7 @@ namespace refactor::onnx {
             case 2: {
                 auto const &data = inputs[0];
                 auto const &axes = inputs[1];
-                if (axes.dataType != DataType::I64 || axes.shape.size() != 1 || !axes.hasData()) {
+                if (axes.dataType != DataType::I64 || axes.rank() != 1 || !axes.hasData()) {
                     return Err(InferError(ERROR_MSG("Axes not support")));
                 }
                 auto rank = data.rank();

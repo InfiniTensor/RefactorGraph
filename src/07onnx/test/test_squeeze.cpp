@@ -1,21 +1,17 @@
-﻿#include "../src/operators/common.h"
+﻿#include "../src/operators/squeeze.hh"
 #include "onnx/operators.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
-using namespace common;
 using namespace frontend;
 using namespace onnx;
 
 TEST(infer, Squeeze) {
     onnx::register_();
-    auto opType = OpType::parse("onnx::Squeeze");
     {
-        auto x = Tensor::share(DataType::F32, Shape{DimExpr(1), DimExpr(3), DimExpr(1), DimExpr(5)}, {});
-        auto edges = Edges{{x, ""}};
-        auto inputs = std::vector<size_t>{0};
-        InferOptions options{true};
-        auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())), options);
+        auto edges = Edges{{Tensor::share(DataType::F32, Shape{DimExpr(1), DimExpr(3), DimExpr(1), DimExpr(5)}, {}), ""}};
+        graph_topo::idx_t inputs[]{0};
+        auto infered = Squeeze().infer(TensorRefs(edges, slice(inputs, 1)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -24,14 +20,17 @@ TEST(infer, Squeeze) {
         ASSERT_EQ(y->shape, (Shape{DimExpr(3), DimExpr(5)}));
     }
     {
-        auto x = Tensor::share(DataType::F32, Shape{DimExpr(1), DimExpr(3), DimExpr(1), DimExpr(5)}, {});
-        auto axes = Tensor::share(DataType::I64, Shape{DimExpr(1)}, {});
-        auto ptr = reinterpret_cast<int64_t *>(axes->malloc());
-        ptr[0] = 2;
-        auto edges = Edges{{x, ""}, {axes, ""}};
-        auto inputs = std::vector<size_t>{0, 1};
-        InferOptions options{true};
-        auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())), options);
+        auto edges = Edges{
+            {Tensor::share(DataType::F32, Shape{DimExpr(1), DimExpr(3), DimExpr(1), DimExpr(5)}, {}), ""},
+            {Tensor::share(DataType::I64, Shape{DimExpr(1)}, {}), ""},
+        };
+        {
+            auto &axes = edges[1].tensor;
+            int64_t val[]{2};
+            std::copy(val, val + 1, reinterpret_cast<int64_t *>(axes->malloc()));
+        }
+        graph_topo::idx_t inputs[]{0, 1};
+        auto infered = Squeeze().infer(TensorRefs(edges, slice(inputs, 2)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);

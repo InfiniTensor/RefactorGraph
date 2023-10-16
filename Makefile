@@ -26,3 +26,4 @@ format:
 test-all:
 	./build/$(TYPE)/src/00common/common_test
 	./build/$(TYPE)/src/01graph_topo/graph_topo_test
+	./build/$(TYPE)/src/07onnx/onnx_test
