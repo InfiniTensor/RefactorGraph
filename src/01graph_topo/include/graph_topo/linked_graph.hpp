@@ -181,14 +181,14 @@ namespace refactor::graph_topo {
         std::unordered_set<void *> known;
         while (known.size() < _nodes.size()) {
             auto before = known.size();
-            for (auto &n : _nodes) {
+            for (auto const &n : _nodes) {
                 // n was moved
                 if (!n) { continue; }
                 // ∀e ∈ n.inputs, e.source ∈ known
                 if (std::all_of(n->_inputs.begin(), n->_inputs.end(),
                                 [&known](auto const &e) { return !e || !e->_source || known.find(e->_source.get()) != known.end(); })) {
                     known.insert(n.get());
-                    ans.push_back(std::move(n));
+                    ans.push_back(n);
                 }
             }
             if (before == known.size()) {
