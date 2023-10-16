@@ -33,8 +33,11 @@ namespace refactor::kernel::cudnn {
         auto d = std::make_shared<Descriptors>();
 
         d->algo = static_cast<cudnnConvolutionFwdAlgo_t>(algo);
-
-        TODO("");
+        auto cudnnDataType = cudnnDataTypeConvert(dt);
+        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->x, CUDNN_TENSOR_NCHW, cudnnDataType, xShape[0], xShape[1], xShape[2], xShape[3]));
+        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->y, CUDNN_TENSOR_NCHW, cudnnDataType, yShape[0], yShape[1], yShape[2], yShape[3]));
+        CUDNN_ASSERT(cudnnSetFilter4dDescriptor(d->w, cudnnDataType, CUDNN_TENSOR_NCHW, wShape[0], wShape[1], wShape[2], wShape[3]));
+        CUDNN_ASSERT(cudnnSetConvolution2dDescriptor(d->conv, pad[0], pad[1], stride[0], stride[1], dilation[0], dilation[1], CUDNN_CROSS_CORRELATION, cudnnDataType));
 
         // nvcc at c++11 doesn't support real move capture
         return [d_ = std::move(d)](Resources &res, Addresses inputs, Addresses outputs) {
@@ -46,7 +49,7 @@ namespace refactor::kernel::cudnn {
             auto x = inputs[0],
                  w = inputs[1];
             auto y = outputs[0];
-            // build alpha/beta for double
+            // TODO? build alpha/beta for double
             float alpha = 1, beta = 0;
             CUDNN_ASSERT(cudnnConvolutionForward(
                 handle,
