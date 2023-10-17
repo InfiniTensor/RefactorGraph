@@ -4,8 +4,8 @@ namespace refactor::kernel {
     using K = BatchNormalizationCudnn;
     using DT = DataType;
 
-    K::BatchNormalizationCudnn(cudnn::BNInfo info_) noexcept
-        : Kernel(), info(info_) {}
+    K::BatchNormalizationCudnn(decltype(info) info_) noexcept
+        : info(info_) {}
 
     auto K::build(float epsilon, TensorRefs inputs) noexcept -> KernelBox {
 #ifndef USE_CUDA
@@ -33,19 +33,17 @@ namespace refactor::kernel {
                 return nullptr;
             }
         }
-
-        return std::make_unique<K>(
-            cudnn::BNInfo{
-                epsilon,
-                x.dataType,
-                scale.dataType,
-                x.layout,
-                {
-                    static_cast<int>(x.shape[0]),
-                    static_cast<int>(x.shape[1]),
-                    static_cast<int>(x.shape[2]),
-                    static_cast<int>(x.shape[3]),
-                }});
+        return std::make_unique<K>(decltype(info){
+            epsilon,
+            x.dataType,
+            scale.dataType,
+            x.layout,
+            {
+                static_cast<int>(x.shape[0]),
+                static_cast<int>(x.shape[1]),
+                static_cast<int>(x.shape[2]),
+                static_cast<int>(x.shape[3]),
+            }});
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -55,9 +53,6 @@ namespace refactor::kernel {
     auto K::kernelTypeId() const noexcept -> size_t { return typeId(); }
     auto K::description() const noexcept -> std::string_view {
         return "Performing batch normalization for non-training-mode using CUDNN";
-    }
-    auto K::lower() const noexcept -> Routine {
-        return info.lower();
     }
 
 }// namespace refactor::kernel
