@@ -2,6 +2,18 @@
 
 namespace refactor::runtime {
 
+    void *Address::operator()(void *stack) {
+        return isBlob()
+                   ? std::get<mem_manager::SharedForeignBlob>(value)->ptr()
+                   : reinterpret_cast<uint8_t *>(stack) + std::get<size_t>(value);
+    }
+    bool Address::isBlob() const noexcept {
+        return std::holds_alternative<mem_manager::SharedForeignBlob>(value);
+    }
+    bool Address::isOffset() const noexcept {
+        return std::holds_alternative<size_t>(value);
+    }
+
     Stream::Stream(mem_manager::SharedForeignBlob stack,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
@@ -22,10 +34,10 @@ namespace refactor::runtime {
                 outputs_(outputs.size());
             std::transform(inputs.begin(), inputs.end(),
                            inputs_.begin(),
-                           [stack, this](auto i) { return stack + _internal.edges[i]; });
+                           [stack, this](auto i) { return _internal.edges[i](stack); });
             std::transform(outputs.begin(), outputs.end(),
                            outputs_.begin(),
-                           [stack, this](auto i) { return stack + _internal.edges[i]; });
+                           [stack, this](auto i) { return _internal.edges[i](stack); });
             routine(_resources, std::move(inputs_), std::move(outputs_));
         }
     }

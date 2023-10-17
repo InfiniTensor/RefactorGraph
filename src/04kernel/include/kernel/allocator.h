@@ -2,12 +2,14 @@
 #define KERNEL_ALLOCATOR_H
 
 #include "graph.h"
+#include "runtime/stream.h"
 
 namespace refactor::kernel {
+    using runtime::Address;
 
     struct AllocScheme {
         size_t size;
-        std::vector<size_t> offsets;
+        std::vector<Address> addresses;
     };
 
     using Allocator = AllocScheme (*)(graph_topo::Graph<Node, Edge> const &);
