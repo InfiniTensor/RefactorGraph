@@ -25,9 +25,33 @@ namespace refactor::onnx {
         if (inputs.empty()) {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
-
-        fmt::println("{}", computation::EinsteinNotation(equation).toString());
-        TODO("");
+        auto dataType = inputs[0].dataType;
+        if (!dataType.isNumberic()) {
+            return Err(InferError(ERROR_MSG("Data type error")));
+        }
+        auto notation = computation::EinsteinNotation(equation);
+        if (inputs.size() != notation.items()) {
+            return Err(InferError(ERROR_MSG("Input size error")));
+        }
+        std::vector<DimExpr> size(26, DimExpr(1));
+        for (auto i = 0; i < inputs.size(); ++i) {
+            if (inputs[i].dataType != dataType) {
+                return Err(InferError(ERROR_MSG("Data type error")));
+            }
+            auto indices = notation.indices(i);
+            if (inputs[i].rank() != indices.size()) {
+                return Err(InferError(ERROR_MSG("Input shape error")));
+            }
+            for (auto j = 0; j < indices.size(); ++j) {
+                size[indices[j] - 'a'] = inputs[i].shape[j];
+            }
+        }
+        auto output_ = notation.outputIndices();
+        auto output = Shape(output_.size(), DimExpr(1));
+        for (auto i = 0; i < output_.size(); ++i) {
+            output[i] = size[output_[i] - 'a'];
+        }
+        return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
     }
 
     auto Op::lower(TensorRefs) const -> computation::OpBox {
