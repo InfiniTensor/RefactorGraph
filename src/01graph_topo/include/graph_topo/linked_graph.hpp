@@ -361,6 +361,7 @@ namespace refactor::graph_topo {
         while (mappedNodes.size() < _nodes.size()) {
             auto before = mappedNodes.size();
             for (auto &n : _nodes) {
+                if (mappedNodes.find(n.get()) != mappedNodes.end()) { continue; }
                 // ∃e ∈ n.inputs, e.source ∉ mapped
                 if (std::any_of(n->_inputs.begin(), n->_inputs.end(),
                                 [&mappedNodes](auto const &e) {

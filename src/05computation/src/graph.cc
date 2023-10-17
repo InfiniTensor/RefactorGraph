@@ -163,8 +163,6 @@ namespace refactor::computation {
                             auto newNode = g_.pushNode(std::move(transpose), {g_.shareEdge(insertEdge)});
                             newNode->connect(0, g_.nodes()[nodeIdx]->inputs()[i]);
                             g_.nodes()[nodeIdx]->connect(i, newNode->outputs()[0]);
-                            fmt::println("============================1");
-                            fmt::println("{}", g_.toString());
                         } else {
                             continue;
                         }
@@ -188,8 +186,6 @@ namespace refactor::computation {
                         auto newNode = g_.pushNode(std::move(transpose), {g_.shareEdge(insertEdge)});
                         newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
                         g_.replaceOutput(outputs[i], std::make_shared<refactor::graph_topo::LinkedGraph<Node, Edge>::Edge>(insertEdge));
-                        fmt::println("============================2");
-                        fmt::println("{}", g_.toString());
                         continue;
                     }
                     for (auto node : outputs[i]->targets()) {
@@ -206,14 +202,12 @@ namespace refactor::computation {
                             newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
                             auto it = std::find(node.first->inputs().begin(), node.first->inputs().end(), outputs[i]);
                             node.first->connect(it - node.first->inputs().begin(), newNode->outputs()[0]);
-                            fmt::println("============================3");
-                            fmt::println("{}", g_.toString());
                         }
                     }
                 }
             }
         }
-        this->_internal = g_.intoGraph();
+        _internal = g_.intoGraph();
         fmt::println("Transposed finished");
     }
 
