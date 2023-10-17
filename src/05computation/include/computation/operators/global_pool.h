@@ -2,7 +2,7 @@
 #define COMPUTATION_GLOBAL_POOL_H
 
 #include "../operator.h"
-#include "kernel/collectors/pool.h"
+#include "kernel/collectors/global_pool.h"
 
 namespace refactor::computation {
     using kernel::PoolType;
@@ -16,6 +16,7 @@ namespace refactor::computation {
         static size_t typeId(PoolType) noexcept;
         size_t opTypeId() const noexcept final;
         std::string_view name() const noexcept final;
+        kernel::CollectorBox candidateKernels(Target) const noexcept final;
     };
 
 }// namespace refactor::computation

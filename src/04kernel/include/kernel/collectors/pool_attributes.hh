@@ -6,6 +6,12 @@
 
 namespace refactor::kernel {
 
+    enum class PoolType {
+        Average,
+        Lp,
+        Max,
+    };
+
     /// @brief 池化参数用于池化和卷积。
     class PoolAttributes {
         /// @brief 池化参数包含 `(1+1+2)rank` 个元素。

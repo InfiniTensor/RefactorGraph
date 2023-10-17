@@ -2,8 +2,9 @@
 #include "refactor/common.h"
 
 namespace refactor::computation {
+    using Op = GlobalPool;
 
-    size_t GlobalPool::typeId(PoolType type) noexcept {
+    auto Op::typeId(PoolType type) noexcept -> size_t {
         switch (type) {
             case PoolType::Average: {
                 static uint8_t ID = 1;
@@ -21,10 +22,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t GlobalPool::opTypeId() const noexcept {
+    auto Op::opTypeId() const noexcept -> size_t {
         return typeId(type);
     }
-    std::string_view GlobalPool::name() const noexcept {
+    auto Op::name() const noexcept -> std::string_view {
         switch (type) {
             case PoolType::Average:
                 return "GlobalAveragePool";
@@ -35,6 +36,10 @@ namespace refactor::computation {
             default:
                 UNREACHABLE();
         }
+    }
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        using Collector_ = kernel::GlobalPoolCollector;
+        return std::make_unique<Collector_>(target, type);
     }
 
 }// namespace refactor::computation

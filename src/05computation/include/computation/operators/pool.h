@@ -10,9 +10,11 @@ namespace refactor::computation {
 
     struct Pool final : public Operator {
         PoolType type;
+        bool ceil;
+        absl::InlinedVector<uint16_t, 2> kernelShape;
         PoolAttributes attributes;
 
-        Pool(PoolType, PoolAttributes) noexcept;
+        Pool(PoolType, bool, decltype(kernelShape), PoolAttributes) noexcept;
 
         static size_t typeId(PoolType) noexcept;
         size_t opTypeId() const noexcept final;

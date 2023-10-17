@@ -6,10 +6,14 @@ namespace refactor::kernel {
     PoolCollector::PoolCollector(
         Target target_,
         PoolType type_,
+        bool ceil_,
+        decltype(kernelShape) kernelShape_,
         PoolAttributes attrs) noexcept
         : InfoCollector(),
           target(target_),
           type(type_),
+          ceil(ceil_),
+          kernelShape(std::move(kernelShape_)),
           attributes(std::move(attrs)) {}
 
     std::vector<KernelBox>

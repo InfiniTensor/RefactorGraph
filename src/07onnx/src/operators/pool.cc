@@ -138,8 +138,14 @@ namespace refactor::onnx {
         }
 
         auto rank = inputs[0].rank();
+        decltype(Op_::kernelShape) kernelShape_(kernelShape.size());
+        std::transform(kernelShape.begin(), kernelShape.end(),
+                       kernelShape_.begin(),
+                       [](auto d) { return static_cast<uint16_t>(d); });
         return std::make_unique<Op_>(
             type_,
+            ceilMode,
+            std::move(kernelShape_),
             computation::PoolAttributes(
                 rank - 2,
                 dilations ? dilations->data() : nullptr,

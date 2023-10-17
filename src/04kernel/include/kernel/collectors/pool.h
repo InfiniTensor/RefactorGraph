@@ -7,18 +7,14 @@
 
 namespace refactor::kernel {
 
-    enum class PoolType {
-        Average,
-        Lp,
-        Max,
-    };
-
     struct PoolCollector final : public InfoCollector {
         Target target;
         PoolType type;
+        bool ceil;
+        absl::InlinedVector<uint16_t, 2> kernelShape;
         PoolAttributes attributes;
 
-        PoolCollector(Target, PoolType, PoolAttributes) noexcept;
+        PoolCollector(Target, PoolType, bool, decltype(kernelShape), PoolAttributes) noexcept;
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

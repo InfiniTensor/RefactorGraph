@@ -4,9 +4,14 @@
 namespace refactor::computation {
     using Op = Pool;
 
-    Op::Pool(PoolType type_, PoolAttributes attrs) noexcept
+    Op::Pool(PoolType type_,
+             bool ceil_,
+             decltype(kernelShape) kernelShape_,
+             PoolAttributes attrs) noexcept
         : Operator(),
           type(type_),
+          ceil(ceil_),
+          kernelShape(std::move(kernelShape_)),
           attributes(std::move(attrs)) {}
 
     auto Op::typeId(PoolType type) noexcept -> size_t {
@@ -44,7 +49,7 @@ namespace refactor::computation {
     }
     auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
         using Collector_ = kernel::PoolCollector;
-        return std::make_unique<Collector_>(target, type, attributes);
+        return std::make_unique<Collector_>(target, type, ceil, kernelShape, attributes);
     }
 
 }// namespace refactor::computation
