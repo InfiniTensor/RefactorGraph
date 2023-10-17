@@ -6,7 +6,6 @@
 #include <string_view>
 
 namespace refactor::kernel {
-    using runtime::Addresses;
     using runtime::Routine;
 
     class Kernel {

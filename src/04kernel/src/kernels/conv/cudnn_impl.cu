@@ -40,7 +40,7 @@ namespace refactor::kernel::cudnn {
         CUDNN_ASSERT(cudnnSetConvolution2dDescriptor(d->conv, pad[0], pad[1], stride[0], stride[1], dilation[0], dilation[1], CUDNN_CROSS_CORRELATION, cudnnDataType));
 
         // nvcc at c++11 doesn't support real move capture
-        return [d_ = std::move(d)](Resources &res, Addresses inputs, Addresses outputs) {
+        return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             auto const &workspace = *res.fetchOrStore<CudnnWorkspace>();

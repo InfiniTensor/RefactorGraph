@@ -9,8 +9,7 @@
 #include <variant>
 
 namespace refactor::runtime {
-    using Addresses = absl::InlinedVector<void *, 2>;
-    using Routine = std::function<void(runtime::Resources &, Addresses, Addresses)>;
+    using Routine = std::function<void(runtime::Resources &, void const **, void **)>;
 
     struct Address {
         std::variant<size_t, mem_manager::SharedForeignBlob> value;

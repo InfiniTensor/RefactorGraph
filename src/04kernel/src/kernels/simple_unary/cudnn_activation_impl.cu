@@ -40,7 +40,7 @@ namespace refactor::kernel::cudnn {
         CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->tensor, cudnnDataTypeConvert(dt), 1, &size, &stride));
 
         // nvcc at c++11 doesn't support real move capture
-        return [d = std::move(d)](Resources &res, Addresses inputs, Addresses outputs) {
+        return [d = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             // name inputs and outputs
