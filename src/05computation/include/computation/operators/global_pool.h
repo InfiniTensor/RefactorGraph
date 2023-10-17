@@ -2,9 +2,10 @@
 #define COMPUTATION_GLOBAL_POOL_H
 
 #include "../operator.h"
-#include "pool.h"
+#include "kernel/collectors/pool.h"
 
 namespace refactor::computation {
+    using kernel::PoolType;
 
     struct GlobalPool final : public Operator {
         PoolType type;

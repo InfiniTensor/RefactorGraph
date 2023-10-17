@@ -118,7 +118,7 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 
-    auto Op::lower(TensorRefs) const -> computation::OpBox {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::Pool;
         using Ty_ = computation::PoolType;
 
@@ -137,7 +137,14 @@ namespace refactor::onnx {
                 UNREACHABLE();
         }
 
-        return std::make_unique<Op_>(type_);
+        auto rank = inputs[0].rank();
+        return std::make_unique<Op_>(
+            type_,
+            computation::PoolAttributes(
+                rank - 2,
+                dilations ? dilations->data() : nullptr,
+                pads ? pads->data() : nullptr,
+                strides ? strides->data() : nullptr));
     }
 
 }// namespace refactor::onnx
