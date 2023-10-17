@@ -3,7 +3,6 @@
 
 #include "../operator.h"
 #include "kernel/collectors/simple_binary.h"
-#include "refactor/common.h"
 
 namespace refactor::computation {
     using kernel::SimpleBinaryType;

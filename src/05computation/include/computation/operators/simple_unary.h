@@ -3,7 +3,6 @@
 
 #include "../operator.h"
 #include "kernel/collectors/simple_unary.h"
-#include "refactor/common.h"
 
 namespace refactor::computation {
     using kernel::SimpleUnaryType;

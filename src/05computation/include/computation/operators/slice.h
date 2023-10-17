@@ -2,7 +2,6 @@
 #define COMPUTATION_SLICE_H
 
 #include "../operator.h"
-#include <vector>
 
 namespace refactor::computation {
 
