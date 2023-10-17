@@ -79,6 +79,8 @@ namespace refactor::graph_topo {
     public:
         explicit Edge(TE);
         TE const &info() const;
+        NodeRc const &source() const;
+        std::unordered_map<NodeRc, idx_t> const &targets() const;
     };
 
 #define LINKED_GRAPH_FN template<class TN, class TE> auto LinkedGraph<TN, TE>::
@@ -293,6 +295,14 @@ namespace refactor::graph_topo {
 
     LINKED_GRAPH_FN Edge::info() const->TE const & {
         return _info;
+    }
+
+    LINKED_GRAPH_FN Edge::source() const->NodeRc const & {
+        return _source;
+    }
+
+    LINKED_GRAPH_FN Edge::targets() const->std::unordered_map<NodeRc, idx_t> const & {
+        return _targets;
     }
 
     LINKED_GRAPH_CONSTRUCTOR Node::Node(TN info, std::vector<EdgeRc> outputs)

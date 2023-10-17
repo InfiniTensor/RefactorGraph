@@ -58,6 +58,7 @@ namespace refactor::computation {
         std::vector<SubgraphId> subgraphs;
         // 用于记录每个节点所属的子图号。为了在子图融合中维持拓扑序，不直接记录子图到节点的映射。
         std::vector<SubgraphId> nodes(_internal.nodes.size(), EXTERNAL);
+        std::unordered_map<std::string, SubgraphId> nodesMap(_internal.nodes.size());
 
         auto searcher = graph_topo::Searcher(_internal.topology);
         for (auto node : searcher.nodes()) {
@@ -102,6 +103,7 @@ namespace refactor::computation {
             auto const &[op, name] = _internal.nodes[nodeIdx];
             if (!op) { continue; }
             auto subgraph = nodes[nodeIdx];
+            nodesMap[_internal.nodes[nodeIdx].name] = subgraph;
             auto type = subgraphs[subgraph];
             while (type < REAL_SUBGRAPH) {
                 type = subgraphs[subgraph = type];
@@ -133,93 +135,86 @@ namespace refactor::computation {
 
         int count = 0;
         absl::InlinedVector<uint32_t, 4> perm = {0, 2, 3, 1};
-        refactor::graph_topo::LinkedGraph<Node, Edge> g_(_internal);
-        auto linkedNodes = g_.nodes();
-        std::vector<std::shared_ptr<refactor::graph_topo::LinkedGraph<Node, Edge>::Edge>> globalOutputs;
+        refactor::graph_topo::LinkedGraph<Node, Edge> g_(std::move(_internal));
         for (SubgraphId id = 0; id < subgraphs_.size(); ++id) {
             if (subgraphs_[id].dependent || !subgraphs_[id].containsConv) {
-                // find the global output edge
-                for (auto nodeIdx : subgraphs_[id].nodes) {
-                    auto outputs = searcher.nodes()[nodeIdx].outputs();
-                    for (size_t i = 0; i < outputs.size(); ++i) {
-                        if (outputs[i].targets().empty()) {
-                            globalOutputs.emplace_back(linkedNodes[nodeIdx]->outputs()[i]);
-                        }
-                    }
-                }
                 continue;
             }
             for (auto nodeIdx : subgraphs_[id].nodes) {
-                _internal.nodes[nodeIdx].op->transposeTo(LayoutType::NHWC);
-                auto inputs = searcher.nodes()[nodeIdx].inputs();
+                g_.nodes()[nodeIdx]->info().op->transposeTo(LayoutType::NHWC);
+                auto inputs = g_.nodes()[nodeIdx]->inputs();
                 for (size_t i = 0; i < inputs.size(); ++i) {
-                    auto edge = inputs[i];
-                    auto &e = _internal.edges[edge.index()];
+                    auto e = inputs[i]->info();
                     //同属于一个子图，不需要添加transpose
-                    if (nodes[edge.source().index()] != id) {
-                        if (e.tensor->data == nullptr) {
+                    if (inputs[i]->source() == nullptr || nodesMap[inputs[i]->source()->info().name] != id) {
+                        if (e.tensor->data && e.tensor->layout == LayoutType::NCHW) {
                             // const fold
                             transposeNHWC(e.tensor);
                             e.tensor->layout == LayoutType::NHWC;
-                        } else {
+                        } else if (!e.tensor->data) {
                             // insert transpose op
-                            Node transpose = {std::make_unique<Transpose>(std::move(perm)), "InsertTranspose" + count};
+                            Node transpose = {std::make_unique<Transpose>(std::move(perm)), fmt::format("InsertTranspose{}", count)};
                             Shape shape = {e.tensor->shape[0],
                                            e.tensor->shape[2],
                                            e.tensor->shape[3],
                                            e.tensor->shape[1]};
                             Tensor tensor = {e.tensor->dataType, shape, LayoutType::NHWC, nullptr};
-                            Edge insertEdge = {std::make_shared<Tensor>(tensor), "InsertEdge" + count++};
+                            Edge insertEdge = {std::make_shared<Tensor>(tensor), fmt::format("InsertEdge{}", count++)};
                             auto newNode = g_.pushNode(std::move(transpose), {g_.shareEdge(insertEdge)});
-                            newNode->connect(0, linkedNodes[nodeIdx]->inputs()[i]);
-                            linkedNodes[nodeIdx]->connect(i, newNode->outputs()[0]);
+                            newNode->connect(0, g_.nodes()[nodeIdx]->inputs()[i]);
+                            g_.nodes()[nodeIdx]->connect(i, newNode->outputs()[0]);
+                            fmt::println("============================1");
+                            fmt::println("{}", g_.toString());
+                        } else {
+                            continue;
                         }
                     }
                 }
-                auto outputs = searcher.nodes()[nodeIdx].outputs();
+                auto outputs = g_.nodes()[nodeIdx]->outputs();
                 for (size_t i = 0; i < outputs.size(); ++i) {
-                    auto edge = outputs[i];
-                    auto &e = _internal.edges[edge.index()];
+                    auto e = outputs[i]->info();
                     if (e.tensor->layout == LayoutType::NCHW) {
                         e.tensor->layout == LayoutType::NHWC;
                     }
-                    if (edge.targets().empty()) {
+                    if (outputs[i]->targets().size() == 0) {
                         // current edge is global output
-                        Node transpose = {std::make_unique<Transpose>(std::move(perm)), "InsertTranspose" + count};
+                        Node transpose = {std::make_unique<Transpose>(std::move(perm)), fmt::format("InsertTranspose{}", count)};
                         Shape shape = {e.tensor->shape[0],
                                        e.tensor->shape[2],
                                        e.tensor->shape[3],
                                        e.tensor->shape[1]};
                         Tensor tensor = {e.tensor->dataType, shape, LayoutType::NHWC, nullptr};
-                        Edge insertEdge = {std::make_shared<Tensor>(tensor), "InsertEdge" + count++};
+                        Edge insertEdge = {std::make_shared<Tensor>(tensor), fmt::format("InsertEdge{}", count++)};
                         auto newNode = g_.pushNode(std::move(transpose), {g_.shareEdge(insertEdge)});
-                        newNode->connect(0, linkedNodes[nodeIdx]->outputs()[i]);
-                        globalOutputs.emplace_back(newNode->outputs()[0]);
+                        newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
+                        g_.replaceOutput(outputs[i], std::make_shared<refactor::graph_topo::LinkedGraph<Node, Edge>::Edge>(insertEdge));
+                        fmt::println("============================2");
+                        fmt::println("{}", g_.toString());
+                        continue;
                     }
-                    int target = -1;
-                    for (auto node : edge.targets()) {
-                        target++;
-                        if (nodes[node.index()] != id) {
+                    for (auto node : outputs[i]->targets()) {
+                        if (nodesMap[node.first->info().name] != id) {
                             // insert transpose op
-                            Node transpose = {std::make_unique<Transpose>(std::move(perm)), "InsertTranspose" + count};
+                            Node transpose = {std::make_unique<Transpose>(std::move(perm)), fmt::format("InsertTranspose{}", count)};
                             Shape shape = {e.tensor->shape[0],
                                            e.tensor->shape[2],
                                            e.tensor->shape[3],
                                            e.tensor->shape[1]};
                             Tensor tensor = {e.tensor->dataType, shape, LayoutType::NHWC, nullptr};
-                            Edge insertEdge = {std::make_shared<Tensor>(tensor), "InsertEdge" + count++};
+                            Edge insertEdge = {std::make_shared<Tensor>(tensor), fmt::format("InsertEdge{}", count++)};
                             auto newNode = g_.pushNode(std::move(transpose), {g_.shareEdge(insertEdge)});
-                            newNode->connect(0, linkedNodes[nodeIdx]->outputs()[target]);
-                            linkedNodes[node.index()]->connect(target, newNode->outputs()[0]);
+                            newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
+                            auto it = std::find(node.first->inputs().begin(), node.first->inputs().end(), outputs[i]);
+                            node.first->connect(it - node.first->inputs().begin(), newNode->outputs()[0]);
+                            fmt::println("============================3");
+                            fmt::println("{}", g_.toString());
                         }
                     }
                 }
             }
         }
-        g_.setOutputs(globalOutputs);
-        //auto graph = g_.intoGraph();
-        *this = Graph(std::move(g_.intoGraph()));
-        fmt::println("Transpose finished");
+        this->_internal = g_.intoGraph();
+        fmt::println("Transposed finished");
     }
 
     kernel::Graph Graph::lower(kernel::Target target) const {
@@ -257,4 +252,5 @@ namespace refactor::computation {
         return kernel::Graph(target, _internal.topology, std::move(nodes), std::move(edges));
     }
 
+    refactor::graph_topo::Graph<Node, Edge> const &Graph::internal() const { return _internal; }
 }// namespace refactor::computation

@@ -27,8 +27,9 @@ namespace refactor::computation {
         Graph(graph_topo::GraphTopo, std::vector<Node>, std::vector<Edge>) noexcept;
 
         void transpose();
+        graph_topo::Graph<Node, Edge> const &internal() const;
         kernel::Graph lower(Target) const;
-        };
+    };
 
 }// namespace refactor::computation
 
