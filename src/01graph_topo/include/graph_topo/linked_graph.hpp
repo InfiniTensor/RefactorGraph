@@ -37,6 +37,8 @@ namespace refactor::graph_topo {
         std::vector<EdgeRc> const &outputs() const;
         void setInputs(std::vector<EdgeRc>);
         void setOutputs(std::vector<EdgeRc>);
+        void replaceInput(EdgeRc, EdgeRc);
+        void replaceOutput(EdgeRc, EdgeRc);
         NodeRc pushNode(TN, std::vector<EdgeRc>);
         void eraseNode(idx_t);
         void eraseNode(NodeRc);
@@ -60,8 +62,9 @@ namespace refactor::graph_topo {
         std::vector<EdgeRc> const &outputs() const;
         std::unordered_set<NodeRc> const &predecessors() const;
         std::unordered_set<NodeRc> const &successors() const;
-        void connect(idx_t i, EdgeRc);
-        void disconnect(idx_t i);
+        void connect(idx_t, EdgeRc);
+        void disconnect(idx_t);
+        void reconnect(EdgeRc, EdgeRc);
     };
 
     template<class TN, class TE>
@@ -134,6 +137,22 @@ namespace refactor::graph_topo {
 
     LINKED_GRAPH_FN setOutputs(std::vector<EdgeRc> outputs)->void {
         _outputs = std::move(outputs);
+    }
+
+    LINKED_GRAPH_FN replaceInput(EdgeRc from, EdgeRc to)->void {
+        for (auto &i : _inputs) {
+            if (i == from) {
+                (i = to)->_source = nullptr;
+            }
+        }
+    }
+
+    LINKED_GRAPH_FN replaceOutput(EdgeRc from, EdgeRc to)->void {
+        for (auto &i : _outputs) {
+            if (i == from) {
+                i = to;
+            }
+        }
     }
 
     LINKED_GRAPH_FN pushNode(TN info, std::vector<EdgeRc> outputs)->NodeRc {
@@ -261,6 +280,14 @@ namespace refactor::graph_topo {
         }
         while (!_inputs.empty() && !_inputs.back()) {
             _inputs.pop_back();
+        }
+    }
+
+    LINKED_GRAPH_FN Node::reconnect(EdgeRc from, EdgeRc to)->void {
+        for (auto i : range0_(_inputs.size())) {
+            if (_inputs[i] == from) {
+                connect(i, to);
+            }
         }
     }
 
