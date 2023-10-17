@@ -1,6 +1,7 @@
 ﻿#ifndef KERNEL_TENSOR_H
 #define KERNEL_TENSOR_H
 
+#include "layout.h"
 #include "mem_manager/blob.hh"
 #include "refactor/common.h"
 #include <absl/container/inlined_vector.h>
@@ -8,12 +9,6 @@
 namespace refactor::kernel {
 
     using Shape = absl::InlinedVector<uint_lv2, 4>;
-
-    enum class LayoutType : uint8_t {
-        NCHW,
-        NHWC,
-        Others,
-    };
 
     struct Tensor {
         DataType dataType;
