@@ -1,5 +1,5 @@
 ﻿#include "cudnn_workspace.hh"
-#include "cuda_mem.h"
+#include "cuda_mem.cuh"
 
 namespace refactor::kernel::cudnn {
 

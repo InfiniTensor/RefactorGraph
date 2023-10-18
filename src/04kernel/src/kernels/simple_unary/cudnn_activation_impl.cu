@@ -35,10 +35,9 @@ namespace refactor::kernel {
              : type == Ty::Tanh    ? CUDNN_ACTIVATION_TANH
              : UNREACHABLEX(cudnnActivationMode_t, "");
         // clang-format on
-        int stride = 1;
 
         CUDNN_ASSERT(cudnnSetActivationDescriptor(d->activation, mode, CUDNN_PROPAGATE_NAN, 0.0));
-        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->tensor, cudnnDataTypeConvert(dataType), 1, &size, &stride));
+        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->tensor, CUDNN_TENSOR_NCHW, cudnnDataTypeConvert(dataType), 1, 1, 1, size));
 
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d)](Resources &res, void const **inputs, void **outputs) {

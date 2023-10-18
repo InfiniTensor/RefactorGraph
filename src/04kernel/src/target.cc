@@ -1,6 +1,6 @@
 ﻿#include "kernel/target.h"
 #include "refactor/common.h"
-#include "utilities/cuda/cuda_mem.h"
+#include "utilities/cuda/cuda_mem.cuh"
 #include <cstdlib>
 #include <cstring>
 
@@ -18,8 +18,8 @@ namespace refactor::kernel {
                 };
                 return F;
             }
-            case NvidiaGpu: {
 #ifdef USE_CUDA
+            case NvidiaGpu: {
                 return {
                     cuda::malloc,
                     cuda::free,
@@ -27,10 +27,8 @@ namespace refactor::kernel {
                     cuda::memcpy_d2h,
                     cuda::memcpy_d2d,
                 };
-#else
-                UNREACHABLE();
-#endif
             }
+#endif
             default:
                 UNREACHABLE();
         }

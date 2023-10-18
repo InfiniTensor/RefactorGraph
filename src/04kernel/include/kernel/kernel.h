@@ -12,7 +12,7 @@ namespace refactor::kernel {
     public:
         virtual size_t kernelTypeId() const = 0;
         virtual std::string_view description() const = 0;
-        virtual Routine lower() const = 0;
+        virtual Routine lower() const;
     };
 
     using KernelBox = std::unique_ptr<Kernel>;

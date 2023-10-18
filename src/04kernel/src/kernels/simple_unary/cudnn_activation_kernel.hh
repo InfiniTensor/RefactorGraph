@@ -1,5 +1,5 @@
-﻿#ifndef KERNEL_CONV_CUDNN_KERNEL_HH
-#define KERNEL_CONV_CUDNN_KERNEL_HH
+﻿#ifndef KERNEL_ACTIVATION_CUDNN_KERNEL_HH
+#define KERNEL_ACTIVATION_CUDNN_KERNEL_HH
 
 #include "kernel/collectors/simple_unary.h"
 
@@ -17,9 +17,11 @@ namespace refactor::kernel {
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
-        Routine lower() const noexcept final __attribute__((weak));
+#ifdef USE_CUDA
+        Routine lower() const noexcept final;
+#endif
     };
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_CONV_CUDNN_KERNEL_HH
+#endif// KERNEL_ACTIVATION_CUDNN_KERNEL_HH

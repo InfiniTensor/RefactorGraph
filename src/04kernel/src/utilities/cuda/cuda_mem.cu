@@ -1,5 +1,4 @@
-﻿#include "cuda_mem.h"
-#include <cuda.h>
+﻿#include <cuda.h>
 
 namespace refactor::kernel::cuda {
 

@@ -4,7 +4,11 @@
 #include "refactor/common.h"
 #include <cudnn.h>
 
-#define CUDNN_ASSERT(STATUS) ASSERT((STATUS) == CUDNN_STATUS_SUCCESS, "cudnn not success")
+#define CUDNN_ASSERT(STATUS)                                                 \
+    if (auto status = (STATUS); status != CUDNN_STATUS_SUCCESS) {            \
+        RUNTIME_ERROR(fmt::format("cudnn failed on \"" #STATUS "\" with {}", \
+                                  cudnnGetErrorString(status)));             \
+    }
 
 namespace refactor::kernel::cudnn {
 
