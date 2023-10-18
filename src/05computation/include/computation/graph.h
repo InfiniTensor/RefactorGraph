@@ -26,8 +26,10 @@ namespace refactor::computation {
         explicit Graph(graph_topo::Graph<Node, Edge>) noexcept;
         Graph(graph_topo::GraphTopo, std::vector<Node>, std::vector<Edge>) noexcept;
 
-        void transpose();
-        kernel::Graph lower(Target);
+        void layoutPermute();
+        void senselessEliminate();
+
+        kernel::Graph lower(Target) const;
     };
 
 }// namespace refactor::computation

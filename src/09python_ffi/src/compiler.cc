@@ -45,8 +45,11 @@ namespace refactor::python_ffi {
             RUNTIME_ERROR(std::move(msg));
         }
         _g.fillEdgeInfo(true);
+
         auto computation = _g.lower();
-        computation.transpose();
+        computation.layoutPermute();
+        computation.senselessEliminate();
+
         kernel::Target target_ = kernel::Target::Cpu;
         if (target == "cpu") {
             target_ = kernel::Target::Cpu;
@@ -55,6 +58,7 @@ namespace refactor::python_ffi {
         } else {
             UNREACHABLE();
         }
+
         return std::make_shared<Executor>(std::move(computation), target_);
     }
 
