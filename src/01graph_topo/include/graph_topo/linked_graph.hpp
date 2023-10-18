@@ -345,7 +345,8 @@ namespace refactor::graph_topo {
         std::unordered_set<void *> mappedNodes;
         std::unordered_map<void *, GraphTopo::OutputEdge> edgeIndices;
         for (auto &e : _inputs) {
-            edgeIndices.try_emplace(e.get(), edges.size());
+            auto [it, ok] = edgeIndices.try_emplace(e.get(), edgeIndices.size());
+            ASSERT(ok, "");
             edges.emplace_back(std::move(e->_info));
         }
         while (mappedNodes.size() < _nodes.size()) {
@@ -368,7 +369,7 @@ namespace refactor::graph_topo {
                 idx_t newLocalCount = 0;
                 topology._connections.reserve(topology._connections.size() + n->_inputs.size());
                 for (auto &e : n->_inputs) {
-                    auto [it, ok] = edgeIndices.try_emplace(e.get(), edges.size());
+                    auto [it, ok] = edgeIndices.try_emplace(e.get(), edgeIndices.size());
                     if (ok) {
                         ASSERT(!e->_source, "Local edge should not have source node");
                         ++newLocalCount;
@@ -377,7 +378,8 @@ namespace refactor::graph_topo {
                     topology._connections.push_back(it->second);
                 }
                 for (auto &e : n->_outputs) {
-                    edgeIndices[e.get()] = edges.size();
+                    auto [it, ok] = edgeIndices.try_emplace(e.get(), edgeIndices.size());
+                    ASSERT(ok, "");
                     edges.emplace_back(std::move(e->_info));
                 }
 
@@ -394,7 +396,6 @@ namespace refactor::graph_topo {
         std::transform(_outputs.begin(), _outputs.end(),
                        topology._connections.begin(),
                        [&](auto &e) { return edgeIndices.at(e.get()); });
-
         return {
             std::move(topology),
             std::move(nodes),
