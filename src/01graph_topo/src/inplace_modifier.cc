@@ -80,4 +80,26 @@ namespace refactor::graph_topo {
         }
     }
 
+    auto InplaceModifier::reconnect(idx_t from, idx_t to) -> size_t {
+        size_t ans = 0;
+        for (auto &c : _g._connections) {
+            if (c == from) {
+                c = to;
+                ++ans;
+            }
+        }
+        return ans;
+    }
+
+    auto InplaceModifier::reconnect(std::unordered_map<idx_t, idx_t> const &map) -> size_t {
+        size_t ans = 0;
+        for (auto &c : _g._connections) {
+            if (auto it = map.find(c); it != map.end()) {
+                c = it->second;
+                ++ans;
+            }
+        }
+        return ans;
+    }
+
 }// namespace refactor::graph_topo

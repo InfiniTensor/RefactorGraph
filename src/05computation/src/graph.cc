@@ -20,8 +20,19 @@ namespace refactor::computation {
         std::vector<kernel::Node> nodes(graph.nodes.size());
         std::vector<kernel::Edge> edges(graph.edges.size());
 
+        std::unordered_map<graph_topo::idx_t, graph_topo::idx_t> identities;
         for (auto [nodeIdx, inputs, outputs] : graph.topology) {
             auto const &[op, name] = graph.nodes[nodeIdx];
+            nodes[nodeIdx] = {nullptr, name};
+            if (!op) {
+                continue;
+            }
+            if (op->isIdentity()) {
+                ASSERT(inputs.size() == 1 && outputs.size() == 1, "Identity op should have 1 input and 1 output");
+                auto [it, ok] = identities.try_emplace(outputs[0], inputs[0]);
+                ASSERT(ok, "");
+                continue;
+            }
             kernel::TensorRefs inputs_, outputs_;
             inputs_.reserve(inputs.size());
             outputs_.reserve(outputs.size());
@@ -35,7 +46,7 @@ namespace refactor::computation {
                            });
             auto candidates = op->candidateKernels(target)->filter(std::move(inputs_), std::move(outputs_));
             ASSERT(!candidates.empty(), "No kernel selected");
-            nodes[nodeIdx] = {std::move(candidates.front()), name};
+            nodes[nodeIdx].kernel = std::move(candidates.front());
         }
 
         for (auto i : range0_(edges.size())) {
@@ -47,7 +58,9 @@ namespace refactor::computation {
             edges[i] = {std::move(blob), tensor->bytesSize(), name};
         }
 
-        return kernel::Graph(target, graph.topology, std::move(nodes), std::move(edges));
+        auto modifier = graph_topo::InplaceModifier(graph.topology);
+        modifier.reconnect(identities);
+        return kernel::Graph(target, modifier.take(), std::move(nodes), std::move(edges));
     }
 
 }// namespace refactor::computation

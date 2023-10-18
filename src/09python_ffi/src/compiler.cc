@@ -48,7 +48,6 @@ namespace refactor::python_ffi {
 
         auto computation = _g.lower();
         computation.layoutPermute();
-        computation.senselessEliminate();
 
         kernel::Target target_ = kernel::Target::Cpu;
         if (target == "cpu") {

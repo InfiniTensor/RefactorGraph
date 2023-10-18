@@ -27,7 +27,6 @@ namespace refactor::computation {
         Graph(graph_topo::GraphTopo, std::vector<Node>, std::vector<Edge>) noexcept;
 
         void layoutPermute();
-        void senselessEliminate();
 
         kernel::Graph lower(Target) const;
     };
