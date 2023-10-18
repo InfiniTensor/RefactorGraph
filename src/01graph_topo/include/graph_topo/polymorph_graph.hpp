@@ -33,13 +33,13 @@ namespace refactor::graph_topo {
 
         auto contiguous() noexcept -> Graph<TN, TE> & {
             if (isLinked()) {
-                _internal = std::get<LinkedGraph<TN, TE>>(_internal).toGraph();
+                _internal = std::get<LinkedGraph<TN, TE>>(_internal).intoGraph();
             }
             return std::get<Graph<TN, TE>>(_internal);
         }
         auto linked() noexcept -> LinkedGraph<TN, TE> & {
             if (isLinked()) {
-                _internal = std::get<LinkedGraph<TN, TE>>(_internal).toGraph();
+                _internal = std::get<LinkedGraph<TN, TE>>(_internal).intoGraph();
             }
             return std::get<Graph<TN, TE>>(_internal);
         }

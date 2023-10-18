@@ -93,12 +93,12 @@ namespace refactor::computation {
         switch (target) {
             case LayoutType::NCHW:
                 for (auto &axis : axes) {
-                    axis = (int[]){0, 2, 3, 1}[axis];
+                    axis = PERMUTATION(NHWC, NCHW)[axis];
                 }
                 break;
             case LayoutType::NHWC:
                 for (auto &axis : axes) {
-                    axis = (int[]){0, 3, 1, 2}[axis];
+                    axis = PERMUTATION(NCHW, NHWC)[axis];
                 }
                 break;
             default:

@@ -23,7 +23,7 @@ namespace refactor::kernel {
     struct Graph {
         using _N = Node;
         using _E = Edge;
-        using _G = graph_topo::PolymorphGraph<_N, _E>;
+        using _G = graph_topo::Graph<_N, _E>;
 
         Target _target;
         _G _internal;

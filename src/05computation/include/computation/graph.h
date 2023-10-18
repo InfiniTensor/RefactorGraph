@@ -20,7 +20,7 @@ namespace refactor::computation {
     };
 
     class Graph {
-        graph_topo::Graph<Node, Edge> _internal;
+        graph_topo::PolymorphGraph<Node, Edge> _internal;
 
     public:
         explicit Graph(graph_topo::Graph<Node, Edge>) noexcept;
