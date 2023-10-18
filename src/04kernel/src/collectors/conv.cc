@@ -42,6 +42,7 @@ namespace refactor::kernel {
                 REGISTER_CUDNN(WINOGRAD)
                 REGISTER_CUDNN(WINOGRAD_NONFUSED)
                 REGISTER_CUDNN(COUNT)
+                break;
             default:
                 UNREACHABLEX(void, "Unknown target");
         }

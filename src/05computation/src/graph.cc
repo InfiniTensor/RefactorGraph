@@ -28,7 +28,6 @@ namespace refactor::computation {
                 continue;
             }
             if (op->isIdentity()) {
-                ASSERT(inputs.size() == 1 && outputs.size() == 1, "Identity op should have 1 input and 1 output");
                 auto [it, ok] = identities.try_emplace(outputs[0], inputs[0]);
                 ASSERT(ok, "");
                 continue;

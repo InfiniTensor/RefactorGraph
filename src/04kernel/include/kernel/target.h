@@ -20,7 +20,7 @@ namespace refactor::kernel {
             return internal;
         }
 
-        MemFunctions const &memFunc() const;
+        MemFunctions memFunc() const;
     };
 
 }// namespace refactor::kernel

@@ -24,16 +24,4 @@ namespace refactor::kernel::cuda {
         return dst;
     }
 
-    mem_manager::MemFunctions const &memFunc() {
-        static mem_manager::MemFunctions F{
-            malloc,
-            free,
-            memcpy_h2d,
-            memcpy_d2h,
-            memcpy_d2d,
-        };
-        return F;
-    }
-
-
 }// namespace refactor::kernel::cuda

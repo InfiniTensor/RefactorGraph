@@ -8,19 +8,19 @@ namespace refactor::mem_manager {
 
     /// @brief 显存内存块。
     class ForeignBlob {
-        MemFunctions const &_memFunctions;
+        MemFunctions _memFunctions;
 
         /// @brief ! NOTICE 指针必须非空。
         void *_ptr;
 
-        ForeignBlob(MemFunctions const &, size_t bytes);
+        ForeignBlob(MemFunctions, size_t bytes);
 
     public:
         ForeignBlob(ForeignBlob const &) = delete;
         ForeignBlob(ForeignBlob &&) = delete;
         ~ForeignBlob();
 
-        static std::shared_ptr<ForeignBlob> share(MemFunctions const &, size_t bytes);
+        static std::shared_ptr<ForeignBlob> share(MemFunctions, size_t bytes);
 
         operator void const *() const noexcept;
         operator void *() noexcept;

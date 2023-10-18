@@ -6,7 +6,7 @@
 
 namespace refactor::kernel {
 
-    MemFunctions const &Target::memFunc() const {
+    MemFunctions Target::memFunc() const {
         switch (internal) {
             case Cpu: {
                 static MemFunctions const F{
@@ -20,7 +20,13 @@ namespace refactor::kernel {
             }
             case NvidiaGpu: {
 #ifdef USE_CUDA
-                return cuda::memFunc();
+                return {
+                    cuda::malloc,
+                    cuda::free,
+                    cuda::memcpy_h2d,
+                    cuda::memcpy_d2h,
+                    cuda::memcpy_d2d,
+                };
 #else
                 UNREACHABLE();
 #endif

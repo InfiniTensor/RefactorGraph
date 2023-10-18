@@ -3,7 +3,7 @@
 
 namespace refactor::mem_manager {
 
-    ForeignBlob::ForeignBlob(MemFunctions const &f, size_t bytes)
+    ForeignBlob::ForeignBlob(MemFunctions f, size_t bytes)
         : _memFunctions(f),
           _ptr(f.malloc(bytes)) {}
     ForeignBlob::~ForeignBlob() {
@@ -11,7 +11,7 @@ namespace refactor::mem_manager {
     }
 
     std::shared_ptr<ForeignBlob>
-    ForeignBlob::share(MemFunctions const &f, size_t bytes) {
+    ForeignBlob::share(MemFunctions f, size_t bytes) {
         return std::shared_ptr<ForeignBlob>(new ForeignBlob(f, bytes));
     }
     ForeignBlob::operator void const *() const noexcept { return _ptr; }
