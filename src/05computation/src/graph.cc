@@ -150,7 +150,7 @@ namespace refactor::computation {
                         if (e.tensor->data && e.tensor->layout == LayoutType::NCHW) {
                             // const fold
                             transposeNHWC(e.tensor);
-                            e.tensor->layout == LayoutType::NHWC;
+                            e.tensor->layout = LayoutType::NHWC;
                         } else if (!e.tensor->data) {
                             // insert transpose op
                             Node transpose = {std::make_unique<Transpose>(std::move(perm)), fmt::format("InsertTranspose{}", count)};
@@ -170,9 +170,9 @@ namespace refactor::computation {
                 }
                 auto outputs = g_.nodes()[nodeIdx]->outputs();
                 for (size_t i = 0; i < outputs.size(); ++i) {
-                    auto e = outputs[i]->info();
+                    auto &e = outputs[i]->info();
                     if (e.tensor->layout == LayoutType::NCHW) {
-                        e.tensor->layout == LayoutType::NHWC;
+                        e.tensor->layout = LayoutType::NHWC;
                     }
                     if (outputs[i]->targets().size() == 0) {
                         // current edge is global output
@@ -185,7 +185,7 @@ namespace refactor::computation {
                         Edge insertEdge = {std::make_shared<Tensor>(tensor), fmt::format("InsertEdge{}", count++)};
                         auto newNode = g_.pushNode(std::move(transpose), {g_.shareEdge(insertEdge)});
                         newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
-                        g_.replaceOutput(outputs[i], std::make_shared<refactor::graph_topo::LinkedGraph<Node, Edge>::Edge>(insertEdge));
+                        g_.replaceOutput(outputs[i], newNode->outputs()[0]);
                         continue;
                     }
                     for (auto node : outputs[i]->targets()) {
