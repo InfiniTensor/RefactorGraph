@@ -1,13 +1,14 @@
 ﻿#include "../../utilities/cuda/cudnn_context.hh"
 #include "../../utilities/cuda/cudnn_functions.h"
-#include "cudnn_activation_impl.hh"
+#include "cudnn_activation_kernel.hh"
 #include <cudnn.h>
 
-namespace refactor::kernel::cudnn {
+namespace refactor::kernel {
+    using namespace cudnn;
     using namespace runtime;
-    using Op = SimpleUnaryType;
+    using Ty = SimpleUnaryType;
 
-    Routine lower(Op op, DataType dt, int size) noexcept {
+    auto ActivationCudnn::lower() const noexcept -> Routine {
         // RAII for closure
         struct Descriptors {
             cudnnActivationDescriptor_t activation;
@@ -29,15 +30,15 @@ namespace refactor::kernel::cudnn {
 
         // clang-format off
         cudnnActivationMode_t
-        mode = op == Op::Relu ? CUDNN_ACTIVATION_RELU
-             : op == Op::Sigmoid ? CUDNN_ACTIVATION_SIGMOID
-             : op == Op::Tanh ? CUDNN_ACTIVATION_TANH
+        mode = type == Ty::Relu    ? CUDNN_ACTIVATION_RELU
+             : type == Ty::Sigmoid ? CUDNN_ACTIVATION_SIGMOID
+             : type == Ty::Tanh    ? CUDNN_ACTIVATION_TANH
              : UNREACHABLEX(cudnnActivationMode_t, "");
         // clang-format on
         int stride = 1;
 
         CUDNN_ASSERT(cudnnSetActivationDescriptor(d->activation, mode, CUDNN_PROPAGATE_NAN, 0.0));
-        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->tensor, cudnnDataTypeConvert(dt), 1, &size, &stride));
+        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->tensor, cudnnDataTypeConvert(dataType), 1, &size, &stride));
 
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d)](Resources &res, void const **inputs, void **outputs) {
@@ -52,4 +53,4 @@ namespace refactor::kernel::cudnn {
         };
     }
 
-}// namespace refactor::kernel::cudnn
+}// namespace refactor::kernel
