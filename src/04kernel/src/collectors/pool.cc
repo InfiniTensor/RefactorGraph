@@ -1,5 +1,5 @@
 ﻿#include "kernel/collectors/pool.h"
-#include "refactor/common.h"
+#include "../kernels/pool/cudnn_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -7,7 +7,7 @@ namespace refactor::kernel {
         Target target_,
         PoolType type_,
         bool ceil_,
-        decltype(kernelShape) kernelShape_,
+        KernelShape kernelShape_,
         PoolAttributes attrs) noexcept
         : InfoCollector(),
           target(target_),
@@ -18,11 +18,17 @@ namespace refactor::kernel {
 
     std::vector<KernelBox>
     PoolCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
+        auto const &x = inputs[0].get();
+        auto const &y = outputs[0].get();
+
         std::vector<KernelBox> ans;
         switch (target) {
             case Target::Cpu:
                 break;
             case Target::NvidiaGpu:
+                if (auto ptr = PoolCudnn::build(type, ceil, kernelShape, attributes, x); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

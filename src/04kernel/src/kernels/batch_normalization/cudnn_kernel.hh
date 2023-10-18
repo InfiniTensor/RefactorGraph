@@ -7,7 +7,7 @@
 
 namespace refactor::kernel {
     /// @brief Use `cudnnBatchNormalizationForwardInference`.
-    ///        It only supports 4D and 5D tensor.
+    ///        It only supports 4D and 5D tensors.
     struct BatchNormalizationCudnn final : public Kernel {
         struct {
             float epsilon;

@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_CONV_CUDNN_KERNEL_HH
 #define KERNEL_CONV_CUDNN_KERNEL_HH
 
-#include "kernel/collectors/pool_attributes.hh"
+#include "kernel/collectors/pool_attributes.h"
 #include "kernel/kernel.h"
 #include "kernel/tensor.h"
 
@@ -21,6 +21,8 @@ namespace refactor::kernel {
         };
     }// namespace cudnn
 
+    /// @brief Use `cudnnConvolutionForward`.
+    ///        It only supports 4D tensors.
     struct ConvCudnn final : public Kernel {
         struct {
             DataType dt;

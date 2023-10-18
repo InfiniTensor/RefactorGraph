@@ -3,7 +3,7 @@
 
 #include "../collector.h"
 #include "../target.h"
-#include "pool_attributes.hh"
+#include "pool_attributes.h"
 
 namespace refactor::kernel {
 
@@ -11,10 +11,10 @@ namespace refactor::kernel {
         Target target;
         PoolType type;
         bool ceil;
-        absl::InlinedVector<uint16_t, 2> kernelShape;
+        KernelShape kernelShape;
         PoolAttributes attributes;
 
-        PoolCollector(Target, PoolType, bool, decltype(kernelShape), PoolAttributes) noexcept;
+        PoolCollector(Target, PoolType, bool, KernelShape, PoolAttributes) noexcept;
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

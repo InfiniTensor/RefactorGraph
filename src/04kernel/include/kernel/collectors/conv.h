@@ -3,7 +3,7 @@
 
 #include "../collector.h"
 #include "../target.h"
-#include "pool_attributes.hh"
+#include "pool_attributes.h"
 
 namespace refactor::kernel {
 
