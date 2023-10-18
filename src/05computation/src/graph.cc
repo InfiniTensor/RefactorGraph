@@ -62,4 +62,6 @@ namespace refactor::computation {
         return kernel::Graph(target, modifier.take(), std::move(nodes), std::move(edges));
     }
 
+    auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
+
 }// namespace refactor::computation

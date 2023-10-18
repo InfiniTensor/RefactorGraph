@@ -38,8 +38,8 @@ namespace refactor::graph_topo {
             return std::get<Graph<TN, TE>>(_internal);
         }
         auto linked() noexcept -> LinkedGraph<TN, TE> & {
-            if (isLinked()) {
-                _internal = std::get<LinkedGraph<TN, TE>>(_internal).intoGraph();
+            if (isContiguous()) {
+                _internal = LinkedGraph(std::move(std::get<Graph<TN, TE>>(_internal)));
             }
             return std::get<LinkedGraph<TN, TE>>(_internal);
         }
