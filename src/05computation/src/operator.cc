@@ -3,6 +3,7 @@
 namespace refactor::computation {
 
     bool Operator::isLayoutDependent() const { return false; }
+    bool Operator::isIdentity() const { return false; }
     void Operator::transposeTo(LayoutType) { isLayoutDependent() && UNREACHABLEX(bool, ""); }
     kernel::CollectorBox Operator::candidateKernels(Target) const {
         TODO(fmt::format("Operator \"{}\" lower to kernel not implemented", name()));

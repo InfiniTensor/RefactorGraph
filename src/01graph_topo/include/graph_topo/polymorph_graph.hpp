@@ -41,7 +41,7 @@ namespace refactor::graph_topo {
             if (isLinked()) {
                 _internal = std::get<LinkedGraph<TN, TE>>(_internal).intoGraph();
             }
-            return std::get<Graph<TN, TE>>(_internal);
+            return std::get<LinkedGraph<TN, TE>>(_internal);
         }
     };
 

@@ -17,10 +17,10 @@ namespace refactor::graph_topo {
         class Node;
         class Edge;
 
-    private:
         using NodeRc = std::shared_ptr<Node>;
         using EdgeRc = std::shared_ptr<Edge>;
 
+    private:
         std::vector<NodeRc> _nodes;
         std::vector<EdgeRc> _inputs, _outputs;
 
@@ -79,6 +79,8 @@ namespace refactor::graph_topo {
     public:
         explicit Edge(TE);
         TE const &info() const;
+        NodeRc source() const;
+        std::unordered_set<NodeRc> targets() const;
     };
 
 #define LINKED_GRAPH_FN template<class TN, class TE> auto LinkedGraph<TN, TE>::
@@ -293,6 +295,18 @@ namespace refactor::graph_topo {
 
     LINKED_GRAPH_FN Edge::info() const->TE const & {
         return _info;
+    }
+
+    LINKED_GRAPH_FN Edge::source() const->NodeRc {
+        return _source;
+    }
+
+    LINKED_GRAPH_FN Edge::targets() const->std::unordered_set<NodeRc> {
+        std::unordered_set<NodeRc> ans;
+        for (auto [n, _] : _targets) {
+            ans.emplace(std::move(n));
+        }
+        return ans;
     }
 
     LINKED_GRAPH_CONSTRUCTOR Node::Node(TN info, std::vector<EdgeRc> outputs)

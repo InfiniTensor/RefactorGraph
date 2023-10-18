@@ -120,8 +120,32 @@ namespace refactor::computation {
         fmt::println("Transpose finished");
     }
 
-    kernel::Graph Graph::lower(kernel::Target target) const {
-
+    kernel::Graph Graph::lower(kernel::Target target) {
+        {
+            auto &graph = _internal.linked();
+            using TG = std::decay_t<decltype(graph)>;
+            std::vector<TG::NodeRc> senseless;
+            for (auto &node : graph.nodes()) {
+                if (!node->info().op) {
+                    senseless.push_back(node);
+                    continue;
+                }
+                if (!node->info().op->isIdentity()) {
+                    continue;
+                }
+                ASSERT(node->inputs().size() == 1, "");
+                ASSERT(node->outputs().size() == 1, "");
+                senseless.push_back(node);
+                auto const &in = node->inputs()[0];
+                auto const &out = node->outputs()[0];
+                for (auto &successor : out->targets()) {
+                    successor->reconnect(out, in);
+                }
+            }
+            for (auto node : senseless) {
+                graph.eraseNode(node);
+            }
+        }
         auto &graph = _internal.contiguous();
 
         std::vector<kernel::Node> nodes(graph.nodes.size());
@@ -129,7 +153,6 @@ namespace refactor::computation {
 
         for (auto [nodeIdx, inputs, outputs] : graph.topology) {
             auto const &[op, name] = graph.nodes[nodeIdx];
-            if (!op) { continue; }
             kernel::TensorRefs inputs_, outputs_;
             inputs_.reserve(inputs.size());
             outputs_.reserve(outputs.size());
