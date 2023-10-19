@@ -27,7 +27,9 @@ namespace refactor::python_ffi {
     Compiler::fillEdgeInfo(bool calculate) { return _g.fillEdgeInfo(calculate); }
 
     std::shared_ptr<Executor>
-    Compiler::compile(bool calculate, std::string target) {
+    Compiler::compile(bool calculate,
+                      std::string target,
+                      std::vector<std::string> passes) {
         _g.collectVariables();
         std::vector<std::string_view> unknownVariables;
         for (auto const &[_, v] : _g.variables()) {
@@ -46,8 +48,13 @@ namespace refactor::python_ffi {
         }
         _g.fillEdgeInfo(true);
 
+        std::unordered_set<std::string> passes_;
+        passes_.reserve(passes.size());
+        for (auto &p : passes) { passes_.emplace(std::move(p)); }
         auto computation = _g.lower();
-        computation.layoutPermute();
+        if (passes_.find("lp") != passes_.end()) {
+            computation.layoutPermute();
+        }
 
         kernel::Target target_ = kernel::Target::Cpu;
         if (target == "cpu") {
