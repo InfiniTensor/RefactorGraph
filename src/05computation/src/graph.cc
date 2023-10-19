@@ -51,9 +51,8 @@ namespace refactor::computation {
         for (auto i : range0_(edges.size())) {
             auto const &[tensor, name] = graph.edges[i];
             if (!tensor || !tensor->data) { continue; }
-            auto fn = target.memFunc();
-            auto blob = mem_manager::ForeignBlob::share(fn, tensor->bytesSize());
-            fn.copyHd(*blob, *(tensor->data), tensor->bytesSize());
+            auto blob = mem_manager::ForeignBlob::share(target.memFunc(), tensor->bytesSize());
+            blob->copyIn(*(tensor->data), tensor->bytesSize());
             edges[i] = {std::move(blob), tensor->bytesSize(), name};
         }
 

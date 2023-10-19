@@ -6,19 +6,20 @@
 using namespace refactor;
 using namespace kernel;
 
-TEST(kernel, X) {
-    // Build routine
-    auto dataTensor = Tensor::share(DataType::F32, Shape{2, 3, 5});
+TEST(kernel, ActivationCudnn) {
+    // build routine
+    auto dataTensor = Tensor::share(DataType::F32, Shape{20, 30, 50});
     auto kernel = ActivationCudnn::build(SimpleUnaryType::Tanh, *dataTensor);
     ASSERT_TRUE(kernel);
     auto routine = kernel->lower();
     // cuda malloc
-    auto memFn = Target(Target::NvidiaGpu).memFunc();
-    auto gpuMem = mem_manager::ForeignBlob::share(memFn, dataTensor->bytesSize());
+    auto gpuMem = mem_manager::ForeignBlob::share(
+        Target(Target::NvidiaGpu).memFunc(),
+        dataTensor->bytesSize());
     // put input data
     std::vector<float> data(dataTensor->elementsSize());
-    for (size_t i = 0; i < data.size(); i++) { data[i] = i * 0.1f; }
-    memFn.copyHd(*gpuMem, data.data(), dataTensor->bytesSize());
+    for (auto i : range0_(data.size())) { data[i] = i * 0.1f; }
+    gpuMem->copyIn(data.data(), dataTensor->bytesSize());
     // inference
     auto res = runtime::Resources();
     void const *inputs[]{*gpuMem};
@@ -26,9 +27,9 @@ TEST(kernel, X) {
     routine(res, inputs, outputs);
     // take output data
     std::vector<float> result(dataTensor->elementsSize());
-    memFn.copyDh(result.data(), *gpuMem, dataTensor->bytesSize());
+    gpuMem->copyOut(result.data(), dataTensor->bytesSize());
     // check
-    for (size_t i = 0; i < data.size(); i++) {
+    for (auto i : range0_(data.size())) {
         EXPECT_FLOAT_EQ(std::tanh(data[i]), result[i]);
     }
 }

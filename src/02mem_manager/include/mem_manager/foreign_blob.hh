@@ -24,7 +24,11 @@ namespace refactor::mem_manager {
 
         operator void const *() const noexcept;
         operator void *() noexcept;
-        uint8_t *ptr() noexcept;
+
+        void copyIn(void const *, size_t);
+        void copyOut(void *, size_t) const;
+        void copyFrom(ForeignBlob const &, size_t);
+        void copyTo(ForeignBlob &, size_t) const;
     };
 
     using SharedForeignBlob = std::shared_ptr<ForeignBlob>;

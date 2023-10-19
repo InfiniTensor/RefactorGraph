@@ -16,8 +16,16 @@ namespace refactor::mem_manager {
     }
     ForeignBlob::operator void const *() const noexcept { return _ptr; }
     ForeignBlob::operator void *() noexcept { return _ptr; }
-    uint8_t *ForeignBlob::ptr() noexcept {
-        return reinterpret_cast<uint8_t *>(_ptr);
+    void ForeignBlob::copyIn(void const *host, size_t bytes) {
+        _memFunctions.copyHd(_ptr, host, bytes);
     }
-
+    void ForeignBlob::copyOut(void *host, size_t bytes) const {
+        _memFunctions.copyDh(host, _ptr, bytes);
+    }
+    void ForeignBlob::copyFrom(ForeignBlob const &src, size_t bytes) {
+        _memFunctions.copyDd(_ptr, src._ptr, bytes);
+    }
+    void ForeignBlob::copyTo(ForeignBlob &tgt, size_t bytes) const {
+        _memFunctions.copyDd(tgt._ptr, _ptr, bytes);
+    }
 }// namespace refactor::mem_manager

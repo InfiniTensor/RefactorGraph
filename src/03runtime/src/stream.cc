@@ -4,7 +4,7 @@ namespace refactor::runtime {
 
     void *Address::operator()(void *stack) {
         return isBlob()
-                   ? std::get<mem_manager::SharedForeignBlob>(value)->ptr()
+                   ? *std::get<mem_manager::SharedForeignBlob>(value)
                    : reinterpret_cast<uint8_t *>(stack) + std::get<size_t>(value);
     }
     bool Address::isBlob() const noexcept {
@@ -26,7 +26,7 @@ namespace refactor::runtime {
           }) {}
 
     void Stream::run() {
-        auto stack = _stack->ptr();
+        void *stack = *_stack;
         std::vector<void const *> inputs_;
         std::vector<void *> outputs_;
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
