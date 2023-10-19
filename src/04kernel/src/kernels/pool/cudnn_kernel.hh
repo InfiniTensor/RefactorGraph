@@ -25,7 +25,9 @@ namespace refactor::kernel {
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
-        Routine lower() const noexcept final __attribute__((weak));
+#ifdef USE_CUDA
+        Routine lower() const noexcept final;
+#endif
     };
 
 }// namespace refactor::kernel
