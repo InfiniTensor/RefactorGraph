@@ -17,7 +17,7 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (target) {
             case Target::Cpu:
-                REGISTER(SimpleUnary)
+                REGISTER(SimpleUnaryCpu)
                 break;
             case Target::NvidiaGpu:
                 REGISTER(ActivationCudnn)

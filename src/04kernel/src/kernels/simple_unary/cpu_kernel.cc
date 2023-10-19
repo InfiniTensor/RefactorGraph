@@ -4,17 +4,23 @@
 #include <unordered_set>
 
 namespace refactor::kernel {
-    using K = SimpleUnary;
+    using K = SimpleUnaryCpu;
     using Op = SimpleUnaryType;
     using DT = DataType;
 
-    K::SimpleUnary(Op opType_, DT dataType_, size_t size_) noexcept
+    K::SimpleUnaryCpu(Op opType_, DT dataType_, size_t size_) noexcept
         : Kernel(), dataType(dataType_), opType(opType_), size(size_) {}
 
     auto K::build(Op op, Tensor const &a) noexcept -> KernelBox {
-        static const std::unordered_set<decltype(DT::internal)> TYPE{
-            DT::F32, DT::U8, DT::I8, DT::U16, DT::I16,
-            DT::I32, DT::I64, DT::F64, DT::U32, DT::U64};
+        static const std::unordered_set<Op> supportedOp{
+            Op::Abs,
+            Op::Relu,
+            Op::Sigmoid,
+            Op::Tanh,
+        };
+        if (supportedOp.find(op) == supportedOp.end()) {
+            return nullptr;
+        }
         if (!a.dataType.isCpuNumberic()) {
             return nullptr;
         }
@@ -32,9 +38,9 @@ namespace refactor::kernel {
         return "Performing unary operation on generic cpu";
     }
 
-#define CASE_DT(OP, T)                                                                       \
+#define CASE(OP, T)                                                                          \
     case DT::T:                                                                              \
-        return [n = this->size](runtime::Resources &, Addresses inputs, Addresses outputs) { \
+        return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
             using T_ = primitive_t<DT::T>::type;                                             \
             auto x = static_cast<T_ const *>(inputs[0]);                                     \
             auto y = static_cast<T_ *>(outputs[0]);                                          \
@@ -43,48 +49,86 @@ namespace refactor::kernel {
                             [y, x](auto i) { y[i] = OP(x[i]); });                            \
         }
 
-#define CASE_OP(NAME, SYMBOL)        \
-    case Op::NAME:                   \
-        switch (dataType.internal) { \
-            CASE_DT(SYMBOL, F32);    \
-            CASE_DT(SYMBOL, U8);     \
-            CASE_DT(SYMBOL, I8);     \
-            CASE_DT(SYMBOL, U16);    \
-            CASE_DT(SYMBOL, I16);    \
-            CASE_DT(SYMBOL, I32);    \
-            CASE_DT(SYMBOL, I64);    \
-            CASE_DT(SYMBOL, F64);    \
-            CASE_DT(SYMBOL, U32);    \
-            CASE_DT(SYMBOL, U64);    \
-            default:                 \
-                UNREACHABLE();       \
-        }
+    auto copyForUnsigned(size_t n) noexcept -> Routine {
+        return [n](runtime::Resources &, void const **inputs, void **outputs) {
+            std::memcpy(outputs[0], inputs[0], n);
+        };
+    }
+    template<class T> auto relu(T x) noexcept -> T { return x > 0 ? x : 0; }
+    template<class M, class T> auto sigmoid(T x) noexcept -> T {
+        return static_cast<T>(1 / (1 + std::exp(-static_cast<M>(x))));
+    }
+    template<class M, class T> auto convertTanh(T x) noexcept -> T {
+        return static_cast<T>(std::tanh(static_cast<M>(x)));
+    }
 
     auto K::lower() const noexcept -> Routine {
-        // clang-format off
         switch (opType) {
-            // CASE(Abs    , )
-            // CASE(Acos   , )
-            // CASE(Acosh  , )
-            // CASE(Asin   , )
-            // CASE(Asinh  , )
-            // CASE(Atan   , )
-            // CASE(Atanh  , )
-            // CASE(Cos    , )
-            // CASE(Cosh   , )
-            // CASE(Sin    , )
-            // CASE(Sinh   , )
-            // CASE(Tan    , )
-            // CASE(Tanh   , )
-            // CASE(Relu   , )
-            // CASE(Sqrt   , )
-            // CASE(Sigmoid, )
-            // CASE(Erf    , )
-            // CASE(Not    , )
+            case Op::Abs:
+                switch (dataType) {
+                    CASE(std::abs, F32);
+                    CASE(std::abs, F64);
+                    CASE(std::abs, I8);
+                    CASE(std::abs, I16);
+                    CASE(std::abs, I32);
+                    CASE(std::abs, I64);
+                    case DT::U8:
+                    case DT::U16:
+                    case DT::U32:
+                    case DT::U64:
+                        return copyForUnsigned(size * dataType.size());
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Relu:
+                switch (dataType) {
+                    CASE(relu, F32);
+                    CASE(relu, F64);
+                    CASE(relu, I8);
+                    CASE(relu, I16);
+                    CASE(relu, I32);
+                    CASE(relu, I64);
+                    case DT::U8:
+                    case DT::U16:
+                    case DT::U32:
+                    case DT::U64:
+                        return copyForUnsigned(size * dataType.size());
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Sigmoid:
+                switch (dataType) {
+                    CASE(sigmoid<float>, F32);
+                    CASE(sigmoid<double>, F64);
+                    CASE(sigmoid<float>, I8);
+                    CASE(sigmoid<float>, I16);
+                    CASE(sigmoid<double>, I32);
+                    CASE(sigmoid<double>, I64);
+                    CASE(sigmoid<float>, U8);
+                    CASE(sigmoid<float>, U16);
+                    CASE(sigmoid<double>, U32);
+                    CASE(sigmoid<double>, U64);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Tanh:
+                switch (dataType) {
+                    CASE(std::tanh, F32);
+                    CASE(std::tanh, F64);
+                    CASE(convertTanh<float>, I8);
+                    CASE(convertTanh<float>, I16);
+                    CASE(convertTanh<double>, I32);
+                    CASE(convertTanh<double>, I64);
+                    CASE(convertTanh<float>, U8);
+                    CASE(convertTanh<float>, U16);
+                    CASE(convertTanh<double>, U32);
+                    CASE(convertTanh<double>, U64);
+                    default:
+                        UNREACHABLE();
+                }
             default:
                 UNREACHABLE();
         }
-        // clang-format on
     }
 
 }// namespace refactor::kernel
