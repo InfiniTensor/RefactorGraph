@@ -4,7 +4,6 @@
 #include "container.h"
 #include "refactor/common.h"
 #include <algorithm>
-#include <memory>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -17,83 +16,80 @@ namespace refactor::graph_topo {
         class Node;
         class Edge;
 
-        using NodeRc = std::shared_ptr<Node>;
-        using EdgeRc = std::shared_ptr<Edge>;
-
     private:
-        std::vector<NodeRc> _nodes;
-        std::vector<EdgeRc> _inputs, _outputs;
+        std::vector<Rc<Node>> _nodes;
+        std::vector<Rc<Edge>> _inputs, _outputs;
 
     public:
         LinkedGraph() = default;
         explicit LinkedGraph(Graph<TN, TE>);
 
-        static auto shareEdge(TE) -> EdgeRc;
+        static auto shareEdge(TE) -> Rc<Edge>;
 
         std::string toString() const;
         Graph<TN, TE> intoGraph() const;
-        std::vector<NodeRc> const &nodes() const;
-        std::vector<EdgeRc> const &inputs() const;
-        std::vector<EdgeRc> const &outputs() const;
-        void setInputs(std::vector<EdgeRc>);
-        void setOutputs(std::vector<EdgeRc>);
-        void replaceInput(EdgeRc, EdgeRc);
-        void replaceOutput(EdgeRc, EdgeRc);
-        NodeRc pushNode(TN, std::vector<EdgeRc>);
+        std::vector<Rc<Node>> const &nodes() const;
+        std::vector<Rc<Edge>> const &inputs() const;
+        std::vector<Rc<Edge>> const &outputs() const;
+        void setInputs(std::vector<Rc<Edge>>);
+        void setOutputs(std::vector<Rc<Edge>>);
+        void replaceInput(Rc<Edge>, Rc<Edge>);
+        void replaceOutput(Rc<Edge>, Rc<Edge>);
+        Rc<Node> pushNode(TN, std::vector<Rc<Edge>>);
         void eraseNode(idx_t);
-        void eraseNode(NodeRc);
+        void eraseNode(Rc<Node>);
         bool sort();
     };
 
     template<class TN, class TE>
-    class LinkedGraph<TN, TE>::Node : public std::enable_shared_from_this<LinkedGraph<TN, TE>::Node> {
+    class LinkedGraph<TN, TE>::Node : public RefInplace<LinkedGraph<TN, TE>::Node> {
         friend class LinkedGraph<TN, TE>;
         friend class Edge;
 
         TN _info;
-        std::vector<EdgeRc> _inputs, _outputs;
+        std::vector<Rc<Edge>> _inputs, _outputs;
 
-        Node(TN, std::vector<EdgeRc>);
-        static NodeRc share(TN, std::vector<EdgeRc>);
+        Node(TN, std::vector<Rc<Edge>>);
+        static Rc<Node> share(TN, std::vector<Rc<Edge>>);
 
     public:
         TN const &info() const;
-        std::vector<EdgeRc> const &inputs() const;
-        std::vector<EdgeRc> const &outputs() const;
-        std::unordered_set<NodeRc> const &predecessors() const;
-        std::unordered_set<NodeRc> const &successors() const;
-        void connect(idx_t, EdgeRc);
+        std::vector<Rc<Edge>> const &inputs() const;
+        std::vector<Rc<Edge>> const &outputs() const;
+        std::unordered_set<Rc<Node>> const &predecessors() const;
+        std::unordered_set<Rc<Node>> const &successors() const;
+        void connect(idx_t, Rc<Edge>);
         void disconnect(idx_t);
-        void reconnect(EdgeRc, EdgeRc);
+        void reconnect(Rc<Edge>, Rc<Edge>);
     };
 
     template<class TN, class TE>
-    class LinkedGraph<TN, TE>::Edge : public std::enable_shared_from_this<LinkedGraph<TN, TE>::Edge> {
+    class LinkedGraph<TN, TE>::Edge : public RefInplace<LinkedGraph<TN, TE>::Edge> {
         friend class LinkedGraph<TN, TE>;
         friend class Edge;
 
         TE _info;
-        NodeRc _source;
-        std::unordered_map<NodeRc, idx_t> _targets;
+        Rc<Node> _source;
+        std::unordered_map<Rc<Node>, idx_t> _targets;
 
     public:
         explicit Edge(TE);
         TE const &info() const;
-        NodeRc source() const;
-        std::unordered_set<NodeRc> targets() const;
+        Rc<Node> source() const;
+        std::unordered_set<Rc<Node>> targets() const;
     };
 
 #define LINKED_GRAPH_FN template<class TN, class TE> auto LinkedGraph<TN, TE>::
 #define LINKED_GRAPH_CONSTRUCTOR template<class TN, class TE> LinkedGraph<TN, TE>::
 
-    LINKED_GRAPH_FN shareEdge(TE info)->EdgeRc {
-        return std::make_shared<Edge>(std::move(info));
+    LINKED_GRAPH_FN shareEdge(TE info)->Rc<Edge> {
+        return Rc<Edge>(new Edge{std::move(info)});
     }
 
     LINKED_GRAPH_FN toString() const->std::string {
         std::unordered_map<void *, size_t> indices;
         std::stringstream ss;
-        auto f = [&indices, &ss](EdgeRc const &e) {
+        auto f = [&indices, &ss](Rc<Edge> const &e) {
             if (e) {
                 auto [it, ok] = indices.try_emplace(e.get(), indices.size());
                 ss << it->second << ' ';
@@ -118,30 +114,30 @@ namespace refactor::graph_topo {
         return ss.str();
     }
 
-    LINKED_GRAPH_FN nodes() const->std::vector<NodeRc> const & {
+    LINKED_GRAPH_FN nodes() const->std::vector<Rc<Node>> const & {
         return _nodes;
     }
 
-    LINKED_GRAPH_FN inputs() const->std::vector<EdgeRc> const & {
+    LINKED_GRAPH_FN inputs() const->std::vector<Rc<Edge>> const & {
         return _inputs;
     }
 
-    LINKED_GRAPH_FN outputs() const->std::vector<EdgeRc> const & {
+    LINKED_GRAPH_FN outputs() const->std::vector<Rc<Edge>> const & {
         return _outputs;
     }
 
-    LINKED_GRAPH_FN setInputs(std::vector<EdgeRc> inputs)->void {
+    LINKED_GRAPH_FN setInputs(std::vector<Rc<Edge>> inputs)->void {
         _inputs = std::move(inputs);
         for (auto &e : _inputs) {
             e->_source = nullptr;
         }
     }
 
-    LINKED_GRAPH_FN setOutputs(std::vector<EdgeRc> outputs)->void {
+    LINKED_GRAPH_FN setOutputs(std::vector<Rc<Edge>> outputs)->void {
         _outputs = std::move(outputs);
     }
 
-    LINKED_GRAPH_FN replaceInput(EdgeRc from, EdgeRc to)->void {
+    LINKED_GRAPH_FN replaceInput(Rc<Edge> from, Rc<Edge> to)->void {
         for (auto &i : _inputs) {
             if (i == from) {
                 (i = to)->_source = nullptr;
@@ -149,7 +145,7 @@ namespace refactor::graph_topo {
         }
     }
 
-    LINKED_GRAPH_FN replaceOutput(EdgeRc from, EdgeRc to)->void {
+    LINKED_GRAPH_FN replaceOutput(Rc<Edge> from, Rc<Edge> to)->void {
         for (auto &i : _outputs) {
             if (i == from) {
                 i = to;
@@ -157,7 +153,7 @@ namespace refactor::graph_topo {
         }
     }
 
-    LINKED_GRAPH_FN pushNode(TN info, std::vector<EdgeRc> outputs)->NodeRc {
+    LINKED_GRAPH_FN pushNode(TN info, std::vector<Rc<Edge>> outputs)->Rc<Node> {
         auto ans = Node::share(std::move(info), std::move(outputs));
         _nodes.push_back(ans);
         return ans;
@@ -188,7 +184,7 @@ namespace refactor::graph_topo {
         _nodes.erase(_nodes.begin() + i);
     }
 
-    LINKED_GRAPH_FN eraseNode(NodeRc node)->void {
+    LINKED_GRAPH_FN eraseNode(Rc<Node> node)->void {
         for (auto i : range0_(_nodes.size())) {
             if (_nodes[i] == node) {
                 eraseNode(i);
@@ -197,7 +193,7 @@ namespace refactor::graph_topo {
     }
 
     LINKED_GRAPH_FN sort()->bool {
-        std::vector<NodeRc> ans;
+        std::vector<Rc<Node>> ans;
         ans.reserve(_nodes.size());
         std::unordered_set<void *> known;
         while (known.size() < _nodes.size()) {
@@ -220,9 +216,9 @@ namespace refactor::graph_topo {
         return true;
     }
 
-    LINKED_GRAPH_FN Node::share(TN info, std::vector<EdgeRc> outputs)
-        ->NodeRc {
-        auto ans = std::shared_ptr<Node>(new Node(std::move(info), std::move(outputs)));
+    LINKED_GRAPH_FN Node::share(TN info, std::vector<Rc<Edge>> outputs)
+        ->Rc<Node> {
+        auto ans = Rc<Node>(new Node(std::move(info), std::move(outputs)));
         for (auto &edge : ans->_outputs) {
             edge->_source = ans;
         }
@@ -233,16 +229,16 @@ namespace refactor::graph_topo {
         return _info;
     }
 
-    LINKED_GRAPH_FN Node::inputs() const->std::vector<EdgeRc> const & {
+    LINKED_GRAPH_FN Node::inputs() const->std::vector<Rc<Edge>> const & {
         return _inputs;
     }
 
-    LINKED_GRAPH_FN Node::outputs() const->std::vector<EdgeRc> const & {
+    LINKED_GRAPH_FN Node::outputs() const->std::vector<Rc<Edge>> const & {
         return _outputs;
     }
 
-    LINKED_GRAPH_FN Node::predecessors() const->std::unordered_set<NodeRc> const & {
-        std::unordered_set<NodeRc> ans;
+    LINKED_GRAPH_FN Node::predecessors() const->std::unordered_set<Rc<Node>> const & {
+        std::unordered_set<Rc<Node>> ans;
         for (auto const &e : _inputs) {
             if (e->_source) {
                 ans.insert(e->_source);
@@ -251,8 +247,8 @@ namespace refactor::graph_topo {
         return ans;
     }
 
-    LINKED_GRAPH_FN Node::successors() const->std::unordered_set<NodeRc> const & {
-        std::unordered_set<NodeRc> ans;
+    LINKED_GRAPH_FN Node::successors() const->std::unordered_set<Rc<Node>> const & {
+        std::unordered_set<Rc<Node>> ans;
         for (auto const &e : _outputs) {
             for (auto const &[n, _] : e->_targets) {
                 ans.insert(n);
@@ -261,7 +257,7 @@ namespace refactor::graph_topo {
         return ans;
     }
 
-    LINKED_GRAPH_FN Node::connect(idx_t i, EdgeRc input)->void {
+    LINKED_GRAPH_FN Node::connect(idx_t i, Rc<Edge> input)->void {
         if (i < _inputs.size()) {
             disconnect(i);
         } else {
@@ -285,7 +281,7 @@ namespace refactor::graph_topo {
         }
     }
 
-    LINKED_GRAPH_FN Node::reconnect(EdgeRc from, EdgeRc to)->void {
+    LINKED_GRAPH_FN Node::reconnect(Rc<Edge> from, Rc<Edge> to)->void {
         for (auto i : range0_(_inputs.size())) {
             if (_inputs[i] == from) {
                 connect(i, to);
@@ -297,19 +293,19 @@ namespace refactor::graph_topo {
         return _info;
     }
 
-    LINKED_GRAPH_FN Edge::source() const->NodeRc {
+    LINKED_GRAPH_FN Edge::source() const->Rc<Node> {
         return _source;
     }
 
-    LINKED_GRAPH_FN Edge::targets() const->std::unordered_set<NodeRc> {
-        std::unordered_set<NodeRc> ans;
+    LINKED_GRAPH_FN Edge::targets() const->std::unordered_set<Rc<Node>> {
+        std::unordered_set<Rc<Node>> ans;
         for (auto [n, _] : _targets) {
             ans.emplace(std::move(n));
         }
         return ans;
     }
 
-    LINKED_GRAPH_CONSTRUCTOR Node::Node(TN info, std::vector<EdgeRc> outputs)
+    LINKED_GRAPH_CONSTRUCTOR Node::Node(TN info, std::vector<Rc<Edge>> outputs)
         : _info(std::move(info)),
           _inputs(),
           _outputs(std::move(outputs)) {}
@@ -322,14 +318,14 @@ namespace refactor::graph_topo {
           _outputs(),
           _nodes(g.topology.nodeCount()) {
 
-        std::vector<EdgeRc> edges(g.edges.size());
+        std::vector<Rc<Edge>> edges(g.edges.size());
         std::transform(g.edges.begin(), g.edges.end(), edges.begin(),
                        [](auto &e) { return shareEdge(std::move(e)); });
 
         auto it = g.topology.begin(), end_ = g.topology.end();
         while (it != end_) {
             auto [nodeIdx, inputs, outputs] = *it++;
-            std::vector<EdgeRc> outputs_(outputs.size());
+            std::vector<Rc<Edge>> outputs_(outputs.size());
             std::transform(outputs.begin(), outputs.end(), outputs_.begin(),
                            [&edges](auto i) { return edges[i]; });
             auto &node = _nodes[nodeIdx] = Node::share(std::move(g.nodes[nodeIdx]), std::move(outputs_));

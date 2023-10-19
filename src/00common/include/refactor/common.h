@@ -6,7 +6,9 @@
 #include "error_handler.h"
 #include "fp16_t.h"
 #include "range.h"
+#include "rc.hpp"
 #include "slice.h"
+#include <memory>
 
 namespace refactor {
     // 方便按“级别”定义整型数。
@@ -25,6 +27,8 @@ namespace refactor {
     using sint_max = sint_lv3;
     using uint_min = uint_lv0;
     using uint_max = uint_lv3;
+
+    template<class T> using Arc = std::shared_ptr<T>;
 
 }// namespace refactor
 
