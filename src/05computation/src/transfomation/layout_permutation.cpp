@@ -57,6 +57,7 @@ namespace refactor::computation {
             auto const type = op->isLayoutDependent() ? DEPENDENT : INDEPENDENT;
             // 遍历前驱节点
             for (auto node_ : node.predecessors()) {
+                if (!graph.nodes[node_].op) { continue; }
                 // 搜索前驱的真子图号
                 auto preId = nodes[node_];
                 {

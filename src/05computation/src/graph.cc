@@ -44,7 +44,7 @@ namespace refactor::computation {
                                return std::cref(*graph.edges[i].tensor);
                            });
             auto candidates = op->candidateKernels(target)->filter(std::move(inputs_), std::move(outputs_));
-            ASSERT(!candidates.empty(), "No kernel selected");
+            ASSERT(!candidates.empty(), fmt::format("No kernel selected for {}", op->name()));
             nodes[nodeIdx].kernel = std::move(candidates.front());
         }
 
