@@ -91,9 +91,9 @@ namespace refactor::computation {
         }
         ASSERT_EQ(g_.nodes.size(), 4);
         ASSERT_EQ(g_.edges.size(), 7);
-        ASSERT_EQ(g_.nodes[0].name, "InsertTranspose0");
+        ASSERT_EQ(g_.nodes[0].name, "layout_transpose0");
         ASSERT_EQ(g_.nodes[1].name, "conv");
-        ASSERT_EQ(g_.nodes[2].name, "InsertTranspose1");
+        ASSERT_EQ(g_.nodes[2].name, "layout_transpose1");
         ASSERT_EQ(g_.nodes[3].name, "reshape");
         ASSERT_EQ(g_.edges[0].tensor->layout, LayoutType::NCHW);
         ASSERT_EQ(g_.edges[1].tensor->layout, LayoutType::NHWC);
@@ -123,10 +123,10 @@ namespace refactor::computation {
         }
         ASSERT_EQ(g_.nodes.size(), 4);
         ASSERT_EQ(g_.edges.size(), 7);
-        ASSERT_EQ(g_.nodes[0].name, "InsertTranspose0");
+        ASSERT_EQ(g_.nodes[0].name, "layout_transpose0");
         ASSERT_EQ(g_.nodes[1].name, "conv");
         ASSERT_EQ(g_.nodes[2].name, "unary");
-        ASSERT_EQ(g_.nodes[3].name, "InsertTranspose1");
+        ASSERT_EQ(g_.nodes[3].name, "layout_transpose1");
         ASSERT_EQ(g_.edges[0].tensor->layout, LayoutType::NCHW);
         ASSERT_EQ(g_.edges[1].tensor->layout, LayoutType::NHWC);
         ASSERT_EQ(g_.edges[2].tensor->layout, LayoutType::Others);

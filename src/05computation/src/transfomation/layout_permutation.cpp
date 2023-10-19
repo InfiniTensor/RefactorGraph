@@ -132,58 +132,56 @@ namespace refactor::computation {
             for (auto nodeIdx : subgraphs_[id].nodes) {
                 g_.nodes()[nodeIdx]->info().op->transposeTo(LayoutType::NHWC);
                 auto inputs = g_.nodes()[nodeIdx]->inputs();
-                for (size_t i = 0; i < inputs.size(); ++i) {
-                    //同属于一个子图，不需要添加transpose
+                for (auto i : range0_(inputs.size())) {
+                    // 同属于一个子图，不需要添加transpose
                     if (inputs[i]->source() && nodesMap[inputs[i]->source()->info().name] == id) {
                         continue;
                     }
-                    if (auto e = inputs[i]->info(); e.tensor->data) {
+                    if (auto &t = *inputs[i]->info().tensor; t.data) {
                         // fold constant
-                        if (e.tensor->layout == LayoutType::NCHW) {
-                            transposeNHWC(*e.tensor);
+                        if (t.layout == LayoutType::NCHW) {
+                            transposeNHWC(t);
                         }
                     } else {
                         // insert transpose op
-                        auto id_ = count++;
+                        auto name = fmt::format("layout_transpose{}", count++);
                         auto newNode = g_.pushNode(
-                            {
-                                std::make_unique<Transpose>(perm),
-                                fmt::format("InsertTranspose{}", id_),
-                            },
-                            {
-                                g_.shareEdge({
-                                    Tensor::share(
-                                        e.tensor->dataType,
-                                        {
-                                            e.tensor->shape[0],
-                                            e.tensor->shape[2],
-                                            e.tensor->shape[3],
-                                            e.tensor->shape[1],
-                                        },
-                                        LayoutType::NHWC),
-                                    fmt::format("InsertEdge{}", id_),
-                                }),
-                            });
+                            {std::make_unique<Transpose>(perm), name},
+                            {g_.shareEdge({
+                                Tensor::share(
+                                    t.dataType,
+                                    {t.shape[0],
+                                     t.shape[2],
+                                     t.shape[3],
+                                     t.shape[1]},
+                                    LayoutType::NHWC),
+                                name + "_out",
+                            })});
                         newNode->connect(0, g_.nodes()[nodeIdx]->inputs()[i]);
                         g_.nodes()[nodeIdx]->connect(i, newNode->outputs()[0]);
                     }
                 }
                 auto outputs = g_.nodes()[nodeIdx]->outputs();
                 for (size_t i = 0; i < outputs.size(); ++i) {
-                    auto &e = outputs[i]->info();
-                    if (e.tensor->layout == LayoutType::NCHW) {
-                        e.tensor->layout = LayoutType::NHWC;
+                    auto &t = *outputs[i]->info().tensor;
+                    if (t.layout == LayoutType::NCHW) {
+                        t.layout = LayoutType::NHWC;
                     }
                     if (outputs[i]->targets().size() == 0) {
                         // current edge is global output
-                        Node transpose = {std::make_unique<Transpose>(perm), fmt::format("InsertTranspose{}", count)};
-                        Shape shape = {e.tensor->shape[0],
-                                       e.tensor->shape[2],
-                                       e.tensor->shape[3],
-                                       e.tensor->shape[1]};
-                        Tensor tensor = {e.tensor->dataType, shape, LayoutType::NHWC, nullptr};
-                        Edge insertEdge = {std::make_shared<Tensor>(tensor), fmt::format("InsertEdge{}", count++)};
-                        auto newNode = g_.pushNode(std::move(transpose), {g_.shareEdge(insertEdge)});
+                        auto name = fmt::format("layout_transpose{}", count++);
+                        auto newNode = g_.pushNode(
+                            {std::make_unique<Transpose>(perm), name},
+                            {g_.shareEdge({
+                                Tensor::share(
+                                    t.dataType,
+                                    {t.shape[0],
+                                     t.shape[2],
+                                     t.shape[3],
+                                     t.shape[1]},
+                                    LayoutType::NHWC),
+                                name + "_out",
+                            })});
                         newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
                         g_.replaceOutput(outputs[i], newNode->outputs()[0]);
                         continue;
@@ -191,14 +189,19 @@ namespace refactor::computation {
                     for (auto node : outputs[i]->targets()) {
                         if (nodesMap[node->info().name] != id) {
                             // insert transpose op
-                            Node transpose = {std::make_unique<Transpose>(perm), fmt::format("InsertTranspose{}", count)};
-                            Shape shape = {e.tensor->shape[0],
-                                           e.tensor->shape[2],
-                                           e.tensor->shape[3],
-                                           e.tensor->shape[1]};
-                            Tensor tensor = {e.tensor->dataType, shape, LayoutType::NHWC, nullptr};
-                            Edge insertEdge = {std::make_shared<Tensor>(tensor), fmt::format("InsertEdge{}", count++)};
-                            auto newNode = g_.pushNode(std::move(transpose), {g_.shareEdge(insertEdge)});
+                            auto name = fmt::format("layout_transpose{}", count++);
+                            auto newNode = g_.pushNode(
+                                {std::make_unique<Transpose>(perm), name},
+                                {g_.shareEdge({
+                                    Tensor::share(
+                                        t.dataType,
+                                        {t.shape[0],
+                                         t.shape[2],
+                                         t.shape[3],
+                                         t.shape[1]},
+                                        LayoutType::NHWC),
+                                    name + "_out",
+                                })});
                             newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
                             auto it = std::find(node->inputs().begin(), node->inputs().end(), outputs[i]);
                             node->connect(it - node->inputs().begin(), newNode->outputs()[0]);
