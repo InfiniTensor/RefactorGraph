@@ -20,7 +20,7 @@ namespace refactor::kernel {
         std::transform(_internal.nodes.begin(), _internal.nodes.end(),
                        std::back_inserter(routines),
                        [](auto const &node) { return node.kernel->lower(); });
-        auto [size, offsets] = flatAllocate(_internal);
+        auto [size, offsets] = flatAllocate(_internal, 64);
         return runtime::Stream(
             mem_manager::ForeignBlob::share(_target.memFunc(), size),
             _internal.topology,

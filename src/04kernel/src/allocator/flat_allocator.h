@@ -5,7 +5,7 @@
 
 namespace refactor::kernel {
 
-    AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &graph);
+    AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &graph, size_t alignBits);
 
 }// namespace refactor::kernel
 
