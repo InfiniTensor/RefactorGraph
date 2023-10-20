@@ -16,6 +16,18 @@ namespace refactor::kernel {
 
         constexpr LayoutType(decltype(internal) i) noexcept : internal(i) {}
         constexpr operator decltype(internal)() const noexcept { return internal; }
+        std::string_view name() const noexcept {
+            switch (internal) {
+                case LayoutType::NCHW:
+                    return "NCHW";
+                case LayoutType::NHWC:
+                    return "NHWC";
+                case LayoutType::Others:
+                    return "Others";
+                default:
+                    UNREACHABLE();
+            }
+        }
 
         constexpr static auto permutation(
             decltype(internal) lhs,
