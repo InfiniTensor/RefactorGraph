@@ -6,4 +6,5 @@ See <https://github.com/pybind/cmake_example> for project example.
 
 ## pass 控制符号
 
+- `ce`: constant elimination，前端常量折叠；
 - `lp`: layout permutation，张量布局从 NCHW 变换到 NHWC；
