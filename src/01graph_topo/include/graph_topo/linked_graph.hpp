@@ -20,6 +20,9 @@ namespace refactor::graph_topo {
         std::vector<Rc<Node>> _nodes;
         std::vector<Rc<Edge>> _inputs, _outputs;
 
+        // 清理一个节点的输入输出但不移动节点。
+        void _cleanupNode(Node &);
+
     public:
         LinkedGraph() = default;
         explicit LinkedGraph(Graph<TN, TE>);
@@ -38,6 +41,7 @@ namespace refactor::graph_topo {
         Rc<Node> pushNode(TN, std::vector<Rc<Edge>>);
         void eraseNode(idx_t);
         void eraseNode(Rc<Node>);
+        size_t cleanup(bool useless(TE const &) = nullptr);
         bool sort();
     };
 
@@ -81,6 +85,15 @@ namespace refactor::graph_topo {
 
 #define LINKED_GRAPH_FN template<class TN, class TE> auto LinkedGraph<TN, TE>::
 #define LINKED_GRAPH_CONSTRUCTOR template<class TN, class TE> LinkedGraph<TN, TE>::
+
+    LINKED_GRAPH_FN _cleanupNode(Node &node)->void {
+        for (auto i : range0_(node._inputs.size())) {
+            node.disconnect(i);
+        }
+        for (auto const &out : node._outputs) {
+            out->_source = nullptr;
+        }
+    }
 
     LINKED_GRAPH_FN shareEdge(TE info)->Rc<Edge> {
         return Rc<Edge>(new Edge(std::move(info)));
@@ -159,36 +172,45 @@ namespace refactor::graph_topo {
     }
 
     LINKED_GRAPH_FN eraseNode(idx_t i)->void {
-        auto &node = _nodes.at(i);
-        for (auto i : range0_(node->_inputs.size())) {
-            node->disconnect(i);
-        }
-        for (auto i : range0_(node->_outputs.size())) {
-            auto out = node->_outputs[i];
-            while (!out->_targets.empty()) {
-                auto target = out->_targets.begin()->first;
-                for (auto j : range0_(target->_inputs.size())) {
-                    if (target->_inputs[j] == out) {
-                        target->disconnect(j);
-                        break;
-                    }
-                }
-            }
-            for (auto j : range0_(_outputs.size())) {
-                if (_outputs[j] == out) {
-                    _outputs[j] = nullptr;
-                }
-            }
-        }
-        _nodes.erase(_nodes.begin() + i);
+        ASSERT(i < _nodes.size(), "Node index out of range");
+        auto it = _nodes.begin() + i;
+        _cleanupNode(**it);
+        _nodes.erase(it);
     }
 
     LINKED_GRAPH_FN eraseNode(Rc<Node> node)->void {
-        for (auto i : range0_(_nodes.size())) {
-            if (_nodes[i] == node) {
-                eraseNode(i);
+        auto it = std::find(_nodes.begin(), _nodes.end(), node);
+        if (it == _nodes.end()) { return; }
+        _cleanupNode(**it);
+        _nodes.erase(it);
+    }
+
+    LINKED_GRAPH_FN cleanup(bool useless(TE const &))->size_t {
+        std::unordered_set<void *> outputs;
+        outputs.reserve(_outputs.size());
+        std::transform(_outputs.begin(), _outputs.end(), std::inserter(outputs, outputs.end()), [](auto const &e) { return e.get(); });
+        auto useful = [&](Rc<Edge> const &e) {
+            return !e->_targets.empty() ||                  // 还有节点连接到这个边
+                   outputs.find(e.get()) != outputs.end() ||// 这个边是全图输出
+                   !useless ||                              // 不需要其他判断
+                   !useless(e->_info);                      // 这个边其他原因有用
+        };
+
+        auto before = _nodes.size();
+        while (true) {
+            auto endit = std::remove_if(
+                _nodes.begin(), _nodes.end(),
+                [&, this](auto &n) {
+                    auto useless_ = std::none_of(n->_outputs.begin(), n->_outputs.end(), useful);
+                    if (useless_) { _cleanupNode(*n); }
+                    return useless_;
+                });
+            if (endit == _nodes.end()) {
+                break;
             }
+            _nodes.erase(endit, _nodes.end());
         }
+        return before - _nodes.size();
     }
 
     LINKED_GRAPH_FN sort()->bool {
@@ -259,7 +281,8 @@ namespace refactor::graph_topo {
     LINKED_GRAPH_FN Node::connect(idx_t i, Rc<Edge> input)->void {
         if (i < _inputs.size()) {
             disconnect(i);
-        } else {
+        }
+        if (i >= _inputs.size()) {
             _inputs.resize(i + 1, nullptr);
         }
         if (input) {

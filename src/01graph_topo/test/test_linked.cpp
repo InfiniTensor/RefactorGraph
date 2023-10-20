@@ -31,4 +31,9 @@ TEST(GraphTopo, LinkedGraph) {
     fmt::println("{}", g_.toString());
 
     EXPECT_FALSE(g_.sort());
+    fmt::println("{}", g_.toString());
+
+    n3->connect(0, n0->outputs()[1]);
+    g_.cleanup();
+    fmt::println("{}", g_.toString());
 }
