@@ -12,7 +12,7 @@ namespace refactor::kernel {
         std::vector<Address> addresses;
     };
 
-    using Allocator = AllocScheme (*)(graph_topo::Graph<Node, Edge> const &);
+    using Allocator = AllocScheme (*)(graph_topo::Graph<Node, Edge> const &, size_t);
 
 }// namespace refactor::kernel
 

@@ -14,6 +14,10 @@ namespace refactor::runtime {
         return std::holds_alternative<size_t>(value);
     }
 
+    size_t Address::getOffset() const {
+        return std::get<size_t>(value);
+    }
+
     Stream::Stream(mem_manager::SharedForeignBlob stack,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
