@@ -8,6 +8,5 @@ namespace refactor::computation {
     }
     size_t Broadcast::opTypeId() const noexcept { return typeId(); }
     std::string_view Broadcast::name() const noexcept { return "Broadcast"; }
-    bool Broadcast::isIdentity() const noexcept { return true; }
 
 }// namespace refactor::computation
