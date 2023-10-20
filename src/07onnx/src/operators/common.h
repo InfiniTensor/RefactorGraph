@@ -2,7 +2,7 @@
 #define ONNX_INFER_H
 
 #include "frontend/operator.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <optional>
 
 namespace refactor::onnx {

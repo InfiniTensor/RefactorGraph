@@ -1,5 +1,5 @@
 ﻿#include "frontend/tensor.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <execution>
 #include <numeric>
 
@@ -88,21 +88,19 @@ namespace refactor::frontend {
 
     Tensor::Tensor(DataType dataType_,
                    Shape shape_,
-                   std::shared_ptr<Blob> data_,
+                   Arc<Blob> data_,
                    std::unordered_set<DimVariable> depVariables_)
         : dataType(dataType_),
           shape(std::move(shape_)),
           data(std::move(data_)),
           depVariables(std::move(depVariables_)) {}
-    std::shared_ptr<Tensor>
-    Tensor::share(Tensor const &rhs) {
+    Arc<Tensor> Tensor::share(Tensor const &rhs) {
         return std::make_shared<Tensor>(rhs);
     }
-    std::shared_ptr<Tensor>
-    Tensor::share(DataType dt,
-                  Shape shape,
-                  std::unordered_set<DimVariable> depVariables,
-                  std::shared_ptr<Blob> data) {
+    Arc<Tensor> Tensor::share(DataType dt,
+                              Shape shape,
+                              std::unordered_set<DimVariable> depVariables,
+                              Arc<Blob> data) {
         return std::make_shared<Tensor>(dt, std::move(shape), std::move(data), std::move(depVariables));
     }
 

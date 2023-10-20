@@ -2,7 +2,7 @@
 #define FRONTEND_TENSOR_H
 
 #include "absl/container/inlined_vector.h"
-#include "graph_topo/container.h"
+#include "graph_topo.h"
 #include "mem_manager/blob.hh"
 #include <unordered_set>
 #include <variant>
@@ -18,7 +18,7 @@ namespace refactor::frontend {
             std::optional<int64_t> = std::nullopt);
     };
 
-    using DimVariable = std::shared_ptr<DimVariableInternal>;
+    using DimVariable = Arc<DimVariableInternal>;
 
     struct DimExpr {
         std::variant<int64_t, DimVariable> expr;
@@ -61,20 +61,20 @@ namespace refactor::frontend {
     struct Tensor {
         DataType dataType;
         Shape shape;
-        std::shared_ptr<mem_manager::Blob> data;
+        Arc<mem_manager::Blob> data;
 
         std::unordered_set<DimVariable> depVariables;
 
         Tensor(DataType,
                Shape,
-               std::shared_ptr<mem_manager::Blob>,
+               Arc<mem_manager::Blob>,
                std::unordered_set<DimVariable>);
-        static std::shared_ptr<Tensor> share(Tensor const &);
-        static std::shared_ptr<Tensor> share(
+        static Arc<Tensor> share(Tensor const &);
+        static Arc<Tensor> share(
             DataType,
             Shape,
             std::unordered_set<DimVariable>,
-            std::shared_ptr<mem_manager::Blob> = nullptr);
+            Arc<mem_manager::Blob> = nullptr);
 
         int64_t rank() const;
         size_t elementsSize() const;
@@ -86,7 +86,7 @@ namespace refactor::frontend {
         TensorSnapshot snapshot() const;
     };
 
-    using Tensor_ = std::shared_ptr<Tensor>;
+    using Tensor_ = Arc<Tensor>;
 
     struct Edge {
         Tensor_ tensor;

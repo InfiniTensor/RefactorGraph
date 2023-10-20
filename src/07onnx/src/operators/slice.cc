@@ -1,6 +1,6 @@
 ﻿#include "computation/operators/slice.h"
 #include "common.h"
-#include "refactor/common.h"
+#include "common.h"
 #include "slice.hh"
 #include <execution>
 

@@ -2,7 +2,7 @@
 #define PYTHON_FFI_FUNCTIONS_H
 
 #include "frontend/tensor.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <pybind11/numpy.h>
 
 namespace refactor::python_ffi {

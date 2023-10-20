@@ -1,6 +1,6 @@
 ﻿#include "frontend/graph.h"
 #include "frontend/tensor.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <chrono>
 #include <execution>
 #include <filesystem>

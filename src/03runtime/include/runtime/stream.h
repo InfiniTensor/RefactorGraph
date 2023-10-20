@@ -1,7 +1,7 @@
 ﻿#ifndef RUNTIME_STREAM_H
 #define RUNTIME_STREAM_H
 
-#include "graph_topo/graph_topo.h"
+#include "graph_topo.h"
 #include "mem_manager/foreign_blob.hh"
 #include "resource.h"
 #include <absl/container/inlined_vector.h>

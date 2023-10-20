@@ -1,6 +1,6 @@
 ﻿#include "frontend/operator.h"
 #include "frontend/graph.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::frontend {
 

@@ -1,7 +1,7 @@
 ﻿#include "squeeze.hh"
 #include "common.h"
 #include "computation/operators/reshape.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::onnx {
     using Op = Squeeze;

@@ -4,8 +4,8 @@
 #include "compiler.h"
 
 namespace refactor::python_ffi {
-    using SharedTensor = std::shared_ptr<frontend::Tensor>;
-    using SharedOp = std::shared_ptr<frontend::OpBox>;
+    using SharedTensor = Arc<frontend::Tensor>;
+    using SharedOp = Arc<frontend::OpBox>;
     using Name = std::string;
     using NameVec = std::vector<Name>;
     using AttributeMap = std::unordered_map<Name, decltype(frontend::Attribute::value)>;
@@ -18,7 +18,7 @@ namespace refactor::python_ffi {
         std::string file,
         int64_t offset);
     SharedOp makeOp(Name opType, AttributeMap);
-    std::shared_ptr<Compiler> makeCompiler(
+    Arc<Compiler> makeCompiler(
         std::unordered_map<Name, std::pair<NameVec, NameVec>> topology,
         std::unordered_map<Name, SharedOp> nodes,
         std::unordered_map<Name, SharedTensor> edges,

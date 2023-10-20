@@ -2,7 +2,7 @@
 #define FRONTEND_GRAPH_H
 
 #include "computation/graph.h"
-#include "graph_topo/graph_topo.h"
+#include "graph_topo.h"
 #include "operator.h"
 
 namespace refactor::frontend {

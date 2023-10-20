@@ -1,6 +1,6 @@
 ﻿#include "shape.hh"
 #include "common.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::onnx {
     using Op = Shape;

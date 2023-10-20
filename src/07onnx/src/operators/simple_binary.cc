@@ -1,7 +1,7 @@
 ﻿#include "simple_binary.hh"
 #include "common.h"
 #include "computation/operators/simple_binary.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::onnx {
     using Op = SimpleBinary;

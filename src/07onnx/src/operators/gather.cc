@@ -1,7 +1,7 @@
 ﻿#include "computation/operators/gather.h"
 #include "common.h"
 #include "gather.hh"
-#include "refactor/common.h"
+#include "common.h"
 #include <execution>
 
 namespace refactor::onnx {

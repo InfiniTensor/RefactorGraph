@@ -1,5 +1,5 @@
 ﻿#include "compiler.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <execution>
 
 namespace refactor::python_ffi {
@@ -26,7 +26,7 @@ namespace refactor::python_ffi {
     std::unordered_set<std::string>
     Compiler::fillEdgeInfo(bool calculate) { return _g.fillEdgeInfo(calculate); }
 
-    std::shared_ptr<Executor>
+    Arc<Executor>
     Compiler::compile(std::string target,
                       std::vector<std::string> passes) {
         _g.collectVariables();

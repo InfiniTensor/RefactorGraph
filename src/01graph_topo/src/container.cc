@@ -1,5 +1,5 @@
 ﻿#include "graph_topo/container.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <algorithm>
 #include <numeric>
 #include <sstream>

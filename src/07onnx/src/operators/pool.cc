@@ -1,7 +1,7 @@
 ﻿#include "computation/operators/pool.h"
 #include "common.h"
 #include "pool.hh"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::onnx {
     using Op = Pool;

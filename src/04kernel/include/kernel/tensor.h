@@ -3,7 +3,7 @@
 
 #include "layout.h"
 #include "mem_manager/blob.hh"
-#include "refactor/common.h"
+#include "common.h"
 #include <absl/container/inlined_vector.h>
 
 namespace refactor::kernel {
@@ -14,17 +14,17 @@ namespace refactor::kernel {
         DataType dataType;
         Shape shape;
         LayoutType layout;
-        std::shared_ptr<mem_manager::Blob> data;
+        Arc<mem_manager::Blob> data;
 
         Tensor(DataType,
                Shape,
                LayoutType,
-               std::shared_ptr<mem_manager::Blob>) noexcept;
-        static std::shared_ptr<Tensor>
+               Arc<mem_manager::Blob>) noexcept;
+        static Arc<Tensor>
             share(DataType,
                   Shape,
                   LayoutType = LayoutType::Others,
-                  std::shared_ptr<mem_manager::Blob> = nullptr) noexcept;
+                  Arc<mem_manager::Blob> = nullptr) noexcept;
 
         int64_t rank() const;
         size_t elementsSize() const;

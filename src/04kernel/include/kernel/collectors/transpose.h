@@ -3,7 +3,7 @@
 
 #include "../collector.h"
 #include "../target.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::kernel {
 

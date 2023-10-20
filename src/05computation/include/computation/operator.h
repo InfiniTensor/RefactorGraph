@@ -3,7 +3,7 @@
 
 #include "kernel/collector.h"
 #include "kernel/target.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::computation {
     using kernel::LayoutType;

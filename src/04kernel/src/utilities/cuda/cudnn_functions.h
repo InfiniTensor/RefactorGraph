@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_CUDNN_FUNCTIONS_H
 #define KERNEL_CUDNN_FUNCTIONS_H
 
-#include "refactor/common.h"
+#include "common.h"
 #include <cudnn.h>
 
 #define CUDNN_ASSERT(STATUS)                                                 \

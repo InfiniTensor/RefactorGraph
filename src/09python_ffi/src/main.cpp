@@ -16,8 +16,8 @@ namespace refactor::python_ffi {
 
         // clang-format off
 
-        py::class_<Tensor   , std::shared_ptr<Tensor>   >(m, "Tensor"   );
-        py::class_<OpBox    , std::shared_ptr<OpBox>    >(m, "Operator" );
+        py::class_<Tensor   , Arc<Tensor>  >(m, "Tensor"   );
+        py::class_<OpBox    , Arc<OpBox>   >(m, "Operator" );
 
         m   .def("config_log"      , &configLog                  , return_::automatic )
             .def("_make_operator"  , &makeOp                     , return_::move      )
@@ -26,14 +26,14 @@ namespace refactor::python_ffi {
             .def("_make_data_ex"   , &makeTensorWithExternalData , return_::move      )
             .def("_make_compiler"  , &makeCompiler               , return_::move      );
 
-        py::class_<Compiler , std::shared_ptr<Compiler> >(m, "Compiler" )
+        py::class_<Compiler , Arc<Compiler>>(m, "Compiler" )
             .def("substitute"      , &Compiler::substitute       , return_::automatic )
             .def("set_input"       , &Compiler::setInput         , return_::automatic )
             .def("check_variables" , &Compiler::fillEdgeInfo     , return_::move      )
             .def("get_tensor"      , &Compiler::getTensor        , return_::move      )
             .def("compile"         , &Compiler::compile          , return_::move      );
 
-        py::class_<Executor , std::shared_ptr<Executor> >(m, "Executor" );
+        py::class_<Executor , Arc<Executor>>(m, "Executor" );
 
         // clang-format on
     }

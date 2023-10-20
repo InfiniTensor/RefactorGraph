@@ -1,7 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_CONTAINER_H
 #define GRAPH_TOPO_CONTAINER_H
 
-#include "refactor/common.h"
+#include "common.h"
 #include <cstddef>
 #include <vector>
 

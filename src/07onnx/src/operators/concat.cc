@@ -1,7 +1,7 @@
 ﻿#include "computation/operators/concat.h"
 #include "common.h"
 #include "concat.hh"
-#include "refactor/common.h"
+#include "common.h"
 #include <execution>
 
 namespace refactor::onnx {

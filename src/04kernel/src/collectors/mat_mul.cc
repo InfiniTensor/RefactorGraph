@@ -1,5 +1,5 @@
 ﻿#include "kernel/collectors/mat_mul.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::kernel {
 

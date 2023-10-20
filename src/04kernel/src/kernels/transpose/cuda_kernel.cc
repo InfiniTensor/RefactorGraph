@@ -1,5 +1,5 @@
 ﻿#include "cuda_kernel.hh"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::kernel {
     using K = TransposeCuda;

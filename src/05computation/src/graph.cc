@@ -1,5 +1,5 @@
 ﻿#include "computation/graph.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::computation {
 

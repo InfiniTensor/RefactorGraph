@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_GRAPH_H
 #define KERNEL_GRAPH_H
 
-#include "graph_topo/graph_topo.h"
+#include "graph_topo.h"
 #include "kernel.h"
 #include "mem_manager/foreign_blob.hh"
 #include "target.h"

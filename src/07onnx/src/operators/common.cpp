@@ -1,5 +1,5 @@
 ﻿#include "common.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <fmtlog.h>
 #include <numeric>
 #include <vector>

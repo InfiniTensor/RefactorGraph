@@ -17,7 +17,7 @@ namespace refactor::python_ffi {
         void substitute(CStr, int64_t);
         void setInput(size_t index, int dataType, DimVec dims);
         std::unordered_set<std::string> fillEdgeInfo(bool calculate);
-        std::shared_ptr<Executor> compile(
+        Arc<Executor> compile(
             std::string target,
             std ::vector<std::string> passes);
 

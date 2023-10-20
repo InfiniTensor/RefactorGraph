@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_LAYOUT_H
 #define KERNEL_LAYOUT_H
 
-#include "refactor/common.h"
+#include "common.h"
 #include <array>
 #include <cstdint>
 

@@ -1,7 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_TEST_TOPO_H
 #define GRAPH_TOPO_TEST_TOPO_H
 
-#include "graph_topo/graph_topo.h"
+#include "graph_topo.h"
 
 namespace refactor::graph_topo {
     //  `a` (b)      `0` (1)

@@ -1,13 +1,13 @@
 ﻿#ifndef COMMON_TYPES
 #define COMMON_TYPES
 
-#include "bf16_t.h"
-#include "data_type.h"
-#include "error_handler.h"
-#include "fp16_t.h"
-#include "range.h"
-#include "rc.hpp"
-#include "slice.h"
+#include "common/bf16_t.h"
+#include "common/data_type.h"
+#include "common/error_handler.h"
+#include "common/fp16_t.h"
+#include "common/range.h"
+#include "common/rc.hpp"
+#include "common/slice.h"
 #include <memory>
 
 namespace refactor {

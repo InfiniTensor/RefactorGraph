@@ -1,6 +1,6 @@
 ﻿#include "computation/operators/reshape.h"
 #include "common.h"
-#include "refactor/common.h"
+#include "common.h"
 #include "reshape.hh"
 
 namespace refactor::onnx {

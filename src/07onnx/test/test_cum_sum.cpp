@@ -9,7 +9,7 @@ using namespace onnx;
 
 TEST(infer, CumSum) {
     onnx::register_();
-    std::shared_ptr<Tensor> x, axis;
+    Arc<Tensor> x, axis;
     {
         auto edges = Edges{
             {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)}, {}), ""},

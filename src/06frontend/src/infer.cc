@@ -1,5 +1,5 @@
 ﻿#include "frontend/infer.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <execution>
 
 namespace refactor::frontend {

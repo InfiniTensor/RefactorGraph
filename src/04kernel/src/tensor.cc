@@ -6,17 +6,16 @@ namespace refactor::kernel {
     Tensor::Tensor(DataType dataType_,
                    Shape shape_,
                    LayoutType layout_,
-                   std::shared_ptr<mem_manager::Blob> data_) noexcept
+                   Arc<mem_manager::Blob> data_) noexcept
         : dataType(dataType_),
           shape(std::move(shape_)),
           layout(layout_),
           data(std::move(data_)) {}
 
-    std::shared_ptr<Tensor>
-    Tensor::share(DataType dataType,
-                  Shape shape,
-                  LayoutType layout,
-                  std::shared_ptr<mem_manager::Blob> data) noexcept {
+    Arc<Tensor> Tensor::share(DataType dataType,
+                              Shape shape,
+                              LayoutType layout,
+                              Arc<mem_manager::Blob> data) noexcept {
         return std::make_shared<Tensor>(dataType, std::move(shape), layout, std::move(data));
     }
 

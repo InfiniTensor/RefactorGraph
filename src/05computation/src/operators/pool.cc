@@ -1,5 +1,5 @@
 ﻿#include "computation/operators/pool.h"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::computation {
     using Op = Pool;

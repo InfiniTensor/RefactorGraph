@@ -2,7 +2,7 @@
 #define GRAPH_TOPO_LINKED_GRAPH_H
 
 #include "container.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <algorithm>
 #include <sstream>
 #include <unordered_map>
