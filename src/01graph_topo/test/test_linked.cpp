@@ -16,7 +16,7 @@ TEST(GraphTopo, LinkedGraph) {
     auto n1 = g_.nodes()[1];
     auto n2 = g_.nodes()[2];
 
-    auto n3 = g_.pushNode("n4", {g_.shareEdge("e0"), g_.shareEdge("e1")});
+    auto n3 = g_.pushNode("n3", {g_.shareEdge("e0"), g_.shareEdge("e1")});
     n3->connect(0, n2->outputs()[0]);
     g_.setOutputs({n3->outputs()[1]});
     fmt::println("{}", g_.toString());

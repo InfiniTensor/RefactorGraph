@@ -83,7 +83,7 @@ namespace refactor::graph_topo {
 #define LINKED_GRAPH_CONSTRUCTOR template<class TN, class TE> LinkedGraph<TN, TE>::
 
     LINKED_GRAPH_FN shareEdge(TE info)->Rc<Edge> {
-        return Rc<Edge>(new Edge{std::move(info)});
+        return Rc<Edge>(new Edge(std::move(info)));
     }
 
     LINKED_GRAPH_FN toString() const->std::string {
@@ -127,10 +127,9 @@ namespace refactor::graph_topo {
     }
 
     LINKED_GRAPH_FN setInputs(std::vector<Rc<Edge>> inputs)->void {
+        ASSERT(std::all_of(inputs.begin(), inputs.end(), [](auto const &e) { return e && !e->_source; }),
+               "Robbing output from other node is not allowed");
         _inputs = std::move(inputs);
-        for (auto &e : _inputs) {
-            e->_source = nullptr;
-        }
     }
 
     LINKED_GRAPH_FN setOutputs(std::vector<Rc<Edge>> outputs)->void {
@@ -195,20 +194,19 @@ namespace refactor::graph_topo {
     LINKED_GRAPH_FN sort()->bool {
         std::vector<Rc<Node>> ans;
         ans.reserve(_nodes.size());
-        std::unordered_set<void *> known;
-        while (known.size() < _nodes.size()) {
-            auto before = known.size();
+        std::unordered_set<void *> mapped;
+        while (mapped.size() < _nodes.size()) {
+            auto before = mapped.size();
             for (auto const &n : _nodes) {
-                // n was moved
-                if (!n) { continue; }
-                // ∀e ∈ n.inputs, e.source ∈ known
-                if (std::all_of(n->_inputs.begin(), n->_inputs.end(),
-                                [&known](auto const &e) { return !e || !e->_source || known.find(e->_source.get()) != known.end(); })) {
-                    known.insert(n.get());
-                    ans.push_back(n);
+                if (mapped.find(n.get()) == mapped.end() &&
+                    // ∀e ∈ n.inputs, e.source ∈ mapped
+                    std::all_of(n->_inputs.begin(), n->_inputs.end(),
+                                [&mapped](auto const &e) { return !e || !e->_source || mapped.find(e->_source.get()) != mapped.end(); })) {
+                    mapped.insert(n.get());
+                    ans.push_back(n);// 拷贝 n，因为如果排序失败，不能改变 _nodes
                 }
             }
-            if (before == known.size()) {
+            if (before == mapped.size()) {
                 return false;
             }
         }
@@ -220,6 +218,7 @@ namespace refactor::graph_topo {
         ->Rc<Node> {
         auto ans = Rc<Node>(new Node(std::move(info), std::move(outputs)));
         for (auto &edge : ans->_outputs) {
+            ASSERT(!edge->_source, "Robbing output from other node is not allowed")
             edge->_source = ans;
         }
         return ans;
@@ -311,7 +310,9 @@ namespace refactor::graph_topo {
           _outputs(std::move(outputs)) {}
 
     LINKED_GRAPH_CONSTRUCTOR Edge::Edge(TE info)
-        : _info(std::move(info)) {}
+        : _info(std::move(info)),
+          _source(),
+          _targets() {}
 
     LINKED_GRAPH_CONSTRUCTOR LinkedGraph(Graph<TN, TE> g)
         : _inputs(g.topology.globalInputsCount()),

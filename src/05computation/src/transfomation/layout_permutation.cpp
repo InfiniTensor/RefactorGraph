@@ -12,7 +12,7 @@ namespace refactor::computation {
         int W = tensor.shape[3];
         size_t num = N * C * H * W;
         size_t size = num * tensor.dataType.size();
-        auto [data_, dst] = refactor::mem_manager::Blob::share(size);
+        auto [data_, dst] = mem_manager::Blob::share(size);
         const void *src = *(tensor.data);
         std::for_each_n(std::execution::unseq, natural_t(0), num,
                         [&dst, eleSize = tensor.dataType.size(), H, W, C, &src](auto const i) {
