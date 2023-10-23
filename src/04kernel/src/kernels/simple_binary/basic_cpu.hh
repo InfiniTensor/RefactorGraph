@@ -8,25 +8,14 @@
 
 namespace refactor::kernel {
 
-    struct BinaryBroadcast {
-        union Dimension {
-            struct {
-                uint32_t
-                    size : 30;
-                bool
-                    a : 1,
-                    b : 1;
-            };
-            uint32_t code;
-        };
-        std::vector<Dimension> dims;
+    class BinaryBroadcast {
+        std::vector<uint_lv2> _strides;
+        uint_lv2 _size;
 
+    public:
         BinaryBroadcast(Shape const &, Shape const &) noexcept;
-        std::pair<uint32_t, uint32_t> locate(uint32_t) const noexcept;
-        uint32_t size() const noexcept;
-
-    private:
-        Dimension push(Dimension next, Dimension state, uint32_t size) noexcept;
+        std::pair<uint_lv2, uint_lv2> locate(uint_lv2) const noexcept;
+        uint_lv2 size() const noexcept;
     };
 
     struct BinaryBasicCpu final : public Kernel {

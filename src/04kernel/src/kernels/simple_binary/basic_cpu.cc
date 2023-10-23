@@ -7,84 +7,91 @@ namespace refactor::kernel {
     using Op = SimpleBinaryType;
     using DT = DataType;
 
-    constexpr static BinaryBroadcast::Dimension
-        A{0, true, false},
-        B{0, false, true},
-        AB{0, true, true};
+    BinaryBroadcast::BinaryBroadcast(Shape const &a_, Shape const &b_) noexcept
+        : _strides(), _size(1) {
 
-    auto BinaryBroadcast::push(
-        Dimension next,
-        Dimension state,
-        uint32_t size) noexcept -> Dimension {
+        union Dimension {
+            struct {
+                uint32_t
+                    size : 30;
+                bool
+                    a : 1,
+                    b : 1;
+            };
+            uint32_t code;
+        };
+        constexpr static Dimension
+            A{0, true, false},
+            B{0, false, true},
+            AB{0, true, true};
+
+        // 折叠同类、相邻的维度
         //          2  3  5
         // 1  2  1  1  3  1
         // 1↓ 2↓ 1↓ 2↑ 3- 5↑
-        if (state.code == next.code) {
-            dims.back().size *= size;
-        } else {
-            dims.back().code;
-            dims.push_back({size, next.a, next.b});
-        }
-        return next;
-    }
-
-    BinaryBroadcast::BinaryBroadcast(Shape const &a_, Shape const &b_) noexcept
-        : dims() {
         Dimension state{0, false, false};
+        std::vector<Dimension> dims;
+        auto push = [&](Dimension next, uint32_t size) {
+            if (state.code == next.code) {
+                dims.back().size *= size;
+            } else {
+                dims.back().code;
+                dims.push_back({size, next.a, next.b});
+            }
+            state = next;
+        };
+
         auto ita = a_.rbegin();
         auto itb = b_.rbegin();
         while (true) {
             if (itb == b_.rend()) {
                 if (ita == a_.rend()) { break; }
                 // a is longer
-                push(A, state, std::accumulate(ita, a_.rend(), 1, std::multiplies<>()));
+                push(A, std::accumulate(ita, a_.rend(), 1, std::multiplies<>()));
                 break;
             }
             if (ita == a_.rend()) {
                 // b is longer
-                push(B, state, std::accumulate(itb, b_.rend(), 1, std::multiplies<>()));
+                push(B, std::accumulate(itb, b_.rend(), 1, std::multiplies<>()));
                 break;
             }
             auto a = *ita++, b = *itb++;
             if (b == 1) {
                 if (a == 1) { continue; }
                 // broadcast to a
-                state = push(A, state, a);
+                push(A, a);
             } else if (a == 1) {
                 // broadcast to b
-                state = push(B, state, b);
+                push(B, b);
             } else {
                 ASSERT(a == b, "a and b must be equal");
-                state = push(AB, state, a);
+                push(AB, a);
             }
         }
         std::reverse(dims.begin(), dims.end());
-    }
 
-    auto BinaryBroadcast::size() const noexcept -> uint32_t {
-        return dims.empty() ? 1
-                            : std::accumulate(
-                                  dims.begin(), dims.end(), 1,
-                                  [](auto acc, auto it) { return acc * it.size; });
-    }
-
-    auto BinaryBroadcast::locate(uint32_t k) const noexcept
-        -> std::pair<uint32_t, uint32_t> {
-        std::vector<uint32_t> strides(dims.size() * 3, 1);
+        _strides.resize(dims.size() * 3, 1);
         for (uint32_t i = dims.size() - 1; i > 0; --i) {
-            strides[3 * (i - 1) + 0] = strides[3 * i + 0] * dims[i].size;
-            strides[3 * (i - 1) + 1] = strides[3 * i + 1] * (dims[i].a ? dims[i].size : 1);
-            strides[3 * (i - 1) + 2] = strides[3 * i + 2] * (dims[i].b ? dims[i].size : 1);
+            _strides[3 * (i - 1) + 0] = _strides[3 * i + 0] * dims[i].size;
+            _strides[3 * (i - 1) + 1] = _strides[3 * i + 1] * (dims[i].a ? dims[i].size : 1);
+            _strides[3 * (i - 1) + 2] = _strides[3 * i + 2] * (dims[i].b ? dims[i].size : 1);
         }
+        _size = dims.empty() ? 1 : _strides[0] * dims[0].size;
+    }
 
+    auto BinaryBroadcast::locate(uint32_t k) const noexcept -> std::pair<uint32_t, uint32_t> {
         uint32_t a = 0, b = 0;
-        for (auto i : range0_(dims.size())) {
-            auto d = std::div(static_cast<long>(k), static_cast<long>(strides[3 * i]));
-            k = d.rem;
-            a += strides[3 * i + 1] * d.quot;
-            b += strides[3 * i + 2] * d.quot;
+        long rem = k;
+        for (auto i : range0_(_strides.size() / 3)) {
+            auto d = std::div(rem, _strides[3 * i]);
+            a += _strides[3 * i + 1] * d.quot;
+            b += _strides[3 * i + 2] * d.quot;
+            rem = d.rem;
         }
         return {a, b};
+    }
+    auto BinaryBroadcast::size() const noexcept -> uint32_t {
+        return _size;
     }
 
     K::BinaryBasicCpu(Op opType_, DT dataType_, BinaryBroadcast b) noexcept
@@ -94,7 +101,6 @@ namespace refactor::kernel {
           broadcast(std::move(b)) {}
 
     auto K::build(Op op, Tensor const &a, Tensor const &b) noexcept -> KernelBox {
-        if (op == Op::Pow) { return nullptr; }// TODO: 暂时不支持
         return a.dataType.isCpuNumberic()
                    ? std::make_unique<K>(op, a.dataType, BinaryBroadcast(a.shape, b.shape))
                    : nullptr;
@@ -167,6 +173,18 @@ namespace refactor::kernel {
                     default:
                         UNREACHABLE();
                 }
+            case Op::Pow: {
+                switch (dataType.internal) {
+                    CASE_DT(std::pow, F32);
+                    CASE_DT(std::pow, F64);
+                    CASE_DT(std::pow, I8);
+                    CASE_DT(std::pow, I16);
+                    CASE_DT(std::pow, I32);
+                    CASE_DT(std::pow, I64);
+                    default:
+                        UNREACHABLE();
+                }
+            }
             default:
                 UNREACHABLE();
         }
