@@ -6,27 +6,36 @@
 
 namespace refactor::kernel {
 
-    MemFunctions Target::memFunc() const {
+    Arc<MemManager> Target::memManager() const {
         switch (internal) {
             case Cpu: {
-                static MemFunctions const F{
-                    std::malloc,
-                    std::free,
-                    std::memcpy,
-                    std::memcpy,
-                    std::memcpy,
+                class BasicCpuMemManager final : public mem_manager::MemManager {
+                public:
+                    static Arc<mem_manager::MemManager> instance() {
+                        static auto I = std::make_shared<BasicCpuMemManager>();
+                        return I;
+                    }
+                    void *malloc(size_t bytes) noexcept final {
+                        return std::malloc(bytes);
+                    }
+                    void free(void *ptr) noexcept final {
+                        std::free(ptr);
+                    }
+                    void *copyHD(void *dst, void const *src, size_t bytes) const noexcept final {
+                        return std::memcpy(dst, src, bytes);
+                    }
+                    void *copyDH(void *dst, void const *src, size_t bytes) const noexcept final {
+                        return std::memcpy(dst, src, bytes);
+                    }
+                    void *copyDD(void *dst, void const *src, size_t bytes) const noexcept final {
+                        return std::memcpy(dst, src, bytes);
+                    }
                 };
-                return F;
+                return BasicCpuMemManager::instance();
             }
 #ifdef USE_CUDA
             case NvidiaGpu: {
-                return {
-                    cuda::malloc,
-                    cuda::free,
-                    cuda::memcpy_h2d,
-                    cuda::memcpy_d2h,
-                    cuda::memcpy_d2d,
-                };
+                return cuda::BasicCudaMemManager::instance();
             }
 #endif
             default:

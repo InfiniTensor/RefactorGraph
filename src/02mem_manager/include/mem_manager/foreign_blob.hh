@@ -1,26 +1,26 @@
 ﻿#ifndef MEM_MANAGER_FOREIGN_BLOB_H
 #define MEM_MANAGER_FOREIGN_BLOB_H
 
-#include "mem_functions.h"
-#include <memory>
+#include "common.h"
+#include "mem_manager.hh"
 
 namespace refactor::mem_manager {
 
     /// @brief 显存内存块。
     class ForeignBlob {
-        MemFunctions _memFunctions;
+        Arc<MemManager> _memManager;
 
         /// @brief ! NOTICE 指针必须非空。
         void *_ptr;
 
-        ForeignBlob(MemFunctions, size_t bytes);
+        ForeignBlob(Arc<MemManager>, size_t bytes);
 
     public:
         ForeignBlob(ForeignBlob const &) = delete;
         ForeignBlob(ForeignBlob &&) = delete;
         ~ForeignBlob();
 
-        static std::shared_ptr<ForeignBlob> share(MemFunctions, size_t bytes);
+        static Arc<ForeignBlob> share(Arc<MemManager>, size_t bytes);
 
         operator void const *() const noexcept;
         operator void *() noexcept;

@@ -3,12 +3,21 @@
 #ifndef CUDA_MEM_CUH
 #define CUDA_MEM_CUH
 
+#include "common.h"
+#include "mem_manager/mem_manager.hh"
+
 namespace refactor::kernel::cuda {
-    void *malloc(size_t bytes);
-    void free(void *ptr);
-    void *memcpy_h2d(void *dst, void const *src, size_t bytes) noexcept;
-    void *memcpy_d2h(void *dst, void const *src, size_t bytes) noexcept;
-    void *memcpy_d2d(void *dst, void const *src, size_t bytes) noexcept;
+
+    class BasicCudaMemManager final : public mem_manager::MemManager {
+    public:
+        static Arc<mem_manager::MemManager> instance();
+        void *malloc(size_t bytes) noexcept final;
+        void free(void *ptr) noexcept final;
+        void *copyHD(void *dst, void const *src, size_t bytes) const noexcept final;
+        void *copyDH(void *dst, void const *src, size_t bytes) const noexcept final;
+        void *copyDD(void *dst, void const *src, size_t bytes) const noexcept final;
+    };
+
 }// namespace refactor::kernel::cuda
 
 #endif// CUDA_MEM_CUH

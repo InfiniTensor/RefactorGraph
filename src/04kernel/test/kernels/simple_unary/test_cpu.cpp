@@ -12,7 +12,7 @@ TEST(kernel, SimpleUnaryCpu) {
     auto routine = kernel->lower();
     // malloc
     auto cpuMem = mem_manager::ForeignBlob::share(
-        Target(Target::Cpu).memFunc(),
+        Target(Target::Cpu).memManager(),
         dataTensor->bytesSize());
     // put input data
     std::vector<float> data(dataTensor->elementsSize());

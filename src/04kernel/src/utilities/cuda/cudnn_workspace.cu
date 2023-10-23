@@ -1,12 +1,12 @@
-﻿#include "cudnn_workspace.hh"
-#include "cuda_mem.cuh"
+﻿#include "cuda_mem.cuh"
+#include "cudnn_workspace.hh"
 
 namespace refactor::kernel::cudnn {
 
     CudnnWorkspace::CudnnWorkspace() noexcept
-        : runtime::Resource(), ptr(cuda::malloc(size)) {}
+        : runtime::Resource(), ptr(cuda::BasicCudaMemManager::instance()->malloc(size)) {}
     CudnnWorkspace::~CudnnWorkspace() noexcept {
-        cuda::free(ptr);
+        cuda::BasicCudaMemManager::instance()->free(ptr);
         ptr = nullptr;
     }
 

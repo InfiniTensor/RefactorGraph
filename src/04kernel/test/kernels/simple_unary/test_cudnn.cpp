@@ -18,10 +18,10 @@ TEST(kernel, ActivationCudnn) {
     auto routine = kernel->lower();
     // malloc
     auto cpuMem = mem_manager::ForeignBlob::share(
-        Target(Target::Cpu).memFunc(),
+        Target(Target::Cpu).memManager(),
         dataTensor->bytesSize());
     auto gpuMem = mem_manager::ForeignBlob::share(
-        Target(Target::NvidiaGpu).memFunc(),
+        Target(Target::NvidiaGpu).memManager(),
         dataTensor->bytesSize());
     // put input data
     auto data = reinterpret_cast<float *>(cpuMem->operator void *());

@@ -13,7 +13,7 @@ TEST(kernel, BinaryBasicCpu) {
     ASSERT_TRUE(kernel);
     auto routine = kernel->lower();
     // malloc
-    auto mfn = Target(Target::Cpu).memFunc();
+    auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, a->bytesSize());
     auto mb = mem_manager::ForeignBlob::share(mfn, b->bytesSize());
     auto mc = mem_manager::ForeignBlob::share(mfn, c->bytesSize());
