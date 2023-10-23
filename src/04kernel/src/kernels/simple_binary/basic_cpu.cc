@@ -18,7 +18,10 @@ namespace refactor::kernel {
                     a : 1,
                     b : 1;
             };
-            uint32_t code;
+            struct {
+                uint32_t : 30,
+                    state : 2;
+            };
         };
         constexpr static Dimension
             A{0, true, false},
@@ -29,16 +32,13 @@ namespace refactor::kernel {
         //          2  3  5
         // 1  2  1  1  3  1
         // 1↓ 2↓ 1↓ 2↑ 3- 5↑
-        Dimension state{0, false, false};
-        std::vector<Dimension> dims;
+        std::vector<Dimension> dims{{0, false, false}};
         auto push = [&](Dimension next, uint32_t size) {
-            if (state.code == next.code) {
+            if (dims.back().state == next.state) {
                 dims.back().size *= size;
             } else {
-                dims.back().code;
                 dims.push_back({size, next.a, next.b});
             }
-            state = next;
         };
 
         auto ita = a_.rbegin();
@@ -68,13 +68,22 @@ namespace refactor::kernel {
                 push(AB, a);
             }
         }
-        std::reverse(dims.begin(), dims.end());
+        if (dims.empty()) {
+            return;
+        }
 
-        _strides.resize(dims.size() * 3, 1);
-        for (uint32_t i = dims.size() - 1; i > 0; --i) {
-            _strides[3 * (i - 1) + 0] = _strides[3 * i + 0] * dims[i].size;
-            _strides[3 * (i - 1) + 1] = _strides[3 * i + 1] * (dims[i].a ? dims[i].size : 1);
-            _strides[3 * (i - 1) + 2] = _strides[3 * i + 2] * (dims[i].b ? dims[i].size : 1);
+        std::reverse(dims.begin(), dims.end());
+        auto rank = dims.size() - 1;
+        _strides.resize(rank * 3, 1);
+        uint_lv2 aMul = 1, bMul = 1, cMul = 1;
+        for (auto i : range0_(rank).rev()) {
+            _strides[3 * i + 0] = cMul;
+            _strides[3 * i + 1] = dims[i].a ? aMul : 0;
+            _strides[3 * i + 2] = dims[i].b ? bMul : 0;
+            auto size = dims[i].size;
+            cMul *= size;
+            if (dims[i + 1].a) { aMul *= size; }
+            if (dims[i + 1].b) { bMul *= size; }
         }
         _size = dims.empty() ? 1 : _strides[0] * dims[0].size;
     }

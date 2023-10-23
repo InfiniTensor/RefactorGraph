@@ -33,7 +33,7 @@ TEST(kernel, BinaryBasicCpu) {
     std::vector<float> result(c->elementsSize());
     mc->copyOut(result.data(), c->bytesSize());
     // check
-    for (auto i : range0_(data.size())) {
-        EXPECT_FLOAT_EQ(18, result[i]);
+    for (auto x : result) {
+        EXPECT_FLOAT_EQ(18, x);
     }
 }

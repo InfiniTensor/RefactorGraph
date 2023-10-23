@@ -2,7 +2,6 @@
 #define KERNEL_BINARY_BASIC_CPU_HH
 
 #include "common.h"
-#include "kernel/collectors/broadcaster.hpp"
 #include "kernel/collectors/simple_binary.h"
 #include "kernel/tensor.h"
 
