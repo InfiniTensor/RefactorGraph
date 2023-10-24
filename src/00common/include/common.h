@@ -8,7 +8,9 @@
 #include "common/range.h"
 #include "common/rc.hpp"
 #include "common/slice.h"
+#include <absl/container/inlined_vector.h>
 #include <memory>
+#include <sstream>
 
 namespace refactor {
     // 方便按“级别”定义整型数。
@@ -29,6 +31,16 @@ namespace refactor {
     using uint_max = uint_lv3;
 
     template<class T> using Arc = std::shared_ptr<T>;
+
+    template<typename T, size_t N> std::string vecToString(const absl::InlinedVector<T, N> &vec) {
+        std::stringstream ss;
+        ss << "[ ";
+        for (auto d : vec) {
+            ss << d << " ";
+        }
+        ss << "]";
+        return ss.str();
+    }
 
 }// namespace refactor
 
