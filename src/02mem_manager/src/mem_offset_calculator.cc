@@ -1,5 +1,5 @@
 #include "mem_manager/mem_offset_calculator.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <utility>
 
 namespace refactor::mem_manager {
