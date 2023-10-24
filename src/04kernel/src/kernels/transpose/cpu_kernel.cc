@@ -1,15 +1,16 @@
 ﻿#include "cpu_kernel.hh"
 #include <execution>
+#include <unordered_set>
 
 namespace refactor::kernel {
     using K = TransposeCpu;
     using Info = TransposeInfo;
 
-    K::TransposeCpu(DataType dataType_, Info info_) noexcept
-        : Kernel(), dataType(dataType_), info(std::move(info_)) {}
+    K::TransposeCpu(Info info_) noexcept
+        : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(DataType dataType, Info info) noexcept -> KernelBox {
-        return std::make_unique<K>(dataType, std::move(info));
+    auto K::build(Info info) noexcept -> KernelBox {
+        return std::make_unique<K>(std::move(info));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -24,15 +25,7 @@ namespace refactor::kernel {
     }
 
     auto K::lower() const noexcept -> Routine {
-        using namespace runtime;
-        return [eleSize = this->dataType.size(),
-                info = this->info](Resources &, void const **inputs, void **outputs) {
-            auto data = reinterpret_cast<uint8_t const *>(inputs[0]);
-            auto transposed = reinterpret_cast<uint8_t *>(outputs[0]);
-            std::for_each_n(std::execution::par_unseq,
-                            natural_t(0), info.size,
-                            [=, &info](auto i) { std::memcpy(transposed + i * eleSize, data + info.locate(i) * eleSize, eleSize); });
-        };
+        TODO("");
     }
 
 }// namespace refactor::kernel

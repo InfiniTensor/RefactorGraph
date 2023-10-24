@@ -1,33 +1,33 @@
 ﻿#include "../../../src/kernels/transpose/cpu_kernel.hh"
 #include <gtest/gtest.h>
-#include <numeric>
 
 using namespace refactor;
 using namespace kernel;
 
 TEST(kernel, TransposeCpu) {
     // build routine
-    auto dataTensor = Tensor::share(DataType::F32, Shape{1, 3, 2, 5});
-    auto kernel = TransposeCpu::build(dataTensor->dataType, TransposeInfo(dataTensor->shape, Permutation{2, 3, 0, 1}));
+    auto dataTensor = Tensor::share(DataType::F32, Shape{1, 3, 5, 7});
+    auto kernel = TransposeCpu::build(TransposeInfo(dataTensor->shape, Permutation{0, 2, 3, 1}));
     ASSERT_TRUE(kernel);
     auto routine = kernel->lower();
-    // put input data
-    std::vector<float>
-        data(dataTensor->elementsSize()),
-        out(data.size());
-    std::iota(data.begin(), data.end(), 0);
-    // inference
-    auto res = runtime::Resources();
-    void const *inputs[]{data.data()};
-    void *outputs[]{out.data()};
-    routine(res, inputs, outputs);
-    // check
-    for (auto i : range0_(data.size())) {
-        fmt::print("{} ", data[i]);
-    }
-    fmt::println("");
-    for (auto i : range0_(out.size())) {
-        fmt::print("{} ", out[i]);
-    }
-    fmt::println("");
+    // // malloc
+    // auto cpuMem = mem_manager::ForeignBlob::share(
+    //     Target(Target::Cpu).memManager(),
+    //     dataTensor->bytesSize());
+    // // put input data
+    // std::vector<float> data(dataTensor->elementsSize());
+    // for (auto i : range0_(data.size())) { data[i] = i * 1e-4f; }
+    // cpuMem->copyIn(data.data(), dataTensor->bytesSize());
+    // // inference
+    // auto res = runtime::Resources();
+    // void const *inputs[]{*cpuMem};
+    // void *outputs[]{*cpuMem};
+    // routine(res, inputs, outputs);
+    // // take output data
+    // std::vector<float> result(dataTensor->elementsSize());
+    // cpuMem->copyOut(result.data(), dataTensor->bytesSize());
+    // // check
+    // for (auto i : range0_(data.size())) {
+    //     EXPECT_FLOAT_EQ(std::tanh(data[i]), result[i]);
+    // }
 }
