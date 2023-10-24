@@ -1,13 +1,11 @@
 ﻿#ifndef KERNEL_TRANSPOSE_H
 #define KERNEL_TRANSPOSE_H
 
+#include "../attributes/transpose_info.h"
 #include "../collector.h"
 #include "../target.h"
-#include "common.h"
 
 namespace refactor::kernel {
-
-    using Permutation = absl::InlinedVector<uint32_t, 4>;
 
     struct TransposeCollector final : public InfoCollector {
         Target target;

@@ -18,7 +18,7 @@ namespace refactor::kernel {
     class PoolAttributes {
         /// @brief 池化参数包含 `(1+1+2)rank` 个元素。
         ///        由于 rank 常常取 4，参数总数也往往至少有 16 个。
-        ///        如果使用 uint6_t 并 inline，则共 16x2+8 = 40 字节，
+        ///        如果使用 uint16_t 并 inline，则共 16x2+8 = 40 字节，
         ///        这样拷贝开销还是可以接受的。
         absl::InlinedVector<uint_lv1, 16> _values;
 

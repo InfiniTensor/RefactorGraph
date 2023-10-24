@@ -1,4 +1,4 @@
-﻿#include "kernel/collectors/pool_attributes.h"
+﻿#include "kernel/attributes/pool_attributes.h"
 
 namespace refactor::kernel {
 

@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_CONV_CUDNN_KERNEL_HH
 #define KERNEL_CONV_CUDNN_KERNEL_HH
 
-#include "kernel/collectors/pool_attributes.h"
+#include "kernel/attributes/pool_attributes.h"
 #include "kernel/kernel.h"
 #include "kernel/tensor.h"
 
