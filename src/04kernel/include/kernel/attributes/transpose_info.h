@@ -12,7 +12,7 @@ namespace refactor::kernel {
     /// @brief 池化参数用于池化和卷积。
     struct TransposeInfo {
         struct Dimension {
-            uint_lv2 stride, permutation;
+            uint_lv2 strideI, strideO;
         };
 
         /// @brief 转置信息包含 `(1+1)rank` 个元素。
@@ -22,7 +22,8 @@ namespace refactor::kernel {
         absl::InlinedVector<Dimension, 4> dims;
         uint_lv2 size;
 
-        TransposeInfo(Shape const &, Permutation const &);
+        TransposeInfo(Shape const &, Permutation const &) noexcept;
+        uint_lv2 locate(uint_lv2) const noexcept;
     };
 
 }// namespace refactor::kernel

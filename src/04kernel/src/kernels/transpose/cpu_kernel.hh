@@ -8,11 +8,12 @@
 namespace refactor::kernel {
 
     struct TransposeCpu final : public Kernel {
+        DataType dataType;
         TransposeInfo info;
 
-        explicit TransposeCpu(TransposeInfo) noexcept;
+        explicit TransposeCpu(DataType, TransposeInfo) noexcept;
 
-        static KernelBox build(TransposeInfo) noexcept;
+        static KernelBox build(DataType, TransposeInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
