@@ -25,11 +25,13 @@ namespace refactor::kernel {
 
         if (a.dataType != b.dataType ||
             ARTHIMETIC.find(op) == ARTHIMETIC.end() ||
-            // At least one of a,b should have the same rank as c
-            (a.rank() != c.rank() && b.rank() != c.rank()) ||
+            TYPE.find(a.dataType) == TYPE.end() ||
+            // At least one of a,b should have the same shape as c
+            (a.shape != c.shape && b.shape != c.shape) ||
             // Sub only supports brocasting b
-            (a.rank() < b.rank() && op == Op::Sub) ||
-            TYPE.find(a.dataType) == TYPE.end()) {
+            (a.shape != c.shape && op == Op::Sub) ||
+            // Cudnn binary op only supports up to 5D
+            !((a.rank() == 5 && b.rank() == 5) || (a.rank() <= 4 && b.rank() <= 4))) {
             return nullptr;
         }
 
