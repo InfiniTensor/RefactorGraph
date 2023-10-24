@@ -1,6 +1,6 @@
 ﻿#include "kernel/collectors/simple_binary.h"
 #include "../kernels/simple_binary/arthimetic11.hh"
-#include "../kernels/simple_binary/arthimetic11_cuda.hh"
+#include "../kernels/simple_binary/binary_cuda.hh"
 #include "../kernels/simple_binary/binary_cudnn.hh"
 #include "common.h"
 
@@ -10,9 +10,9 @@ namespace refactor::kernel {
     if (auto ptr = T::build(type, a, b); ptr) { \
         ans.emplace_back(std::move(ptr));       \
     }
-#define REGISTER_BROCAST(T)                             \
+#define REGISTER_BROCAST(T)                        \
     if (auto ptr = T::build(type, a, b, c); ptr) { \
-        ans.emplace_back(std::move(ptr));       \
+        ans.emplace_back(std::move(ptr));          \
     }
 
     std::vector<KernelBox>
@@ -28,7 +28,7 @@ namespace refactor::kernel {
                 break;
             case Target::NvidiaGpu:
                 REGISTER_BROCAST(BinaryCudnn)
-                REGISTER(Arthimetic11Cuda)
+                REGISTER(BinaryCuda)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");
