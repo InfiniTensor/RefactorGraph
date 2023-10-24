@@ -25,7 +25,14 @@ namespace refactor::kernel {
     }
 
     auto K::lower() const noexcept -> Routine {
-        TODO("");
+        using namespace runtime;
+
+        return [info = this->info](Resources &, void const **inputs, void **outputs) {
+            fmt::println("size = {}", info.size);
+            for (auto i : range0_(info.dims.size())) {
+                fmt::println("i = {}, stride = {}, perm = {}", i, info.dims[i].stride, info.dims[i].permutation);
+            }
+        };
     }
 
 }// namespace refactor::kernel
