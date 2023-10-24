@@ -1,10 +1,10 @@
 #include "reusable_allocator.h"
+#include "common.h"
 #include "mem_manager/mem_offset_calculator.h"
-#include "refactor/common.h"
 
 namespace refactor::kernel {
 
-    AllocScheme reusableAlocate(graph_topo::Graph<Node, Edge> const &g, size_t alignBits) {
+    AllocScheme reusableAllocate(graph_topo::Graph<Node, Edge> const &g, size_t alignBits) {
         // 下划线命名表示什么？
         auto globalOutputs_ = g.topology.globalOutputs();
         std::unordered_set<size_t> globalOutputs(globalOutputs_.begin(), globalOutputs_.end());

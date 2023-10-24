@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MEM_MANAGER_MEM_OFFSET_CALCULATOR_H
+#define MEM_MANAGER_MEM_OFFSET_CALCULATOR_H
+
 #include <cstddef>
 #include <set>
 #include <string>
@@ -67,3 +69,5 @@ namespace refactor::mem_manager {
     };
 
 }// namespace refactor::mem_manager
+
+#endif// MEM_MANAGER_MEM_OFFSET_CALCULATOR_H
