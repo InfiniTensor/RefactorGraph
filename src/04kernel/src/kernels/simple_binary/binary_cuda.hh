@@ -1,27 +1,30 @@
-﻿#ifndef KERNEL_ARTHIMETIC11_CUDA_HH
-#define KERNEL_ARTHIMETIC11_CUDA_HH
+﻿#ifndef KERNEL_BINARY_CUDA_HH
+#define KERNEL_BINARY_CUDA_HH
 
+#include "common.h"
 #include "kernel/collectors/simple_binary.h"
 #include "kernel/tensor.h"
-#include "common.h"
 
 namespace refactor::kernel {
 
-    struct Arthimetic11Cuda final : public Kernel {
+    struct BinaryCuda final : public Kernel {
         DataType dataType;
         SimpleBinaryType opType;
         size_t size;
+        bool constB;
 
-        Arthimetic11Cuda(SimpleBinaryType, DataType, size_t) noexcept;
+        BinaryCuda(SimpleBinaryType, DataType, size_t, bool) noexcept;
 
         static KernelBox build(SimpleBinaryType, Tensor const &, Tensor const &) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
+#ifdef USE_CUDA
         Routine lower() const noexcept final;
+#endif
     };
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_ARTHIMETIC11_CUDA_HH
+#endif// KERNEL_BINARY_CUDA_HH
