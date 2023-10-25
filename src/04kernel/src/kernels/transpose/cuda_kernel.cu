@@ -1,60 +1,44 @@
 ﻿#include "cuda_kernel.hh"
-#include <cuda.h>
-#include <thrust/copy.h>
 #include <thrust/device_vector.h>
+#include <thrust/execution_policy.h>
+#include <thrust/for_each.h>
 
 namespace refactor::kernel {
     using namespace runtime;
     using Dim = TransposeInfo::Dimension;
 
-    struct Helper {
+    struct KernelFunctor {
+        uint8_t const *data;
+        uint8_t *transposed;
         Dim const *dims;
-        long rank, eleSize, n;
+        long rank, eleSize;
 
-        __device__ long locate(long rem) const noexcept {
-            long ans = 0;
-            for (long i = 0; i < rank; ++i) {
-                ans += rem / dims[i].strideO * dims[i].strideI;
-                rem %= dims[i].strideO;
+        __device__ void operator()(long i) const noexcept {
+            auto j = 0l, rem = i;
+            for (auto k = 0l; k < rank; ++k) {
+                auto const &d = dims[k];
+                j += rem / d.strideO * d.strideI;
+                rem %= d.strideO;
             }
-            return ans;
-        };
-    };
 
-    struct HelperContainer {
-        thrust::device_vector<Dim> dims;
-        long eleSize, n;
-
-        HelperContainer(TransposeInfo const &info, DataType dataType)
-            : dims(info.dims.begin(), info.dims.end()),
-              eleSize(dataType.size()),
-              n(info.size) {
-        }
-
-        Helper helper() const {
-            return {
-                dims.data().get(),
-                dims.size(),
-                eleSize,
-                n,
-            };
+            memcpy(transposed + i * eleSize, data + j * eleSize, eleSize);
         }
     };
-
-    __global__ void transposeKernel(Helper helper, uint8_t const *data, uint8_t *transposed) {
-        for (long i = blockIdx.x * blockDim.x + threadIdx.x; i < helper.n; i += gridDim.x * blockDim.x) {
-            memcpy(transposed + i * helper.eleSize, data + helper.locate(i) * helper.eleSize, helper.eleSize);
-        }
-    }
 
     auto TransposeCuda::lower() const noexcept -> Routine {
-        return [container = HelperContainer(info, dataType)](
+        return [dims = thrust::device_vector<Dim>(info.dims.begin(), info.dims.end()),
+                eleSize = static_cast<long>(dataType.size()),
+                n = static_cast<long>(info.size)](
                    Resources &res, void const **inputs, void **outputs) {
-            auto data = reinterpret_cast<uint8_t const *>(inputs[0]);
-            auto transposed = reinterpret_cast<uint8_t *>(outputs[0]);
-            constexpr static size_t blocksize = 1024;
-            auto gridsize = (container.n + blocksize - 1) / blocksize;
-            transposeKernel<<<gridsize, blocksize>>>(container.helper(), data, transposed);
+            thrust::for_each_n(thrust::device,
+                               thrust::counting_iterator<long>(0), n,
+                               KernelFunctor{
+                                   reinterpret_cast<uint8_t const *>(inputs[0]),
+                                   reinterpret_cast<uint8_t *>(outputs[0]),
+                                   dims.data().get(),
+                                   static_cast<long>(dims.size()),
+                                   eleSize,
+                               });
         };
     }
 
