@@ -1,5 +1,5 @@
-﻿#ifndef KERNEL_TRANPOSE_ATTRIBUTES_H
-#define KERNEL_TRANPOSE_ATTRIBUTES_H
+﻿#ifndef KERNEL_TRANPOSE_INFO_H
+#define KERNEL_TRANPOSE_INFO_H
 
 #include "common.h"
 #include <absl/container/inlined_vector.h>
@@ -9,7 +9,7 @@ namespace refactor::kernel {
     using Shape = absl::InlinedVector<uint_lv2, 4>;
     using Permutation = Shape;
 
-    /// @brief 池化参数用于池化和卷积。
+    /// @brief 转置参数优化。
     struct TransposeInfo {
         struct Dimension {
             uint_lv2 strideI, strideO;
@@ -28,4 +28,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_TRANPOSE_ATTRIBUTES_H
+#endif// KERNEL_TRANPOSE_INFO_H
