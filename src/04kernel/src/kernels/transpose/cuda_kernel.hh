@@ -2,19 +2,17 @@
 #define KERNEL_TRANSPOSE_CUDA_KERNEL_HH
 
 #include "kernel/collectors/transpose.h"
-#include "kernel/kernel.h"
 #include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
     struct TransposeCuda final : public Kernel {
-        struct
-        {
-        } info;
+        DataType dataType;
+        TransposeInfo info;
 
-        explicit TransposeCuda(decltype(info)) noexcept;
+        TransposeCuda(DataType, TransposeInfo) noexcept;
 
-        static KernelBox build(Permutation const &, Tensor const &) noexcept;
+        static KernelBox build(DataType, TransposeInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

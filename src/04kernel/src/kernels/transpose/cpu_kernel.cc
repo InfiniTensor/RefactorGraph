@@ -1,6 +1,5 @@
 ﻿#include "cpu_kernel.hh"
 #include <execution>
-#include <unordered_set>
 
 namespace refactor::kernel {
     using K = TransposeCpu;

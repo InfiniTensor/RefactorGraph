@@ -1,7 +1,6 @@
 ﻿#ifndef KERNEL_TRANSPOSE_CPU_KERNEL_HH
 #define KERNEL_TRANSPOSE_CPU_KERNEL_HH
 
-#include "common.h"
 #include "kernel/collectors/transpose.h"
 #include "kernel/tensor.h"
 
@@ -11,7 +10,7 @@ namespace refactor::kernel {
         DataType dataType;
         TransposeInfo info;
 
-        explicit TransposeCpu(DataType, TransposeInfo) noexcept;
+        TransposeCpu(DataType, TransposeInfo) noexcept;
 
         static KernelBox build(DataType, TransposeInfo) noexcept;
         static size_t typeId() noexcept;

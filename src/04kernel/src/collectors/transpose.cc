@@ -1,5 +1,6 @@
 ﻿#include "kernel/collectors/transpose.h"
 #include "../kernels/transpose/cpu_kernel.hh"
+#include "../kernels/transpose/cuda_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -22,6 +23,9 @@ namespace refactor::kernel {
                 }
                 break;
             case Target::NvidiaGpu:
+                if (auto ptr = TransposeCuda::build(data.dataType, info); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");
