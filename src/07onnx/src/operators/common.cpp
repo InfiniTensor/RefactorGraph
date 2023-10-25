@@ -1,5 +1,4 @@
 ﻿#include "common.h"
-#include "common.h"
 #include <fmtlog.h>
 #include <numeric>
 #include <vector>

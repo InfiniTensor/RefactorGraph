@@ -1,5 +1,4 @@
 ﻿#include "computation/operators/global_pool.h"
-#include "common.h"
 
 namespace refactor::computation {
     using Op = GlobalPool;

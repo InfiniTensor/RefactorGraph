@@ -1,5 +1,4 @@
 ﻿#include "graph_topo/searcher.h"
-#include "common.h"
 #include <algorithm>
 
 namespace refactor::graph_topo {

@@ -1,5 +1,4 @@
 ﻿#include "kernel/target.h"
-#include "common.h"
 #include "utilities/cuda/cuda_mem.cuh"
 #include <cstdlib>
 #include <cstring>

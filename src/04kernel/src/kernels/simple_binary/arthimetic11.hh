@@ -3,7 +3,6 @@
 
 #include "kernel/collectors/simple_binary.h"
 #include "kernel/tensor.h"
-#include "common.h"
 
 namespace refactor::kernel {
 

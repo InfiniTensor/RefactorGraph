@@ -1,6 +1,5 @@
 ﻿#include "computation/operators/where.h"
 #include "common.h"
-#include "common.h"
 #include "where.hh"
 #include <execution>
 

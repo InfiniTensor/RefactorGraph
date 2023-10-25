@@ -1,7 +1,6 @@
 ﻿#include "computation/operators/compair.h"
 #include "common.h"
 #include "compair.hh"
-#include "common.h"
 
 namespace refactor::onnx {
     using Op = Compair;

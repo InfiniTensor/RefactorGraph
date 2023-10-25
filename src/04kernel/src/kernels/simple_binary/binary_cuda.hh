@@ -1,7 +1,6 @@
 ﻿#ifndef KERNEL_BINARY_CUDA_HH
 #define KERNEL_BINARY_CUDA_HH
 
-#include "common.h"
 #include "kernel/collectors/simple_binary.h"
 #include "kernel/tensor.h"
 

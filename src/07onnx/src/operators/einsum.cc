@@ -1,7 +1,6 @@
 ﻿#include "computation/operators/einsum.h"
 #include "common.h"
 #include "einsum.hh"
-#include "common.h"
 #include <variant>
 
 namespace refactor::onnx {

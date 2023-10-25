@@ -2,7 +2,6 @@
 #include "common.h"
 #include "computation/operators/identity.h"
 #include "reduce.hh"
-#include "common.h"
 #include <execution>
 
 namespace refactor::onnx {

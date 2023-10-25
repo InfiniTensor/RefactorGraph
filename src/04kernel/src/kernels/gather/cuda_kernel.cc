@@ -1,5 +1,4 @@
 ﻿#include "cuda_kernel.hh"
-#include "common.h"
 
 namespace refactor::kernel {
     using K = GatherCuda;

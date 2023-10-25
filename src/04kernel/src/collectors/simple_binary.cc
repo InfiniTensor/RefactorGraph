@@ -2,7 +2,6 @@
 #include "../kernels/simple_binary/arthimetic11.hh"
 #include "../kernels/simple_binary/binary_cuda.hh"
 #include "../kernels/simple_binary/binary_cudnn.hh"
-#include "common.h"
 
 namespace refactor::kernel {
 

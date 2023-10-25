@@ -1,5 +1,4 @@
 ﻿#include "frontend/tensor.h"
-#include "common.h"
 #include <execution>
 #include <numeric>
 

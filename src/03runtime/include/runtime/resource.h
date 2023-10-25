@@ -1,7 +1,6 @@
 ﻿#ifndef RUNTIME_RESOURCES_H
 #define RUNTIME_RESOURCES_H
 
-#include <any>
 #include <functional>
 #include <memory>
 #include <string_view>

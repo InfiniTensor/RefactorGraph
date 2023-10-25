@@ -3,7 +3,6 @@
 
 #include "kernel/kernel.h"
 #include "kernel/tensor.h"
-#include "common.h"
 
 namespace refactor::kernel {
     /// @brief Use `cudnnBatchNormalizationForwardInference`.

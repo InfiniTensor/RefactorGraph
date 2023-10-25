@@ -1,5 +1,4 @@
 ﻿#include "graph_topo/container.h"
-#include "common.h"
 #include <algorithm>
 #include <numeric>
 #include <sstream>

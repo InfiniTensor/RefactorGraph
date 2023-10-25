@@ -1,7 +1,6 @@
 ﻿#include "kernel/collectors/batch_normalization.h"
 #include "../kernels/batch_normalization/cpu_kernel.hh"
 #include "../kernels/batch_normalization/cudnn_kernel.hh"
-#include "common.h"
 
 namespace refactor::kernel {
 

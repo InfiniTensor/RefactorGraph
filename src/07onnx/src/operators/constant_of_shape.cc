@@ -1,6 +1,5 @@
 ﻿#include "constant_of_shape.hh"
 #include "common.h"
-#include "common.h"
 #include <execution>
 
 namespace refactor::onnx {

@@ -1,17 +1,16 @@
 ﻿#include "cuda_kernel.hh"
 
 namespace refactor::kernel {
-    using K = TransposeCuda;
-    using Info = TransposeInfo;
+    using K = SplitCuda;
 
-    K::TransposeCuda(DataType dataType_, Info info_) noexcept
-        : Kernel(), dataType(dataType_), info(std::move(info_)) {}
+    K::SplitCuda(DataType dataType_) noexcept
+        : Kernel(), dataType(dataType_) {}
 
-    auto K::build(DataType dataType, Info info) noexcept -> KernelBox {
+    auto K::build(DataType dataType) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        return std::make_unique<K>(dataType, std::move(info));
+        return std::make_unique<K>(dataType);
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -22,7 +21,7 @@ namespace refactor::kernel {
         return typeId();
     }
     auto K::description() const noexcept -> std::string_view {
-        return "Performing transpose operation using CUDA";
+        return "Performing split operation using CUDA";
     }
 
 }// namespace refactor::kernel

@@ -1,5 +1,4 @@
 ﻿#include "graph_topo/inplace_modifier.h"
-#include "common.h"
 #include <algorithm>
 
 namespace refactor::graph_topo {
