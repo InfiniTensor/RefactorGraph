@@ -58,11 +58,11 @@ namespace refactor::mem_manager {
                 // there is a free block located at the end of the currently
                 // allocated memory, where this free block has its tail address as
                 // 'peak'
-                ASSERT(blockTailWithPeak->second < this->peak,
-                       "blockTailWithPeak->second should less than this->peak");
+                ASSERT(blockTailWithPeak->second <= this->peak,
+                       "the free block's size should less or equal than this->peak");
                 retAddr = this->peak - blockTailWithPeak->second;
                 ASSERT(blockTailWithPeak->second < size,
-                       "blockTailWithPeak->second should less than size");
+                       "the available free block's size should less than size");
                 this->peak += (size - blockTailWithPeak->second);
                 // updata freeBlocks, headAddrToBlockSize and tailAddrToBlockSize
                 freeBlockInfo endBlock = {retAddr, blockTailWithPeak->second};
@@ -125,6 +125,7 @@ namespace refactor::mem_manager {
         std::string infoStr = "Used memory: " +
                               std::to_string(this->used) + ", peak memory: " +
                               std::to_string(this->peak) + "/n";
+        return infoStr;
     }
 
     size_t OffsetCalculator::getAlignedSize(size_t size) {

@@ -4,15 +4,13 @@
 
 namespace refactor::kernel {
 
-    AllocScheme reusableAllocate(graph_topo::Graph<Node, Edge> const &g, size_t alignBits) {
-        // 下划线命名表示什么？
+    AllocScheme reusableAllocate(graph_topo::Graph<Node, Edge> const &g, size_t alignBytes) {
         auto globalOutputs_ = g.topology.globalOutputs();
         std::unordered_set<size_t> globalOutputs(globalOutputs_.begin(), globalOutputs_.end());
         std::vector<Address> addresses(g.edges.size(), {nullptr});
         std::unordered_map<size_t, size_t> edgeToRefCount;
         auto searcher = graph_topo::Searcher(g.topology);
-        // 需要传入对齐值，单位统一为字节？
-        mem_manager::OffsetCalculator calculator = mem_manager::OffsetCalculator(alignBits);
+        mem_manager::OffsetCalculator calculator = mem_manager::OffsetCalculator(alignBytes);
         for (auto edge : searcher.edges()) {
             edgeToRefCount[edge.index()] = edge.targets().size();
         }
