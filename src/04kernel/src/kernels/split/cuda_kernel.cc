@@ -3,14 +3,14 @@
 namespace refactor::kernel {
     using K = SplitCuda;
 
-    K::SplitCuda(DataType dataType_, SplitInfo info_) noexcept
-        : Kernel(), dataType(dataType_), info(std::move(info_)) {}
+    K::SplitCuda(SplitInfo info_) noexcept
+        : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(DataType dataType, SplitInfo info) noexcept -> KernelBox {
+    auto K::build(SplitInfo info) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        return std::make_unique<K>(dataType, std::move(info));
+        return std::make_unique<K>(std::move(info));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

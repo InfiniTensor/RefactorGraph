@@ -7,12 +7,11 @@
 namespace refactor::kernel {
 
     struct SplitCuda final : public Kernel {
-        DataType dataType;
         SplitInfo info;
 
-        SplitCuda(DataType, SplitInfo) noexcept;
+        explicit SplitCuda(SplitInfo) noexcept;
 
-        static KernelBox build(DataType, SplitInfo) noexcept;
+        static KernelBox build(SplitInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
