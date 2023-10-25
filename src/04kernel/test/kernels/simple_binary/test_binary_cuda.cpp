@@ -52,7 +52,6 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     }
 }
 
-
 TEST(kernel, BinaryCudaAdd) {
     testBinaryCuda(SimpleBinaryType::Add, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4});
 }

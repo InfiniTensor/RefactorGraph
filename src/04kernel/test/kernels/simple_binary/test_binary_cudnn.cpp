@@ -51,7 +51,6 @@ void testBinaryCudnn(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape d
     }
 }
 
-
 TEST(kernel, BinaryCudnnAdd) {
     testBinaryCudnn(SimpleBinaryType::Add, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
 }
