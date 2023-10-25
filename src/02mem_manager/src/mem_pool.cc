@@ -9,7 +9,7 @@ namespace refactor::mem_manager {
     }
     void *MemPool::malloc(size_t bytes) noexcept {
         size_t offset = _calculator.alloc(bytes);
-        ASSERT(_calculator.getPeek() < _memPoolSize, "out of memory");
+        ASSERT(_calculator.peak() < _memPoolSize, "out of memory");
         void *retPtr = static_cast<uint8_t *>(_ptr) + offset;
         _ptrToBlobsize[retPtr] = bytes;
         return retPtr;

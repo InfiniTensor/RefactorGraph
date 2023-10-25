@@ -24,9 +24,9 @@ namespace refactor::kernel {
                 auto edgeIter = edgeToRefCount.find(inputIdx);
                 ASSERT(edgeIter != edgeToRefCount.end(),
                        "unknown edge idx in searcher.edges(): " + std::to_string(inputIdx));
-                ASSERT(edgeToRefCount[inputIdx] > 0, "double free");
-                edgeToRefCount[inputIdx] -= 1;
-                if (edgeToRefCount[inputIdx] == 0) {
+                ASSERT(edgeIter->second > 0, "double free");
+                edgeIter->second -= 1;
+                if (edgeIter->second == 0) {
                     // indicate that this tensor will no longer be used and
                     // perform memory free
                     edgeToRefCount.erase(inputIdx);
@@ -43,7 +43,7 @@ namespace refactor::kernel {
                 addresses[i] = {std::move(blob)};
             }
         }
-        return {calculator.getPeek(), std::move(addresses)};
+        return {calculator.peak(), std::move(addresses)};
     }
 
 }// namespace refactor::kernel

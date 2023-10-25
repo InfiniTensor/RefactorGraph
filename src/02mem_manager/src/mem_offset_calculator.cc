@@ -4,75 +4,68 @@
 
 namespace refactor::mem_manager {
 
-    // In
-    // cuda-c-programming-guide(https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#device-memory-accesses):
-    // Any address of a variable residing in global memory or returned by one of the
-    // memory allocation routines from the driver or runtime API is always aligned
-    // to at least 256 bytes.
-    constexpr size_t alignmentInBytesForCUDA = 256;
-
-    OffsetCalculator::OffsetCalculator(size_t alignment) : alignment(alignment) {
+    OffsetCalculator::OffsetCalculator(size_t alignment) : _alignment(alignment) {
     }
 
     OffsetCalculator::~OffsetCalculator() {
     }
 
     void OffsetCalculator::init() {
-        used = 0;
-        peak = 0;
-        freeBlocks.clear();
-        headAddrToBlockSize.clear();
-        tailAddrToBlockSize.clear();
+        _used = 0;
+        _peak = 0;
+        _freeBlocks.clear();
+        _headAddrToBlockSize.clear();
+        _tailAddrToBlockSize.clear();
     }
 
     size_t OffsetCalculator::alloc(size_t size) {
         // pad the size to the multiple of alignment
-        size = this->getAlignedSize(size);
-        auto it = this->freeBlocks.lower_bound(freeBlockInfo{(size_t) 0, size});
+        size = getAlignedSize(size);
+        auto it = _freeBlocks.lower_bound(FreeBlockInfo{(size_t) 0, size});
 
-        size_t retAddr = this->peak;
-        if (it != this->freeBlocks.end()) {
+        size_t retAddr = _peak;
+        if (it != _freeBlocks.end()) {
             // found an alvailable free memory block for allocation
             size_t blockSize = it->blockSize;
             retAddr = it->addr;
             size_t tailAddr = retAddr + size;
             // update the map of head and tail address offset of memory blocks
-            this->headAddrToBlockSize.erase(retAddr);
-            this->tailAddrToBlockSize.erase(tailAddr);
+            _headAddrToBlockSize.erase(retAddr);
+            _tailAddrToBlockSize.erase(tailAddr);
             // memory block splitting
             if (blockSize > tailAddr - retAddr) {
-                freeBlockInfo newBlock = {tailAddr,
+                FreeBlockInfo newBlock = {tailAddr,
                                           blockSize - (tailAddr - retAddr)};
-                this->headAddrToBlockSize[tailAddr] = newBlock.blockSize;
-                this->tailAddrToBlockSize[retAddr + blockSize] = newBlock.blockSize;
-                this->freeBlocks.insert(newBlock);
+                _headAddrToBlockSize[tailAddr] = newBlock.blockSize;
+                _tailAddrToBlockSize[retAddr + blockSize] = newBlock.blockSize;
+                _freeBlocks.insert(newBlock);
             }
             // update the free balanced tree
-            this->freeBlocks.erase(it);
-            this->used += tailAddr - retAddr;
+            _freeBlocks.erase(it);
+            _used += tailAddr - retAddr;
         } else {
             // the allocated memory space is not sufficient for reallocation, it
             // needs to be extended
-            auto blockTailWithPeak = this->tailAddrToBlockSize.find(this->peak);
-            if (blockTailWithPeak != this->tailAddrToBlockSize.end()) {
+            auto blockTailWithPeak = _tailAddrToBlockSize.find(_peak);
+            if (blockTailWithPeak != _tailAddrToBlockSize.end()) {
                 // there is a free block located at the end of the currently
                 // allocated memory, where this free block has its tail address as
                 // 'peak'
-                ASSERT(blockTailWithPeak->second <= this->peak,
-                       "the free block's size should less or equal than this->peak");
-                retAddr = this->peak - blockTailWithPeak->second;
+                ASSERT(blockTailWithPeak->second <= _peak,
+                       "the free block's size should less or equal than peak");
+                retAddr = _peak - blockTailWithPeak->second;
                 ASSERT(blockTailWithPeak->second < size,
                        "the available free block's size should less than size");
-                this->peak += (size - blockTailWithPeak->second);
-                // updata freeBlocks, headAddrToBlockSize and tailAddrToBlockSize
-                freeBlockInfo endBlock = {retAddr, blockTailWithPeak->second};
-                this->freeBlocks.erase(endBlock);
-                this->headAddrToBlockSize.erase(endBlock.addr);
-                this->tailAddrToBlockSize.erase(endBlock.addr + endBlock.blockSize);
+                _peak += (size - blockTailWithPeak->second);
+                // updata _freeBlocks, _headAddrToBlockSize and _tailAddrToBlockSize
+                FreeBlockInfo endBlock = {retAddr, blockTailWithPeak->second};
+                _freeBlocks.erase(endBlock);
+                _headAddrToBlockSize.erase(endBlock.addr);
+                _tailAddrToBlockSize.erase(endBlock.addr + endBlock.blockSize);
             } else {
-                this->peak = this->peak + size;
+                _peak = _peak + size;
             }
-            this->used += size;
+            _used += size;
         }
 
         return retAddr;
@@ -81,55 +74,55 @@ namespace refactor::mem_manager {
     void OffsetCalculator::free(size_t addr, size_t size) {
         size = getAlignedSize(size);
         auto tailAddr = addr + size;
-        freeBlockInfo block = {addr, tailAddr - addr};
-        this->headAddrToBlockSize[addr] = block.blockSize;
-        this->tailAddrToBlockSize[tailAddr] = block.blockSize;
-        auto preFreeBlockIter = this->tailAddrToBlockSize.find(addr);
-        auto subFreeBlockIter = this->headAddrToBlockSize.find(tailAddr);
-        if (preFreeBlockIter != this->tailAddrToBlockSize.end()) {
+        FreeBlockInfo block = {addr, tailAddr - addr};
+        _headAddrToBlockSize[addr] = block.blockSize;
+        _tailAddrToBlockSize[tailAddr] = block.blockSize;
+        auto preFreeBlockIter = _tailAddrToBlockSize.find(addr);
+        auto subFreeBlockIter = _headAddrToBlockSize.find(tailAddr);
+        if (preFreeBlockIter != _tailAddrToBlockSize.end()) {
             // the head address of the memory block to be freed matches the end of a
             // free block, merge them together
             size_t preBlockSize = preFreeBlockIter->second;
-            this->headAddrToBlockSize.erase(block.addr);
-            this->headAddrToBlockSize[block.addr - preBlockSize] += block.blockSize;
-            this->tailAddrToBlockSize.erase(block.addr);
-            this->tailAddrToBlockSize[tailAddr] += preBlockSize;
+            _headAddrToBlockSize.erase(block.addr);
+            _headAddrToBlockSize[block.addr - preBlockSize] += block.blockSize;
+            _tailAddrToBlockSize.erase(block.addr);
+            _tailAddrToBlockSize[tailAddr] += preBlockSize;
             block.addr -= preBlockSize;
             block.blockSize += preBlockSize;
             // delete the preceding adjacent free block
-            this->freeBlocks.erase(freeBlockInfo{block.addr, preBlockSize});
+            _freeBlocks.erase(FreeBlockInfo{block.addr, preBlockSize});
         }
-        if (subFreeBlockIter != this->headAddrToBlockSize.end()) {
+        if (subFreeBlockIter != _headAddrToBlockSize.end()) {
             // the tail address of the memory block to be freed matches the start of
             // a free block, merge them together
             auto subBlockSize = subFreeBlockIter->second;
-            this->headAddrToBlockSize.erase(tailAddr);
-            this->headAddrToBlockSize[block.addr] += subBlockSize;
-            this->tailAddrToBlockSize.erase(tailAddr);
-            this->tailAddrToBlockSize[tailAddr + subBlockSize] += block.blockSize;
+            _headAddrToBlockSize.erase(tailAddr);
+            _headAddrToBlockSize[block.addr] += subBlockSize;
+            _tailAddrToBlockSize.erase(tailAddr);
+            _tailAddrToBlockSize[tailAddr + subBlockSize] += block.blockSize;
             tailAddr += subBlockSize;
             block.blockSize += subBlockSize;
             // delete the succeeding adjacent memory block
-            this->freeBlocks.erase(
-                freeBlockInfo{tailAddr - subBlockSize, subBlockSize});
+            _freeBlocks.erase(
+                FreeBlockInfo{tailAddr - subBlockSize, subBlockSize});
         }
-        this->freeBlocks.insert(block);
-        this->used -= size;
+        _freeBlocks.insert(block);
+        _used -= size;
     }
 
-    size_t OffsetCalculator::getPeek() {
-        return this->peak;
+    size_t OffsetCalculator::peak() {
+        return _peak;
     }
 
     std::string OffsetCalculator::info() {
         std::string infoStr = "Used memory: " +
-                              std::to_string(this->used) + ", peak memory: " +
-                              std::to_string(this->peak) + "/n";
+                              std::to_string(_used) + ", peak memory: " +
+                              std::to_string(_peak) + "/n";
         return infoStr;
     }
 
     size_t OffsetCalculator::getAlignedSize(size_t size) {
-        return ((size - 1) / this->alignment + 1) * this->alignment;
+        return ((size - 1) / _alignment + 1) * _alignment;
     }
 
 }// namespace refactor::mem_manager
