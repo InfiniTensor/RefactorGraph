@@ -17,8 +17,7 @@ TEST(kernel, SplitInfo) {
                    std::back_inserter(outputs_),
                    [](auto const &it) { return std::cref(*it); });
     SplitInfo info(3, outputs_);
-    std::equal(info.prefix().begin(), info.prefix().end(),
-               std::array<uint_lv2, 3>{2, 3, 1}.begin());
-    std::equal(info.postfix().begin(), info.postfix().end(),
-               std::array<uint_lv2, 4>{1 * 49, 9 * 49, 3 * 49, 7 * 49}.begin());
+    EXPECT_EQ(info.blockCount, 6);
+    EXPECT_EQ(info.sum, 20 * 49);
+    EXPECT_EQ(info.segments, (absl::InlinedVector<uint_lv2, 4>{1 * 49, 9 * 49, 3 * 49, 7 * 49}));
 }

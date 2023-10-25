@@ -1,17 +1,18 @@
 ﻿#ifndef KERNEL_SPLIT_CPU_KERNEL_HH
 #define KERNEL_SPLIT_CPU_KERNEL_HH
 
+#include "kernel/attributes/split_info.h"
 #include "kernel/kernel.h"
-#include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
     struct SplitCpu final : public Kernel {
         DataType dataType;
+        SplitInfo info;
 
-        SplitCpu(DataType) noexcept;
+        SplitCpu(DataType, SplitInfo) noexcept;
 
-        static KernelBox build(DataType) noexcept;
+        static KernelBox build(DataType, SplitInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
