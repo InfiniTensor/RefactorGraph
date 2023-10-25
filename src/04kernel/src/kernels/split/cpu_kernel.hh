@@ -7,12 +7,11 @@
 namespace refactor::kernel {
 
     struct SplitCpu final : public Kernel {
-        DataType dataType;
         SplitInfo info;
 
-        SplitCpu(DataType, SplitInfo) noexcept;
+        explicit SplitCpu(SplitInfo) noexcept;
 
-        static KernelBox build(DataType, SplitInfo) noexcept;
+        static KernelBox build(SplitInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

@@ -6,10 +6,10 @@ using namespace kernel;
 
 TEST(kernel, SplitInfo) {
     std::vector<Arc<Tensor>> outputs{
-        Tensor::share(DataType::F32, Shape{2, 3, 1, 1, 7, 7}),
-        Tensor::share(DataType::F32, Shape{2, 3, 1, 9, 7, 7}),
-        Tensor::share(DataType::F32, Shape{2, 3, 1, 3, 7, 7}),
-        Tensor::share(DataType::F32, Shape{2, 3, 1, 7, 7, 7}),
+        Tensor::share(DataType::U8, Shape{2, 3, 1, 1, 7, 7}),// 勿
+        Tensor::share(DataType::U8, Shape{2, 3, 1, 9, 7, 7}),// 忘
+        Tensor::share(DataType::U8, Shape{2, 3, 1, 3, 7, 7}),// 国
+        Tensor::share(DataType::U8, Shape{2, 3, 1, 7, 7, 7}),// 耻
     };
     TensorRefs outputs_;
     outputs_.reserve(outputs.size());

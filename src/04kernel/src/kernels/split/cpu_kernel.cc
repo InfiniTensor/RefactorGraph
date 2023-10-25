@@ -4,11 +4,11 @@
 namespace refactor::kernel {
     using K = SplitCpu;
 
-    K::SplitCpu(DataType dataType_, SplitInfo info_) noexcept
-        : Kernel(), dataType(dataType_), info(std::move(info_)) {}
+    K::SplitCpu(SplitInfo info_) noexcept
+        : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(DataType dataType, SplitInfo info) noexcept -> KernelBox {
-        return std::make_unique<K>(dataType, std::move(info));
+    auto K::build(SplitInfo info) noexcept -> KernelBox {
+        return std::make_unique<K>(std::move(info));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -24,13 +24,19 @@ namespace refactor::kernel {
 
     auto K::lower() const noexcept -> Routine {
         using namespace runtime;
-        return [eleSize = this->dataType.size(),
-                info = this->info](Resources &, void const **inputs, void **outputs) {
+        return [info = this->info](Resources &, void const **inputs, void **outputs) {
             auto data = reinterpret_cast<uint8_t const *>(inputs[0]);
-            auto transposed = reinterpret_cast<uint8_t *>(outputs[0]);
-            //     std::for_each_n(std::execution::par_unseq,
-            //                     natural_t(0), info.size,
-            //                     [=, &info](auto i) { std::memcpy(transposed + i * eleSize, data + info.locate(i) * eleSize, eleSize); });
+            std::for_each_n(std::execution::par_unseq,
+                            natural_t(0), info.blockCount,
+                            [=, &info](auto i) {
+                                auto offset = i * info.sum;
+                                for (auto j : range0_(info.segments.size())) {
+                                    auto len = info.segments[j];
+                                    auto out = reinterpret_cast<uint8_t *>(outputs[j]);
+                                    std::memcpy(out + i * len, data + offset, len);
+                                    offset += len;
+                                }
+                            });
         };
     }
 
