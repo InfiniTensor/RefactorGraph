@@ -30,7 +30,9 @@ namespace refactor::kernel {
             auto policy = std::execution::par_unseq;
             std::for_each_n(policy, natural_t(0), info.prefix, [&](auto i) {
                 std::for_each_n(policy, natural_t(0), info.midSizeO, [&](auto j) {
-                    auto k = info.index(inputs[1], j);
+                    int64_t k = info.idxType == DataType::I64
+                                    ? reinterpret_cast<int64_t const *>(inputs[1])[j]
+                                    : reinterpret_cast<int32_t const *>(inputs[1])[j];
                     std::memcpy(info.postfix * (i * info.midSizeO + j) + output,
                                 info.postfix * (i * info.midSizeI + k) + data,
                                 info.postfix);

@@ -27,15 +27,15 @@ namespace refactor::kernel {
         return [segments = thrust::device_vector<uint_lv2>(info.segments.begin(), info.segments.end()),
                 blockCount = info.blockCount,
                 sum = info.sum](Resources &res, void const **inputs, void **outputs) {
-            thrust::for_each_n(thrust::device,
-                               thrust::counting_iterator<long>(0), blockCount,
-                               KernelFunctor{
-                                   inputs[0],
-                                   outputs,
-                                   segments.data().get(),
-                                   static_cast<long>(segments.size()),
-                                   static_cast<long>(sum),
-                               });
+            // thrust::for_each_n(thrust::device,
+            //                    thrust::counting_iterator<long>(0), blockCount,
+            //                    KernelFunctor{
+            //                        inputs[0],
+            //                        outputs,
+            //                        segments.data().get(),
+            //                        static_cast<long>(segments.size()),
+            //                        static_cast<long>(sum),
+            //                    });
         };
     }
 

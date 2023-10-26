@@ -10,8 +10,6 @@ namespace refactor::kernel {
         DataType idxType;
 
         GatherInfo(uint_lv2 axis, Tensor const &data, Tensor const &indices) noexcept;
-
-        int64_t index(void const *, uint_lv2) const noexcept;
     };
 
 }// namespace refactor::kernel

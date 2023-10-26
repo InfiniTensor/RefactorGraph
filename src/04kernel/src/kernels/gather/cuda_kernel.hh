@@ -1,21 +1,17 @@
 ﻿#ifndef KERNEL_GATHER_CUDA_KERNEL_HH
 #define KERNEL_GATHER_CUDA_KERNEL_HH
-#include "gather_helper.hh"
-#include "kernel/collectors/gather.h"
+
+#include "kernel/attributes/gather_info.h"
 #include "kernel/kernel.h"
-#include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
     struct GatherCuda final : public Kernel {
-        DataType indexType;
-        GatherMetaData metaData;
+        GatherInfo info;
 
-        explicit GatherCuda(DataType, GatherMetaData) noexcept;
+        explicit GatherCuda(GatherInfo) noexcept;
 
-        static KernelBox build(Tensor const &, Tensor const &, Tensor const &, uint32_t) noexcept;
-        void initGatherMetaData(GatherMetaData &, Tensor const &, Tensor const &, Tensor const &, uint32_t);
-
+        static KernelBox build(GatherInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

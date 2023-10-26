@@ -4,30 +4,15 @@
 namespace refactor::kernel {
     using K = GatherCuda;
 
-    K::GatherCuda(DataType indexType_, GatherMetaData metaData_) noexcept
-        : Kernel(), indexType(indexType_), metaData(std::move(metaData_)) {}
+    K::GatherCuda(GatherInfo info_) noexcept
+        : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(Tensor const &in, Tensor const &indices, Tensor const &out, uint32_t axis) noexcept -> KernelBox {
+    auto K::build(GatherInfo info) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        if (indices.dataType != DataType::I32 && indices.dataType != DataType::I64) {
-            return nullptr;
-        }
 
-        GatherMetaData md;
-        md.itemSize = in.dataType.size();
-        md.outSize = out.elementsSize();
-        md.axis = axis;
-        md.inNDim = in.rank();
-        md.outNDim = out.rank();
-        md.idxNDim = indices.rank();
-        md.idxShape = indices.shape;
-        md.outShape = out.shape;
-        md.inStrides = in.strides();
-        md.idxStrides = indices.strides();
-
-        return std::make_unique<K>(indices.dataType, md);
+        return std::make_unique<K>(std::move(info));
     }
 
     auto K::typeId() noexcept -> size_t {
