@@ -6,11 +6,12 @@
 namespace refactor::kernel {
 
     struct GatherInfo {
-        uint_lv2 prefix, postfix, midSize;
-        absl::InlinedVector<uint_lv2, 4> strides;
+        uint_lv2 prefix, postfix, midSizeI, midSizeO;
         DataType idxType;
 
         GatherInfo(uint_lv2 axis, Tensor const &data, Tensor const &indices) noexcept;
+
+        int64_t index(void const *, uint_lv2) const noexcept;
     };
 
 }// namespace refactor::kernel
