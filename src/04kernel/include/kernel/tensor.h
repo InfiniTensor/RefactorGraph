@@ -7,6 +7,7 @@
 namespace refactor::kernel {
 
     using Shape = absl::InlinedVector<uint_lv2, 4>;
+    using Strides = absl::InlinedVector<uint_lv3, 4>;
 
     struct Tensor {
         DataType dataType;
@@ -27,6 +28,7 @@ namespace refactor::kernel {
         int64_t rank() const;
         size_t elementsSize() const;
         size_t bytesSize() const;
+        Strides strides() const;
 
         void *malloc();
         void free();
