@@ -13,7 +13,7 @@ TEST(kernel, GatherCuda) {
         auto bTensor = Tensor::share(DataType::I64, Shape{2, 2}, LayoutType::NCHW);
         auto cTensor = Tensor::share(DataType::F32, Shape{2, 2, 2}, LayoutType::NCHW);
         uint32_t axis = 0;
-        auto cpuKernel = GatherCpu::build(*aTensor, *bTensor, *cTensor, axis);
+        auto cpuKernel = GatherCpu::build(GatherInfo(axis, *aTensor, *bTensor));
         ASSERT_TRUE(cpuKernel);
         auto cpuRoutine = cpuKernel->lower();
         auto cudaKernel = GatherCuda::build(*aTensor, *bTensor, *cTensor, axis);
@@ -54,7 +54,7 @@ TEST(kernel, GatherCuda) {
         auto bTensor = Tensor::share(DataType::I32, Shape{1, 2}, LayoutType::NCHW);
         auto cTensor = Tensor::share(DataType::F32, Shape{3, 1, 2}, LayoutType::NCHW);
         uint32_t axis = 1;
-        auto cpuKernel = GatherCpu::build(*aTensor, *bTensor, *cTensor, axis);
+        auto cpuKernel = GatherCpu::build(GatherInfo(axis, *aTensor, *bTensor));
         ASSERT_TRUE(cpuKernel);
         auto cpuRoutine = cpuKernel->lower();
         auto cudaKernel = GatherCuda::build(*aTensor, *bTensor, *cTensor, axis);

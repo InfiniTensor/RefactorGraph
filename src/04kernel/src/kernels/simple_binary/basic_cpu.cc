@@ -130,9 +130,9 @@ namespace refactor::kernel {
     case DT::T:                                                                                           \
         return [broadcast = this->broadcast](runtime::Resources &, void const **inputs, void **outputs) { \
             using T_ = primitive_t<DT::T>::type;                                                          \
-            auto a = static_cast<T_ const *>(inputs[0]);                                                  \
-            auto b = static_cast<T_ const *>(inputs[1]);                                                  \
-            auto c = static_cast<T_ *>(outputs[0]);                                                       \
+            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                             \
+            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                             \
+            auto c = reinterpret_cast<T_ *>(outputs[0]);                                                  \
             for (auto i : range0_(broadcast.size())) {                                                    \
                 auto [ia, ib] = broadcast.locate(i);                                                      \
                 c[i] = OP(a[ia], b[ib]);                                                                  \
