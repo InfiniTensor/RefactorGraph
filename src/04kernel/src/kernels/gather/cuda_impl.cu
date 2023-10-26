@@ -1,6 +1,8 @@
 ﻿#include "cuda_kernel.hh"
 #include <thrust/device_vector.h>
+#include <thrust/execution_policy.h>
 #include <thrust/host_vector.h>
+
 namespace refactor::kernel {
     using namespace runtime;
 
@@ -29,7 +31,6 @@ namespace refactor::kernel {
                     gOffset = gOffset / metaData.outShape[k];
                     --k;
                 }
-       
                 offset += idx * metaData.inStrides[i];
             }
             return offset;
