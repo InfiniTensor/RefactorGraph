@@ -12,6 +12,13 @@ namespace refactor::kernel {
     struct PoolCudnn final : public Kernel {
         struct
         {
+            PoolType poolType;
+            DataType dt;
+            int xShape[4],
+                yShape[4],
+                kernelShape[2],
+                pads[2],
+                strides[2];
         } info;
 
         explicit PoolCudnn(decltype(info)) noexcept;
@@ -20,6 +27,7 @@ namespace refactor::kernel {
                                bool,
                                KernelShape const &,
                                PoolAttributes const &,
+                               Tensor const &,
                                Tensor const &) noexcept;
         static size_t typeId() noexcept;
 

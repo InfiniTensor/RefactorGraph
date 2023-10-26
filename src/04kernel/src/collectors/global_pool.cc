@@ -28,7 +28,7 @@ namespace refactor::kernel {
             case Target::Cpu:
                 break;
             case Target::NvidiaGpu:
-                if (auto ptr = PoolCudnn::build(type, false, kernelShape, attributes, x); ptr) {
+                if (auto ptr = PoolCudnn::build(type, false, kernelShape, attributes, x, y); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

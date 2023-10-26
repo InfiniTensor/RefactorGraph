@@ -2,7 +2,6 @@
 #define KERNEL_POOL_ATTRIBUTES_H
 
 #include "common.h"
-#include <absl/container/inlined_vector.h>
 
 namespace refactor::kernel {
 
