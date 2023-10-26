@@ -12,7 +12,7 @@ namespace refactor::kernel {
 
         uint_lv1 *dilations_ = _values.data(),
                  *strides_ = dilations_ + rank,
-                 *pads_ = dilations_ + rank;
+                 *pads_ = strides_ + rank;
         auto range = range0_(rank);
         if (dilations) {
             for (auto i : range) {
