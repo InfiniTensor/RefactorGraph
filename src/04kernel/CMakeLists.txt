@@ -20,7 +20,7 @@ else()
 endif()
 
 if(USE_CUDA)
-    target_link_libraries(kernel PUBLIC cudnn runtime)
+    target_link_libraries(kernel PUBLIC cudnn)
 endif()
 
 file(GLOB_RECURSE KERNEL_TEST test/*.cpp)
