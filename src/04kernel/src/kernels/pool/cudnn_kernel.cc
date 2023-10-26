@@ -16,12 +16,14 @@ namespace refactor::kernel {
 #ifndef USE_CUDA
         return nullptr;
 #endif
+
         // TODO check data type
         auto pb = poolAttributes.padsBegin(),
              pe = poolAttributes.padsEnd(),
              d = poolAttributes.dilations(),
              s = poolAttributes.strides();
         if (x.rank() != 4 ||
+            poolType == PoolType::Lp ||
             d[0] != 1 ||
             d[1] != 1 ||
             pb[0] != pe[0] ||

@@ -29,7 +29,7 @@ namespace refactor::kernel {
                 return nullptr;
             }
         } else {
-            if (scale.dataType != DT::F64) {
+            if (scale.dataType != DT::F32) {
                 return nullptr;
             }
         }

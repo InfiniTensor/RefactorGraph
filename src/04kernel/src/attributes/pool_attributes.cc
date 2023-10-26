@@ -7,7 +7,7 @@ namespace refactor::kernel {
         int64_t const *dilations,
         int64_t const *pads,
         int64_t const *strides)
-        : _values((1 + 1 + 2) * rank, 0) {
+        : _values((1 + 1 + 2) * rank, 1) {
         constexpr static int64_t LIMIT = std::numeric_limits<uint_lv1>::max();
 
         uint_lv1 *dilations_ = _values.data(),
