@@ -1,4 +1,6 @@
 ﻿#include "kernel/target.h"
+#include "common.h"
+#include "mem_manager/mem_pool.h"
 #include "utilities/cuda/cuda_mem.cuh"
 #include <cstdlib>
 #include <cstring>
@@ -30,11 +32,13 @@ namespace refactor::kernel {
                         return std::memcpy(dst, src, bytes);
                     }
                 };
-                return BasicCpuMemManager::instance();
+                static Arc<mem_manager::MemManager> memPool = std::make_shared<mem_manager::MemPool>(1 * 1024 * 1024 * 1024, sizeof(uint64_t), BasicCpuMemManager::instance());
+                return memPool;
             }
 #ifdef USE_CUDA
             case NvidiaGpu: {
-                return cuda::BasicCudaMemManager::instance();
+                static Arc<mem_manager::MemManager> memPool = std::make_shared<mem_manager::MemPool>(1 * 1024 * 1024 * 1024, 256, cuda::BasicCudaMemManager::instance());
+                return memPool;
             }
 #endif
             default:

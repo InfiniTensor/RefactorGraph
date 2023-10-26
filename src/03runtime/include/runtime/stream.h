@@ -18,6 +18,8 @@ namespace refactor::runtime {
 
         bool isBlob() const noexcept;
         bool isOffset() const noexcept;
+
+        size_t getOffset() const;
     };
 
     class Stream {
