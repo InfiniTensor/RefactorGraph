@@ -8,6 +8,7 @@
 
 namespace refactor::kernel {
     using mem_manager::SharedForeignBlob;
+    using runtime::Address;
 
     struct Node {
         KernelBox kernel;
@@ -20,6 +21,13 @@ namespace refactor::kernel {
         std::string name;
     };
 
+    struct AllocScheme {
+        size_t size;
+        std::vector<Address> addresses;
+    };
+
+    using Allocator = AllocScheme (*)(graph_topo::Graph<Node, Edge> const &, size_t);
+
     struct Graph {
         using _N = Node;
         using _E = Edge;
@@ -30,7 +38,7 @@ namespace refactor::kernel {
 
     public:
         Graph(Target, graph_topo::GraphTopo, std::vector<_N>, std::vector<_E>) noexcept;
-        runtime::Stream lower() const;
+        runtime::Stream lower(Allocator) const;
     };
 
 }// namespace refactor::kernel

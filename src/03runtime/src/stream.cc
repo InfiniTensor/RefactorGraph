@@ -2,6 +2,8 @@
 
 namespace refactor::runtime {
 
+    void emptyRoutine(runtime::Resources &, void const **, void **) {}
+
     void *Address::operator()(void *stack) {
         return isBlob()
                    ? *std::get<mem_manager::SharedForeignBlob>(value)

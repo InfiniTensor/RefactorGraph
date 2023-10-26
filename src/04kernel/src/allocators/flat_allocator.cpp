@@ -1,5 +1,4 @@
-﻿#include "flat_allocator.h"
-#include "common.h"
+﻿#include "kernel/allocators.h"
 
 namespace refactor::kernel {
 
@@ -8,7 +7,7 @@ namespace refactor::kernel {
         return (size + mask) & ~mask;
     }
 
-    AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &g, size_t alignBits) {
+    AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &g, size_t alignBytes) {
         size_t size = 0;
         auto globalOutputs_ = g.topology.globalOutputs();
         std::unordered_set<size_t> globalOutputs(globalOutputs_.begin(), globalOutputs_.end());
@@ -17,7 +16,7 @@ namespace refactor::kernel {
             for (auto i : outputs) {
                 if (globalOutputs.find(i) == globalOutputs.end()) {
                     addresses[i] = {size};
-                    size += align(g.edges[i].size, alignBits);
+                    size += align(g.edges[i].size, alignBytes * 8);
                 }
             }
         }

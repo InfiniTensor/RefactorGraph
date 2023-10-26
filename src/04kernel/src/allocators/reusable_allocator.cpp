@@ -1,5 +1,4 @@
-#include "reusable_allocator.h"
-#include "common.h"
+#include "kernel/allocators.h"
 #include "mem_manager/mem_offset_calculator.h"
 
 namespace refactor::kernel {
@@ -8,12 +7,15 @@ namespace refactor::kernel {
         auto globalOutputs_ = g.topology.globalOutputs();
         std::unordered_set<size_t> globalOutputs(globalOutputs_.begin(), globalOutputs_.end());
         std::vector<Address> addresses(g.edges.size(), {nullptr});
-        std::unordered_map<size_t, size_t> edgeToRefCount;
-        auto searcher = graph_topo::Searcher(g.topology);
-        mem_manager::OffsetCalculator calculator = mem_manager::OffsetCalculator(alignBytes);
-        for (auto edge : searcher.edges()) {
-            edgeToRefCount[edge.index()] = edge.targets().size();
+        // counts edges reference
+        std::vector<size_t> edgeRc;
+        for (auto edge : g.topology.connections()) {
+            if (edge >= edgeRc.size()) {
+                edgeRc.resize(edge + 1, 0);
+            }
+            ++edgeRc[edge];
         }
+        mem_manager::OffsetCalculator calculator(alignBytes);
         for (auto [nodeIdx, inputs, outputs] : g.topology) {
             for (auto outputIdx : outputs) {
                 if (globalOutputs.find(outputIdx) == globalOutputs.end()) {
@@ -21,15 +23,9 @@ namespace refactor::kernel {
                 }
             }
             for (auto inputIdx : inputs) {
-                auto edgeIter = edgeToRefCount.find(inputIdx);
-                ASSERT(edgeIter != edgeToRefCount.end(),
-                       "unknown edge idx in searcher.edges(): " + std::to_string(inputIdx));
-                ASSERT(edgeIter->second > 0, "double free");
-                edgeIter->second -= 1;
-                if (edgeIter->second == 0) {
-                    // indicate that this tensor will no longer be used and
-                    // perform memory free
-                    edgeToRefCount.erase(inputIdx);
+                ASSERT(edgeRc[inputIdx], "double free");
+                if (!--edgeRc[inputIdx]) {
+                    // indicate that this tensor will no longer be used and perform memory free
                     if (addresses[inputIdx].isOffset()) {
                         calculator.free(addresses[inputIdx].getOffset(), g.edges[inputIdx].size);
                     }

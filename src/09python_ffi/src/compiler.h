@@ -19,6 +19,7 @@ namespace refactor::python_ffi {
         std::unordered_set<std::string> fillEdgeInfo(bool calculate);
         Arc<Executor> compile(
             std::string target,
+            std::string allocator,
             std ::vector<std::string> passes);
 
         std::optional<pybind11::array> getTensor(CStr) const;

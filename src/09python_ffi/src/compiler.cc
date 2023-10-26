@@ -28,6 +28,7 @@ namespace refactor::python_ffi {
 
     Arc<Executor>
     Compiler::compile(std::string target,
+                      std::string allocator,
                       std::vector<std::string> passes) {
         _g.collectVariables();
         std::vector<std::string_view> unknownVariables;
