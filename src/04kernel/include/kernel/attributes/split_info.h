@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_SPLIT_INFO_H
 #define KERNEL_SPLIT_INFO_H
 
-#include "../collector.h"
+#include "../tensor.h"
 
 namespace refactor::kernel {
 
