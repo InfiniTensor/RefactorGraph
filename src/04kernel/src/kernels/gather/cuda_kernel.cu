@@ -15,7 +15,7 @@ namespace refactor::kernel {
             int64_t k = i64 ? reinterpret_cast<int64_t const *>(indices)[i % midSizeO]
                             : reinterpret_cast<int32_t const *>(indices)[i % midSizeO];
             memcpy(postfix * i + output,
-                   postfix * (i / midSizeO * midSizeI + k) + data,// 先除后乘似乎更不容易溢出？反过来不对
+                   postfix * (i / midSizeO * midSizeI + k) + data,// NOTICE 先除后乘不能反，因为除要向下取整
                    postfix);
         }
     };
