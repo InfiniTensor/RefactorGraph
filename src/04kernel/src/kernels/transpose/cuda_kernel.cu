@@ -7,7 +7,8 @@ namespace refactor::kernel {
     using namespace runtime;
     using Dim = TransposeInfo::Dimension;
 
-    struct KernelFunctor {
+    // NOTICE NVCC 编译的对象无论是否在相同编译单元，都不可以重名。
+    struct TransposeKernelFunctor {
         uint8_t const *data;
         uint8_t *transposed;
         Dim const *dims;
@@ -32,7 +33,7 @@ namespace refactor::kernel {
                    Resources &res, void const **inputs, void **outputs) {
             thrust::for_each_n(thrust::device,
                                thrust::counting_iterator<long>(0), n,
-                               KernelFunctor{
+                               TransposeKernelFunctor{
                                    reinterpret_cast<uint8_t const *>(inputs[0]),
                                    reinterpret_cast<uint8_t *>(outputs[0]),
                                    dims.data().get(),

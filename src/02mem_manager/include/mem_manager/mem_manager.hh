@@ -7,6 +7,7 @@ namespace refactor::mem_manager {
 
     class MemManager {
     public:
+        virtual ~MemManager() = default;
         virtual void *malloc(size_t) = 0;
         virtual void free(void *) = 0;
         virtual void *copyHD(void *dst, void const *src, size_t bytes) const = 0;

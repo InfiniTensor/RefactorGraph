@@ -10,6 +10,7 @@ namespace refactor::runtime {
 
     class Resource {
     public:
+        virtual ~Resource() = default;
         virtual size_t resourceTypeId() const = 0;
         virtual std::string_view description() const = 0;
         bool is(size_t) const noexcept;

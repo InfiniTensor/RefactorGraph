@@ -5,7 +5,8 @@
 namespace refactor::kernel {
     using namespace runtime;
 
-    struct KernelFunctor {
+    // NOTICE NVCC 编译的对象无论是否在相同编译单元，都不可以重名。
+    struct GatherKernelFunctor {
         uint8_t const *data, *indices;
         uint8_t *output;
         uint_lv2 postfix, midSizeI, midSizeO;
@@ -24,7 +25,7 @@ namespace refactor::kernel {
         return [info = this->info](Resources &, void const **inputs, void **outputs) {
             thrust::for_each_n(thrust::device,
                                thrust::counting_iterator<long>(0), info.prefix * info.midSizeO,
-                               KernelFunctor{
+                               GatherKernelFunctor{
                                    reinterpret_cast<uint8_t const *>(inputs[0]),
                                    reinterpret_cast<uint8_t const *>(inputs[1]),
                                    reinterpret_cast<uint8_t *>(outputs[0]),

@@ -41,8 +41,7 @@ namespace refactor::mem_manager {
 
     public:
         explicit OffsetCalculator(size_t alignment);
-
-        virtual ~OffsetCalculator();
+        virtual ~OffsetCalculator() = default;
 
         void init();
 

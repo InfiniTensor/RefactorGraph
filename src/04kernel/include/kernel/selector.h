@@ -7,6 +7,7 @@ namespace refactor::kernel {
 
     class Selector {
     public:
+        virtual ~Selector() = default;
         virtual KernelBox select(std::vector<KernelBox>) const = 0;
     };
 

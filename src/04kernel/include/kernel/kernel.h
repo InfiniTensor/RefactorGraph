@@ -10,6 +10,7 @@ namespace refactor::kernel {
 
     class Kernel {
     public:
+        virtual ~Kernel() = default;
         virtual size_t kernelTypeId() const = 0;
         virtual std::string_view description() const = 0;
         virtual Routine lower() const;

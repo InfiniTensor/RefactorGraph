@@ -6,7 +6,8 @@
 namespace refactor::kernel {
     using namespace runtime;
 
-    struct KernelFunctor {
+    // NOTICE NVCC 编译的对象无论是否在相同编译单元，都不可以重名。
+    struct SplitKernelFunctor {
         void const *data;
         void **outputs;
         uint_lv2 const *segments;
@@ -29,7 +30,7 @@ namespace refactor::kernel {
                 sum = info.sum](Resources &res, void const **inputs, void **outputs) {
             // thrust::for_each_n(thrust::device,
             //                    thrust::counting_iterator<long>(0), blockCount,
-            //                    KernelFunctor{
+            //                    SplitKernelFunctor{
             //                        inputs[0],
             //                        outputs,
             //                        segments.data().get(),

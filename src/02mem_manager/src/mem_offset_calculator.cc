@@ -4,11 +4,8 @@
 
 namespace refactor::mem_manager {
 
-    OffsetCalculator::OffsetCalculator(size_t alignment) : _alignment(alignment) {
-    }
-
-    OffsetCalculator::~OffsetCalculator() {
-    }
+    OffsetCalculator::OffsetCalculator(size_t alignment)
+        : _alignment(alignment) {}
 
     void OffsetCalculator::init() {
         _used = 0;
