@@ -37,15 +37,26 @@ TEST(kernel, SplitCpu) {
     void const *inputs[]{data.data()};
     void *outputs[]{outs[0].data(), outs[1].data(), outs[2].data(), outs[3].data()};
     routine(res, inputs, outputs);
-    // // check
-    // for (auto i : range0_(data.size())) {
-    //     fmt::print("{} ", data[i]);
-    // }
-    // fmt::println("");
-    // for (auto i : range0_(4)) {
-    //     for (auto j : range0_(outs[i].size())) {
-    //         fmt::print("{} ", outs[i][j]);
-    //     }
-    //     fmt::println("");
-    // }
+    // check
+    constexpr static size_t
+        loops[]{
+            1 * 7 * 7,
+            9 * 7 * 7,
+            3 * 7 * 7,
+            7 * 7 * 7,
+        },
+        offsets[]{
+            0 * 7 * 7,
+            1 * 7 * 7,
+            10 * 7 * 7,
+            13 * 7 * 7,
+            20 * 7 * 7,
+        };
+    for (auto i : range0_(2 * 3)) {
+        for (auto j : range0_(4)) {
+            for (auto k : range0_(loops[j])) {
+                EXPECT_EQ(outs[j][i * loops[j] + k], (i * offsets[4] + offsets[j]) + k);
+            }
+        }
+    }
 }
