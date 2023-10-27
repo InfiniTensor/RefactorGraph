@@ -1,16 +1,15 @@
 #include "kernel/attributes/where_info.h"
 
 namespace refactor::kernel {
+
     WhereBroadcast::WhereBroadcast(Shape const &c_, Shape const &x_, Shape const &y_, Shape const &output) noexcept
-        : _strides(), _size(1) {
-        auto rank = output.size();
-        _strides.resize(rank * 4, 1);
+        : _strides(output.size() * 4, 1), _size(1) {
         auto getStride = [](auto const i, Shape const &s) {
             return s.size() > i ? s[s.size() - i] : 0;
         };
 
-        uint_lv2 cMul = 1,
-                 xMul = 1, yMul = 1;
+        auto rank = output.size();
+        uint_lv2 cMul = 1, xMul = 1, yMul = 1;
         for (auto i : range0_(rank).rev()) {
             _strides[4 * i + 0] = _size;
             _strides[4 * i + 1] = cMul;
@@ -23,8 +22,8 @@ namespace refactor::kernel {
         }
     }
 
-    auto WhereBroadcast::locate(uint32_t k) const noexcept -> WhereBroadcast::Triplet {
-        uint32_t a = 0, b = 0, c = 0;
+    auto WhereBroadcast::locate(uint_lv2 k) const noexcept -> WhereBroadcast::Triplet {
+        uint_lv2 a = 0, b = 0, c = 0;
         long rem = k;
         for (auto i : range0_(_strides.size() / 4)) {
             auto d = std::div(rem, _strides[4 * i]);
@@ -36,7 +35,7 @@ namespace refactor::kernel {
         return {a, b, c};
     }
 
-    auto WhereBroadcast::size() const noexcept -> uint32_t {
+    auto WhereBroadcast::size() const noexcept -> uint_lv2 {
         return _size;
     }
 

@@ -6,33 +6,37 @@
 namespace refactor::kernel {
     using namespace runtime;
 
+    // NOTICE NVCC 编译的对象无论是否在相同编译单元，都不可以重名。
     struct WhereKernelFunctor {
         bool const *c;
         uint8_t const *x;
         uint8_t const *y;
         uint8_t *output;
-        long eleSize, rank;
         uint_lv2 const *strides;
+        long rank, eleSize;
 
         __device__ void operator()(long i) const noexcept {
-            long ic = 0l, ix = 0l, iy = 0l;
-            long rem = i;
-            for (long j = 0l; j < 4; ++j) {
-                long d = rem / strides[4 * j];
+            auto ic = 0l, ix = 0l, iy = 0l, rem = i;
+            for (auto j = 0l; j < rank; ++j) {
+                auto d = rem / strides[4 * j];
+                rem %= strides[4 * j];
+
                 ic += strides[4 * j + 1] * d;
                 ix += strides[4 * j + 2] * d;
                 iy += strides[4 * j + 3] * d;
-                rem = rem % strides[4 * j];
             }
-            memcpy(output + i * eleSize, *(c + ic) ? x + ix * eleSize : y + iy * eleSize, eleSize);
+            memcpy(output + i * eleSize,
+                   c[ic]
+                       ? x + ix * eleSize
+                       : y + iy * eleSize,
+                   eleSize);
         }
     };
 
     auto WhereCuda::lower() const noexcept -> Routine {
-        return [n = static_cast<long>(info._size),
+        return [strides = thrust::device_vector<uint_lv2>(info._strides.begin(), info._strides.end()),
                 eleSize = static_cast<long>(dataType.size()),
-                rank = static_cast<long>(info._strides.size() / 4),
-                strides = thrust::device_vector<uint_lv2>(info._strides.begin(), info._strides.end())](Resources &res, void const **inputs, void **outputs) {
+                n = static_cast<long>(info._size)](Resources &res, void const **inputs, void **outputs) {
             thrust::for_each_n(
                 thrust::device, thrust::counting_iterator<long>(0), n,
                 WhereKernelFunctor{
@@ -40,9 +44,9 @@ namespace refactor::kernel {
                     reinterpret_cast<uint8_t const *>(inputs[1]),
                     reinterpret_cast<uint8_t const *>(inputs[2]),
                     reinterpret_cast<uint8_t *>(outputs[0]),
-                    eleSize,
-                    rank,
                     strides.data().get(),
+                    static_cast<long>(strides.size() / 4),
+                    eleSize,
                 });
         };
     }

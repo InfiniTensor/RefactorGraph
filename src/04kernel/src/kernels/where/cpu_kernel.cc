@@ -25,36 +25,24 @@ namespace refactor::kernel {
         return "Performing where operation on generic cpu";
     }
 
-#define CASE_DT(T)                                                                                        \
-    case DT::T:                                                                                           \
-        return [broadcast = this->broadcast](runtime::Resources &, void const **inputs, void **outputs) { \
-            using T_ = primitive_t<DT::T>::type;                                                          \
-            auto c = reinterpret_cast<bool const *>(inputs[0]);                                           \
-            auto x = reinterpret_cast<T_ const *>(inputs[1]);                                             \
-            auto y = reinterpret_cast<T_ const *>(inputs[2]);                                             \
-            auto output = reinterpret_cast<T_ *>(outputs[0]);                                             \
-            for (auto i : range0_(broadcast.size())) {                                                    \
-                auto [ic, ix, iy] = broadcast.locate(i);                                                  \
-                output[i] = c[ic] ? x[ix] : y[iy];                                                        \
-            }                                                                                             \
-        }
-
     auto K::lower() const noexcept -> Routine {
         using namespace runtime;
-        switch (dataType.internal) {
-            CASE_DT(F32);
-            CASE_DT(F64);
-            CASE_DT(U8);
-            CASE_DT(I8);
-            CASE_DT(U16);
-            CASE_DT(I16);
-            CASE_DT(U32);
-            CASE_DT(I32);
-            CASE_DT(U64);
-            CASE_DT(I64);
-            default:
-                UNREACHABLE();
-        }
+
+        return [eleSize = dataType.size(),
+                broadcast = this->broadcast](runtime::Resources &, void const **inputs, void **outputs) {
+            auto c = reinterpret_cast<bool const *>(inputs[0]);
+            auto x = reinterpret_cast<uint8_t const *>(inputs[1]);
+            auto y = reinterpret_cast<uint8_t const *>(inputs[2]);
+            auto output = reinterpret_cast<uint8_t *>(outputs[0]);
+            for (auto i : range0_(broadcast.size())) {
+                auto [ic, ix, iy] = broadcast.locate(i);
+                std::memcpy(output + i * eleSize,
+                            c[ic]
+                                ? x + ix * eleSize
+                                : y + iy * eleSize,
+                            eleSize);
+            }
+        };
     }
 
 }// namespace refactor::kernel
