@@ -28,15 +28,14 @@ namespace refactor::kernel {
             auto data = reinterpret_cast<uint8_t const *>(inputs[0]);
             auto output = reinterpret_cast<uint8_t *>(outputs[0]);
             auto policy = std::execution::par_unseq;
-            std::for_each_n(policy, natural_t(0), info.prefix, [&](auto i) {
-                std::for_each_n(policy, natural_t(0), info.midSizeO, [&](auto j) {
-                    int64_t k = info.idxType == DataType::I64
-                                    ? reinterpret_cast<int64_t const *>(inputs[1])[j]
-                                    : reinterpret_cast<int32_t const *>(inputs[1])[j];
-                    std::memcpy(info.postfix * (i * info.midSizeO + j) + output,
-                                info.postfix * (i * info.midSizeI + k) + data,
-                                info.postfix);
-                });
+            std::for_each_n(policy, natural_t(0), info.prefix * info.midSizeO, [&](auto i) {
+                auto d = std::div(i, info.midSizeO);
+                int64_t k = info.idxType == DataType::I64
+                                ? reinterpret_cast<int64_t const *>(inputs[1])[d.rem]
+                                : reinterpret_cast<int32_t const *>(inputs[1])[d.rem];
+                std::memcpy(info.postfix * i + output,
+                            info.postfix * (d.quot * info.midSizeI + k) + data,
+                            info.postfix);
             });
         };
     }
