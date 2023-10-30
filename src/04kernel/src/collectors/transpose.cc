@@ -7,7 +7,8 @@ namespace refactor::kernel {
     TransposeCollector::TransposeCollector(
         Target target_,
         decltype(perm) perm_) noexcept
-        : target(target_),
+        : InfoCollector(),
+          target(target_),
           perm(std::move(perm_)) {}
 
     std::vector<KernelBox>

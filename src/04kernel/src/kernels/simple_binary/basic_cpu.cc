@@ -1,6 +1,5 @@
 ﻿#include "basic_cpu.hh"
 #include <execution>
-#include <unordered_set>
 
 namespace refactor::kernel {
     using K = BinaryBasicCpu;

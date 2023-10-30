@@ -1,5 +1,5 @@
-﻿#ifndef KERNEL_ARTHIMETIC11_HH
-#define KERNEL_ARTHIMETIC11_HH
+﻿#ifndef KERNEL_BINARY_NO_BROADCAST_CPU_HH
+#define KERNEL_BINARY_NO_BROADCAST_CPU_HH
 
 #include "kernel/collectors/simple_binary.h"
 #include "kernel/tensor.h"
@@ -23,4 +23,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_ARTHIMETIC11_HH
+#endif// KERNEL_BINARY_NO_BROADCAST_CPU_HH
