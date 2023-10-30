@@ -1,7 +1,8 @@
 ﻿#include "kernel/collectors/simple_binary.h"
-#include "../kernels/simple_binary/arthimetic11.hh"
+#include "../kernels/simple_binary/basic_cpu.hh"
 #include "../kernels/simple_binary/binary_cuda.hh"
 #include "../kernels/simple_binary/binary_cudnn.hh"
+#include "../kernels/simple_binary/no_broadcast_cpu.hh"
 
 namespace refactor::kernel {
 
@@ -23,7 +24,8 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (target) {
             case Target::Cpu:
-                REGISTER(Arthimetic11)
+                REGISTER(Binary11Cpu)
+                REGISTER(BinaryBasicCpu)
                 break;
             case Target::NvidiaGpu:
                 REGISTER_BROCAST(BinaryCudnn)

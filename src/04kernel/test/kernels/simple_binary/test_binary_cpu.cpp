@@ -1,5 +1,5 @@
-#include "../src/kernels/simple_binary/arthimetic11.hh"
 #include "../src/kernels/simple_binary/basic_cpu.hh"
+#include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -10,7 +10,7 @@ void testBinaryCPU(SimpleBinaryType binaryOPT, std::function<float(float, float)
     auto aTensor = Tensor::share(DataType::F32, Shape{10, 20, 30, 40}, LayoutType::NCHW);
     auto bTensor = Tensor::share(DataType::F32, Shape{10, 20, 30, 40}, LayoutType::NCHW);
     auto cTensor = Tensor::share(DataType::F32, Shape{10, 20, 30, 40}, LayoutType::NCHW);
-    auto cpuKernel = Arthimetic11::build(binaryOPT, *aTensor, *bTensor);
+    auto cpuKernel = Binary11Cpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel);
     auto cpuRoutine = cpuKernel->lower();
 

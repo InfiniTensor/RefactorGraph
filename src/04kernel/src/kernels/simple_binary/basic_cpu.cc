@@ -14,7 +14,7 @@ namespace refactor::kernel {
           broadcaster(std::move(b)) {}
 
     auto K::build(Op op, Tensor const &a, Tensor const &b) noexcept -> KernelBox {
-        return a.dataType.isCpuNumberic()
+        return a.dataType.isCpuNumberic() && a.dataType == b.dataType
                    ? std::make_unique<K>(op, a.dataType, Broadcaster({a, b}))
                    : nullptr;
     }
@@ -27,20 +27,21 @@ namespace refactor::kernel {
         return typeId();
     }
     auto K::description() const noexcept -> std::string_view {
-        return "Performing simple operation of 2 tensors on generic cpu";
+        return "Performing binary operation of 2 tensors on generic cpu";
     }
 
 #define CASE_DT(OP, T)                                                                                        \
     case DT::T:                                                                                               \
         return [broadcaster = this->broadcaster](runtime::Resources &, void const **inputs, void **outputs) { \
             using T_ = primitive_t<DT::T>::type;                                                              \
-            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                                 \
-            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                                 \
-            auto c = reinterpret_cast<T_ *>(outputs[0]);                                                      \
+            auto aa = reinterpret_cast<T_ const *>(inputs[0]);                                                \
+            auto bb = reinterpret_cast<T_ const *>(inputs[1]);                                                \
+            auto cc = reinterpret_cast<T_ *>(outputs[0]);                                                     \
             uint_lv2 ii[2];                                                                                   \
             for (auto i : range0_(broadcaster.outputsCount)) {                                                \
                 broadcaster.locate(i, ii);                                                                    \
-                c[i] = OP(a[ii[0]], b[ii[1]]);                                                                \
+                auto a = aa[ii[0]], b = bb[ii[1]];                                                            \
+                cc[i] = (OP);                                                                                 \
             }                                                                                                 \
         }
 
@@ -65,36 +66,36 @@ namespace refactor::kernel {
         using namespace runtime;
 
         switch (opType) {
-            CASE_OP(Add, [](auto a, auto b) { return a + b; })
-            CASE_OP(Sub, [](auto a, auto b) { return a - b; })
-            CASE_OP(Mul, [](auto a, auto b) { return a * b; })
-            CASE_OP(Div, [](auto a, auto b) { return a / b; })
+            CASE_OP(Add, a + b)
+            CASE_OP(Sub, a - b)
+            CASE_OP(Mul, a * b)
+            CASE_OP(Div, a / b)
             case Op::And:
                 switch (dataType.internal) {
-                    CASE_DT([](auto a, auto b) { return a && b; }, Bool);
+                    CASE_DT(a && b, Bool);
                     default:
                         UNREACHABLE();
                 }
             case Op::Or:
                 switch (dataType.internal) {
-                    CASE_DT([](auto a, auto b) { return a || b; }, Bool);
+                    CASE_DT(a || b, Bool);
                     default:
                         UNREACHABLE();
                 }
             case Op::Xor:
                 switch (dataType.internal) {
-                    CASE_DT([](auto a, auto b) { return a ^ b; }, Bool);
+                    CASE_DT(a ^ b, Bool);
                     default:
                         UNREACHABLE();
                 }
             case Op::Pow: {
                 switch (dataType.internal) {
-                    CASE_DT(std::pow, F32);
-                    CASE_DT(std::pow, F64);
-                    CASE_DT(std::pow, I8);
-                    CASE_DT(std::pow, I16);
-                    CASE_DT(std::pow, I32);
-                    CASE_DT(std::pow, I64);
+                    CASE_DT(std::pow(a, b), F32);
+                    CASE_DT(std::pow(a, b), F64);
+                    CASE_DT(std::pow(a, b), I8);
+                    CASE_DT(std::pow(a, b), I16);
+                    CASE_DT(std::pow(a, b), I32);
+                    CASE_DT(std::pow(a, b), I64);
                     default:
                         UNREACHABLE();
                 }

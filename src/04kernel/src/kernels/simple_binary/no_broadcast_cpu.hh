@@ -5,13 +5,13 @@
 #include "kernel/tensor.h"
 
 namespace refactor::kernel {
-
-    struct Arthimetic11 final : public Kernel {
+    /// @brief Binary kernel without broadcast support. 11 for 1-1 mapping.
+    struct Binary11Cpu final : public Kernel {
         DataType dataType;
         SimpleBinaryType opType;
         size_t size;
 
-        Arthimetic11(SimpleBinaryType, DataType, size_t) noexcept;
+        Binary11Cpu(SimpleBinaryType, DataType, size_t) noexcept;
 
         static KernelBox build(SimpleBinaryType, Tensor const &, Tensor const &) noexcept;
         static size_t typeId() noexcept;
