@@ -1,5 +1,4 @@
 ﻿#include "graph_topo/container.h"
-#include "refactor/common.h"
 #include <algorithm>
 #include <numeric>
 #include <sstream>
@@ -90,6 +89,9 @@ namespace refactor::graph_topo {
     }
     auto GraphTopo::globalOutputs() const noexcept -> slice_t<idx_t> {
         return slice(_connections.data(), static_cast<size_t>(_lenOut));
+    }
+    auto GraphTopo::connections() const noexcept -> slice_t<idx_t> {
+        return slice(_connections.data(), _connections.size());
     }
 
     std::string GraphTopo::toString() const {

@@ -46,7 +46,7 @@ namespace refactor::python_ffi {
         return std::make_shared<OpBox>(Operator::build(fmt::format("onnx::{}", opType), std::move(attrs_)));
     }
 
-    std::shared_ptr<Compiler>
+    Arc<Compiler>
     makeCompiler(
         std::unordered_map<Name, std::pair<NameVec, NameVec>> topology,
         std::unordered_map<Name, SharedOp> nodes,

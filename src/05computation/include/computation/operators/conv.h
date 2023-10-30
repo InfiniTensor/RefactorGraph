@@ -2,13 +2,13 @@
 #define COMPUTATION_CONV_H
 
 #include "../operator.h"
-#include "kernel/collectors/pool_attributes.hh"
+#include "kernel/attributes/pool_attributes.h"
 
 namespace refactor::computation {
     using kernel::PoolAttributes;
 
     struct Conv final : public Operator {
-        PoolAttributes poolAttributes;
+        PoolAttributes attributes;
 
         explicit Conv(PoolAttributes) noexcept;
 

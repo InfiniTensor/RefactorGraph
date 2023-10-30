@@ -7,6 +7,7 @@
 #include "operators/constant_of_shape.hh"
 #include "operators/conv.hh"
 #include "operators/cum_sum.hh"
+#include "operators/einsum.hh"
 #include "operators/expand.hh"
 #include "operators/gather.hh"
 #include "operators/gather_elements.hh"
@@ -47,6 +48,7 @@ namespace refactor::onnx {
         REGISTER(ConstantOfShape   , ConstantOfShape   );
         REGISTER(Conv              , Conv              );
         REGISTER(CumSum            , CumSum            );
+        REGISTER(Einsum            , Einsum            );
         REGISTER(Expand            , Expand            );
         REGISTER(Gather            , Gather            );
         REGISTER(GatherElements    , GatherElements    );

@@ -1,7 +1,7 @@
 ﻿#include "kernel/collectors/simple_unary.h"
 #include "../kernels/simple_unary/cpu_kernel.hh"
 #include "../kernels/simple_unary/cudnn_activation_kernel.hh"
-#include "refactor/common.h"
+#include "common.h"
 
 namespace refactor::kernel {
 
@@ -17,7 +17,7 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (target) {
             case Target::Cpu:
-                REGISTER(SimpleUnary)
+                REGISTER(SimpleUnaryCpu)
                 break;
             case Target::NvidiaGpu:
                 REGISTER(ActivationCudnn)

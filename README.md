@@ -13,10 +13,10 @@ import sys
 from onnx import load
 from refactor_graph.onnx import make_compiler
 
-model = load(sys.argv[1])         # 加载 onnx 模型
-compiler = make_compiler(model)   # 生成编译器对象
-compiler.substitute("seq_len", 1) # 代换模型中的变量
-executor = compiler.compile()     # 编译模型到执行器
+model = load(sys.argv[1]) # ----------------------- 加载 onnx 模型
+compiler = make_compiler(model) # ----------------- 生成编译器对象
+compiler.substitute("seq_len", 1) # --------------- 代换模型中的变量
+executor = compiler.compile("cuda", ["ce", "lp"]) # 编译模型到执行器，传入目标硬件和优化选项
 ```
 
 ## 依赖

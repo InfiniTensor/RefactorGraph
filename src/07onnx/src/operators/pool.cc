@@ -1,7 +1,6 @@
 ﻿#include "computation/operators/pool.h"
 #include "common.h"
 #include "pool.hh"
-#include "refactor/common.h"
 
 namespace refactor::onnx {
     using Op = Pool;
@@ -118,7 +117,7 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 
-    auto Op::lower(TensorRefs) const -> computation::OpBox {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::Pool;
         using Ty_ = computation::PoolType;
 
@@ -137,7 +136,20 @@ namespace refactor::onnx {
                 UNREACHABLE();
         }
 
-        return std::make_unique<Op_>(type_);
+        auto rank = inputs[0].rank();
+        decltype(Op_::kernelShape) kernelShape_(kernelShape.size());
+        std::transform(kernelShape.begin(), kernelShape.end(),
+                       kernelShape_.begin(),
+                       [](auto d) { return static_cast<uint16_t>(d); });
+        return std::make_unique<Op_>(
+            type_,
+            ceilMode,
+            std::move(kernelShape_),
+            computation::PoolAttributes(
+                rank - 2,
+                dilations ? dilations->data() : nullptr,
+                pads ? pads->data() : nullptr,
+                strides ? strides->data() : nullptr));
     }
 
 }// namespace refactor::onnx

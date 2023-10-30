@@ -1,26 +1,24 @@
-﻿#include "../src/operators/common.h"
+﻿#include "../src/operators/expand.hh"
 #include "onnx/operators.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
-using namespace common;
 using namespace frontend;
 using namespace onnx;
 
 TEST(infer, Expand) {
     onnx::register_();
-    auto opType = OpType::parse("onnx::Expand");
-    auto input = Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {});
-    auto shape = Tensor::share(DataType::I64, Shape{DimExpr(4)}, {});
-    auto ptr = reinterpret_cast<int64_t *>(shape->malloc());
-    ptr[0] = 7;
-    ptr[1] = 2;
-    ptr[2] = 3;
-    ptr[3] = 5;
-    auto edges = Edges{{input, ""}, {shape, ""}};
-    auto inputs = std::vector<size_t>{0, 1};
-    InferOptions options{true};
-    auto infered = Operator{opType, {}}.infer(TensorRefs(edges, slice(inputs.data(), inputs.size())), options);
+    auto edges = Edges{
+        {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""},
+        {Tensor::share(DataType::I64, Shape{DimExpr(4)}, {}), ""},
+    };
+    {
+        auto &shape = edges[1].tensor;
+        int64_t shape_[]{7, 2, 3, 5};
+        std::copy(shape_, shape_ + 4, reinterpret_cast<int64_t *>(shape->malloc()));
+    }
+    graph_topo::idx_t inputs[]{0, 1};
+    auto infered = Expand().infer(TensorRefs(edges, slice(inputs, 2)), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

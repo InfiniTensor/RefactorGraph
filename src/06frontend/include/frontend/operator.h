@@ -58,6 +58,7 @@ namespace refactor::frontend {
     public:
         using InputVec = absl::InlinedVector<size_t, 1>;
 
+        virtual ~Operator() = default;
         virtual size_t opTypeId() const = 0;
         virtual std::string_view opTypeName() const = 0;
         virtual InputVec valueDependentInputs() const { return {}; }

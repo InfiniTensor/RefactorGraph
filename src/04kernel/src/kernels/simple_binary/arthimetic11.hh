@@ -1,7 +1,6 @@
 ﻿#ifndef KERNEL_ARTHIMETIC11_HH
 #define KERNEL_ARTHIMETIC11_HH
 
-#include "refactor/common.h"
 #include "kernel/collectors/simple_binary.h"
 #include "kernel/tensor.h"
 

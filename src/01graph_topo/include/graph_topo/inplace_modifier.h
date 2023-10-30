@@ -2,6 +2,7 @@
 #define GRAPH_TOPO_INPLACE_MODIFIER_H
 
 #include "container.h"
+#include <unordered_map>
 
 namespace refactor::graph_topo {
     /// @brief 描述连接节点的边。
@@ -53,6 +54,17 @@ namespace refactor::graph_topo {
         /// @param 桥接描述。
         /// @return 搭好的桥梁节点坐标，与描述对应。
         BridgePos insert(Bridge) noexcept;
+
+        /// @brief 重新连接边。
+        /// @param from 原本连接的边。
+        /// @param to 要切换到的边。
+        /// @return 发生重连的次数。
+        size_t reconnect(idx_t from, idx_t to);
+
+        /// @brief 重新连接边。
+        /// @param map 重连对应表。
+        /// @return 发生重连的次数。
+        size_t reconnect(std::unordered_map<idx_t, idx_t> const &);
     };
 
 }// namespace refactor::graph_topo

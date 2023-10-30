@@ -8,6 +8,7 @@ namespace refactor::kernel {
 
     class InfoCollector {
     public:
+        virtual ~InfoCollector() = default;
         virtual std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const = 0;
     };

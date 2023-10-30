@@ -1,15 +1,21 @@
 ﻿#ifndef KERNEL_CUDNN_FUNCTIONS_H
 #define KERNEL_CUDNN_FUNCTIONS_H
 
-#include "refactor/common.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <cudnn.h>
 
-#define CUDNN_ASSERT(STATUS) ASSERT((STATUS) == CUDNN_STATUS_SUCCESS, "cudnn not success")
+#define CUDNN_ASSERT(STATUS)                                                 \
+    if (auto status = (STATUS); status != CUDNN_STATUS_SUCCESS) {            \
+        RUNTIME_ERROR(fmt::format("cudnn failed on \"" #STATUS "\" with {}", \
+                                  cudnnGetErrorString(status)));             \
+    }
 
 namespace refactor::kernel::cudnn {
 
     cudnnDataType_t cudnnDataTypeConvert(DataType);
+
+    // A helper function that set CuDNN tensor descriptor given tensor shape and type
+    void setCudnnTensor(cudnnTensorDescriptor_t aDesc, DataType dt, std::vector<int> aDims);
 
 }// namespace refactor::kernel::cudnn
 

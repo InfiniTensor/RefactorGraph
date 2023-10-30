@@ -1,5 +1,4 @@
 ﻿#include "kernel/graph.h"
-#include "allocator/flat_allocator.h"
 
 namespace refactor::kernel {
 
@@ -14,17 +13,20 @@ namespace refactor::kernel {
               std::move(edges),
           }) {}
 
-    runtime::Stream Graph::lower() const {
+    runtime::Stream Graph::lower(Allocator allocator) const {
         std::vector<Routine> routines;
-        auto const &g = _internal.contiguous();
-        routines.reserve(g.nodes.size());
-        std::transform(g.nodes.begin(), g.nodes.end(),
+        routines.reserve(_internal.nodes.size());
+        std::transform(_internal.nodes.begin(), _internal.nodes.end(),
                        std::back_inserter(routines),
-                       [](auto const &node) { return node.kernel->lower(); });
-        auto [size, offsets] = flatAllocate(g);
+                       [](auto const &node) {
+                           return node.kernel
+                                      ? node.kernel->lower()
+                                      : refactor::runtime::emptyRoutine;
+                       });
+        auto [size, offsets] = allocator(_internal, sizeof(uint64_t));
         return runtime::Stream(
-            mem_manager::ForeignBlob::share(_target.memFunc(), size),
-            g.topology,
+            mem_manager::ForeignBlob::share(_target.memManager(), size),
+            _internal.topology,
             std::move(routines),
             std::move(offsets));
     }

@@ -1,6 +1,5 @@
 ﻿#include "computation/operators/reshape.h"
 #include "common.h"
-#include "refactor/common.h"
 #include "reshape.hh"
 
 namespace refactor::onnx {
@@ -27,7 +26,7 @@ namespace refactor::onnx {
 
         auto const &data = inputs[0];
         auto const &shape = inputs[1];
-        if (shape.dataType != DataType::I64 || shape.rank() != 1 || !shape.hasData()) {
+        if (shape.dataType != DataType::I64 || shape.rank() != 1 || !shape.data) {
             return Err(InferError(ERROR_MSG("Shape not support")));
         }
 

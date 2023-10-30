@@ -1,9 +1,9 @@
 ﻿#ifndef KERNEL_CONV_H
 #define KERNEL_CONV_H
 
+#include "../attributes/pool_attributes.h"
 #include "../collector.h"
 #include "../target.h"
-#include "pool_attributes.hh"
 
 namespace refactor::kernel {
 

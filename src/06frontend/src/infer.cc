@@ -1,5 +1,4 @@
 ﻿#include "frontend/infer.h"
-#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::frontend {
@@ -17,7 +16,7 @@ namespace refactor::frontend {
         if (!calculate) { return false; }
         size_t sizeI = 0;
         for (auto const &input : inputs) {
-            if (!input.hasData()) {
+            if (!input.data) {
                 return false;
             }
             if (!input.depVariables.empty()) {

@@ -1,7 +1,7 @@
 ﻿#ifndef PYTHON_FFI_FUNCTIONS_H
 #define PYTHON_FFI_FUNCTIONS_H
 
-#include "refactor/common.h"
+#include "common.h"
 #include "frontend/tensor.h"
 #include <pybind11/numpy.h>
 

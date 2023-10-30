@@ -1,12 +1,18 @@
 ﻿#include "computation/operators/split.h"
+#include "kernel/collectors/split.h"
 
 namespace refactor::computation {
+    using Op = Split;
 
-    size_t Split::typeId() noexcept {
+    auto Op::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    size_t Split::opTypeId() const noexcept { return typeId(); }
-    std::string_view Split::name() const noexcept { return "Split"; }
+    auto Op::opTypeId() const noexcept -> size_t { return typeId(); }
+    auto Op::name() const noexcept -> std::string_view { return "Split"; }
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        using Collector_ = kernel::SplitCollector;
+        return std::make_unique<Collector_>(target, axis);
+    }
 
 }// namespace refactor::computation

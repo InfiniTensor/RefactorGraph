@@ -1,6 +1,5 @@
 ﻿#include "computation/operators/split.h"
 #include "common.h"
-#include "refactor/common.h"
 #include "split.hh"
 #include <execution>
 
@@ -54,7 +53,7 @@ namespace refactor::onnx {
             return Ok(std::move(ans));
         } else {
             auto const &split = inputs[1];
-            if (split.dataType != DataType::I64 || split.shape.size() != 1 || !split.hasData()) {
+            if (split.dataType != DataType::I64 || split.shape.size() != 1 || !split.data) {
                 return Err(InferError(ERROR_MSG("Split not support")));
             }
             EXPECT_VAL(split.shape[0], numOutputs)

@@ -9,6 +9,7 @@ namespace refactor::onnx {
 
     struct Pool final : public Operator {
         PoolType type;
+        bool ceilMode;
         Ints kernelShape;
         OptionalInts dilations, pads, strides;
 

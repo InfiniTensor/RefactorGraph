@@ -1,7 +1,7 @@
 ﻿#ifndef COMPUTATION_GRAPH_H
 #define COMPUTATION_GRAPH_H
 
-#include "graph_topo/graph_topo.h"
+#include "graph_topo.h"
 #include "kernel/graph.h"
 #include "operator.h"
 
@@ -15,19 +15,21 @@ namespace refactor::computation {
     };
 
     struct Edge {
-        std::shared_ptr<Tensor> tensor;
+        Arc<Tensor> tensor;
         std::string name;
     };
 
     class Graph {
-        graph_topo::Graph<Node, Edge> _internal;
+        graph_topo::PolymorphGraph<Node, Edge> _internal;
 
     public:
         explicit Graph(graph_topo::Graph<Node, Edge>) noexcept;
         Graph(graph_topo::GraphTopo, std::vector<Node>, std::vector<Edge>) noexcept;
 
-        void transpose();
+        void layoutPermute();
+
         kernel::Graph lower(Target) const;
+        auto internal() const -> decltype(_internal) const &;
     };
 
 }// namespace refactor::computation

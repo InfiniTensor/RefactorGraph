@@ -1,11 +1,9 @@
 ﻿#include "cudnn_kernel.hh"
-#include "refactor/common.h"
-#include "refactor/common.h"
 
 namespace refactor::kernel {
     using K = ConvCudnn;
 
-    K::ConvCudnn(cudnn::ConvInfo info_) noexcept
+    K::ConvCudnn(decltype(info) info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
     auto K::build(cudnn::ConvolutionFwdAlgo algo,
@@ -30,7 +28,7 @@ namespace refactor::kernel {
         auto d = poolAttributes.dilations(),
              p = poolAttributes.pads(),
              s = poolAttributes.strides();
-        return std::make_unique<K>(cudnn::ConvInfo{
+        return std::make_unique<K>(decltype(info){
             x.dataType,
             algo,
             {
@@ -102,9 +100,6 @@ namespace refactor::kernel {
     auto K::kernelTypeId() const noexcept -> size_t { return typeId(info.algo); }
     auto K::description() const noexcept -> std::string_view {
         return "Performing conv using CUDNN";
-    }
-    auto K::lower() const noexcept -> Routine {
-        return info.lower();
     }
 
 }// namespace refactor::kernel

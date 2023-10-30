@@ -1,19 +1,32 @@
 ﻿#ifndef RUNTIME_STREAM_H
 #define RUNTIME_STREAM_H
 
-#include "graph_topo/graph_topo.h"
+#include "graph_topo.h"
 #include "mem_manager/foreign_blob.hh"
 #include "resource.h"
 #include <absl/container/inlined_vector.h>
 #include <functional>
+#include <variant>
 
 namespace refactor::runtime {
-    using Addresses = absl::InlinedVector<void *, 2>;
-    using Routine = std::function<void(runtime::Resources &, Addresses, Addresses)>;
+    using Routine = std::function<void(runtime::Resources &, void const **, void **)>;
+
+    void emptyRoutine(runtime::Resources &, void const **, void **);
+
+    struct Address {
+        std::variant<size_t, mem_manager::SharedForeignBlob> value;
+
+        void *operator()(void *stack);
+
+        bool isBlob() const noexcept;
+        bool isOffset() const noexcept;
+
+        size_t getOffset() const;
+    };
 
     class Stream {
         using _N = Routine;
-        using _E = size_t;
+        using _E = Address;
         using _G = graph_topo::Graph<_N, _E>;
 
         Resources _resources;

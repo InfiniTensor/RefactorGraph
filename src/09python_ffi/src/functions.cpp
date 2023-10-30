@@ -1,5 +1,5 @@
 ﻿#include "functions.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <execution>
 
 namespace refactor::python_ffi {

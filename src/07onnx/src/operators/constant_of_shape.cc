@@ -1,6 +1,5 @@
 ﻿#include "constant_of_shape.hh"
 #include "common.h"
-#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
@@ -28,7 +27,7 @@ namespace refactor::onnx {
         auto const &input = inputs[0];
         if (input.dataType != DataType::I64 ||
             input.shape.size() != 1 ||
-            !input.hasData()) {
+            !input.data) {
             return Err(InferError(ERROR_MSG("Shape not support")));
         }
 
@@ -41,7 +40,7 @@ namespace refactor::onnx {
                        [](auto const d) { return DimExpr(d); });
         auto dependencies = input.depVariables;
         if (value) {
-            ASSERT(value->hasData(), "ConstantOfShape value must have data");
+            ASSERT(value->data, "ConstantOfShape value must have data");
             ASSERT(value->shape == Shape{DimExpr(1)}, "ConstantOfShape value must be scalar");
             auto ans = Tensor::share(value->dataType, std::move(output), std::move(dependencies));
             std::for_each_n(std::execution::unseq, natural_t(0), ans->elementsSize(),

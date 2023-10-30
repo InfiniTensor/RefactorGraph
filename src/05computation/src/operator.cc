@@ -3,6 +3,7 @@
 namespace refactor::computation {
 
     bool Operator::isLayoutDependent() const { return false; }
+    bool Operator::isIdentity() const { return false; }
     void Operator::transposeTo(LayoutType) { isLayoutDependent() && UNREACHABLEX(bool, ""); }
     kernel::CollectorBox Operator::candidateKernels(Target) const {
         TODO(fmt::format("Operator \"{}\" lower to kernel not implemented", name()));
@@ -13,13 +14,14 @@ namespace refactor::computation {
 
     bool AxisRankOperator::isLayoutDependent() const { return rank != 4; }
     void AxisRankOperator::transposeTo(LayoutType target) {
+        using Layout = LayoutType;
         Operator::transposeTo(target);
         switch (target) {
             case LayoutType::NCHW:
-                axis = (int[]){0, 2, 3, 1}[axis];
+                axis = PERMUTATION(NHWC, NCHW)[axis];
                 break;
             case LayoutType::NHWC:
-                axis = (int[]){0, 3, 1, 2}[axis];
+                axis = PERMUTATION(NCHW, NHWC)[axis];
                 break;
             default:
                 UNREACHABLE();

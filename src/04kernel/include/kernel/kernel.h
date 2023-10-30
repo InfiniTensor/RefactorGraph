@@ -6,14 +6,14 @@
 #include <string_view>
 
 namespace refactor::kernel {
-    using runtime::Addresses;
     using runtime::Routine;
 
     class Kernel {
     public:
+        virtual ~Kernel() = default;
         virtual size_t kernelTypeId() const = 0;
         virtual std::string_view description() const = 0;
-        virtual Routine lower() const = 0;
+        virtual Routine lower() const;
     };
 
     using KernelBox = std::unique_ptr<Kernel>;

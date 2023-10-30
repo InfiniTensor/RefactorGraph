@@ -1,7 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_CONTAINER_H
 #define GRAPH_TOPO_CONTAINER_H
 
-#include "refactor/common.h"
+#include "common.h"
 #include <cstddef>
 #include <vector>
 
@@ -67,6 +67,7 @@ namespace refactor::graph_topo {
         size_t edgeCount() const noexcept;
         range_t<idx_t> globalInputs() const noexcept;
         slice_t<idx_t> globalOutputs() const noexcept;
+        slice_t<idx_t> connections() const noexcept;
 
         std::string toString() const;
     };

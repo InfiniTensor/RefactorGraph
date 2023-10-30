@@ -2,6 +2,24 @@
 
 namespace refactor::runtime {
 
+    void emptyRoutine(runtime::Resources &, void const **, void **) {}
+
+    void *Address::operator()(void *stack) {
+        return isBlob()
+                   ? *std::get<mem_manager::SharedForeignBlob>(value)
+                   : reinterpret_cast<uint8_t *>(stack) + std::get<size_t>(value);
+    }
+    bool Address::isBlob() const noexcept {
+        return std::holds_alternative<mem_manager::SharedForeignBlob>(value);
+    }
+    bool Address::isOffset() const noexcept {
+        return std::holds_alternative<size_t>(value);
+    }
+
+    size_t Address::getOffset() const {
+        return std::get<size_t>(value);
+    }
+
     Stream::Stream(mem_manager::SharedForeignBlob stack,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
@@ -14,19 +32,22 @@ namespace refactor::runtime {
           }) {}
 
     void Stream::run() {
-        auto stack = _stack->ptr();
+        void *stack = *_stack;
+        std::vector<void const *> inputs_;
+        std::vector<void *> outputs_;
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
             auto const &routine = _internal.nodes[nodeIdx];
-            Addresses
-                inputs_(inputs.size()),
-                outputs_(outputs.size());
+            inputs_.clear();
+            outputs_.clear();
+            inputs_.reserve(inputs.size());
+            outputs_.reserve(outputs.size());
             std::transform(inputs.begin(), inputs.end(),
                            inputs_.begin(),
-                           [stack, this](auto i) { return stack + _internal.edges[i]; });
+                           [stack, this](auto i) { return _internal.edges[i](stack); });
             std::transform(outputs.begin(), outputs.end(),
                            outputs_.begin(),
-                           [stack, this](auto i) { return stack + _internal.edges[i]; });
-            routine(_resources, std::move(inputs_), std::move(outputs_));
+                           [stack, this](auto i) { return _internal.edges[i](stack); });
+            routine(_resources, inputs_.data(), outputs_.data());
         }
     }
 

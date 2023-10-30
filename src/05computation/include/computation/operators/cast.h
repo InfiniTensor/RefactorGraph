@@ -2,7 +2,6 @@
 #define COMPUTATION_CAST_H
 
 #include "../operator.h"
-#include "refactor/common.h"
 
 namespace refactor::computation {
 

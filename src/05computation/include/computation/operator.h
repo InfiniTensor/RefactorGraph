@@ -1,7 +1,6 @@
 ﻿#ifndef COMPUTATION_OPERATOR_H
 #define COMPUTATION_OPERATOR_H
 
-#include "refactor/common.h"
 #include "kernel/collector.h"
 #include "kernel/target.h"
 
@@ -11,9 +10,11 @@ namespace refactor::computation {
 
     class Operator {
     public:
+        virtual ~Operator() = default;
         virtual size_t opTypeId() const = 0;
         virtual std::string_view name() const = 0;
         virtual bool isLayoutDependent() const;
+        virtual bool isIdentity() const;
         virtual void transposeTo(LayoutType);
         virtual kernel::CollectorBox candidateKernels(Target) const;
 

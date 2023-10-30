@@ -1,11 +1,11 @@
 ﻿#ifndef KRENEL_TARGET_H
 #define KRENEL_TARGET_H
 
-#include "mem_manager/mem_functions.h"
-#include <cstdint>
+#include "common.h"
+#include "mem_manager/mem_manager.hh"
 
 namespace refactor::kernel {
-    using mem_manager::MemFunctions;
+    using mem_manager::MemManager;
 
     struct Target {
         enum : uint8_t {
@@ -20,7 +20,7 @@ namespace refactor::kernel {
             return internal;
         }
 
-        MemFunctions const &memFunc() const;
+        Arc<MemManager> memManager() const;
     };
 
 }// namespace refactor::kernel

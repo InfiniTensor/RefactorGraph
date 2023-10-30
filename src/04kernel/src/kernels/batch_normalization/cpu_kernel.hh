@@ -3,7 +3,6 @@
 
 #include "kernel/kernel.h"
 #include "kernel/tensor.h"
-#include "refactor/common.h"
 
 namespace refactor::kernel {
 

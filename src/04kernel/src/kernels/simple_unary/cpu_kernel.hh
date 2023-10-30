@@ -1,18 +1,17 @@
 ﻿#ifndef KERNEL_SIMPLE_UNARY_CPU_KERNEL_HH
 #define KERNEL_SIMPLE_UNARY_CPU_KERNEL_HH
 
-#include "refactor/common.h"
 #include "kernel/collectors/simple_unary.h"
 #include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
-    struct SimpleUnary final : public Kernel {
+    struct SimpleUnaryCpu final : public Kernel {
         DataType dataType;
         SimpleUnaryType opType;
         size_t size;
 
-        SimpleUnary(SimpleUnaryType, DataType, size_t) noexcept;
+        SimpleUnaryCpu(SimpleUnaryType, DataType, size_t) noexcept;
 
         static KernelBox build(SimpleUnaryType, Tensor const &) noexcept;
         static size_t typeId() noexcept;

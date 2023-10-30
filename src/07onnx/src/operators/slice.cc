@@ -1,6 +1,5 @@
 ﻿#include "computation/operators/slice.h"
 #include "common.h"
-#include "refactor/common.h"
 #include "slice.hh"
 #include <execution>
 
@@ -104,7 +103,7 @@ namespace refactor::onnx {
         if (rank < size) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
-        if (!starts_.hasData() || !ends_.hasData()) {
+        if (!starts_.data || !ends_.data) {
             return Err(InferError(ERROR_MSG("Starts and ends must be constant")));
         }
         int64_t const *starts = starts_.data->get<int64_t>(),
@@ -116,7 +115,7 @@ namespace refactor::onnx {
             if (axes_.dataType != tint || axes_.shape != starts_.shape) {
                 return Err(InferError(ERROR_MSG("Axes not support")));
             }
-            if (!axes_.hasData()) {
+            if (!axes_.data) {
                 return Err(InferError(ERROR_MSG("Axes must be constant")));
             }
             axes = axes_.data->get<int64_t>();
@@ -126,7 +125,7 @@ namespace refactor::onnx {
             if (steps_.dataType != tint || steps_.shape != starts_.shape) {
                 return Err(InferError(ERROR_MSG("Steps not support")));
             }
-            if (!steps_.hasData()) {
+            if (!steps_.data) {
                 return Err(InferError(ERROR_MSG("Steps must be constant")));
             }
             steps = steps_.data->get<int64_t>();

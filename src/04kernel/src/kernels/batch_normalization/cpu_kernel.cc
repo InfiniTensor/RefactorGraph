@@ -1,5 +1,4 @@
 ﻿#include "cpu_kernel.hh"
-#include "refactor/common.h"
 #include <numeric>
 
 namespace refactor::kernel {
@@ -50,10 +49,7 @@ namespace refactor::kernel {
              dims = std::accumulate(shape.begin() + 2, shape.end(), 1u, std::multiplies<>()),
              sn = c * dims,
              sc = dims;
-        return [n, c, sn, sc, epsilon](
-                   Resources &,
-                   Addresses inputs,
-                   Addresses outputs) {
+        return [n, c, sn, sc, epsilon](Resources &, void const **inputs, void **outputs) {
             auto x = inputs[0],
                  scale = inputs[1],
                  bias = inputs[2],
@@ -65,10 +61,10 @@ namespace refactor::kernel {
                 dt mean, scale, bias;
             };
             std::vector<Channel> channels(c);
-            auto scale_ = reinterpret_cast<t1 *>(scale),
-                 bias_ = reinterpret_cast<t1 *>(bias);
-            auto mean_ = reinterpret_cast<t2 *>(mean),
-                 var_ = reinterpret_cast<t2 *>(var);
+            auto scale_ = reinterpret_cast<t1 const *>(scale),
+                 bias_ = reinterpret_cast<t1 const *>(bias);
+            auto mean_ = reinterpret_cast<t2 const *>(mean),
+                 var_ = reinterpret_cast<t2 const *>(var);
             for (auto i : range0_(c)) {
                 channels[i] = {
                     static_cast<dt>(mean_[i]),
@@ -77,7 +73,7 @@ namespace refactor::kernel {
                 };
             }
             // Y = (X - input_mean) / sqrt(input_var + epsilon) * scale + B
-            auto x_ = reinterpret_cast<dt *>(x),
+            auto x_ = reinterpret_cast<dt const *>(x),
                  y_ = reinterpret_cast<dt *>(y);
             for (auto in : range0_(n))
                 for (auto ic : range0_(c))

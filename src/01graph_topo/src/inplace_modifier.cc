@@ -1,5 +1,4 @@
 ﻿#include "graph_topo/inplace_modifier.h"
-#include "refactor/common.h"
 #include <algorithm>
 
 namespace refactor::graph_topo {
@@ -78,6 +77,28 @@ namespace refactor::graph_topo {
             _g._connections.insert(_g._connections.begin() + passConnections, 1, e0);
             return {n, e1};
         }
+    }
+
+    auto InplaceModifier::reconnect(idx_t from, idx_t to) -> size_t {
+        size_t ans = 0;
+        for (auto &c : _g._connections) {
+            if (c == from) {
+                c = to;
+                ++ans;
+            }
+        }
+        return ans;
+    }
+
+    auto InplaceModifier::reconnect(std::unordered_map<idx_t, idx_t> const &map) -> size_t {
+        size_t ans = 0;
+        for (auto &c : _g._connections) {
+            if (auto it = map.find(c); it != map.end()) {
+                c = it->second;
+                ++ans;
+            }
+        }
+        return ans;
     }
 
 }// namespace refactor::graph_topo

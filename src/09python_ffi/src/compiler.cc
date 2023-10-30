@@ -1,5 +1,5 @@
 ﻿#include "compiler.h"
-#include "refactor/common.h"
+#include "common.h"
 #include <execution>
 
 namespace refactor::python_ffi {
@@ -26,8 +26,10 @@ namespace refactor::python_ffi {
     std::unordered_set<std::string>
     Compiler::fillEdgeInfo(bool calculate) { return _g.fillEdgeInfo(calculate); }
 
-    std::shared_ptr<Executor>
-    Compiler::compile(bool calculate, std::string target) {
+    Arc<Executor>
+    Compiler::compile(std::string target,
+                      std::string allocator,
+                      std::vector<std::string> passes) {
         _g.collectVariables();
         std::vector<std::string_view> unknownVariables;
         for (auto const &[_, v] : _g.variables()) {
@@ -44,9 +46,18 @@ namespace refactor::python_ffi {
             msg += ']';
             RUNTIME_ERROR(std::move(msg));
         }
-        _g.fillEdgeInfo(true);
+
+        std::unordered_set<std::string> passes_;
+        passes_.reserve(passes.size());
+        for (auto &p : passes) { passes_.emplace(std::move(p)); }
+
+        _g.fillEdgeInfo(passes_.erase("ce"));
+
         auto computation = _g.lower();
-        computation.transpose();
+        if (passes_.find("lp") != passes_.end()) {
+            computation.layoutPermute();
+        }
+
         kernel::Target target_ = kernel::Target::Cpu;
         if (target == "cpu") {
             target_ = kernel::Target::Cpu;
@@ -55,6 +66,7 @@ namespace refactor::python_ffi {
         } else {
             UNREACHABLE();
         }
+
         return std::make_shared<Executor>(std::move(computation), target_);
     }
 

@@ -1,12 +1,13 @@
 ﻿#include "../../utilities/cuda/cudnn_context.hh"
 #include "../../utilities/cuda/cudnn_functions.h"
 #include "../../utilities/cuda/cudnn_workspace.hh"
-#include "cudnn_impl.h"
+#include "cudnn_kernel.hh"
 
-namespace refactor::kernel::cudnn {
+namespace refactor::kernel {
+    using namespace cudnn;
     using namespace runtime;
 
-    Routine ConvInfo::lower() const {
+    auto ConvCudnn::lower() const noexcept -> Routine {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, y;
@@ -32,15 +33,19 @@ namespace refactor::kernel::cudnn {
         };
         auto d = std::make_shared<Descriptors>();
 
-        d->algo = static_cast<cudnnConvolutionFwdAlgo_t>(algo);
-        auto cudnnDataType = cudnnDataTypeConvert(dt);
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->x, CUDNN_TENSOR_NCHW, cudnnDataType, xShape[0], xShape[1], xShape[2], xShape[3]));
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->y, CUDNN_TENSOR_NCHW, cudnnDataType, yShape[0], yShape[1], yShape[2], yShape[3]));
-        CUDNN_ASSERT(cudnnSetFilter4dDescriptor(d->w, cudnnDataType, CUDNN_TENSOR_NCHW, wShape[0], wShape[1], wShape[2], wShape[3]));
-        CUDNN_ASSERT(cudnnSetConvolution2dDescriptor(d->conv, pad[0], pad[1], stride[0], stride[1], dilation[0], dilation[1], CUDNN_CROSS_CORRELATION, cudnnDataType));
+        d->algo = static_cast<cudnnConvolutionFwdAlgo_t>(info.algo);
+        auto cudnnDataType = cudnnDataTypeConvert(info.dt);
+        auto xs = info.xShape, ys = info.yShape, ws = info.wShape;
+        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->x, CUDNN_TENSOR_NCHW, cudnnDataType, xs[0], xs[1], xs[2], xs[3]));
+        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->y, CUDNN_TENSOR_NCHW, cudnnDataType, ys[0], ys[1], ys[2], ys[3]));
+        CUDNN_ASSERT(cudnnSetFilter4dDescriptor(d->w, cudnnDataType, CUDNN_TENSOR_NCHW, ws[0], ws[1], ws[2], ws[3]));
+        auto pp = info.pad;
+        auto ss = info.stride;
+        auto dd = info.dilation;
+        CUDNN_ASSERT(cudnnSetConvolution2dDescriptor(d->conv, pp[0], pp[1], ss[0], ss[1], dd[0], dd[1], CUDNN_CROSS_CORRELATION, cudnnDataType));
 
         // nvcc at c++11 doesn't support real move capture
-        return [d_ = std::move(d)](Resources &res, Addresses inputs, Addresses outputs) {
+        return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             auto const &workspace = *res.fetchOrStore<CudnnWorkspace>();
@@ -63,4 +68,4 @@ namespace refactor::kernel::cudnn {
         };
     }
 
-}// namespace refactor::kernel::cudnn
+}// namespace refactor::kernel

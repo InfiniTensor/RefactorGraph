@@ -1,7 +1,7 @@
 ﻿#ifndef COMMUNICATION_COMMON_H
 #define COMMUNICATION_COMMON_H
 
-#include "refactor/common.h"
+#include "common.h"
 
 #define EXPECT_SIZE(N)                                         \
     if (inputs.size() != (N)) {                                \

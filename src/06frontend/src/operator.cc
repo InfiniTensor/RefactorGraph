@@ -1,5 +1,4 @@
 ﻿#include "frontend/operator.h"
-#include "refactor/common.h"
 #include "frontend/graph.h"
 
 namespace refactor::frontend {
@@ -87,7 +86,7 @@ namespace refactor::frontend {
 
     void Operator::register_(std::string opType, Builder builder) {
         auto [it, ok] = OP_BUILDERS.try_emplace(std::move(opType), builder);
-        ASSERT(ok, "Duplicate operator type");
+        ASSERT(ok || it->second == builder, "Duplicate operator type");
     }
     OpBox Operator::build(std::string opType, Attributes attributes) {
         if (auto it = OP_BUILDERS.find(opType); it != OP_BUILDERS.end()) {

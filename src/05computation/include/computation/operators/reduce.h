@@ -2,7 +2,6 @@
 #define COMPUTATION_REDUCE_H
 
 #include "../operator.h"
-#include "refactor/common.h"
 #include <absl/container/inlined_vector.h>
 
 namespace refactor::computation {

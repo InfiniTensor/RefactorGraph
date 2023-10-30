@@ -1,7 +1,6 @@
 ﻿#include "unsqueeze.hh"
 #include "common.h"
 #include "computation/operators/reshape.h"
-#include "refactor/common.h"
 
 namespace refactor::onnx {
     using Op = Unsqueeze;
@@ -27,7 +26,7 @@ namespace refactor::onnx {
         auto const &data = inputs[0];
         auto const &axes = inputs[1];
 
-        if (axes.dataType != DataType::I64 || axes.shape.size() != 1 || !axes.hasData()) {
+        if (axes.dataType != DataType::I64 || axes.shape.size() != 1 || !axes.data) {
             return Err(InferError(ERROR_MSG("Axes not support")));
         }
         auto axes_ = axes.data->get<int64_t>();

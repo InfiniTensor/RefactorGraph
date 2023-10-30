@@ -8,5 +8,6 @@ namespace refactor::computation {
     }
     size_t Identity::opTypeId() const noexcept { return typeId(); }
     std::string_view Identity::name() const noexcept { return "Identity"; }
+    bool Identity::isIdentity() const noexcept { return true; }
 
 }// namespace refactor::computation

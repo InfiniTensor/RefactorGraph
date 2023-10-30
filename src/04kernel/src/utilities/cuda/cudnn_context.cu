@@ -1,5 +1,5 @@
-﻿#include "refactor/common.h"
-#include "cudnn_context.hh"
+﻿#include "cudnn_context.hh"
+#include "common.h"
 
 namespace refactor::kernel::cudnn {
 

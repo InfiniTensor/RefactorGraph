@@ -1,6 +1,5 @@
 #include "tile.hh"
 #include "common.h"
-#include "refactor/common.h"
 #include <execution>
 
 namespace refactor::onnx {
@@ -28,7 +27,7 @@ namespace refactor::onnx {
         auto const &repeats = inputs[1];
 
         auto rank = input.rank();
-        if (repeats.dataType != DataType::I64 || repeats.shape[0].value() != rank || !repeats.hasData()) {
+        if (repeats.dataType != DataType::I64 || repeats.shape[0].value() != rank || !repeats.data) {
             return Err(InferError(ERROR_MSG("repeats not support")));
         }
         EXPECT_VAL(repeats.shape[0], repeatsSize)

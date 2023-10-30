@@ -1,5 +1,4 @@
 ﻿#include "arthimetic11.hh"
-#include "refactor/common.h"
 #include <execution>
 #include <unordered_set>
 
@@ -37,7 +36,7 @@ namespace refactor::kernel {
 
 #define CASE_DT(OP, T)                                                                       \
     case DT::T:                                                                              \
-        return [n = this->size](runtime::Resources &, Addresses inputs, Addresses outputs) { \
+        return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
             using T_ = primitive_t<DT::T>::type;                                             \
             auto a = static_cast<T_ const *>(inputs[0]);                                     \
             auto b = static_cast<T_ const *>(inputs[1]);                                     \

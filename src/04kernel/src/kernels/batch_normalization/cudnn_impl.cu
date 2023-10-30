@@ -1,14 +1,14 @@
 ﻿#include "../../utilities/cuda/cudnn_context.hh"
 #include "../../utilities/cuda/cudnn_functions.h"
-#include "cudnn_impl.h"
+#include "cudnn_kernel.hh"
 #include <cudnn.h>
 
-namespace refactor::kernel::cudnn {
+namespace refactor::kernel {
+    using namespace cudnn;
     using namespace runtime;
-    using Ctx = CudnnContext;
     using DT = DataType;
 
-    Routine BNInfo::lower() const {
+    auto BatchNormalizationCudnn::lower() const noexcept -> Routine {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, param;
@@ -27,21 +27,21 @@ namespace refactor::kernel::cudnn {
         };
         auto d = std::make_shared<Descriptors>();
 
-        int strideAx[4]{0, 0, 0, 1},       // to calculate
-            dimAp[4]{1, dimAx[1], 1, 1},   // 1xCx1x1
-            strideAp[4]{dimAx[1], 1, 1, 1};// Cx1x1x1
+        int strideAx[4]{0, 0, 0, 1},            // to calculate
+            dimAp[4]{1, info.dimAx[1], 1, 1},   // 1xCx1x1
+            strideAp[4]{info.dimAx[1], 1, 1, 1};// Cx1x1x1
         // TODO: calculate real stride based on layout type
         for (auto i = 3; i > 0; --i) {
-            strideAx[i - 1] = strideAx[i] * dimAx[i];
+            strideAx[i - 1] = strideAx[i] * info.dimAx[i];
         }
 
-        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->x, cudnnDataTypeConvert(dtX), 4, dimAx, strideAx));
-        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->param, cudnnDataTypeConvert(dtParam), 4, dimAp, strideAp));
+        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->x, cudnnDataTypeConvert(info.dtX), 4, info.dimAx, strideAx));
+        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->param, cudnnDataTypeConvert(info.dtParam), 4, dimAp, strideAp));
 
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d),
-                param64 = dtParam == DT::F64,
-                epsilon = this->epsilon](Resources &res, Addresses inputs, Addresses outputs) {
+                param64 = info.dtParam == DT::F64,
+                epsilon = info.epsilon](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             // name inputs and outputs
@@ -78,4 +78,4 @@ namespace refactor::kernel::cudnn {
         };
     }
 
-}// namespace refactor::kernel::cudnn
+}// namespace refactor::kernel

@@ -8,5 +8,6 @@ namespace refactor::computation {
     }
     size_t Reshape::opTypeId() const noexcept { return typeId(); }
     std::string_view Reshape::name() const noexcept { return "Reshape"; }
+    bool Reshape::isIdentity() const noexcept { return true; }
 
 }// namespace refactor::computation

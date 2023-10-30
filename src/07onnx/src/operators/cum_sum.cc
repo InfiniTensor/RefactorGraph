@@ -1,7 +1,6 @@
 ﻿#include "computation/operators/cum_sum.h"
 #include "common.h"
 #include "cum_sum.hh"
-#include "refactor/common.h"
 #include <execution>
 #include <numeric>
 

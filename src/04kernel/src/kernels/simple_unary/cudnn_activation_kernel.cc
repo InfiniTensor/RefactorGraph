@@ -1,5 +1,7 @@
 ﻿#include "cudnn_activation_kernel.hh"
-#include "cudnn_activation_impl.hh"
+#include "kernel/collectors/simple_unary.h"
+#include "kernel/kernel.h"
+#include "kernel/tensor.h"
 #include <unordered_set>
 
 namespace refactor::kernel {
@@ -7,7 +9,7 @@ namespace refactor::kernel {
     using DT = DataType;
     using Op = SimpleUnaryType;
 
-    K::ActivationCudnn(Op type_, DT dataType_, size_t size_) noexcept
+    K::ActivationCudnn(Op type_, DT dataType_, int size_) noexcept
         : Kernel(), type(type_), dataType(dataType_), size(size_) {}
 
     auto K::build(Op op, Tensor const &a) noexcept -> KernelBox {
@@ -25,7 +27,7 @@ namespace refactor::kernel {
             TYPE.find(a.dataType) == TYPE.end()) {
             return nullptr;
         }
-        return std::make_unique<K>(op, a.dataType, a.elementsSize());
+        return std::make_unique<K>(op, a.dataType, static_cast<int>(a.elementsSize()));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -35,9 +37,6 @@ namespace refactor::kernel {
     auto K::kernelTypeId() const noexcept -> size_t { return typeId(); }
     auto K::description() const noexcept -> std::string_view {
         return "Performing activation using CUDNN";
-    }
-    auto K::lower() const noexcept -> Routine {
-        return cudnn::lower(type, dataType, size);
     }
 
 }// namespace refactor::kernel
