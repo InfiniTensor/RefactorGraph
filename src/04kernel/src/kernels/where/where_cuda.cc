@@ -3,13 +3,16 @@
 namespace refactor::kernel {
     using K = WhereCuda;
 
-    K::WhereCuda(DataType dataType_, WhereBroadcast b) noexcept
-        : Kernel(), dataType(dataType_), info(std::move(b)) {}
-    auto K::build(Tensor const &c, Tensor const &x, Tensor const &y, Tensor const &o) noexcept -> KernelBox {
+    K::WhereCuda(DataType dataType_, Broadcaster b) noexcept
+        : Kernel(),
+          dataType(dataType_),
+          broadcaster(std::move(b)) {}
+
+    auto K::build(TensorRefs const &inputs) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        return std::make_unique<K>(x.dataType, WhereBroadcast(c.shape, x.shape, y.shape, o.shape));
+        return std::make_unique<K>(inputs[1].get().dataType, Broadcaster(inputs));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

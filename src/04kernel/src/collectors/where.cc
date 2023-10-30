@@ -4,25 +4,19 @@
 
 namespace refactor::kernel {
 
-#define REGISTER(T)                                  \
-    if (auto ptr = T::build(c, x, y, output); ptr) { \
-        ans.emplace_back(std::move(ptr));            \
-    }
-
     std::vector<KernelBox>
-    WhereCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-        auto const &c = inputs[0].get();
-        auto const &x = inputs[1].get();
-        auto const &y = inputs[2].get();
-        auto const &output = outputs[0].get();
-
+    WhereCollector::filter(TensorRefs inputs, TensorRefs) const {
         std::vector<KernelBox> ans;
         switch (target) {
             case Target::Cpu:
-                REGISTER(WhereCpu)
+                if (auto ptr = WhereCpu::build(inputs); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             case Target::NvidiaGpu:
-                REGISTER(WhereCuda)
+                if (auto ptr = WhereCuda::build(inputs); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

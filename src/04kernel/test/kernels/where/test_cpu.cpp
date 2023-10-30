@@ -11,7 +11,7 @@ TEST(kernel, WhereCpu) {
     auto xTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5});
     auto yTensor = Tensor::share(DataType::F32, Shape{3, 2, 5});
     auto outTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5});
-    auto kernel = WhereCpu::build(*cTensor, *xTensor, *yTensor, *outTensor);
+    auto kernel = WhereCpu::build({*cTensor, *xTensor, *yTensor});
     ASSERT_TRUE(kernel);
     auto routine = kernel->lower();
     // malloc

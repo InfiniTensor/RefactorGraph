@@ -18,12 +18,12 @@ namespace refactor::kernel {
         __device__ void operator()(long i) const noexcept {
             auto ic = 0l, ix = 0l, iy = 0l, rem = i;
             for (auto j = 0l; j < rank; ++j) {
-                auto d = rem / strides[4 * j];
-                rem %= strides[4 * j];
-
-                ic += strides[4 * j + 1] * d;
-                ix += strides[4 * j + 2] * d;
-                iy += strides[4 * j + 3] * d;
+                auto dim = strides + 4 * i;
+                auto quot = rem / dim[3];
+                rem %= dim[3];
+                ic += quot * dim[0];
+                ix += quot * dim[1];
+                iy += quot * dim[2];
             }
             memcpy(output + i * eleSize,
                    c[ic]
@@ -34,9 +34,9 @@ namespace refactor::kernel {
     };
 
     auto WhereCuda::lower() const noexcept -> Routine {
-        return [strides = thrust::device_vector<uint_lv2>(info._strides.begin(), info._strides.end()),
-                eleSize = static_cast<long>(dataType.size()),
-                n = static_cast<long>(info._size)](Resources &res, void const **inputs, void **outputs) {
+        return [strides = thrust::device_vector<uint_lv2>(broadcaster.strides.begin(), broadcaster.strides.end()),
+                n = static_cast<long>(broadcaster.outputsCount),
+                eleSize = static_cast<long>(dataType.size())](Resources &res, void const **inputs, void **outputs) {
             thrust::for_each_n(
                 thrust::device, thrust::counting_iterator<long>(0), n,
                 WhereKernelFunctor{

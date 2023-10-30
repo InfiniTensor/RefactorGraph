@@ -5,13 +5,13 @@ namespace refactor::kernel {
     using K = WhereCpu;
     using DT = DataType;
 
-    K::WhereCpu(DT dataType_, WhereBroadcast b) noexcept
+    K::WhereCpu(DT dataType_, Broadcaster b) noexcept
         : Kernel(),
           dataType(dataType_),
-          broadcast(std::move(b)) {}
+          broadcaster(std::move(b)) {}
 
-    auto K::build(Tensor const &c, Tensor const &x, Tensor const &y, Tensor const &output) noexcept -> KernelBox {
-        return std::make_unique<K>(x.dataType, WhereBroadcast(c.shape, x.shape, y.shape, output.shape));
+    auto K::build(TensorRefs const &inputs) noexcept -> KernelBox {
+        return std::make_unique<K>(inputs[1].get().dataType, Broadcaster(inputs));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -28,18 +28,19 @@ namespace refactor::kernel {
     auto K::lower() const noexcept -> Routine {
         using namespace runtime;
 
-        return [eleSize = dataType.size(),
-                broadcast = this->broadcast](runtime::Resources &, void const **inputs, void **outputs) {
+        return [broadcaster = this->broadcaster,
+                eleSize = dataType.size()](runtime::Resources &, void const **inputs, void **outputs) {
             auto c = reinterpret_cast<bool const *>(inputs[0]);
             auto x = reinterpret_cast<uint8_t const *>(inputs[1]);
             auto y = reinterpret_cast<uint8_t const *>(inputs[2]);
             auto output = reinterpret_cast<uint8_t *>(outputs[0]);
-            for (auto i : range0_(broadcast.size())) {
-                auto [ic, ix, iy] = broadcast.locate(i);
+            uint_lv2 ii[3];
+            for (auto i : range0_(broadcaster.outputsCount)) {
+                broadcaster.locate(i, ii);
                 std::memcpy(output + i * eleSize,
-                            c[ic]
-                                ? x + ix * eleSize
-                                : y + iy * eleSize,
+                            c[ii[0]]
+                                ? x + ii[1] * eleSize
+                                : y + ii[2] * eleSize,
                             eleSize);
             }
         };

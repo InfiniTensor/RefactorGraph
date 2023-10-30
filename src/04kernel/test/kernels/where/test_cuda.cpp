@@ -10,11 +10,11 @@ using namespace kernel;
 TEST(kernel, WhereCuda) {
     // build routine
     auto cTensor = Tensor::share(DataType::Bool, Shape{2, 5});
-    auto xTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5});
+    auto xTensor = Tensor::share(DataType::F32, Shape{2, 3, 1, 5});
     auto yTensor = Tensor::share(DataType::F32, Shape{3, 2, 5});
     auto outTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5});
-    auto kCpu = WhereCpu::build(*cTensor, *xTensor, *yTensor, *outTensor);
-    auto kCuda = WhereCuda::build(*cTensor, *xTensor, *yTensor, *outTensor);
+    auto kCpu = WhereCpu::build({*cTensor, *xTensor, *yTensor});
+    auto kCuda = WhereCuda::build({*cTensor, *xTensor, *yTensor});
     ASSERT_TRUE(kCpu && kCuda);
     auto rCpu = kCpu->lower();
     auto rCuda = kCuda->lower();
