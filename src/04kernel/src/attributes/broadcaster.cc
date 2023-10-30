@@ -2,7 +2,18 @@
 #include <numeric>
 
 namespace refactor::kernel {
-
+    /// 多向广播的语义逻辑见 <https://github.com/onnx/onnx/blob/main/docs/Broadcasting.md#multidirectional-broadcasting>。
+    ///
+    /// 广播器在一次循环中构造各维度的步长，并执行 2 种优化：
+    ///
+    /// - 消除所有输入全为 1 的维度；
+    /// - 尽量合并相邻的维度；
+    ///   > 相邻维度可以合并的条件是在这些维度中，某个输入要么都发生了广播，要么都不需要广播。例如：
+    ///   > {2, 3, 4, 5, 6} -> {6, 4, 30}
+    ///   > {2, 3, 1, 5, 6}
+    ///
+    /// 为了实现这些优化，广播器维护和比较两个布尔向量，记录当前维度的广播状态是否变化。
+    /// 所有输入在某个维度的步长会在这个维度确定下来时计算和保存。
     Broadcaster::Broadcaster(std::vector<Input> inputs) noexcept
         : strides{}, outputsCount(1), inputsCount(inputs.size()) {
         ASSERT(inputsCount > 0, "Broadcaster: no inputs");
@@ -30,27 +41,25 @@ namespace refactor::kernel {
 
             if (broadcastNext != broadcastState) {
                 broadcastState = broadcastNext;
-                strides.resize(strides.size() + inputsCount + 1);
+                strides.resize(strides.size() + inputsCount + 1, 0);
 
                 auto itRev = strides.rbegin();
                 for (auto i : range0_(inputsCount)) {
                     if (broadcastState[i]) {
-                        *itRev++ = muls[i];
+                        *itRev = muls[i];
                         muls[i] *= shape;
-                    } else {
-                        *itRev++ = 0;
                     }
+                    ++itRev;
                 }
                 *itRev = muls[inputsCount];
-                muls[inputsCount] *= shape;
             } else {
                 for (auto i : range0_(inputsCount)) {
                     if (broadcastState[i]) {
                         muls[i] *= shape;
                     }
                 }
-                muls[inputsCount] *= shape;
             }
+            muls[inputsCount] *= shape;
         }
         if (!strides.empty()) {
             std::reverse(strides.begin(), strides.end());
