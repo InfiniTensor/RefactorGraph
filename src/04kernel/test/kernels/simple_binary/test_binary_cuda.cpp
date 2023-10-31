@@ -22,8 +22,7 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     auto cudaKernel = dimA == dimB
                           ? Binary11Cuda::build(binaryOPT, *aTensor, *bTensor)
                           : BinaryBasicCuda::build(binaryOPT, *aTensor, *bTensor);
-    ASSERT_TRUE(cpuKernel);
-    ASSERT_TRUE(cudaKernel);
+    ASSERT_TRUE(cpuKernel && cudaKernel);
     auto cpuRoutine = cpuKernel->lower();
     auto cudaRoutine = cudaKernel->lower();
 
