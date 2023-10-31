@@ -48,6 +48,8 @@ add_compile_options(-Wall)
 
 include_directories(3rd-party/result)
 
+enable_testing()
+
 add_subdirectory(src/00common)
 add_subdirectory(src/01graph_topo)
 add_subdirectory(src/02mem_manager)

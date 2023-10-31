@@ -23,9 +23,5 @@ clean-log:
 format:
 	@python3 scripts/format.py $(FORMAT_ORIGIN)
 
-test-all:
-	./build/$(TYPE)/src/00common/common_test
-	./build/$(TYPE)/src/01graph_topo/graph_topo_test
-	./build/$(TYPE)/src/04kernel/kernel_test
-	./build/$(TYPE)/src/05computation/computation_test
-	./build/$(TYPE)/src/07onnx/onnx_test
+test:
+	cd build/$(TYPE) && make test -j
