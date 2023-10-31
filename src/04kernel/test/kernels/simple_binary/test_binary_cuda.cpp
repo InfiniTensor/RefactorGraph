@@ -1,6 +1,7 @@
 #ifdef USE_CUDA
 
 #include "../src/kernels/simple_binary/basic_cpu.hh"
+#include "../src/kernels/simple_binary/basic_cuda.hh"
 #include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
 #include "../src/kernels/simple_binary/no_broadcast_cuda.hh"
 #include <gtest/gtest.h>
@@ -18,9 +19,9 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     auto cpuKernel = dimA == dimB
                          ? Binary11Cpu::build(binaryOPT, *aTensor, *bTensor)
                          : BinaryBasicCpu::build(binaryOPT, *aTensor, *bTensor);
-
-
-    auto cudaKernel = Binary11Cuda::build(binaryOPT, *aTensor, *bTensor);
+    auto cudaKernel = dimA == dimB
+                          ? Binary11Cuda::build(binaryOPT, *aTensor, *bTensor)
+                          : BinaryBasicCuda::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel);
     ASSERT_TRUE(cudaKernel);
     auto cpuRoutine = cpuKernel->lower();
@@ -81,8 +82,8 @@ TEST(kernel, BinaryCudaDiv) {
                    Shape{2, 5, 10, 20, 3, 4});
 }
 
-// TEST(kernel, BinaryCudaBroadcast) {
-//     testBinaryCuda(SimpleBinaryType::Add, Shape{1, 2, 3, 4, 5, 6}, Shape{}, Shape{1, 2, 3, 4, 5, 6});
-// }
+TEST(kernel, BinaryCudaBroadcast) {
+    testBinaryCuda(SimpleBinaryType::Add, Shape{1, 2, 3, 4, 5, 6}, Shape{}, Shape{1, 2, 3, 4, 5, 6});
+}
 
 #endif

@@ -14,14 +14,16 @@ namespace refactor::kernel {
         }                                                                                 \
     }
 
-    KERNEL(Add, a[tid] + b[tid])
-    KERNEL(Sub, a[tid] - b[tid])
-    KERNEL(Mul, a[tid] * b[tid])
-    KERNEL(Div, a[tid] / b[tid])
-    KERNEL(Pow, pow(a[tid], b[tid]))
-    KERNEL(And, a[tid] && b[tid])
-    KERNEL(Or, a[tid] || b[tid])
-    KERNEL(Xor, a[tid] ^ b[tid])
+    // clang-format off
+    KERNEL(Add,     a[tid] +  b[tid])
+    KERNEL(Sub,     a[tid] -  b[tid])
+    KERNEL(Mul,     a[tid] *  b[tid])
+    KERNEL(Div,     a[tid] /  b[tid])
+    KERNEL(Pow, pow(a[tid] ,  b[tid]))
+    KERNEL(And,     a[tid] && b[tid])
+    KERNEL(Or ,     a[tid] || b[tid])
+    KERNEL(Xor,     a[tid] ^  b[tid])
+    // clang-format on
 
 #define CASE_DT(NAME, T)                                                                     \
     case DT::T:                                                                              \

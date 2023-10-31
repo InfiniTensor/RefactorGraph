@@ -1,5 +1,6 @@
 ﻿#include "kernel/collectors/simple_binary.h"
 #include "../kernels/simple_binary/basic_cpu.hh"
+#include "../kernels/simple_binary/basic_cuda.hh"
 #include "../kernels/simple_binary/binary_cudnn.hh"
 #include "../kernels/simple_binary/no_broadcast_cpu.hh"
 #include "../kernels/simple_binary/no_broadcast_cuda.hh"
@@ -30,6 +31,7 @@ namespace refactor::kernel {
             case Target::NvidiaGpu:
                 REGISTER_BROCAST(BinaryCudnn)
                 REGISTER(Binary11Cuda)
+                REGISTER(BinaryBasicCuda)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");
