@@ -18,10 +18,8 @@ void testBinaryCudnn(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape d
                          ? Binary11Cpu::build(binaryOPT, *aTensor, *bTensor)
                          : BinaryBasicCpu::build(binaryOPT, *aTensor, *bTensor);
 
-
     auto cudnnKernel = BinaryCudnn::build(binaryOPT, *aTensor, *bTensor, *cTensor);
-    ASSERT_TRUE(cpuKernel);
-    ASSERT_TRUE(cudnnKernel);
+    ASSERT_TRUE(cpuKernel && cudnnKernel);
     auto cpuRoutine = cpuKernel->lower();
     auto cudnnRoutine = cudnnKernel->lower();
 

@@ -4,7 +4,7 @@
 using namespace refactor;
 using namespace kernel;
 
-void testOp(SimpleUnaryType opType, float check(float)) {
+static void testOp(SimpleUnaryType opType, float check(float)) {
     // build routine
     auto dataTensor = Tensor::share(DataType::F32, Shape{20, 30, 50});
     auto kernel = SimpleUnaryCpu::build(opType, *dataTensor);

@@ -1,5 +1,6 @@
 ﻿#include "kernel/collectors/simple_unary.h"
 #include "../kernels/simple_unary/cpu_kernel.hh"
+#include "../kernels/simple_unary/cuda_kernel.hh"
 #include "../kernels/simple_unary/cudnn_activation_kernel.hh"
 #include "common.h"
 
@@ -20,6 +21,7 @@ namespace refactor::kernel {
                 REGISTER(SimpleUnaryCpu)
                 break;
             case Target::NvidiaGpu:
+                REGISTER(SimpleUnaryCuda)
                 REGISTER(ActivationCudnn)
                 break;
             default:
