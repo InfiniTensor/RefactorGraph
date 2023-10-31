@@ -5,30 +5,34 @@ namespace refactor::kernel {
     using Op = SimpleBinaryType;
     using DT = DataType;
 
-#define KERNEL(NAME, OP)                                                        \
-    template<typename T>                                                        \
-    __global__ void _kernel_##NAME(T const *a, T const *b, T *c, size_t size) { \
-        size_t tid = threadIdx.x + blockIdx.x * blockDim.x;                     \
-        if (tid < size) {                                                       \
-            c[tid] = a[tid] OP b[tid];                                          \
-        }                                                                       \
+#define KERNEL(NAME, OP)                                                                  \
+    template<typename T>                                                                  \
+    __global__ void __binary11_kernel_##NAME(T const *a, T const *b, T *c, size_t size) { \
+        size_t tid = threadIdx.x + blockIdx.x * blockDim.x;                               \
+        if (tid < size) {                                                                 \
+            c[tid] = (OP);                                                                \
+        }                                                                                 \
     }
 
-    KERNEL(Add, +)
-    KERNEL(Sub, -)
-    KERNEL(Mul, *)
-    KERNEL(Div, /)
+    KERNEL(Add, a[tid] + b[tid])
+    KERNEL(Sub, a[tid] - b[tid])
+    KERNEL(Mul, a[tid] * b[tid])
+    KERNEL(Div, a[tid] / b[tid])
+    KERNEL(Pow, pow(a[tid], b[tid]))
+    KERNEL(And, a[tid] && b[tid])
+    KERNEL(Or, a[tid] || b[tid])
+    KERNEL(Xor, a[tid] ^ b[tid])
 
 #define CASE_DT(NAME, T)                                                                     \
     case DT::T:                                                                              \
         return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
             using T_ = primitive_t<DT::T>::type;                                             \
-            auto a = static_cast<T_ const *>(inputs[0]);                                     \
-            auto b = static_cast<T_ const *>(inputs[1]);                                     \
-            auto c = static_cast<T_ *>(outputs[0]);                                          \
+            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                \
+            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                \
+            auto c = reinterpret_cast<T_ *>(outputs[0]);                                     \
             size_t blocksize = 1024;                                                         \
             size_t gridsize = (n + blocksize - 1) / blocksize;                               \
-            _kernel_##NAME<<<gridsize, blocksize>>>(a, b, c, n);                             \
+            __binary11_kernel_##NAME<<<gridsize, blocksize>>>(a, b, c, n);                   \
         }
 
 #define CASE_OP(NAME)                \
@@ -54,6 +58,36 @@ namespace refactor::kernel {
             CASE_OP(Sub)
             CASE_OP(Mul)
             CASE_OP(Div)
+            case Op::And:
+                switch (dataType.internal) {
+                    CASE_DT(And, Bool);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Or:
+                switch (dataType.internal) {
+                    CASE_DT(Or, Bool);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Xor:
+                switch (dataType.internal) {
+                    CASE_DT(Xor, Bool);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Pow: {
+                switch (dataType.internal) {
+                    CASE_DT(Pow, F32);
+                    CASE_DT(Pow, F64);
+                    CASE_DT(Pow, I8);
+                    CASE_DT(Pow, I16);
+                    CASE_DT(Pow, I32);
+                    CASE_DT(Pow, I64);
+                    default:
+                        UNREACHABLE();
+                }
+            }
             default:
                 UNREACHABLE();
         }

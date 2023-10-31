@@ -31,9 +31,9 @@ namespace refactor::kernel {
     case DT::T:                                                                              \
         return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
             using T_ = primitive_t<DT::T>::type;                                             \
-            auto a = static_cast<T_ const *>(inputs[0]);                                     \
-            auto b = static_cast<T_ const *>(inputs[1]);                                     \
-            auto c = static_cast<T_ *>(outputs[0]);                                          \
+            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                \
+            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                \
+            auto c = reinterpret_cast<T_ *>(outputs[0]);                                     \
             std::for_each_n(std::execution::par_unseq,                                       \
                             natural_t(0), n,                                                 \
                             [c, a, b](auto i) { c[i] = OP; });                               \
