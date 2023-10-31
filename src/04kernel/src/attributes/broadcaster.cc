@@ -14,7 +14,7 @@ namespace refactor::kernel {
     ///
     /// 为了实现这些优化，广播器维护和比较两个布尔向量，记录当前维度的广播状态是否变化。
     /// 所有输入在某个维度的步长会在这个维度确定下来时计算和保存。
-    Broadcaster::Broadcaster(std::vector<Input> inputs) noexcept
+    Broadcaster::Broadcaster(std::vector<slice_t<uint_lv2>> inputs) noexcept
         : strides{}, outputsCount(1), inputsCount(inputs.size()) {
         ASSERT(inputsCount > 0, "Broadcaster: no inputs");
 
@@ -25,9 +25,9 @@ namespace refactor::kernel {
             uint_lv2 shape = 1;
             std::vector<bool> broadcastNext(inputsCount, false);
             for (auto i : range0_(inputsCount)) {
-                if (inputs[i].it != inputs[i].end) {
+                if (inputs[i].end_ != inputs[i].begin_) {
                     allEnd = false;
-                    if (auto dim = *inputs[i].it++; broadcastNext[i] = dim != 1) {
+                    if (auto dim = *--inputs[i].end_; broadcastNext[i] = dim != 1) {
                         if (shape == 1) {
                             shape = dim;
                         } else {
@@ -67,22 +67,14 @@ namespace refactor::kernel {
         }
     }
 
-    auto Broadcaster::build(TensorRefs const &inputs) -> std::vector<Input> {
-        std::vector<Input> ans(inputs.size());
+    auto Broadcaster::build(TensorRefs const &inputs) -> std::vector<slice_t<uint_lv2>> {
+        std::vector<slice_t<uint_lv2>> ans(inputs.size());
         std::transform(inputs.begin(), inputs.end(), ans.begin(),
-                       [](auto const &t) { return Input{t.get().shape.rbegin(), t.get().shape.rend()}; });
-        return ans;
-    }
-    auto Broadcaster::build(ShapeRefs const &inputs) -> std::vector<Input> {
-        std::vector<Input> ans(inputs.size());
-        std::transform(inputs.begin(), inputs.end(), ans.begin(),
-                       [](auto const &s) { return Input{s.get().rbegin(), s.get().rend()}; });
+                       [](auto const &t) { return slice(t.get().shape.data(), t.get().rank()); });
         return ans;
     }
 
     Broadcaster::Broadcaster(TensorRefs const &inputs) noexcept
-        : Broadcaster(build(inputs)) {}
-    Broadcaster::Broadcaster(ShapeRefs const &inputs) noexcept
         : Broadcaster(build(inputs)) {}
 
     void Broadcaster::locate(uint_lv2 k, uint_lv2 ans[]) const noexcept {
