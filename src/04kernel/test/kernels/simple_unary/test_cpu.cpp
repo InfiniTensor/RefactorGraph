@@ -4,10 +4,10 @@
 using namespace refactor;
 using namespace kernel;
 
-TEST(kernel, SimpleUnaryCpu) {
+void testOp(SimpleUnaryType opType, float check(float)) {
     // build routine
     auto dataTensor = Tensor::share(DataType::F32, Shape{20, 30, 50});
-    auto kernel = SimpleUnaryCpu::build(SimpleUnaryType::Tanh, *dataTensor);
+    auto kernel = SimpleUnaryCpu::build(opType, *dataTensor);
     ASSERT_TRUE(kernel);
     auto routine = kernel->lower();
     // malloc
@@ -28,6 +28,12 @@ TEST(kernel, SimpleUnaryCpu) {
     cpuMem->copyOut(result.data(), dataTensor->bytesSize());
     // check
     for (auto i : range0_(data.size())) {
-        EXPECT_FLOAT_EQ(std::tanh(data[i]), result[i]);
+        EXPECT_FLOAT_EQ(check(data[i]), result[i]);
     }
+}
+
+TEST(kernel, SimpleUnaryCpu) {
+    testOp(SimpleUnaryType::Abs, std::abs);
+    testOp(SimpleUnaryType::Sqrt, std::sqrt);
+    testOp(SimpleUnaryType::Tanh, std::tanh);
 }
