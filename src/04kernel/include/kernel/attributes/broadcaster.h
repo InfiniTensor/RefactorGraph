@@ -6,10 +6,7 @@
 
 namespace refactor::kernel {
 
-    class Broadcaster {
-        static std::vector<slice_t<uint_lv2>> build(TensorRefs const &);
-
-    public:
+    struct Broadcaster {
         std::vector<uint_lv2> strides;
         uint_lv2 outputsCount, inputsCount;
 

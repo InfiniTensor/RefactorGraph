@@ -18,15 +18,19 @@ namespace refactor::kernel {
         : strides{}, outputsCount(1), inputsCount(inputs.size()) {
         ASSERT(inputsCount > 0, "Broadcaster: no inputs");
 
-        std::vector<bool> broadcastState(inputsCount, false);
-        std::vector<uint_lv2> muls(inputsCount + 1, 1);
+        std::vector<bool>
+            broadcastState(inputsCount, false),
+            broadcastNext(inputsCount);
+        std::vector<uint_lv2> muls(inputsCount, 1);
         while (true) {
-            auto allEnd = true;
             uint_lv2 shape = 1;
-            std::vector<bool> broadcastNext(inputsCount, false);
-            for (auto i : range0_(inputsCount)) {
-                if (inputs[i].end_ != inputs[i].begin_) {
-                    allEnd = false;
+            {
+                auto allEnd = true;
+                broadcastNext.assign(inputsCount, false);
+                for (auto i : range0_(inputsCount)) {
+                    // out of dimension for this input
+                    if (inputs[i].end_ == inputs[i].begin_) { continue; }
+                    // input dimension is not 1
                     if (auto dim = *--inputs[i].end_; broadcastNext[i] = dim != 1) {
                         if (shape == 1) {
                             shape = dim;
@@ -34,13 +38,14 @@ namespace refactor::kernel {
                             ASSERT(shape == dim, "Broadcaster: shape mismatch");
                         }
                     }
+                    // not all inputs are exhausted for this dimension
+                    allEnd = false;
                 }
+                if (allEnd) { break; }
+                if (shape == 1) { continue; }
             }
-            if (allEnd) { break; }
-            if (shape == 1) { continue; }
-
             if (broadcastNext != broadcastState) {
-                broadcastState = broadcastNext;
+                broadcastState = std::move(broadcastNext);
                 strides.resize(strides.size() + inputsCount + 1, 0);
 
                 auto itRev = strides.rbegin();
@@ -51,7 +56,7 @@ namespace refactor::kernel {
                     }
                     ++itRev;
                 }
-                *itRev = muls[inputsCount];
+                *itRev = outputsCount;
             } else {
                 for (auto i : range0_(inputsCount)) {
                     if (broadcastState[i]) {
@@ -59,23 +64,18 @@ namespace refactor::kernel {
                     }
                 }
             }
-            muls[inputsCount] *= shape;
+            outputsCount *= shape;
         }
-        if (!strides.empty()) {
-            std::reverse(strides.begin(), strides.end());
-            outputsCount = muls[inputsCount] * strides.back();
-        }
-    }
-
-    auto Broadcaster::build(TensorRefs const &inputs) -> std::vector<slice_t<uint_lv2>> {
-        std::vector<slice_t<uint_lv2>> ans(inputs.size());
-        std::transform(inputs.begin(), inputs.end(), ans.begin(),
-                       [](auto const &t) { return slice(t.get().shape.data(), t.get().rank()); });
-        return ans;
+        std::reverse(strides.begin(), strides.end());
     }
 
     Broadcaster::Broadcaster(TensorRefs const &inputs) noexcept
-        : Broadcaster(build(inputs)) {}
+        : Broadcaster([&] {
+              std::vector<slice_t<uint_lv2>> ans(inputs.size());
+              std::transform(inputs.begin(), inputs.end(), ans.begin(),
+                             [](auto const &t) { return slice(t.get().shape.data(), t.get().rank()); });
+              return ans;
+          }()) {}
 
     void Broadcaster::locate(uint_lv2 k, uint_lv2 ans[]) const noexcept {
         long rem = k;
