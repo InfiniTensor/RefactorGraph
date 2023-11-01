@@ -9,7 +9,7 @@ namespace refactor::kernel {
     using Shape = absl::InlinedVector<uint_lv2, 4>;
     using Permutation = Shape;
 
-    /// @brief 转置参数优化。
+    /// @brief 优化用于计算的转置描述。
     struct TransposeInfo {
         struct Dimension {
             uint_lv2 strideI, strideO;
