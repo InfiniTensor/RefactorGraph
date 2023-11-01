@@ -8,9 +8,11 @@ namespace refactor::kernel {
 
     struct MatMulCollector final : public InfoCollector {
         Target target;
+        float alpha, beta;
+        bool transA, transB;
 
-        constexpr MatMulCollector(Target target_) noexcept
-            : InfoCollector(), target(target_) {}
+        constexpr MatMulCollector(Target target_, float alpha_, float beta_, bool transA_, bool transB_) noexcept
+            : InfoCollector(), target(target_), alpha(alpha_), beta(beta_), transA(transA_), transB(transB_) {}
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

@@ -8,35 +8,21 @@ namespace refactor::kernel {
     K::MatMulCublas(decltype(info) info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(bool transA, bool transB,
-                  float alpha, float beta,
-                  Tensor const &a,
-                  Tensor const &b,
-                  std::optional<std::reference_wrapper<Tensor const>> c) noexcept -> KernelBox {
+    auto K::build(Tensor const &a, Tensor const &b, Tensor const &y, MatMulInfo info) noexcept -> KernelBox {
         static const std::unordered_set<decltype(DT::internal)> TYPE{
             DT::F32, DT::F64, DT::FP16};
-
 #ifndef USE_CUDA
         return nullptr;
 #endif
-
-        auto dataType = a.dataType;
-        if (a.rank() != 2 ||
-            b.rank() != 2 ||
-            TYPE.find(dataType) == TYPE.end() ||
-            a.dataType != b.dataType) {
+        auto dataType = info.dataType;
+        if (dataType != a.dataType ||
+            dataType != b.dataType ||
+            dataType != y.dataType ||
+            TYPE.find(dataType) == TYPE.end()) {
             return nullptr;
         }
-        return std::make_unique<K>(decltype(info){
-            dataType,
-            transA,
-            transB,
-            c.has_value(),
-            static_cast<int>(a.shape[0]),
-            static_cast<int>(b.shape[1]),
-            static_cast<int>(a.shape[1]),
-            alpha * beta,
-        });
+
+        return std::make_unique<K>(std::move(info));
     }
 
     auto K::typeId() noexcept -> size_t {
@@ -46,7 +32,7 @@ namespace refactor::kernel {
 
     auto K::kernelTypeId() const noexcept -> size_t { return typeId(); }
     auto K::description() const noexcept -> std::string_view {
-        return "Performing mat mul using CUBLAS";
+        return "Performing MatMul using CUBLAS";
     }
 
 }// namespace refactor::kernel
