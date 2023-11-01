@@ -34,7 +34,8 @@ namespace refactor::runtime {
         _G _internal;
 
     public:
-        Stream(mem_manager::SharedForeignBlob,
+        Stream(Resources,
+               mem_manager::SharedForeignBlob,
                graph_topo::GraphTopo,
                std::vector<_N>,
                std::vector<_E>);

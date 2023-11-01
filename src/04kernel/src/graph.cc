@@ -1,4 +1,5 @@
 ﻿#include "kernel/graph.h"
+#include "runtime/mem_manager.hh"
 
 namespace refactor::kernel {
 
@@ -24,8 +25,12 @@ namespace refactor::kernel {
                                       : refactor::runtime::emptyRoutine;
                        });
         auto [size, offsets] = allocator(_internal, sizeof(uint64_t));
+        auto memManager = _target.memManager();
+        runtime::Resources res;
+        res.fetchOrStore<runtime::MemManager>(memManager);
         return runtime::Stream(
-            mem_manager::ForeignBlob::share(_target.memManager(), size),
+            std::move(res),
+            mem_manager::ForeignBlob::share(std::move(memManager), size),
             _internal.topology,
             std::move(routines),
             std::move(offsets));

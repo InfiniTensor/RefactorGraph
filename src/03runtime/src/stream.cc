@@ -20,11 +20,13 @@ namespace refactor::runtime {
         return std::get<size_t>(value);
     }
 
-    Stream::Stream(mem_manager::SharedForeignBlob stack,
+    Stream::Stream(Resources resources,
+                   mem_manager::SharedForeignBlob stack,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
                    std::vector<_E> offsets)
-        : _stack(std::move(stack)),
+        : _resources(std::move(resources)),
+          _stack(std::move(stack)),
           _internal(_G{
               std::move(topology),
               std::move(routines),
@@ -32,22 +34,14 @@ namespace refactor::runtime {
           }) {}
 
     void Stream::run() {
-        void *stack = *_stack;
-        std::vector<void const *> inputs_;
-        std::vector<void *> outputs_;
-        for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
-            auto const &routine = _internal.nodes[nodeIdx];
-            inputs_.clear();
-            outputs_.clear();
-            inputs_.reserve(inputs.size());
-            outputs_.reserve(outputs.size());
-            std::transform(inputs.begin(), inputs.end(),
-                           inputs_.begin(),
-                           [stack, this](auto i) { return _internal.edges[i](stack); });
-            std::transform(outputs.begin(), outputs.end(),
-                           outputs_.begin(),
-                           [stack, this](auto i) { return _internal.edges[i](stack); });
-            routine(_resources, inputs_.data(), outputs_.data());
+        auto map = [this](auto i) { return _internal.edges[i](*_stack); };
+        std::vector<void *> buffer(16);
+        for (auto const [nodeIdx, i, o] : _internal.topology) {
+            buffer.resize(i.size() + o.size());
+            auto inputs_ = buffer.data(),
+                 outputs_ = std::transform(i.begin(), i.end(), inputs_, map);
+            /* alignnnnn */ std::transform(o.begin(), o.end(), outputs_, map);
+            _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
         }
     }
 

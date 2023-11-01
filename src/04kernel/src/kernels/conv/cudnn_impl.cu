@@ -1,7 +1,7 @@
 ﻿#include "../../utilities/cuda/cudnn_context.hh"
 #include "../../utilities/cuda/cudnn_functions.h"
-#include "../../utilities/cuda/cudnn_workspace.hh"
 #include "cudnn_kernel.hh"
+#include "runtime/mem_manager.hh"
 
 namespace refactor::kernel {
     using namespace cudnn;
@@ -48,7 +48,19 @@ namespace refactor::kernel {
         return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
-            auto const &workspace = *res.fetchOrStore<CudnnWorkspace>();
+            constexpr static auto workspaceSize = 4ul << 30;
+
+            struct Workspace {
+                MemManager *memManager;
+                void *ptr;
+                Workspace(MemManager *memManager)
+                    : memManager(memManager),
+                      ptr(memManager->manager->malloc(workspaceSize)) {}
+                ~Workspace() {
+                    if (ptr) memManager->manager->free(ptr);
+                }
+            } workspace(res.fetch<MemManager>());
+
             auto const &d = *d_;
             // name inputs and outputs
             auto x = inputs[0],
@@ -62,7 +74,7 @@ namespace refactor::kernel {
                 d.x, x,
                 d.w, w,
                 d.conv, d.algo,
-                workspace.ptr, workspace.size,
+                workspace.ptr, workspaceSize,
                 &beta,
                 d.y, y));
         };
