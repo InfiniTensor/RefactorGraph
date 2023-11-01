@@ -1,11 +1,7 @@
 ﻿#include "kernel/allocators.h"
+#include "mem_manager/functions.h"
 
 namespace refactor::kernel {
-
-    constexpr size_t align(size_t size, int bits) {
-        auto mask = (1 << bits) - 1;
-        return (size + mask) & ~mask;
-    }
 
     AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &g, size_t alignBytes) {
         size_t size = 0;
@@ -16,7 +12,7 @@ namespace refactor::kernel {
             for (auto i : outputs) {
                 if (globalOutputs.find(i) == globalOutputs.end()) {
                     addresses[i] = {size};
-                    size += align(g.edges[i].size, alignBytes * 8);
+                    size += mem_manager::alignBytes(g.edges[i].size, alignBytes);
                 }
             }
         }
