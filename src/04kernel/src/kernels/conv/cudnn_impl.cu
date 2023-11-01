@@ -49,18 +49,7 @@ namespace refactor::kernel {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             constexpr static auto workspaceSize = 4ul << 30;
-
-            struct Workspace {
-                MemManager *memManager;
-                void *ptr;
-                Workspace(MemManager *memManager)
-                    : memManager(memManager),
-                      ptr(memManager->manager->malloc(workspaceSize)) {}
-                ~Workspace() {
-                    if (ptr) memManager->manager->free(ptr);
-                }
-            } workspace(res.fetch<MemManager>());
-
+            auto workspace = mem_manager::ForeignBlob::share(res.fetch<MemManager>()->manager, workspaceSize);
             auto const &d = *d_;
             // name inputs and outputs
             auto x = inputs[0],
@@ -74,7 +63,7 @@ namespace refactor::kernel {
                 d.x, x,
                 d.w, w,
                 d.conv, d.algo,
-                workspace.ptr, workspaceSize,
+                *workspace, workspaceSize,
                 &beta,
                 d.y, y));
         };

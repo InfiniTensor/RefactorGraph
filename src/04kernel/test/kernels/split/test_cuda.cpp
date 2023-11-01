@@ -3,6 +3,7 @@
 #include "../../../src/kernels/split/cpu_kernel.hh"
 #include "../../../src/kernels/split/cuda_kernel.hh"
 #include "kernel/target.h"
+#include "runtime/mem_manager.hh"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -30,7 +31,9 @@ TEST(kernel, SplitCuda) {
     auto rCpu = kCpu->lower();
     auto routine = kernel->lower();
     // malloc
-    auto memManager = Target(Target::NvidiaGpu).memManager();
+    auto res = runtime::Resources();
+    res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
+    auto memManager = res.fetch<runtime::MemManager>()->manager;
     Arc<mem_manager::ForeignBlob>
         gpuIn = mem_manager::ForeignBlob::share(memManager, dataTensor->bytesSize()),
         gpuOuts[]{
@@ -57,10 +60,9 @@ TEST(kernel, SplitCuda) {
     std::iota(data.begin(), data.end(), 0);
     gpuIn->copyIn(data.data(), dataTensor->bytesSize());
     // inference
-    auto res = runtime::Resources();
     {
         void const *inputs[]{*gpuIn};
-        void *outputs[]{*gpuIn, *gpuIn, *gpuIn, *gpuIn};
+        void *outputs[]{*gpuOuts[0], *gpuOuts[1], *gpuOuts[2], *gpuOuts[3]};
         routine(res, inputs, outputs);
     }
     {
@@ -71,7 +73,7 @@ TEST(kernel, SplitCuda) {
     // check
     for (auto i : range0_(outputTensors.size())) {
         gpuOuts[i]->copyOut(outs[i].data(), outputTensors[i]->bytesSize());
-        // EXPECT_EQ(outs[i], outsCpu[i]);
+        EXPECT_EQ(outs[i], outsCpu[i]);
     }
 }
 
