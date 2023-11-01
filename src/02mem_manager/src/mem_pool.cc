@@ -2,7 +2,10 @@
 
 namespace refactor::mem_manager {
     MemPool::MemPool(size_t memPoolSize, size_t alignment, Arc<MemManager> f)
-        : _memPoolSize(memPoolSize), _calculator(OffsetCalculator(alignment)), _ptr(f->malloc(memPoolSize)), _f(f) {
+        : _memPoolSize(memPoolSize),
+          _calculator(OffsetCalculator(alignment)),
+          _ptr(f->malloc(memPoolSize)),
+          _f(std::move(f)) {
     }
     MemPool::~MemPool() {
         _f->free(_ptr);

@@ -3,7 +3,7 @@
 
 using namespace refactor::graph_topo;
 
-TEST(GraphTopo, Builder) {
+TEST(graph_topo, Builder) {
     // fmtlog::setLogLevel(fmtlog::LogLevel::DBG);
     auto [topology, nodes, edges] = testTopo().build();
     auto searcher = Searcher(topology);

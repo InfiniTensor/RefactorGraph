@@ -4,20 +4,28 @@
 
 namespace refactor::mem_manager {
 
-    OffsetCalculator::OffsetCalculator(size_t alignment)
-        : _alignment(alignment) {}
-
-    void OffsetCalculator::init() {
-        _used = 0;
-        _peak = 0;
-        _freeBlocks.clear();
-        _headAddrToBlockSize.clear();
-        _tailAddrToBlockSize.clear();
+    auto OffsetCalculator::FreeBlockInfo::
+    operator<(const FreeBlockInfo &rhs) const noexcept -> bool {
+        return blockSize != rhs.blockSize
+                   ? blockSize < rhs.blockSize
+                   : addr < rhs.addr;
     }
+
+    static constexpr size_t getAlignedSize(size_t size, size_t align) {
+        return ((size - 1) / align + 1) * align;
+    }
+
+    OffsetCalculator::OffsetCalculator(size_t alignment)
+        : _used(0),
+          _peak(0),
+          _alignment(alignment),
+          _freeBlocks{},
+          _headAddrToBlockSize{},
+          _tailAddrToBlockSize{} {}
 
     size_t OffsetCalculator::alloc(size_t size) {
         // pad the size to the multiple of alignment
-        size = getAlignedSize(size);
+        size = getAlignedSize(size, _alignment);
         auto it = _freeBlocks.lower_bound(FreeBlockInfo{(size_t) 0, size});
 
         size_t retAddr = _peak;
@@ -46,8 +54,7 @@ namespace refactor::mem_manager {
             auto blockTailWithPeak = _tailAddrToBlockSize.find(_peak);
             if (blockTailWithPeak != _tailAddrToBlockSize.end()) {
                 // there is a free block located at the end of the currently
-                // allocated memory, where this free block has its tail address as
-                // 'peak'
+                // allocated memory, where this free block has its tail address as 'peak'
                 ASSERT(blockTailWithPeak->second <= _peak,
                        "the free block's size should less or equal than peak");
                 retAddr = _peak - blockTailWithPeak->second;
@@ -69,7 +76,7 @@ namespace refactor::mem_manager {
     }
 
     void OffsetCalculator::free(size_t addr, size_t size) {
-        size = getAlignedSize(size);
+        size = getAlignedSize(size, _alignment);
         auto tailAddr = addr + size;
         FreeBlockInfo block = {addr, tailAddr - addr};
         _headAddrToBlockSize[addr] = block.blockSize;
@@ -100,26 +107,18 @@ namespace refactor::mem_manager {
             tailAddr += subBlockSize;
             block.blockSize += subBlockSize;
             // delete the succeeding adjacent memory block
-            _freeBlocks.erase(
-                FreeBlockInfo{tailAddr - subBlockSize, subBlockSize});
+            _freeBlocks.erase(FreeBlockInfo{tailAddr - subBlockSize, subBlockSize});
         }
         _freeBlocks.insert(block);
         _used -= size;
     }
 
-    size_t OffsetCalculator::peak() {
+    size_t OffsetCalculator::peak() const noexcept {
         return _peak;
     }
 
-    std::string OffsetCalculator::info() {
-        std::string infoStr = "Used memory: " +
-                              std::to_string(_used) + ", peak memory: " +
-                              std::to_string(_peak) + "/n";
-        return infoStr;
-    }
-
-    size_t OffsetCalculator::getAlignedSize(size_t size) {
-        return ((size - 1) / _alignment + 1) * _alignment;
+    std::string OffsetCalculator::info() const noexcept {
+        return fmt::format("Used memory: {}, peak memory: {}", _used, _peak);
     }
 
 }// namespace refactor::mem_manager

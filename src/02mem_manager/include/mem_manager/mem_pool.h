@@ -4,7 +4,6 @@
 #include "common.h"
 #include "mem_manager.hh"
 #include "mem_offset_calculator.h"
-#include <cstddef>
 #include <unordered_map>
 
 namespace refactor::mem_manager {

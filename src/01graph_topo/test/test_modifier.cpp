@@ -3,7 +3,7 @@
 
 using namespace refactor::graph_topo;
 
-TEST(GraphTopo, InplaceModifier) {
+TEST(graph_topo, InplaceModifier) {
     auto [topology, nodes, edges] = testTopo().build();
     fmt::println("{}", topology.toString());
     {

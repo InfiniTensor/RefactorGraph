@@ -4,7 +4,7 @@
 
 using namespace refactor::graph_topo;
 
-TEST(GraphTopo, LinkedGraph) {
+TEST(graph_topo, LinkedGraph) {
     auto g = testTopo().build();
     LinkedGraph<const char *, const char *> g_(g);
     fmt::println("{}", g_.toString());

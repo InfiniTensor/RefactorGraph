@@ -1,13 +1,11 @@
 ﻿#include "common.h"
-#include <cassert>
-#include <fmt/core.h>
+#include <gtest/gtest.h>
 
 using namespace refactor;
 
-int main() {
+TEST(graph_topo, Builder) {
     float val = 2047;
     fp16_t ans(val);
-    assert(ans.to_f32() == val);
+    EXPECT_EQ(ans.to_f32(), val);
     fmt::println("{}", ans.to_string());
-    return 0;
 }

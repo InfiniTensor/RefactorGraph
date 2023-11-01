@@ -9,27 +9,19 @@
 namespace refactor::mem_manager {
 
     class OffsetCalculator {
-    private:
-        size_t _used = 0;
-
-        size_t _peak = 0;
-
-        size_t _alignment;
+        size_t
+            _used,
+            _peak,
+            _alignment;
 
         struct FreeBlockInfo {
-            size_t addr;
-            size_t blockSize;
-        };
+            size_t addr, blockSize;
 
-        struct CmpFreeBlockInfo {
-            bool operator()(const FreeBlockInfo &a, const FreeBlockInfo &b) const {
-                return (a.blockSize != b.blockSize) ? (a.blockSize < b.blockSize)
-                                                    : (a.addr < b.addr);
-            }
+            bool operator<(FreeBlockInfo const &) const noexcept;
         };
 
         // free balanced tree, maintains all free memory blocks
-        std::set<FreeBlockInfo, CmpFreeBlockInfo> _freeBlocks;
+        std::set<FreeBlockInfo> _freeBlocks;
 
         // key: head address offset of the free memory block
         // value: blockSize of the block
@@ -41,9 +33,6 @@ namespace refactor::mem_manager {
 
     public:
         explicit OffsetCalculator(size_t alignment);
-        virtual ~OffsetCalculator() = default;
-
-        void init();
 
         // function: simulate memory allocation
         // arguments:
@@ -57,14 +46,8 @@ namespace refactor::mem_manager {
         //     size: size of memory block to be freed
         void free(size_t addr, size_t size);
 
-        size_t peak();
-
-        std::string info();
-
-    private:
-        // function: memory alignment, rouned up
-        // return: size of the aligned memory block
-        size_t getAlignedSize(size_t size);
+        size_t peak() const noexcept;
+        std::string info() const noexcept;
     };
 
 }// namespace refactor::mem_manager
