@@ -2,22 +2,11 @@
 #define COMPUTATION_REDUCE_H
 
 #include "../operator.h"
+#include "kernel/collectors/reduce.h"
 #include <absl/container/inlined_vector.h>
 
 namespace refactor::computation {
-
-    enum class ReduceType {
-        Mean,
-        L1,
-        L2,
-        LogSum,
-        LogSumExp,
-        Max,
-        Min,
-        Prod,
-        Sum,
-        SumSquare,
-    };
+    using kernel::ReduceType;
 
     struct Reduce final : public Operator {
         ReduceType type;
