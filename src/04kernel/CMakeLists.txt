@@ -21,6 +21,7 @@ endif()
 
 if(USE_CUDA)
     target_link_libraries(kernel PUBLIC cudnn)
+    target_link_libraries(kernel PUBLIC cublas)
 endif()
 
 file(GLOB_RECURSE KERNEL_TEST test/*.cpp)
