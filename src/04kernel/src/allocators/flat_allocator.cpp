@@ -18,9 +18,7 @@ namespace refactor::kernel {
         }
         for (auto i : range0_(addresses.size())) {
             if (addresses[i].isBlob()) {
-                auto blob = g.edges[i].data;
-                ASSERT(blob, "Blob not exist");
-                addresses[i] = {std::move(blob)};
+                addresses[i] = {g.edges[i].data};
             }
         }
         return {size, std::move(addresses)};

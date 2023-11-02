@@ -1,5 +1,6 @@
 ﻿#include "compiler.h"
 #include "common.h"
+#include "kernel/allocators.h"
 #include <execution>
 
 namespace refactor::python_ffi {
@@ -67,7 +68,12 @@ namespace refactor::python_ffi {
             UNREACHABLE();
         }
 
-        return std::make_shared<Executor>(std::move(computation), target_);
+        auto kernel = computation.lower(target_);
+        if (allocator == "flat") {
+            return std::make_shared<Executor>(kernel.lower(kernel::flatAllocate));
+        } else {
+            return std::make_shared<Executor>(kernel.lower(kernel::reusableAllocate));
+        }
     }
 
     std::optional<py::array>

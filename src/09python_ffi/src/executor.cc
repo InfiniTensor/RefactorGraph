@@ -2,8 +2,8 @@
 
 namespace refactor::python_ffi {
 
-    Executor::Executor(computation::Graph g, kernel::Target t)
-        : _g(g.lower(t)) {
+    Executor::Executor(runtime::Stream stream)
+        : _stream(std::move(stream)) {
     }
 
 }// namespace refactor::python_ffi

@@ -1,16 +1,15 @@
 ﻿#ifndef PYTHON_FFI_EXECUTOR_H
 #define PYTHON_FFI_EXECUTOR_H
 
-#include "computation/graph.h"
-#include "kernel/target.h"
+#include "runtime/stream.h"
 
 namespace refactor::python_ffi {
 
     class Executor {
-        kernel::Graph _g;
+        runtime::Stream _stream;
 
     public:
-        explicit Executor(computation::Graph, kernel::Target);
+        explicit Executor(runtime::Stream);
     };
 
 }// namespace refactor::python_ffi
