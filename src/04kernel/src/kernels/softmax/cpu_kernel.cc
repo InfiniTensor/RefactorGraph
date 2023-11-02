@@ -27,8 +27,8 @@ namespace refactor::kernel {
     K::SoftmaxCpu(AxisInfo info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(AxisInfo info, Tensor const &data) noexcept -> KernelBox {
-        if (!data.dataType.isCpuNumberic()) {
+    auto K::build(AxisInfo info) noexcept -> KernelBox {
+        if (!info.type.isCpuNumberic()) {
             return nullptr;
         }
         return std::make_unique<K>(std::move(info));

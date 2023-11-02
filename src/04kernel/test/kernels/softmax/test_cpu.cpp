@@ -10,7 +10,7 @@ TEST(kernel, SoftmaxCpu) {
     auto xTensor = Tensor::share(DataType::F64, Shape{2, 3, 2, 4});
     auto yTensor = Tensor::share(DataType::F64, Shape{2, 3, 2, 4});
     uint_lv2 axis = 1;
-    auto kernel = SoftmaxCpu::build(AxisInfo(*xTensor, axis), *xTensor);
+    auto kernel = SoftmaxCpu::build(AxisInfo(*xTensor, axis));
     ASSERT_TRUE(kernel);
     auto routine = kernel->lower();
     // malloc

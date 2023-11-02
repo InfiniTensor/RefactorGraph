@@ -21,7 +21,7 @@ namespace refactor::kernel {
 
         explicit SoftmaxCpu(AxisInfo) noexcept;
 
-        static KernelBox build(AxisInfo, Tensor const &) noexcept;
+        static KernelBox build(AxisInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
