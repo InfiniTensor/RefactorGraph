@@ -1,49 +1,57 @@
 #include "kernel/attributes/matmul_info.h"
 #include <numeric>
 namespace refactor::kernel {
-    Broadcaster inferBroadcast(Shape const &A, Shape const &B) {
-        ASSERT(A.size() >= 2 && B.size() >= 2, "MatMul: invalid shape broadcast.");
-        size_t rankA = A.size() - 2;
-        size_t rankB = B.size() - 2;
-        auto A_ = Shape(A.begin(), A.begin() + rankA);
-        auto B_ = Shape(B.begin(), B.begin() + rankB);
-        return Broadcaster({A_, B_});
-    }
 
-    void inferBMKN(MatMulInfo *info, Tensor const &A, Tensor const &B) {
-        info->b = info->broadcaster.outputsCount;
-        auto kA = *(info->transA ? A.shape.rbegin() + 1 : A.shape.rbegin());
-        auto kB = *(info->transB ? B.shape.rbegin() : B.shape.rbegin() + 1);
-        ASSERT(kA == kB, "MatMul: input shape not matched.");
-        info->m = *(info->transA ? A.shape.rbegin() : A.shape.rbegin() + 1);
-        info->n = *(info->transB ? B.shape.rbegin() + 1 : B.shape.rbegin());
-        info->k = kA;
-    }
-
-    void setBiasMode(MatMulInfo *info, Tensor const &C) {
-        if (C.elementsSize() == info->m * info->n) {
-            info->biasMode = BiasBroadcast::NONE;
-        } else if (C.shape.size() == 0 || C.elementsSize() == 1) {
-            info->biasMode = BiasBroadcast::CONST;
-        } else if (C.shape.back() == info->n) {
-            info->biasMode = BiasBroadcast::ROW;
-        } else {
-            info->biasMode = BiasBroadcast::COL;
+    BiasType buildBiasType(size_t m, size_t n, Tensor const &c) {
+        switch (c.rank()) {
+            case 0:
+                return BiasType::Scalar;
+            case 1:
+                return c.shape[0] == n
+                           ? BiasType::RowVector
+                           : BiasType::Scalar;
+            case 2:
+                if (c.shape[0] == m) {
+                    return c.shape[1] == n
+                               ? BiasType::Matrix
+                               : BiasType::ColVector;
+                } else {
+                    return c.shape[1] == n
+                               ? BiasType::RowVector
+                               : BiasType::Scalar;
+                }
+            default:
+                UNREACHABLE();
         }
     }
 
-    MatMulInfo::MatMulInfo(Tensor const &A, Tensor const &B, bool tA, bool tB,
-                           float a, float b)
-        : dataType(A.dataType), transA(tA), transB(tB), useBias(false), alpha(a), beta(b), broadcaster(inferBroadcast(A.shape, B.shape)) {
-        inferBMKN(this, A, B);
+    MatMulInfo::MatMulInfo(
+        Tensor const &a, Tensor const &b,
+        std::optional<std::reference_wrapper<Tensor const>> c,
+        bool transA_, bool transB_, float alpha_, float beta_)
+        : dataType(a.dataType),
+          alpha(alpha_), beta(beta_),
+          transA(transA_), transB(transB_),
+          m(transA ? a.shape.rbegin()[0] : a.shape.rbegin()[1]),
+          n(transB ? b.shape.rbegin()[1] : b.shape.rbegin()[0]),
+          k(transA ? a.shape.rbegin()[1] : a.shape.rbegin()[0]),
+          biasType(c ? buildBiasType(m, n, *c) : BiasType::NoBias),
+          broadcaster({
+              slice(a.shape.data(), a.shape.size() - 2),
+              slice(b.shape.data(), b.shape.size() - 2),
+          }) {
+        auto kB = transB ? b.shape.rbegin()[0] : b.shape.rbegin()[1];
+        ASSERT(k == kB, "MatMul: input shape not matched.");
     }
 
-    MatMulInfo::MatMulInfo(Tensor const &A, Tensor const &B, Tensor const &C, bool tA, bool tB,
-                           float a, float b)
-        : dataType(C.dataType), transA(tA), transB(tB), useBias(true), alpha(a), beta(b), broadcaster(inferBroadcast(A.shape, B.shape)) {
-        inferBMKN(this, A, B);
-        setBiasMode(this, C);
-    }
+    MatMulInfo::MatMulInfo(Tensor const &A, Tensor const &B, bool tA, bool tB, float alpha)
+        : MatMulInfo(A, B, {}, tA, tB, alpha, 0.f) {}
 
+    MatMulInfo::MatMulInfo(Tensor const &A, Tensor const &B, Tensor const &C, bool tA, bool tB, float alpha, float beta)
+        : MatMulInfo(A, B, std::make_optional(C), tA, tB, alpha, beta) {}
+
+    size_t MatMulInfo::batch() const noexcept {
+        return broadcaster.outputsCount;
+    }
 
 }// namespace refactor::kernel

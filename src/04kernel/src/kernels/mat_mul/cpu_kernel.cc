@@ -46,8 +46,7 @@ namespace refactor::kernel {
         for (size_t i = 0; i < md.M; i++) {
             for (size_t j = 0; j < md.N; j++) {
                 T sum = 0;
-#pragma omp simd reduction(+ \
-                           : sum)
+#pragma omp simd reduction(+ : sum)
                 for (size_t k = 0; k < md.K; k++) {
                     sum += A[i * md.strideA0 + k * md.strideA1] * B[k * md.strideB0 + j * md.strideB1];
                 }
@@ -64,8 +63,7 @@ namespace refactor::kernel {
         for (size_t i = 0; i < md.M; i++) {
             for (size_t j = 0; j < md.N; j++) {
                 T sum = 0;
-#pragma omp simd reduction(+ \
-                           : sum)
+#pragma omp simd reduction(+ : sum)
                 for (size_t k = 0; k < md.K; k++) {
                     sum += A[i * md.strideA0 + k * md.strideA1] * B[k * md.strideB0 + j * md.strideB1];
                 }
@@ -78,9 +76,11 @@ namespace refactor::kernel {
 #define CASE(T)                                                                                                          \
     case DT::T: {                                                                                                        \
         using T_ = primitive_t<DT::T>::type;                                                                             \
-        if (info.useBias) {                                                                                              \
+        if (info.biasType != BiasType::NoBias) {                                                                         \
             return [alpha = static_cast<T_>(info.alpha), beta = static_cast<T_>(info.beta),                              \
-                    broadcaster = info.broadcaster, batch = info.b, md,                                                  \
+                    broadcaster = info.broadcaster,                                                                      \
+                    batch = info.batch(),                                                                                \
+                    md,                                                                                                  \
                     stepY = info.m * info.n,                                                                             \
                     stepA = info.m * info.k,                                                                             \
                     stepB = info.k * info.n](runtime::Resources &, void const **inputs, void **outputs) {                \
@@ -96,7 +96,9 @@ namespace refactor::kernel {
             };                                                                                                           \
         } else {                                                                                                         \
             return [alpha = static_cast<T_>(info.alpha),                                                                 \
-                    broadcaster = info.broadcaster, batch = info.b, md,                                                  \
+                    broadcaster = info.broadcaster,                                                                      \
+                    batch = info.batch(),                                                                                \
+                    md,                                                                                                  \
                     stepY = info.m * info.n,                                                                             \
                     stepA = info.m * info.k,                                                                             \
                     stepB = info.k * info.n](runtime::Resources &, void const **inputs, void **outputs) {                \
@@ -120,15 +122,22 @@ namespace refactor::kernel {
         md.strideB0 = info.transB ? 1 : info.n;
         md.strideB1 = info.transB ? info.k : 1;
         md.strideC0 = 0, md.strideC1 = 0;
-        if (info.useBias) {
-            if (info.biasMode == BiasBroadcast::ROW) {
+        switch (info.biasType) {
+            case BiasType::NoBias:
+            case BiasType::Scalar:
+                break;
+            case BiasType::RowVector:
                 md.strideC1 = 1;
-            } else if (info.biasMode == BiasBroadcast::COL) {
+                break;
+            case BiasType::ColVector:
                 md.strideC0 = 1;
-            } else if (info.biasMode == BiasBroadcast::NONE) {
+                break;
+            case BiasType::Matrix:
                 md.strideC1 = 1;
                 md.strideC0 = info.n;
-            }
+                break;
+            default:
+                UNREACHABLE();
         }
 
         switch (info.dataType) {

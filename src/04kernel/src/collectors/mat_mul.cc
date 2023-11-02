@@ -19,7 +19,7 @@ namespace refactor::kernel {
         ASSERT(inputs.size() == 2 || inputs.size() == 3, "MatMul: invalid number of inputs.");
 
         auto info = inputs.size() == 3 ? MatMulInfo(a, b, inputs[2].get(), transA, transB, alpha, beta)
-                                       : MatMulInfo(a, b, transA, transB, alpha, beta);
+                                       : MatMulInfo(a, b, transA, transB, alpha);
 
         std::vector<KernelBox> ans;
         switch (target) {
@@ -27,7 +27,7 @@ namespace refactor::kernel {
                 REGISTER(MatMulCPU)
                 break;
             case Target::NvidiaGpu:
-                //REGISTER(MatMulCublas)
+                REGISTER(MatMulCublas)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");
