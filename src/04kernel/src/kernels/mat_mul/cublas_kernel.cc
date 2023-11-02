@@ -1,5 +1,4 @@
 ﻿#include "cublas_kernel.hh"
-#include <unordered_set>
 
 namespace refactor::kernel {
     using K = MatMulCublas;
@@ -9,8 +8,7 @@ namespace refactor::kernel {
         : Kernel(), info(std::move(info_)) {}
 
     auto K::build(Tensor const &a, Tensor const &b, Tensor const &y, MatMulInfo info) noexcept -> KernelBox {
-        static const std::unordered_set<decltype(DT::internal)> TYPE{
-            DT::F32, DT::F64, DT::FP16};
+        static const std::unordered_set<decltype(DT::internal)> TYPE{DT::F32, DT::F64, DT::FP16};
 #ifndef USE_CUDA
         return nullptr;
 #endif

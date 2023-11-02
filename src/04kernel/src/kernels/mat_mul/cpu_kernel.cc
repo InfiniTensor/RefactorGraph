@@ -1,6 +1,5 @@
 #include "cpu_kernel.hh"
 
-
 namespace refactor::kernel {
     using K = MatMulCPU;
     using DT = DataType;
@@ -9,14 +8,11 @@ namespace refactor::kernel {
         : Kernel(), info(std::move(info_)) {}
 
     auto K::build(Tensor const &a, Tensor const &b, Tensor const &y, MatMulInfo info) noexcept -> KernelBox {
-        static const std::unordered_set<decltype(DT::internal)> TYPE{
-            DT::F32, DT::U8, DT::I8, DT::U16, DT::I16, DT::I32, DT::I64, DT::F64, DT::U32, DT::U64};
-
         auto dataType = info.dataType;
         if (dataType != a.dataType ||
             dataType != b.dataType ||
             dataType != y.dataType ||
-            TYPE.find(dataType) == TYPE.end()) {
+            !dataType.isCpuNumberic()) {
             return nullptr;
         }
 
@@ -72,10 +68,9 @@ namespace refactor::kernel {
         }
     }
 
-
 #define CASE(T)                                                                                                          \
     case DT::T: {                                                                                                        \
-        using T_ = primitive_t<DT::T>::type;                                                                             \
+        using T_ = primitive<DT::T>::type;                                                                               \
         if (info.biasType != BiasType::NoBias) {                                                                         \
             return [alpha = static_cast<T_>(info.alpha), beta = static_cast<T_>(info.beta),                              \
                     broadcaster = info.broadcaster,                                                                      \

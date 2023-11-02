@@ -1,8 +1,8 @@
 ﻿#include "../../utilities/cuda/cublas_context.hh"
 #include "cublas_kernel.hh"
+#include <cublas_v2.h>
 #include <thrust/execution_policy.h>
 #include <thrust/for_each.h>
-
 
 template<typename T>
 struct MatMulBroadcastBiasFunctor {
@@ -36,7 +36,7 @@ void computeWithBias(cublasHandle_t handle, T const *A, T const *B, T const *C, 
                      size_t m, size_t n, size_t k, size_t batch,
                      size_t strideY, size_t strideA, size_t strideB, size_t strideC0, size_t strideC1,
                      size_t lda, size_t ldb,
-                     cublasGemmAlgo_t algo, cudaDataType_t cudaDataType,
+                     cudaDataType_t cudaDataType,
                      refactor::kernel::Broadcaster broadcaster) {
 
     // Expand bias to 2D and store in final output Y
@@ -56,7 +56,7 @@ void computeWithBias(cublasHandle_t handle, T const *A, T const *B, T const *C, 
         stat = cublasGemmEx(
             handle, tA, tB, n, m, k, &alpha, B + strideB * offset[1],
             cudaDataType, ldb, A + strideA * offset[0], cudaDataType, lda, &beta, Y + strideY * i,
-            cudaDataType, n, cudaDataType, algo);
+            cudaDataType, n, cudaDataType, CUBLAS_GEMM_DEFAULT);
     }
 }
 
@@ -67,7 +67,7 @@ void computeNoBias(cublasHandle_t handle, T const *A, T const *B, T *Y,
                    size_t m, size_t n, size_t k, size_t batch,
                    size_t strideY, size_t strideA, size_t strideB,
                    size_t lda, size_t ldb,
-                   cublasGemmAlgo_t algo, cudaDataType_t cudaDataType,
+                   cudaDataType_t cudaDataType,
                    refactor::kernel::Broadcaster broadcaster) {
     T const beta{};
     cublasStatus_t stat;
@@ -77,10 +77,9 @@ void computeNoBias(cublasHandle_t handle, T const *A, T const *B, T *Y,
         stat = cublasGemmEx(
             handle, tA, tB, n, m, k, &alpha, B + strideB * offset[1],
             cudaDataType, ldb, A + strideA * offset[0], cudaDataType, lda, &beta, Y + strideY * i,
-            cudaDataType, n, cudaDataType, algo);
+            cudaDataType, n, cudaDataType, CUBLAS_GEMM_DEFAULT);
     }
 }
-
 
 namespace refactor::kernel {
     using namespace runtime;
@@ -89,7 +88,7 @@ namespace refactor::kernel {
 
 #define CASE(T, T_CUDA)                                                                                   \
     case DT::T: {                                                                                         \
-        using T_ = primitive_t<DT::T>::type;                                                              \
+        using T_ = primitive<DT::T>::type;                                                                \
         cudaDataType_t cudaDataType = T_CUDA;                                                             \
         if (info.biasType != BiasType::NoBias) {                                                          \
             return [alpha = static_cast<T_>(info.alpha), beta = static_cast<T_>(info.beta),               \
@@ -102,7 +101,6 @@ namespace refactor::kernel {
                     strideC0, strideC1,                                                                   \
                     lda = info.transA ? info.m : info.k,                                                  \
                     ldb = info.transB ? info.k : info.n,                                                  \
-                    algo_ = algo,                                                                         \
                     cudaDataType,                                                                         \
                     broadcaster = info.broadcaster,                                                       \
                     compute = computeWithBias<T_>](Resources &res, void const **inputs, void **outputs) { \
@@ -113,7 +111,7 @@ namespace refactor::kernel {
                 auto handle = res.fetchOrStore<CublasContext>() -> handle;                                \
                 compute(handle, A, B, C, Y, alpha, beta, tA, tB,                                          \
                         m, n, k, batch, strideY, strideA, strideB, strideC0, strideC1, lda, ldb,          \
-                        algo_, cudaDataType, broadcaster);                                                \
+                        cudaDataType, broadcaster);                                                       \
             };                                                                                            \
         } else {                                                                                          \
             return [alpha = static_cast<T_>(info.alpha),                                                  \
@@ -125,7 +123,6 @@ namespace refactor::kernel {
                     strideB = info.k * info.n,                                                            \
                     lda = info.transA ? info.m : info.k,                                                  \
                     ldb = info.transB ? info.k : info.n,                                                  \
-                    algo_ = algo,                                                                         \
                     cudaDataType,                                                                         \
                     broadcaster = info.broadcaster,                                                       \
                     compute = computeNoBias<T_>](Resources &res, void const **inputs, void **outputs) {   \
@@ -135,11 +132,10 @@ namespace refactor::kernel {
                 auto handle = res.fetchOrStore<CublasContext>() -> handle;                                \
                 compute(handle, A, B, Y, alpha, tA, tB,                                                   \
                         m, n, k, batch, strideY, strideA, strideB, lda, ldb,                              \
-                        algo_, cudaDataType, broadcaster);                                                \
+                        cudaDataType, broadcaster);                                                       \
             };                                                                                            \
         }                                                                                                 \
     }
-
 
     auto
     MatMulCublas::lower() const noexcept -> Routine {
