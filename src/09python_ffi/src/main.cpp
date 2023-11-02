@@ -33,7 +33,9 @@ namespace refactor::python_ffi {
             .def("get_tensor"      , &Compiler::getTensor        , return_::move      )
             .def("compile"         , &Compiler::compile          , return_::move      );
 
-        py::class_<Executor , Arc<Executor>>(m, "Executor" );
+        py::class_<Executor , Arc<Executor>>(m, "Executor" )
+            .def("setInput"        , &Executor::setInput         , return_::automatic )
+            .def("prepare"         , &Executor::prepare          , return_::move      );
 
         // clang-format on
     }

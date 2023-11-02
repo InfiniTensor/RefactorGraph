@@ -24,13 +24,18 @@ namespace refactor::kernel {
                                       ? node.kernel->lower()
                                       : refactor::runtime::emptyRoutine;
                        });
-        auto [size, offsets] = allocator(_internal, sizeof(uint64_t));
-        auto memManager = _target.memManager();
+        auto [stack, offsets] = allocator(_internal, sizeof(uint64_t));
+        auto outputs = _internal.topology.globalOutputs();
+        std::vector<size_t> outputs_(outputs.size());
+        std::transform(outputs.begin(), outputs.end(),
+                       outputs_.begin(),
+                       [this](auto const &edge) { return _internal.edges[edge].size; });
         runtime::Resources res;
-        res.fetchOrStore<runtime::MemManager>(memManager);
+        res.fetchOrStore<runtime::MemManager>(_target.memManager());
         return runtime::Stream(
             std::move(res),
-            mem_manager::ForeignBlob::share(std::move(memManager), size),
+            stack,
+            std::move(outputs_),
             _internal.topology,
             std::move(routines),
             std::move(offsets));

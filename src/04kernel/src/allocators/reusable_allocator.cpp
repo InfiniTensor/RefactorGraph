@@ -27,7 +27,7 @@ namespace refactor::kernel {
                 if (!--edgeRc[inputIdx]) {
                     // indicate that this tensor will no longer be used and perform memory free
                     if (addresses[inputIdx].isOffset()) {
-                        calculator.free(addresses[inputIdx].getOffset(), g.edges[inputIdx].size);
+                        calculator.free(addresses[inputIdx].offset(), g.edges[inputIdx].size);
                     }
                 }
             }

@@ -68,12 +68,11 @@ namespace refactor::python_ffi {
             UNREACHABLE();
         }
 
-        auto kernel = computation.lower(target_);
-        if (allocator == "flat") {
-            return std::make_shared<Executor>(kernel.lower(kernel::flatAllocate));
-        } else {
-            return std::make_shared<Executor>(kernel.lower(kernel::reusableAllocate));
-        }
+        return std::make_shared<Executor>(
+            computation.lower(target_),
+            allocator == "flat"
+                ? kernel::flatAllocate
+                : kernel::reusableAllocate);
     }
 
     std::optional<py::array>

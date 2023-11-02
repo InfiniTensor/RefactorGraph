@@ -1,6 +1,8 @@
 ﻿#include "runtime/stream.h"
+#include "runtime/mem_manager.hh"
 
 namespace refactor::runtime {
+    using mem_manager::ForeignBlob;
 
     void emptyRoutine(runtime::Resources &, void const **, void **) {}
 
@@ -15,23 +17,62 @@ namespace refactor::runtime {
     bool Address::isOffset() const noexcept {
         return std::holds_alternative<size_t>(value);
     }
-
-    size_t Address::getOffset() const {
+    auto Address::blob() const noexcept -> mem_manager::SharedForeignBlob const & {
+        return std::get<mem_manager::SharedForeignBlob>(value);
+    }
+    auto Address::offset() const noexcept -> size_t {
         return std::get<size_t>(value);
     }
 
     Stream::Stream(Resources resources,
-                   mem_manager::SharedForeignBlob stack,
+                   size_t stack,
+                   std::vector<size_t> outputs,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
                    std::vector<_E> offsets)
         : _resources(std::move(resources)),
-          _stack(std::move(stack)),
+          _stack(ForeignBlob::share(_resources.fetch<MemManager>()->manager, stack)),
+          _outputsSize(std::move(outputs)),
           _internal(_G{
               std::move(topology),
               std::move(routines),
               std::move(offsets),
-          }) {}
+          }) {
+    }
+
+    void Stream::setInput(uint_lv1 i, void const *data, size_t size) {
+        auto globalInputs = _internal.topology.globalInputs();
+        ASSERT(i < globalInputs.size(), "input index out of range");
+
+        auto allocator = _resources.fetch<MemManager>()->manager;
+        auto blob = ForeignBlob::share(std::move(allocator), size);
+        blob->copyIn(data, size);
+        _internal.edges[globalInputs[i]].value = {std::move(blob)};
+    }
+    void Stream::setInput(uint_lv1 i, mem_manager::SharedForeignBlob blob) {
+        auto globalInputs = _internal.topology.globalInputs();
+        ASSERT(i < globalInputs.size(), "input index out of range");
+
+        _internal.edges[globalInputs[i]].value = {std::move(blob)};
+    }
+
+    std::vector<uint_lv1> Stream::prepare() {
+        auto globalInputs = _internal.topology.globalInputs();
+        std::vector<uint_lv1> unknownInputs;
+        for (auto i : range0_(globalInputs.size())) {
+            if (!_internal.edges[globalInputs[i]].blob()) {
+                unknownInputs.push_back(i);
+            }
+        }
+        if (unknownInputs.empty()) {
+            auto allocator = _resources.fetch<MemManager>()->manager;
+            auto outputs = _internal.topology.globalOutputs();
+            for (auto i : range0_(outputs.size())) {
+                _internal.edges[outputs[i]].value = {ForeignBlob::share(allocator, _outputsSize[i])};
+            }
+        }
+        return unknownInputs;
+    }
 
     void Stream::run() {
         auto map = [this](auto i) { return _internal.edges[i](*_stack); };
