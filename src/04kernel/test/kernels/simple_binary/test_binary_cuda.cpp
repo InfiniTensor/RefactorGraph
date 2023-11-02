@@ -11,7 +11,7 @@ using namespace kernel;
 
 void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape dimC) {
     // Create Tensor and build kernels
-    using T_ = primitive_t<DataType::I8>::type;
+    using T_ = primitive<DataType::I8>::type;
     auto aTensor = Tensor::share(DataType::I8, dimA, LayoutType::NCHW);
     auto bTensor = Tensor::share(DataType::I8, dimB, LayoutType::NCHW);
     auto cTensor = Tensor::share(DataType::I8, dimC, LayoutType::NCHW);

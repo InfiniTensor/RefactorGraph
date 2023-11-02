@@ -9,7 +9,7 @@ namespace refactor::python_ffi {
     DataType parseNumpyDType(py::dtype const &dt) {
 
 #define CASE(T)                                                   \
-    if (dt.is(py::dtype::of<primitive_t<DataType::T>::type>())) { \
+    if (dt.is(py::dtype::of<primitive<DataType::T>::type>())) { \
         return DataType::T;                                       \
     }
 
@@ -34,7 +34,7 @@ namespace refactor::python_ffi {
 
 #define CASE(T)       \
     case DataType::T: \
-        return py::dtype::of<primitive_t<DataType::T>::type>();
+        return py::dtype::of<primitive<DataType::T>::type>();
 
         switch (dt.internal) {
 

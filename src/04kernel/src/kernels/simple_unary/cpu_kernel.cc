@@ -60,7 +60,7 @@ namespace refactor::kernel {
 #define CASE(OP, T)                                                                          \
     case DT::T:                                                                              \
         return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
-            using T_ = primitive_t<DT::T>::type;                                             \
+            using T_ = primitive<DT::T>::type;                                             \
             auto x = reinterpret_cast<T_ const *>(inputs[0]);                                \
             auto y = reinterpret_cast<T_ *>(outputs[0]);                                     \
             std::for_each_n(std::execution::par_unseq,                                       \

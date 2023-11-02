@@ -56,10 +56,10 @@ namespace refactor::kernel {
 
 #define CASE(FUNC, TYPE) \
     case DT::TYPE:       \
-        return lowerTyped<primitive_t<DT::TYPE>::type, FUNC##Functor<primitive_t<DT::TYPE>::type>>(size)
+        return lowerTyped<primitive<DT::TYPE>::type, FUNC##Functor<primitive<DT::TYPE>::type>>(size)
 #define COPY(TYPE) \
     case DT::TYPE: \
-        return copyTyped<primitive_t<DT::TYPE>::type>(size)
+        return copyTyped<primitive<DT::TYPE>::type>(size)
 #define GROUP_F(FUNC) \
     CASE(FUNC, F32);  \
     CASE(FUNC, F64)

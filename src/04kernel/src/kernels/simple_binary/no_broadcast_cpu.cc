@@ -30,7 +30,7 @@ namespace refactor::kernel {
 #define CASE_DT(OP, T)                                                                       \
     case DT::T:                                                                              \
         return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
-            using T_ = primitive_t<DT::T>::type;                                             \
+            using T_ = primitive<DT::T>::type;                                             \
             auto a = reinterpret_cast<T_ const *>(inputs[0]);                                \
             auto b = reinterpret_cast<T_ const *>(inputs[1]);                                \
             auto c = reinterpret_cast<T_ *>(outputs[0]);                                     \

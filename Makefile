@@ -1,14 +1,13 @@
-﻿.PHONY : build install-python reconfig clean clean-log format test-all
+﻿.PHONY : build install-python reconfig clean clean-log format test
 
 TYPE ?= debug
-FORMAT_ORIGIN ?=
 CUDA ?= OFF
 
-CMAKE_OPT = -DCMAKE_BUILD_TYPE=$(TYPE) -DUSE_CUDA=$(CUDA)
+FORMAT_ORIGIN ?=
 
 build:
 	mkdir -p build
-	cmake $(CMAKE_OPT) -Bbuild
+	cmake -DCMAKE_BUILD_TYPE=$(TYPE) -DUSE_CUDA=$(CUDA) -Bbuild
 	make -j -C build
 
 install-python: build
@@ -26,8 +25,8 @@ clean:
 clean-log:
 	rm -rf log
 
-format:
-	@python3 scripts/format.py $(FORMAT_ORIGIN)
-
 test:
 	make test -j -Cbuild
+
+format:
+	@python3 scripts/format.py $(FORMAT_ORIGIN)
