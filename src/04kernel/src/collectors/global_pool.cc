@@ -15,13 +15,12 @@ namespace refactor::kernel {
         auto const &x = inputs[0].get();
         auto const &y = outputs[0].get();
 
-        auto rank = x.rank();
-        KernelShape kernelShape(rank - 2);
+        auto rank = x.rank() - 2;
+        KernelShape kernelShape(rank);
         std::transform(x.shape.begin() + 2, x.shape.end(),
                        kernelShape.begin(),
                        [](auto dim) { return static_cast<uint_lv1>(dim); });
-        PoolAttributes attributes(rank - 2, nullptr, nullptr, nullptr);
-        // TODO use pool kernels
+        PoolAttributes attributes(rank, nullptr, nullptr, nullptr);
 
         std::vector<KernelBox> ans;
         switch (target) {

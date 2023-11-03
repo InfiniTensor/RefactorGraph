@@ -48,7 +48,7 @@ namespace refactor::kernel {
         return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
-            constexpr static auto workspaceSize = 4ul << 30;
+            constexpr static auto workspaceSize = 1ul << 30;
             auto workspace = mem_manager::ForeignBlob::share(res.fetch<MemManager>()->manager, workspaceSize);
             auto const &d = *d_;
             // name inputs and outputs

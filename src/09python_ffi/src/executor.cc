@@ -15,4 +15,8 @@ namespace refactor::python_ffi {
         return _stream.prepare();
     }
 
+    void Executor::run() {
+        _stream.run();
+    }
+
 }// namespace refactor::python_ffi

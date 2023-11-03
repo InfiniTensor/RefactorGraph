@@ -32,12 +32,12 @@ namespace refactor::kernel {
                         return std::memcpy(dst, src, bytes);
                     }
                 };
-                static Arc<mem_manager::MemManager> memPool = std::make_shared<mem_manager::MemPool>(1 * 1024 * 1024 * 1024, sizeof(uint64_t), BasicCpuMemManager::instance());
+                static Arc<mem_manager::MemManager> memPool = std::make_shared<mem_manager::MemPool>(4ul << 30, sizeof(uint64_t), BasicCpuMemManager::instance());
                 return memPool;
             }
 #ifdef USE_CUDA
             case NvidiaGpu: {
-                static Arc<mem_manager::MemManager> memPool = std::make_shared<mem_manager::MemPool>(1 * 1024 * 1024 * 1024, 256, cuda::BasicCudaMemManager::instance());
+                static Arc<mem_manager::MemManager> memPool = std::make_shared<mem_manager::MemPool>(4ul << 30, 256, cuda::BasicCudaMemManager::instance());
                 return memPool;
             }
 #endif

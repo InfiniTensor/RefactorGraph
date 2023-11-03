@@ -16,6 +16,7 @@ namespace refactor::python_ffi {
         Executor(kernel::Graph, kernel::Allocator);
         void setInput(uint_lv1, pybind11::array);
         std::vector<uint_lv1> prepare();
+        void run();
     };
 
 }// namespace refactor::python_ffi
