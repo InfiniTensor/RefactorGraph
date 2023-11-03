@@ -40,7 +40,7 @@ namespace refactor::kernel {
 
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d),
-                param64 = info.dtParam == DT::F64,
+                param32 = info.dtParam == DT::F32,
                 epsilon = info.epsilon](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
@@ -57,7 +57,7 @@ namespace refactor::kernel {
                 double f64[2];
             };
             void *alpha, *beta;
-            if (param64) {
+            if (param32) {
                 f32[0] = 1;
                 f32[1] = 0;
                 alpha = f32;

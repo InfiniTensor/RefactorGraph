@@ -1,18 +1,17 @@
-﻿#ifndef KERNEL_BINARY_CUDA_HH
-#define KERNEL_BINARY_CUDA_HH
+﻿#ifndef KERNEL_BINARY_NO_BROADCAST_CUDA_HH
+#define KERNEL_BINARY_NO_BROADCAST_CUDA_HH
 
 #include "kernel/collectors/simple_binary.h"
 #include "kernel/tensor.h"
 
 namespace refactor::kernel {
-
-    struct BinaryCuda final : public Kernel {
+    /// @brief Binary kernel without broadcast support. 11 for 1-1 mapping.
+    struct Binary11Cuda final : public Kernel {
         DataType dataType;
         SimpleBinaryType opType;
         size_t size;
-        bool constB;
 
-        BinaryCuda(SimpleBinaryType, DataType, size_t, bool) noexcept;
+        Binary11Cuda(SimpleBinaryType, DataType, size_t) noexcept;
 
         static KernelBox build(SimpleBinaryType, Tensor const &, Tensor const &) noexcept;
         static size_t typeId() noexcept;
@@ -26,4 +25,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_BINARY_CUDA_HH
+#endif// KERNEL_BINARY_NO_BROADCAST_CUDA_HH

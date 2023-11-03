@@ -103,7 +103,7 @@ namespace refactor {
     size_t DT::size() const noexcept {
 #define RETURN_SIZE(TYPE) \
     case DT::TYPE:        \
-        return sizeof(primitive_t<DT::TYPE>::type)
+        return sizeof(primitive<DT::TYPE>::type)
 
         switch (internal) {
             RETURN_SIZE(F32);

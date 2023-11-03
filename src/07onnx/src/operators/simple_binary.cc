@@ -72,7 +72,7 @@ namespace refactor::onnx {
 
     template<decltype(DataType::internal) T>
     void calculate(Ty ty, void *dst, void const *a, void const *b) {
-        using T_ = typename primitive_t<T>::type;
+        using T_ = typename primitive<T>::type;
         auto a_ = *reinterpret_cast<T_ const *>(a);
         auto b_ = *reinterpret_cast<T_ const *>(b);
         auto dst_ = reinterpret_cast<T_ *>(dst);

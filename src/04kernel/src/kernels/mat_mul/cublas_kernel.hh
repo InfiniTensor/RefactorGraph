@@ -1,26 +1,18 @@
-﻿#ifndef KERNEL_CONV_CUDNN_KERNEL_HH
-#define KERNEL_CONV_CUDNN_KERNEL_HH
+﻿#ifndef KERNEL_MATMUL_CUBLAS_KERNEL_HH
+#define KERNEL_MATMUL_CUBLAS_KERNEL_HH
 
+#include "kernel/attributes/matmul_info.h"
 #include "kernel/kernel.h"
 #include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
     struct MatMulCublas final : public Kernel {
-        struct {
-            DataType dataType;
-            bool transA, transB, bias;
-            int m, n, k;
-            float alpha;
-        } info;
+        MatMulInfo info;
 
-        explicit MatMulCublas(decltype(info)) noexcept;
+        explicit MatMulCublas(MatMulInfo) noexcept;
 
-        static KernelBox build(bool transA, bool transB,
-                               float alpha, float beta,
-                               Tensor const &a,
-                               Tensor const &b,
-                               std::optional<std::reference_wrapper<Tensor const>> c) noexcept;
+        static KernelBox build(Tensor const &, Tensor const &, Tensor const &, MatMulInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
@@ -32,4 +24,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_CONV_CUDNN_KERNEL_HH
+#endif// KERNEL_MATMUL_CUBLAS_KERNEL_HH

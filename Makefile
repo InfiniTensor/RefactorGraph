@@ -1,18 +1,23 @@
-﻿.PHONY : build install-python clean clean-log format test-all
+﻿.PHONY : build install-python reconfig clean clean-log format test
 
 TYPE ?= debug
-FORMAT_ORIGIN ?=
 CUDA ?= OFF
 
-CMAKE_OPT = -DCMAKE_BUILD_TYPE=$(TYPE) -DUSE_CUDA=$(CUDA)
+FORMAT_ORIGIN ?=
 
 build:
-	mkdir -p build/$(TYPE)
-	cd build/$(TYPE) && cmake $(CMAKE_OPT) ../.. && make -j
+	mkdir -p build
+	cmake -DCMAKE_BUILD_TYPE=$(TYPE) -DUSE_CUDA=$(CUDA) -Bbuild
+	make -j -C build
 
 install-python: build
-	cp build/$(TYPE)/src/09python_ffi/python_ffi*.so src/09python_ffi/src/refactor_graph
+	cp build/src/09python_ffi/python_ffi*.so src/09python_ffi/src/refactor_graph
 	pip install -e src/09python_ffi/
+
+reconfig:
+	@rm -f build/CMakeCache.txt
+	@rm -rf build/CMakeFiles
+	@echo "configuration cache removed."
 
 clean:
 	rm -rf build
@@ -20,12 +25,8 @@ clean:
 clean-log:
 	rm -rf log
 
+test:
+	make test -j -Cbuild
+
 format:
 	@python3 scripts/format.py $(FORMAT_ORIGIN)
-
-test-all:
-	./build/$(TYPE)/src/00common/common_test
-	./build/$(TYPE)/src/01graph_topo/graph_topo_test
-	./build/$(TYPE)/src/04kernel/kernel_test
-	./build/$(TYPE)/src/05computation/computation_test
-	./build/$(TYPE)/src/07onnx/onnx_test

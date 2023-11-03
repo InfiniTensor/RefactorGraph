@@ -27,7 +27,7 @@ namespace refactor::onnx {
 
     template<decltype(DataType::internal) T>
     void accumulate_(void *dst, void const *src, void *acc) {
-        using T_ = typename primitive_t<T>::type;
+        using T_ = typename primitive<T>::type;
         *reinterpret_cast<T_ *>(dst) = *reinterpret_cast<T_ const *>(src) + *reinterpret_cast<T_ *>(acc);
     }
 

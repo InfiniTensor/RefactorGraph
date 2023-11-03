@@ -21,7 +21,8 @@ namespace refactor::runtime {
         bool isBlob() const noexcept;
         bool isOffset() const noexcept;
 
-        size_t getOffset() const;
+        auto blob() const noexcept -> mem_manager::SharedForeignBlob const &;
+        auto offset() const noexcept -> size_t;
     };
 
     class Stream {
@@ -31,13 +32,20 @@ namespace refactor::runtime {
 
         Resources _resources;
         mem_manager::SharedForeignBlob _stack;
+        std::vector<size_t> _outputsSize;
         _G _internal;
 
     public:
-        Stream(mem_manager::SharedForeignBlob,
+        Stream(Resources,
+               size_t stack,
+               std::vector<size_t> outputs,
                graph_topo::GraphTopo,
                std::vector<_N>,
                std::vector<_E>);
+        void setInput(uint_lv1, void const *, size_t);
+        void setInput(uint_lv1, mem_manager::SharedForeignBlob);
+        void getOutput(uint_lv1, void *, size_t) const;
+        std::vector<uint_lv1> prepare();
         void run();
     };
 

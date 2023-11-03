@@ -49,10 +49,16 @@ namespace refactor::computation {
 
         for (auto i : range0_(edges.size())) {
             auto const &[tensor, name] = graph.edges[i];
-            if (!tensor || !tensor->data) { continue; }
-            auto blob = mem_manager::ForeignBlob::share(target.memManager(), tensor->bytesSize());
-            blob->copyIn(*(tensor->data), tensor->bytesSize());
-            edges[i] = {std::move(blob), tensor->bytesSize(), name};
+            if (!tensor) {
+                edges[i] = {nullptr, 0, name};
+            } else if (!tensor->data) {
+                edges[i] = {nullptr, tensor->bytesSize(), name};
+            } else {
+                auto bytes = tensor->bytesSize();
+                auto blob = mem_manager::ForeignBlob::share(target.memManager(), bytes);
+                blob->copyIn(*(tensor->data), bytes);
+                edges[i] = {std::move(blob), bytes, name};
+            }
         }
 
         auto modifier = graph_topo::InplaceModifier(graph.topology);

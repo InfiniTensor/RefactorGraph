@@ -4,7 +4,6 @@
 #include "common.h"
 #include "mem_manager.hh"
 #include "mem_offset_calculator.h"
-#include <cstddef>
 #include <unordered_map>
 
 namespace refactor::mem_manager {
@@ -18,7 +17,7 @@ namespace refactor::mem_manager {
 
     public:
         void *malloc(size_t bytes) noexcept final;
-        void free(void *ptr) noexcept final;
+        void free(void *ptr) final;
         void *copyHD(void *dst, void const *src, size_t bytes) const noexcept final;
         void *copyDH(void *dst, void const *src, size_t bytes) const noexcept final;
         void *copyDD(void *dst, void const *src, size_t bytes) const noexcept final;

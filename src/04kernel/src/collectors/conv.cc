@@ -14,8 +14,8 @@ namespace refactor::kernel {
     if (auto ptr = ConvCudnn::build(           \
             (cudnn::ConvolutionFwdAlgo::ALGO), \
             poolAttributes,                    \
-            w,                                 \
             x,                                 \
+            w,                                 \
             y);                                \
         ptr) {                                 \
         ans.emplace_back(std::move(ptr));      \

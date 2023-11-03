@@ -99,7 +99,6 @@ namespace refactor {
         }
     };
 
-
     inline const fp16_t fp16_t::ZERO = fp16_t(0.0f);
     inline const fp16_t fp16_t::ONE = fp16_t(1.0f);
     inline const fp16_t fp16_t::INF = fp16_t((uint16_t) 0b0'11111'0000000000);

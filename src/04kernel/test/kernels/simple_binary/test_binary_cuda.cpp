@@ -1,7 +1,9 @@
 #ifdef USE_CUDA
-#include "../src/kernels/simple_binary/arthimetic11.hh"
+
 #include "../src/kernels/simple_binary/basic_cpu.hh"
-#include "../src/kernels/simple_binary/binary_cuda.hh"
+#include "../src/kernels/simple_binary/basic_cuda.hh"
+#include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
+#include "../src/kernels/simple_binary/no_broadcast_cuda.hh"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -9,19 +11,18 @@ using namespace kernel;
 
 void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape dimC) {
     // Create Tensor and build kernels
-    using T_ = primitive_t<DataType::I8>::type;
+    using T_ = primitive<DataType::I8>::type;
     auto aTensor = Tensor::share(DataType::I8, dimA, LayoutType::NCHW);
     auto bTensor = Tensor::share(DataType::I8, dimB, LayoutType::NCHW);
     auto cTensor = Tensor::share(DataType::I8, dimC, LayoutType::NCHW);
 
     auto cpuKernel = dimA == dimB
-                         ? Arthimetic11::build(binaryOPT, *aTensor, *bTensor)
+                         ? Binary11Cpu::build(binaryOPT, *aTensor, *bTensor)
                          : BinaryBasicCpu::build(binaryOPT, *aTensor, *bTensor);
-
-
-    auto cudaKernel = BinaryCuda::build(binaryOPT, *aTensor, *bTensor);
-    ASSERT_TRUE(cpuKernel);
-    ASSERT_TRUE(cudaKernel);
+    auto cudaKernel = dimA == dimB
+                          ? Binary11Cuda::build(binaryOPT, *aTensor, *bTensor)
+                          : BinaryBasicCuda::build(binaryOPT, *aTensor, *bTensor);
+    ASSERT_TRUE(cpuKernel && cudaKernel);
     auto cpuRoutine = cpuKernel->lower();
     auto cudaRoutine = cudaKernel->lower();
 
@@ -53,19 +54,31 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
 }
 
 TEST(kernel, BinaryCudaAdd) {
-    testBinaryCuda(SimpleBinaryType::Add, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4});
+    testBinaryCuda(SimpleBinaryType::Add,
+                   Shape{2, 5, 10, 20, 3, 4},
+                   Shape{2, 5, 10, 20, 3, 4},
+                   Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCudaMul) {
-    testBinaryCuda(SimpleBinaryType::Mul, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4});
+    testBinaryCuda(SimpleBinaryType::Mul,
+                   Shape{2, 5, 10, 20, 3, 4},
+                   Shape{2, 5, 10, 20, 3, 4},
+                   Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCudaSub) {
-    testBinaryCuda(SimpleBinaryType::Sub, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4});
+    testBinaryCuda(SimpleBinaryType::Sub,
+                   Shape{2, 5, 10, 20, 3, 4},
+                   Shape{2, 5, 10, 20, 3, 4},
+                   Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCudaDiv) {
-    testBinaryCuda(SimpleBinaryType::Div, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4}, Shape{2, 5, 10, 20, 3, 4});
+    testBinaryCuda(SimpleBinaryType::Div,
+                   Shape{2, 5, 10, 20, 3, 4},
+                   Shape{2, 5, 10, 20, 3, 4},
+                   Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCudaBroadcast) {

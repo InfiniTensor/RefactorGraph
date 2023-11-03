@@ -1,125 +1,101 @@
 #include "mem_manager/mem_offset_calculator.h"
 #include "common.h"
+#include "mem_manager/functions.h"
 #include <utility>
 
 namespace refactor::mem_manager {
 
-    OffsetCalculator::OffsetCalculator(size_t alignment)
-        : _alignment(alignment) {}
-
-    void OffsetCalculator::init() {
-        _used = 0;
-        _peak = 0;
-        _freeBlocks.clear();
-        _headAddrToBlockSize.clear();
-        _tailAddrToBlockSize.clear();
+    auto OffsetCalculator::FreeBlockInfo::
+    operator<(const FreeBlockInfo &rhs) const noexcept -> bool {
+        // most likely the two blockSizes are not equal
+        return blockSize < rhs.blockSize || (blockSize == rhs.blockSize && addr < rhs.addr);
     }
+
+    OffsetCalculator::OffsetCalculator(size_t alignment)
+        : _used(0),
+          _peak(0),
+          _alignment(alignment),
+          _freeBlocks{},
+          _headAddrToBlockSize{},
+          _tailAddrToBlockSize{} {}
 
     size_t OffsetCalculator::alloc(size_t size) {
         // pad the size to the multiple of alignment
-        size = getAlignedSize(size);
-        auto it = _freeBlocks.lower_bound(FreeBlockInfo{(size_t) 0, size});
+        size = alignBytes(size, _alignment);
+        _used += size;
 
-        size_t retAddr = _peak;
-        if (it != _freeBlocks.end()) {
-            // found an alvailable free memory block for allocation
-            size_t blockSize = it->blockSize;
-            retAddr = it->addr;
-            size_t tailAddr = retAddr + size;
+        // found an alvailable free memory block for allocation
+        if (auto it = _freeBlocks.lower_bound(FreeBlockInfo{0ul, size}); it != _freeBlocks.end()) {
+
+            auto [addr, blockSize] = *it;
+            auto head = addr,
+                 tail = head + blockSize;
             // update the map of head and tail address offset of memory blocks
-            _headAddrToBlockSize.erase(retAddr);
-            _tailAddrToBlockSize.erase(tailAddr);
-            // memory block splitting
-            if (blockSize > tailAddr - retAddr) {
-                FreeBlockInfo newBlock = {tailAddr,
-                                          blockSize - (tailAddr - retAddr)};
-                _headAddrToBlockSize[tailAddr] = newBlock.blockSize;
-                _tailAddrToBlockSize[retAddr + blockSize] = newBlock.blockSize;
-                _freeBlocks.insert(newBlock);
-            }
-            // update the free balanced tree
             _freeBlocks.erase(it);
-            _used += tailAddr - retAddr;
-        } else {
-            // the allocated memory space is not sufficient for reallocation, it
-            // needs to be extended
-            auto blockTailWithPeak = _tailAddrToBlockSize.find(_peak);
-            if (blockTailWithPeak != _tailAddrToBlockSize.end()) {
-                // there is a free block located at the end of the currently
-                // allocated memory, where this free block has its tail address as
-                // 'peak'
-                ASSERT(blockTailWithPeak->second <= _peak,
-                       "the free block's size should less or equal than peak");
-                retAddr = _peak - blockTailWithPeak->second;
-                ASSERT(blockTailWithPeak->second < size,
-                       "the available free block's size should less than size");
-                _peak += (size - blockTailWithPeak->second);
-                // updata _freeBlocks, _headAddrToBlockSize and _tailAddrToBlockSize
-                FreeBlockInfo endBlock = {retAddr, blockTailWithPeak->second};
-                _freeBlocks.erase(endBlock);
-                _headAddrToBlockSize.erase(endBlock.addr);
-                _tailAddrToBlockSize.erase(endBlock.addr + endBlock.blockSize);
-            } else {
-                _peak = _peak + size;
+            _headAddrToBlockSize.erase(head);
+            _tailAddrToBlockSize.erase(tail);
+            // memory block splitting
+            if (blockSize > size) {
+                auto newSize = blockSize - size;
+                head += size;
+                _headAddrToBlockSize.emplace(head, newSize);
+                _tailAddrToBlockSize.emplace(tail, newSize);
+                _freeBlocks.insert({head, newSize});
             }
-            _used += size;
+            return addr;
         }
+        // found an free memory block for allocation located at the end of the currently allocated memory
+        if (auto it = _tailAddrToBlockSize.find(_peak); it != _tailAddrToBlockSize.end()) {
 
-        return retAddr;
+            auto blockSize = it->second,
+                 addr = _peak - blockSize;
+            ASSERT(blockSize < size, "the available free block's size should less than size");
+            _freeBlocks.erase({addr, blockSize});
+            _headAddrToBlockSize.erase(addr);
+            _tailAddrToBlockSize.erase(it);
+            _peak += size - blockSize;
+            return addr;
+        }
+        // no available free memory block for allocation, allocate memory at the end of the currently allocated memory
+        {
+            auto addr = _peak;
+            _peak += size;
+            return addr;
+        }
     }
 
     void OffsetCalculator::free(size_t addr, size_t size) {
-        size = getAlignedSize(size);
-        auto tailAddr = addr + size;
-        FreeBlockInfo block = {addr, tailAddr - addr};
-        _headAddrToBlockSize[addr] = block.blockSize;
-        _tailAddrToBlockSize[tailAddr] = block.blockSize;
-        auto preFreeBlockIter = _tailAddrToBlockSize.find(addr);
-        auto subFreeBlockIter = _headAddrToBlockSize.find(tailAddr);
-        if (preFreeBlockIter != _tailAddrToBlockSize.end()) {
-            // the head address of the memory block to be freed matches the end of a
-            // free block, merge them together
-            size_t preBlockSize = preFreeBlockIter->second;
-            _headAddrToBlockSize.erase(block.addr);
-            _headAddrToBlockSize[block.addr - preBlockSize] += block.blockSize;
-            _tailAddrToBlockSize.erase(block.addr);
-            _tailAddrToBlockSize[tailAddr] += preBlockSize;
-            block.addr -= preBlockSize;
-            block.blockSize += preBlockSize;
-            // delete the preceding adjacent free block
-            _freeBlocks.erase(FreeBlockInfo{block.addr, preBlockSize});
-        }
-        if (subFreeBlockIter != _headAddrToBlockSize.end()) {
-            // the tail address of the memory block to be freed matches the start of
-            // a free block, merge them together
-            auto subBlockSize = subFreeBlockIter->second;
-            _headAddrToBlockSize.erase(tailAddr);
-            _headAddrToBlockSize[block.addr] += subBlockSize;
-            _tailAddrToBlockSize.erase(tailAddr);
-            _tailAddrToBlockSize[tailAddr + subBlockSize] += block.blockSize;
-            tailAddr += subBlockSize;
-            block.blockSize += subBlockSize;
-            // delete the succeeding adjacent memory block
-            _freeBlocks.erase(
-                FreeBlockInfo{tailAddr - subBlockSize, subBlockSize});
-        }
-        _freeBlocks.insert(block);
+        // pad the size to the multiple of alignment
+        size = alignBytes(size, _alignment);
         _used -= size;
+
+        auto head = addr,
+             tail = addr + size;
+        if (auto it = _tailAddrToBlockSize.find(head); it != _tailAddrToBlockSize.end()) {
+            head -= it->second;
+            size += it->second;
+            _freeBlocks.erase({head, it->second});
+            _headAddrToBlockSize.erase(head);
+            _tailAddrToBlockSize.erase(it);
+        }
+        if (auto it = _headAddrToBlockSize.find(tail); it != _headAddrToBlockSize.end()) {
+            tail += it->second;
+            size += it->second;
+            _freeBlocks.erase({it->first, it->second});
+            _headAddrToBlockSize.erase(it);
+            _tailAddrToBlockSize.erase(tail);
+        }
+        _freeBlocks.insert({head, size});
+        _headAddrToBlockSize.emplace(head, size);
+        _tailAddrToBlockSize.emplace(tail, size);
     }
 
-    size_t OffsetCalculator::peak() {
+    size_t OffsetCalculator::peak() const noexcept {
         return _peak;
     }
 
-    std::string OffsetCalculator::info() {
-        std::string infoStr = "Used memory: " +
-                              std::to_string(_used) + ", peak memory: " +
-                              std::to_string(_peak) + "/n";
-        return infoStr;
-    }
-
-    size_t OffsetCalculator::getAlignedSize(size_t size) {
-        return ((size - 1) / _alignment + 1) * _alignment;
+    std::string OffsetCalculator::info() const noexcept {
+        return fmt::format("Used memory: {}, peak memory: {}", _used, _peak);
     }
 
 }// namespace refactor::mem_manager

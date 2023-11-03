@@ -187,11 +187,13 @@ namespace refactor::frontend {
                            auto valueDependentInputs = op->valueDependentInputs();
                            auto it = valueDependentInputs.begin();
                            for (auto i : range0_(nodeRef.inputs.size())) {
+                               auto input = nodeRef.inputs[i];
                                if (it != valueDependentInputs.end() && i == *it) {
+                                   edges[input].name = _internal.edges[input].name;
                                    ++it;
                                    continue;
                                }
-                               fn(nodeRef.inputs[i]);
+                               fn(input);
                            }
                            std::for_each(std::execution::unseq, nodeRef.outputs.begin(), nodeRef.outputs.end(), fn);
                            return computation::Node{std::move(op_), name};

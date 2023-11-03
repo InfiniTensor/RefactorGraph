@@ -1,7 +1,8 @@
 #ifdef USE_CUDA
-#include "../src/kernels/simple_binary/arthimetic11.hh"
+
 #include "../src/kernels/simple_binary/basic_cpu.hh"
 #include "../src/kernels/simple_binary/binary_cudnn.hh"
+#include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -14,13 +15,11 @@ void testBinaryCudnn(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape d
     auto cTensor = Tensor::share(DataType::F32, dimC, LayoutType::NCHW);
 
     auto cpuKernel = dimA == dimB
-                         ? Arthimetic11::build(binaryOPT, *aTensor, *bTensor)
+                         ? Binary11Cpu::build(binaryOPT, *aTensor, *bTensor)
                          : BinaryBasicCpu::build(binaryOPT, *aTensor, *bTensor);
 
-
     auto cudnnKernel = BinaryCudnn::build(binaryOPT, *aTensor, *bTensor, *cTensor);
-    ASSERT_TRUE(cpuKernel);
-    ASSERT_TRUE(cudnnKernel);
+    ASSERT_TRUE(cpuKernel && cudnnKernel);
     auto cpuRoutine = cpuKernel->lower();
     auto cudnnRoutine = cudnnKernel->lower();
 

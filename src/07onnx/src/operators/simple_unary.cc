@@ -166,13 +166,13 @@ namespace refactor::onnx {
 
     template<decltype(DataType::internal) T>
     void abs(void *dst, void const *src) {
-        using T_ = typename primitive_t<T>::type;
+        using T_ = typename primitive<T>::type;
         *reinterpret_cast<T_ *>(dst) = std::abs(*reinterpret_cast<T_ const *>(src));
     }
 
     template<decltype(DataType::internal) T>
     void log(void *dst, void const *src) {
-        using T_ = typename primitive_t<T>::type;
+        using T_ = typename primitive<T>::type;
         *reinterpret_cast<T_ *>(dst) = std::log(*reinterpret_cast<T_ const *>(src));
     }
 

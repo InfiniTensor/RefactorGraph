@@ -2,24 +2,27 @@
 
 namespace refactor::mem_manager {
     MemPool::MemPool(size_t memPoolSize, size_t alignment, Arc<MemManager> f)
-        : _memPoolSize(memPoolSize), _calculator(OffsetCalculator(alignment)), _ptr(f->malloc(memPoolSize)), _f(f) {
+        : _memPoolSize(memPoolSize),
+          _calculator(OffsetCalculator(alignment)),
+          _ptr(f->malloc(memPoolSize)),
+          _f(std::move(f)) {
     }
     MemPool::~MemPool() {
         _f->free(_ptr);
     }
     void *MemPool::malloc(size_t bytes) noexcept {
-        size_t offset = _calculator.alloc(bytes);
+        auto offset = _calculator.alloc(bytes);
         ASSERT(_calculator.peak() < _memPoolSize, "out of memory");
-        void *retPtr = static_cast<uint8_t *>(_ptr) + offset;
-        _ptrToBlobsize[retPtr] = bytes;
-        return retPtr;
+        void *ans = static_cast<uint8_t *>(_ptr) + offset;
+        _ptrToBlobsize.emplace(ans, bytes);
+        return ans;
     }
-    void MemPool::free(void *ptr) noexcept {
-        ASSERT(_ptrToBlobsize.find(ptr) != _ptrToBlobsize.end(), "invalid ptr");
-        size_t size = _ptrToBlobsize[ptr];
-        size_t offset = static_cast<uint8_t *>(ptr) - static_cast<uint8_t *>(_ptr);
-        _calculator.free(offset, size);
-        _ptrToBlobsize.erase(ptr);
+    void MemPool::free(void *ptr) {
+        auto it = _ptrToBlobsize.find(ptr);
+        ASSERT(it != _ptrToBlobsize.end(), "invalid ptr");
+        auto offset = static_cast<uint8_t *>(ptr) - static_cast<uint8_t *>(_ptr);
+        _calculator.free(offset, it->second);
+        _ptrToBlobsize.erase(it);
     }
     void *MemPool::copyHD(void *dst, void const *src, size_t bytes) const noexcept {
         _f->copyHD(dst, src, bytes);

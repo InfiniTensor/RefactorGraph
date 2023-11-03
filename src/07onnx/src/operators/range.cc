@@ -64,7 +64,7 @@ namespace refactor::onnx {
         //-------------------------------------
 #define CASE(T)                                           \
     case DataType::T:                                     \
-        return calculate<primitive_t<DataType::T>::type>( \
+        return calculate<primitive<DataType::T>::type>( \
             start.data->get<void>(),                      \
             limit.data->get<void>(),                      \
             delta.data->get<void>(),                      \

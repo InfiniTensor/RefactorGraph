@@ -21,11 +21,13 @@ endif()
 
 if(USE_CUDA)
     target_link_libraries(kernel PUBLIC cudnn)
+    target_link_libraries(kernel PUBLIC cublas)
 endif()
 
 file(GLOB_RECURSE KERNEL_TEST test/*.cpp)
 if(KERNEL_TEST)
     add_executable(kernel_test ${KERNEL_TEST})
+    add_test(kernel_test kernel_test)
     target_link_libraries(kernel_test kernel GTest::gtest_main ${BACKWARD_ENABLE})
     add_backward(kernel_test)
 endif()

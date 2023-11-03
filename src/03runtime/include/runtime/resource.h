@@ -26,6 +26,9 @@ namespace refactor::runtime {
         Resource *fetchOrStore(ResourceBox) noexcept;
         Resource *fetchOrStore(size_t, std::function<ResourceBox()>) noexcept;
 
+        template<class T> T *fetch() noexcept {
+            return dynamic_cast<T *>(fetch(T::typeId()));
+        }
         template<class T> T *fetch(size_t id) noexcept {
             return dynamic_cast<T *>(fetch(id));
         }
