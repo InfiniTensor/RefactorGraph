@@ -139,4 +139,59 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     }
 }
 
+TEST(kernel, MatMulCublas_Large) {
+    // build routine
+    auto A = Tensor::share(DataType::F32, Shape{1, 512});
+    auto B = Tensor::share(DataType::F32, Shape{1000, 512});
+    auto C = Tensor::share(DataType::F32, Shape{1000});
+    auto Y = Tensor::share(DataType::F32, Shape{1, 1000});
+    MatMulInfo info(*A, *B, *C, false, true);
+    auto cpuKernel = MatMulCPU::build(*A, *B, *Y, info);
+    auto gpuKernel = MatMulCublas::build(*A, *B, *Y, info);
+    ASSERT_TRUE(cpuKernel && gpuKernel);
+    auto cpuRoutine = cpuKernel->lower();
+    auto gpuRoutine = gpuKernel->lower();
+    // put input data
+    std::vector<float> dataA(A->elementsSize());
+    for (auto i = 0; i < dataA.size(); i++) {
+        dataA[i] = 1.0 * (i % 4) - 2.0;
+    }
+    std::vector<float> dataB(B->elementsSize());
+    for (auto i = 0; i < dataB.size(); i++) {
+        dataB[i] = 1.0 * (i % 4) - 2.0;
+    }
+    std::vector<float> dataC(C->elementsSize());
+    for (auto i = 0; i < dataC.size(); i++) {
+        dataC[i] = 1.0 * (i % 4) - 2.0;
+    }
+    std::vector<float> cpuOut(Y->elementsSize());
+    auto mfn = Target(Target::NvidiaGpu).memManager();
+    auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
+    auto mb = mem_manager::ForeignBlob::share(mfn, B->bytesSize());
+    auto mc = mem_manager::ForeignBlob::share(mfn, C->bytesSize());
+    auto my = mem_manager::ForeignBlob::share(mfn, Y->bytesSize());
+    ma->copyIn(dataA.data(), A->bytesSize());
+    mb->copyIn(dataB.data(), B->bytesSize());
+    mc->copyIn(dataC.data(), C->bytesSize());
+    // inference
+    auto res = runtime::Resources();
+    {
+        void const *inputs[]{*ma, *mb, *mc};
+        void *outputs[]{*my};
+        gpuRoutine(res, inputs, outputs);
+    }
+    {
+        void const *inputs[]{dataA.data(), dataB.data(), dataC.data()};
+        void *outputs[]{cpuOut.data()};
+        cpuRoutine(res, inputs, outputs);
+    }
+    // take output data
+    std::vector<float> result(Y->elementsSize());
+    my->copyOut(result.data(), Y->bytesSize());
+    // check
+    for (auto i = 0; i < result.size(); i++) {
+        EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
+    }
+}
+
 #endif
