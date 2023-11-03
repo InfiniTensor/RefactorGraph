@@ -32,8 +32,8 @@ namespace refactor::kernel {
             case Target::Cpu:
                 break;
             case Target::NvidiaGpu:
-                REGISTER_CUDNN(IMPLICIT_GEMM)
                 REGISTER_CUDNN(IMPLICIT_PRECOMP_GEMM)
+                REGISTER_CUDNN(IMPLICIT_GEMM)
                 REGISTER_CUDNN(GEMM)
                 REGISTER_CUDNN(DIRECT)
                 REGISTER_CUDNN(FFT)
