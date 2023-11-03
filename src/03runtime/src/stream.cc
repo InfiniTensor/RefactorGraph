@@ -7,9 +7,11 @@ namespace refactor::runtime {
     void emptyRoutine(runtime::Resources &, void const **, void **) {}
 
     void *Address::operator()(void *stack) {
-        return isBlob()
-                   ? *std::get<mem_manager::SharedForeignBlob>(value)
-                   : reinterpret_cast<uint8_t *>(stack) + std::get<size_t>(value);
+        if (isBlob()) {
+            auto blob = std::get<mem_manager::SharedForeignBlob>(value);
+            return blob ? (void *) *blob : nullptr;
+        }
+        return reinterpret_cast<uint8_t *>(stack) + std::get<size_t>(value);
     }
     bool Address::isBlob() const noexcept {
         return std::holds_alternative<mem_manager::SharedForeignBlob>(value);
@@ -55,6 +57,12 @@ namespace refactor::runtime {
 
         _internal.edges[globalInputs[i]].value = {std::move(blob)};
     }
+    void Stream::getOutput(uint_lv1 i, void *data, size_t size) const {
+        auto globalOutputs = _internal.topology.globalOutputs();
+        ASSERT(i < globalOutputs.size(), "input index out of range");
+
+        _internal.edges[globalOutputs[i]].blob()->copyOut(data, size);
+    }
 
     std::vector<uint_lv1> Stream::prepare() {
         auto globalInputs = _internal.topology.globalInputs();
@@ -81,7 +89,7 @@ namespace refactor::runtime {
             buffer.resize(i.size() + o.size());
             auto inputs_ = buffer.data(),
                  outputs_ = std::transform(i.begin(), i.end(), inputs_, map);
-            /* alignnnnn */ std::transform(o.begin(), o.end(), outputs_, map);
+            /* alignment */ std::transform(o.begin(), o.end(), outputs_, map);
             _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
         }
     }

@@ -1,8 +1,8 @@
-﻿from onnx import ModelProto, NodeProto, AttributeProto
+﻿from pyexpat import model
+from onnx import ModelProto, NodeProto, AttributeProto
 from onnx.numpy_helper import to_array
 from onnx.external_data_helper import ExternalDataInfo
 from typing import Any
-from functools import reduce
 from python_ffi import (
     Compiler,
     Tensor,
@@ -51,7 +51,7 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
             node.name += "_" + str(names[node.name])
         else:
             names[node.name] = 0
-
+    data = set(i.name for i in model.graph.initializer)
     return _make_compiler(
         {node.name: (node.input, node.output) for node in model.graph.node},
         {
@@ -59,7 +59,7 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
             for node in model.graph.node
         },
         edges,
-        [i.name for i in model.graph.input],
+        [i.name for i in model.graph.input if i.name not in data],
         [o.name for o in model.graph.output],
     )
 

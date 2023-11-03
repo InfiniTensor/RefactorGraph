@@ -51,9 +51,13 @@ namespace refactor::python_ffi {
         std::unordered_map<Name, std::pair<NameVec, NameVec>> topology,
         std::unordered_map<Name, SharedOp> nodes,
         std::unordered_map<Name, SharedTensor> edges,
-        NameVec inputs,
-        NameVec outputs) {
-        auto builder = graph_topo::Builder<Name, Node, Name, Edge>{};
+        NameVec inputs_,
+        NameVec outputs_) {
+        auto builder = graph_topo::Builder<Name, Node, Name, Edge>{
+            {},
+            std::move(inputs_),
+            std::move(outputs_),
+        };
         for (auto &[node, rels] : topology) {
             auto &[inputs, outputs] = rels;
             for (auto const &input : inputs) {
@@ -77,8 +81,6 @@ namespace refactor::python_ffi {
                    fmt::format("edge {} not connected", name));
             it->second.tensor = std::move(edge.tensor);
         }
-        builder.globalInputs = std::move(inputs);
-        builder.globalOutputs = std::move(outputs);
         return std::make_shared<Compiler>(Graph(builder.build()));
     }
 

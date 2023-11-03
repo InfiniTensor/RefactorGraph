@@ -99,8 +99,8 @@ namespace refactor::kernel {
                     strideA = info.m * info.k,                                                            \
                     strideB = info.k * info.n,                                                            \
                     strideC0, strideC1,                                                                   \
-                    lda = info.transA ? info.m : info.k,                                                  \
-                    ldb = info.transB ? info.k : info.n,                                                  \
+                    lda = info.transA ? info.k : info.m,                                                  \
+                    ldb = info.transB ? info.n : info.k,                                                  \
                     cudaDataType,                                                                         \
                     broadcaster = info.broadcaster,                                                       \
                     compute = computeWithBias<T_>](Resources &res, void const **inputs, void **outputs) { \
@@ -121,8 +121,8 @@ namespace refactor::kernel {
                     strideY = info.m * info.n,                                                            \
                     strideA = info.m * info.k,                                                            \
                     strideB = info.k * info.n,                                                            \
-                    lda = info.transA ? info.m : info.k,                                                  \
-                    ldb = info.transB ? info.k : info.n,                                                  \
+                    lda = info.transA ? info.k : info.m,                                                  \
+                    ldb = info.transB ? info.n : info.k,                                                  \
                     cudaDataType,                                                                         \
                     broadcaster = info.broadcaster,                                                       \
                     compute = computeNoBias<T_>](Resources &res, void const **inputs, void **outputs) {   \

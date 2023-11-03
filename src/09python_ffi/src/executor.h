@@ -1,21 +1,21 @@
 ﻿#ifndef PYTHON_FFI_EXECUTOR_H
 #define PYTHON_FFI_EXECUTOR_H
 
+#include "computation/graph.h"
 #include "functions.h"
-#include "kernel/graph.h"
 
 namespace refactor::python_ffi {
     using SharedTensor = Arc<frontend::Tensor>;
 
     class Executor {
-        kernel::Graph _graph;
-        kernel::Allocator _allocator;
+        computation::Graph _graph;
         runtime::Stream _stream;
 
     public:
-        Executor(kernel::Graph, kernel::Allocator);
+        Executor(computation::Graph, runtime::Stream);
         void setInput(uint_lv1, pybind11::array);
-        std::vector<uint_lv1> prepare();
+        auto getOutput(uint_lv1) -> pybind11::array;
+        auto prepare() -> std::vector<uint_lv1>;
         void run();
     };
 

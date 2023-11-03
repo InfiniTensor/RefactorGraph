@@ -44,6 +44,7 @@ namespace refactor::runtime {
                std::vector<_E>);
         void setInput(uint_lv1, void const *, size_t);
         void setInput(uint_lv1, mem_manager::SharedForeignBlob);
+        void getOutput(uint_lv1, void *, size_t) const;
         std::vector<uint_lv1> prepare();
         void run();
     };
