@@ -54,7 +54,7 @@ void computeWithBias(cublasHandle_t handle, T const *A, T const *B, T const *C, 
     for (size_t i = 0; i < batch; i++) {
         broadcaster.locate(i, offset);
         stat = cublasGemmEx(
-            handle, tA, tB, n, m, k, &alpha, B + strideB * offset[1],
+            handle, tB, tA, n, m, k, &alpha, B + strideB * offset[1],
             cudaDataType, ldb, A + strideA * offset[0], cudaDataType, lda, &beta, Y + strideY * i,
             cudaDataType, n, cudaDataType, CUBLAS_GEMM_DEFAULT);
     }
@@ -75,7 +75,7 @@ void computeNoBias(cublasHandle_t handle, T const *A, T const *B, T *Y,
     for (size_t i = 0; i < batch; i++) {
         broadcaster.locate(i, offset);
         stat = cublasGemmEx(
-            handle, tA, tB, n, m, k, &alpha, B + strideB * offset[1],
+            handle, tB, tA, n, m, k, &alpha, B + strideB * offset[1],
             cudaDataType, ldb, A + strideA * offset[0], cudaDataType, lda, &beta, Y + strideY * i,
             cudaDataType, n, cudaDataType, CUBLAS_GEMM_DEFAULT);
     }
@@ -99,8 +99,8 @@ namespace refactor::kernel {
                     strideA = info.m * info.k,                                                            \
                     strideB = info.k * info.n,                                                            \
                     strideC0, strideC1,                                                                   \
-                    lda = info.transA ? info.k : info.m,                                                  \
-                    ldb = info.transB ? info.n : info.k,                                                  \
+                    lda = info.transA ? info.m : info.k,                                                  \
+                    ldb = info.transB ? info.k : info.n,                                                  \
                     cudaDataType,                                                                         \
                     broadcaster = info.broadcaster,                                                       \
                     compute = computeWithBias<T_>](Resources &res, void const **inputs, void **outputs) { \
@@ -121,8 +121,8 @@ namespace refactor::kernel {
                     strideY = info.m * info.n,                                                            \
                     strideA = info.m * info.k,                                                            \
                     strideB = info.k * info.n,                                                            \
-                    lda = info.transA ? info.k : info.m,                                                  \
-                    ldb = info.transB ? info.n : info.k,                                                  \
+                    lda = info.transA ? info.m : info.k,                                                  \
+                    ldb = info.transB ? info.k : info.n,                                                  \
                     cudaDataType,                                                                         \
                     broadcaster = info.broadcaster,                                                       \
                     compute = computeNoBias<T_>](Resources &res, void const **inputs, void **outputs) {   \
