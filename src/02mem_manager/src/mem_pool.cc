@@ -17,7 +17,7 @@ namespace refactor::mem_manager {
         _ptrToBlobsize.emplace(ans, bytes);
         return ans;
     }
-    void MemPool::free(void *ptr) noexcept {
+    void MemPool::free(void *ptr) {
         auto it = _ptrToBlobsize.find(ptr);
         ASSERT(it != _ptrToBlobsize.end(), "invalid ptr");
         auto offset = static_cast<uint8_t *>(ptr) - static_cast<uint8_t *>(_ptr);

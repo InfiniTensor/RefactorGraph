@@ -1,7 +1,7 @@
 ﻿#ifndef PYTHON_FFI_EXECUTOR_H
 #define PYTHON_FFI_EXECUTOR_H
 
-#include "frontend/tensor.h"
+#include "functions.h"
 #include "kernel/graph.h"
 
 namespace refactor::python_ffi {
@@ -14,7 +14,7 @@ namespace refactor::python_ffi {
 
     public:
         Executor(kernel::Graph, kernel::Allocator);
-        void setInput(uint_lv1, SharedTensor);
+        void setInput(uint_lv1, pybind11::array);
         std::vector<uint_lv1> prepare();
     };
 

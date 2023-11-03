@@ -7,8 +7,8 @@ namespace refactor::python_ffi {
           _allocator(allocator),
           _stream(_graph.lower(_allocator)) {}
 
-    void Executor::setInput(uint_lv1 i, SharedTensor tensor) {
-        _stream.setInput(i, tensor->data->operator const void *(), tensor->bytesSize());
+    void Executor::setInput(uint_lv1 i, pybind11::array data) {
+        _stream.setInput(i, data.data(), data.nbytes());
     }
 
     std::vector<uint_lv1> Executor::prepare() {

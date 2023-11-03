@@ -34,7 +34,7 @@ namespace refactor::python_ffi {
             .def("compile"         , &Compiler::compile          , return_::move      );
 
         py::class_<Executor , Arc<Executor>>(m, "Executor" )
-            .def("setInput"        , &Executor::setInput         , return_::automatic )
+            .def("set_input"       , &Executor::setInput         , return_::automatic )
             .def("prepare"         , &Executor::prepare          , return_::move      );
 
         // clang-format on
