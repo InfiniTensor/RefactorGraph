@@ -4,30 +4,10 @@
 namespace refactor::kernel {
     using K = SoftmaxCpu;
 
-    AxisInfo::AxisInfo(Tensor const &data, uint_lv2 axis) noexcept : pre(1),
-                                                                     mid(data.shape[axis]),
-                                                                     post(1),
-                                                                     size(1),
-                                                                     type(data.dataType) {
-        auto eleSize = data.dataType.size();
-        auto axisIt = data.shape.begin() + axis;
-        pre = std::accumulate(data.shape.begin(), axisIt, 1, std::multiplies<>());
-        post = std::accumulate(++axisIt, data.shape.end(), 1, std::multiplies<>());
-        size = std::accumulate(data.shape.begin(), data.shape.end(), 1, std::multiplies<>());
-    };
-
-    void AxisInfo::locate(uint_lv2 k, uint_lv2 ans[]) const noexcept {
-        std::fill_n(ans, 2, 0);
-        long rem = k;
-        auto d = std::div(rem, mid * post);
-        ans[0] = d.quot;
-        ans[1] = d.rem % post;
-    };
-
-    K::SoftmaxCpu(AxisInfo info_) noexcept
+    K::SoftmaxCpu(SoftmaxInfo info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(AxisInfo info) noexcept -> KernelBox {
+    auto K::build(SoftmaxInfo info) noexcept -> KernelBox {
         if (!info.type.isCpuNumberic()) {
             return nullptr;
         }
@@ -45,9 +25,9 @@ namespace refactor::kernel {
     }
 
     template<decltype(DataType::internal) T>
-    Routine lowerTyped(AxisInfo info) {
+    Routine lowerTyped(SoftmaxInfo info) {
         using namespace runtime;
-        using dt = typename primitive_t<T>::type;
+        using dt = typename primitive<T>::type;
 
         return [info](Resources &, void const **inputs, void **outputs) {
             auto x = reinterpret_cast<dt const *>(inputs[0]);
@@ -79,7 +59,7 @@ namespace refactor::kernel {
                             });
         };
     }
-    Routine K::lower() const noexcept {
+    Routine K::lower(Resources &) const noexcept {
 #define CASE(T) \
     case T:     \
         return lowerTyped<DataType::T>(info);
@@ -87,6 +67,8 @@ namespace refactor::kernel {
         switch (info.type) {
             CASE(DataType::F32);
             CASE(DataType::F64);
+            // CASE(DataType::FP16);
+            // CASE(DataType::BF16);
             default:
                 UNREACHABLE();
         }

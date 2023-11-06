@@ -10,9 +10,10 @@ TEST(kernel, SoftmaxCpu) {
     auto xTensor = Tensor::share(DataType::F64, Shape{2, 3, 2, 4});
     auto yTensor = Tensor::share(DataType::F64, Shape{2, 3, 2, 4});
     uint_lv2 axis = 1;
-    auto kernel = SoftmaxCpu::build(AxisInfo(*xTensor, axis));
+    auto kernel = SoftmaxCpu::build(SoftmaxInfo(*xTensor, axis));
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto mx = mem_manager::ForeignBlob::share(mfn, xTensor->bytesSize());
@@ -21,7 +22,6 @@ TEST(kernel, SoftmaxCpu) {
     for (auto i : range0_(data.size())) { data[i] = 0; }
     mx->copyIn(data.data(), xTensor->bytesSize());
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*mx};
     void *outputs[]{*my};
     routine(res, inputs, outputs);

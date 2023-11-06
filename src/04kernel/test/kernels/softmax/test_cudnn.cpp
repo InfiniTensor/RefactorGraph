@@ -1,24 +1,25 @@
 #ifdef USE_CUDA
 
 #include "../../../src/kernels/softmax/cpu_kernel.hh"
-#include "../../../src/kernels/softmax/cuda_kernel.hh"
+#include "../../../src/kernels/softmax/cudnn_kernel.hh"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
 
-TEST(kernel, SoftmaxCuda) {
+TEST(kernel, SoftmaxCudnn) {
     // build routine
     auto xTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5, 4});
     auto outTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5, 4});
     uint_lv2 axis = 1;
     auto kCpu = SoftmaxCpu::build(SoftmaxInfo(*xTensor, axis));
-    auto kCuda = SoftmaxCuda::build(SoftmaxInfo(*xTensor, axis));
+    auto kCudnn = SoftmaxCudnn::build(cudnn::SoftmaxAlgo::FAST, cudnn::SoftmaxMode::CHANNEL, *xTensor);
+    //ASSERT_TRUE(kCpu && kCudnn);
     ASSERT_TRUE(kCpu);
-    ASSERT_TRUE(kCuda);
+    ASSERT_TRUE(kCudnn);
     auto res = runtime::Resources();
     auto rCpu = kCpu->lower(res);
-    auto rCuda = kCuda->lower(res);
+    auto rCudnn = kCudnn->lower(res);
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
     auto gpuX = mem_manager::ForeignBlob::share(memManager, xTensor->bytesSize());
@@ -37,7 +38,7 @@ TEST(kernel, SoftmaxCuda) {
     {
         void const *inputs[]{*gpuX};
         void *outputs[]{*gpuOut};
-        rCuda(res, inputs, outputs);
+        rCudnn(res, inputs, outputs);
     }
     // take output data
     std::vector<float> result(outTensor->elementsSize());

@@ -7,7 +7,7 @@
 namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
-    Routine SoftmaxCudnn::lower() const noexcept {
+    Routine SoftmaxCudnn::lower(Resources &res) const noexcept {
         struct Descriptors {
             cudnnTensorDescriptor_t x, y;
             cudnnSoftmaxAlgorithm_t algo;
@@ -29,6 +29,8 @@ namespace refactor::kernel {
         d->mode = static_cast<cudnnSoftmaxMode_t>(mode);
         setCudnnTensor(d->x, dataType, dim);
         setCudnnTensor(d->y, dataType, dim);
+
+		res.fetchOrStore<CudnnContext>();
 
         return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             auto handle = res.fetchOrStore<CudnnContext>()->handle;

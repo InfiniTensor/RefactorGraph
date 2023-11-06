@@ -1,27 +1,27 @@
-#ifndef KERNEL_SOFTMAX_CPU_KERNEL_HH
-#define KERNEL_SOFTMAX_CPU_KERNEL_HH
+#ifndef KERNEL_SOFTMAX_CUDA_HH
+#define KERNEL_SOFTMAX_CUDA_HH
 
+#include "cpu_kernel.hh"
 #include "kernel/attributes/softmax_info.h"
 #include "kernel/collectors/softmax.h"
-#include "kernel/kernel.h"
 #include "kernel/tensor.h"
-#include <numeric>
 
 namespace refactor::kernel {
 
-    struct SoftmaxCpu final : public Kernel {
+    struct SoftmaxCuda final : public Kernel {
         SoftmaxInfo info;
 
-        explicit SoftmaxCpu(SoftmaxInfo) noexcept;
-
+        SoftmaxCuda(SoftmaxInfo) noexcept;
         static KernelBox build(SoftmaxInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
-        Routine lower(Resources &) const noexcept final;
+#ifdef USE_CUDA
+        Routine lower(Resources &res) const noexcept final;
+#endif
     };
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_SOFTMAX_CPU_KERNEL_HH
+#endif//KERNEL_SOFTMAX_CUDA_HH
