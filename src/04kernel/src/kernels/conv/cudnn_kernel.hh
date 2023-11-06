@@ -7,26 +7,11 @@
 
 namespace refactor::kernel {
 
-    namespace cudnn {
-        enum class ConvolutionFwdAlgo {
-            IMPLICIT_GEMM = 0,
-            IMPLICIT_PRECOMP_GEMM = 1,
-            GEMM = 2,
-            DIRECT = 3,
-            FFT = 4,
-            FFT_TILING = 5,
-            WINOGRAD = 6,
-            WINOGRAD_NONFUSED = 7,
-            COUNT = 8,
-        };
-    }// namespace cudnn
-
     /// @brief Use `cudnnConvolutionForward`.
     ///        It only supports 4D tensors.
     struct ConvCudnn final : public Kernel {
         struct {
             DataType dt;
-            cudnn::ConvolutionFwdAlgo algo;
             int xShape[4],
                 wShape[4],
                 yShape[4],
@@ -37,12 +22,11 @@ namespace refactor::kernel {
 
         explicit ConvCudnn(decltype(info)) noexcept;
 
-        static KernelBox build(cudnn::ConvolutionFwdAlgo,
-                               PoolAttributes const &,
+        static KernelBox build(PoolAttributes const &,
                                Tensor const &,
                                Tensor const &,
                                Tensor const &) noexcept;
-        static size_t typeId(cudnn::ConvolutionFwdAlgo) noexcept;
+        static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;

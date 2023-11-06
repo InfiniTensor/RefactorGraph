@@ -6,8 +6,7 @@ namespace refactor::kernel {
     K::ConvCudnn(decltype(info) info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(cudnn::ConvolutionFwdAlgo algo,
-                  PoolAttributes const &poolAttributes,
+    auto K::build(PoolAttributes const &poolAttributes,
                   Tensor const &x,
                   Tensor const &w,
                   Tensor const &y) noexcept -> KernelBox {
@@ -30,7 +29,6 @@ namespace refactor::kernel {
              s = poolAttributes.strides();
         return std::make_unique<K>(decltype(info){
             x.dataType,
-            algo,
             {
                 static_cast<int>(x.shape[0]),
                 static_cast<int>(x.shape[1]),
@@ -54,50 +52,12 @@ namespace refactor::kernel {
             {s[0], s[1]}});
     }
 
-    auto K::typeId(cudnn::ConvolutionFwdAlgo algo) noexcept -> size_t {
-        switch (algo) {
-            case cudnn::ConvolutionFwdAlgo::IMPLICIT_GEMM: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            case cudnn::ConvolutionFwdAlgo::IMPLICIT_PRECOMP_GEMM: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            case cudnn::ConvolutionFwdAlgo::GEMM: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            case cudnn::ConvolutionFwdAlgo::DIRECT: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            case cudnn::ConvolutionFwdAlgo::FFT: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            case cudnn::ConvolutionFwdAlgo::FFT_TILING: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            case cudnn::ConvolutionFwdAlgo::WINOGRAD: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            case cudnn::ConvolutionFwdAlgo::WINOGRAD_NONFUSED: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            case cudnn::ConvolutionFwdAlgo::COUNT: {
-                static uint8_t ID = 1;
-                return reinterpret_cast<size_t>(&ID);
-            }
-            default:
-                UNREACHABLE();
-        }
+    auto K::typeId() noexcept -> size_t {
+        static uint8_t ID = 1;
+        return reinterpret_cast<size_t>(&ID);
     }
 
-    auto K::kernelTypeId() const noexcept -> size_t { return typeId(info.algo); }
+    auto K::kernelTypeId() const noexcept -> size_t { return typeId(); }
     auto K::description() const noexcept -> std::string_view {
         return "Performing conv using CUDNN";
     }
