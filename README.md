@@ -1,6 +1,19 @@
 # 重构图表示
 
-[文档](docs/index.md)
+[![Build](https://github.com/InfiniTensor/RefactorGraph/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/InfiniTensor/RefactorGraph/actions)
+[![issue](https://img.shields.io/github/issues/InfiniTensor/RefactorGraph)](https://github.com/InfiniTensor/RefactorGraph/issues)
+![license](https://img.shields.io/github/license/InfiniTensor/RefactorGraph)
+
+## 目录
+
+- [安装](#安装)
+- [使用前端](#使用前端)
+- [项目结构](#项目结构)
+  - [构建系统](#构建系统)
+  - [子项目简介](#子项目简介)
+  - [第三方依赖](#第三方依赖)
+- [技术要点](#技术要点)
+  - [图拓扑抽象](#图拓扑抽象)
 
 ## 安装
 
@@ -10,13 +23,24 @@
 
 ```python
 import sys
+import numpy as np
 from onnx import load
 from refactor_graph.onnx import make_compiler
+from onnxruntime import InferenceSession
 
-model = load(sys.argv[1]) # ----------------------- 加载 onnx 模型
-compiler = make_compiler(model) # ----------------- 生成编译器对象
-compiler.substitute("seq_len", 1) # --------------- 代换模型中的变量
-executor = compiler.compile("cuda", ["ce", "lp"]) # 编译模型到执行器，传入目标硬件和优化选项
+model = load(sys.argv[1])  # ------------------------------------ 加载模型
+input = np.random.random((10, 3, 224, 224)).astype(np.float32)  # 加载测试样本
+
+compiler = make_compiler(model)  # ------------------------------ 模型导入到编译器
+compiler.substitute("N", 10)  # --------------------------------- 代换输入中的变量
+executor = compiler.compile("cuda", "default", [])  # ----------- 编译模型（选择平台、分配器和优化选项）
+executor.set_input(0, input)  # --------------------------------- 设置输入
+executor.prepare()  # ------------------------------------------- 准备推理（分配输出空间）
+executor.run()  # ----------------------------------------------- 推理
+
+session = InferenceSession(model.SerializeToString())  # -------- 与 onnxruntime 对比结果以验证推理
+answer = session.run(None, {session.get_inputs()[0].name: input})
+print([(executor.get_output(i) - answer[i]).flatten() for i in range(len(answer))])
 ```
 
 ## 项目结构
@@ -57,16 +81,7 @@ executor = compiler.compile("cuda", ["ce", "lp"]) # 编译模型到执行器，�
 - `test`: 执行单元测试。
 - `format`: 调用格式化工具。
 
-### 第三方依赖版本汇总
-
-- [fmt 10.1.1](https://github.com/fmtlib/fmt/releases/tag/10.1.0)
-- [fmtlog v2.2.1](https://github.com/MengRao/fmtlog/releases/tag/v2.2.1)
-- [googletest v1.14.0](https://github.com/google/googletest/releases/tag/v1.14.0)
-- [backward-cpp v1.6](https://github.com/bombela/backward-cpp/releases/tag/v1.6)
-- [result master](https://github.com/oktal/result)
-- [abseil-cpp 20230802.0](https://github.com/abseil/abseil-cpp/releases/tag/20230802.0)
-
-### 源码结构
+### 子项目简介
 
 源码的 10 个子项目的简介如下：
 
@@ -84,3 +99,16 @@ executor = compiler.compile("cuda", ["ce", "lp"]) # 编译模型到执行器，�
 |  9  | [`python_ffi`](/src/09python_ffi/README.md)       | Python 前端项目。
 
 点击项目名可以跳转到各个项目的文档。
+
+### 第三方依赖
+
+- [fmt 10.1.1](https://github.com/fmtlib/fmt/releases/tag/10.1.0)
+- [fmtlog v2.2.1](https://github.com/MengRao/fmtlog/releases/tag/v2.2.1)
+- [googletest v1.14.0](https://github.com/google/googletest/releases/tag/v1.14.0)
+- [backward-cpp v1.6](https://github.com/bombela/backward-cpp/releases/tag/v1.6)
+- [result master](https://github.com/oktal/result)
+- [abseil-cpp 20230802.0](https://github.com/abseil/abseil-cpp/releases/tag/20230802.0)
+
+## 技术要点
+
+### 图拓扑抽象
