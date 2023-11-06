@@ -10,14 +10,14 @@ TEST(kernel, TransposeCpu) {
     auto dataTensor = Tensor::share(DataType::F32, Shape{1, 3, 2, 5});
     auto kernel = TransposeCpu::build(dataTensor->dataType, TransposeInfo(dataTensor->shape, Permutation{2, 3, 0, 1}));
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // put input data
     std::vector<float>
         data(dataTensor->elementsSize()),
         out(data.size());
     std::iota(data.begin(), data.end(), 0);
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{data.data()};
     void *outputs[]{out.data()};
     routine(res, inputs, outputs);

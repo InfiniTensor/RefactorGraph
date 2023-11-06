@@ -109,7 +109,7 @@ namespace refactor::kernel {
         }                                                                                                                \
     }
 
-    Routine K::lower() const noexcept {
+    Routine K::lower(Resources &) const noexcept {
         MatMulCPUMetaData md;
         md.M = info.m, md.K = info.k, md.N = info.n;
         md.strideA0 = info.transA ? 1 : info.k;

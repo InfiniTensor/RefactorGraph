@@ -2,10 +2,10 @@
 #define KERNEL_KERNEL_H
 
 #include "runtime/stream.h"
-#include <memory>
 #include <string_view>
 
 namespace refactor::kernel {
+    using runtime::Resources;
     using runtime::Routine;
 
     class Kernel {
@@ -13,7 +13,7 @@ namespace refactor::kernel {
         virtual ~Kernel() = default;
         virtual size_t kernelTypeId() const = 0;
         virtual std::string_view description() const = 0;
-        virtual Routine lower() const;
+        virtual Routine lower(Resources &) const;
     };
 
     using KernelBox = std::unique_ptr<Kernel>;

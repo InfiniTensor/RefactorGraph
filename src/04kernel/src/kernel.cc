@@ -2,7 +2,7 @@
 
 namespace refactor::kernel {
 
-    Routine Kernel::lower() const {
+    Routine Kernel::lower(Resources &) const {
         UNREACHABLEX(void, "lower not implemented for {}", description());
     }
 

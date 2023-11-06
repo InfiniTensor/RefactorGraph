@@ -9,7 +9,8 @@ static void testOp(SimpleUnaryType opType, float check(float)) {
     auto dataTensor = Tensor::share(DataType::F32, Shape{20, 30, 50});
     auto kernel = SimpleUnaryCpu::build(opType, *dataTensor);
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // malloc
     auto cpuMem = mem_manager::ForeignBlob::share(
         Target(Target::Cpu).memManager(),
@@ -19,7 +20,6 @@ static void testOp(SimpleUnaryType opType, float check(float)) {
     for (auto i : range0_(data.size())) { data[i] = i * 1e-4f; }
     cpuMem->copyIn(data.data(), dataTensor->bytesSize());
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*cpuMem};
     void *outputs[]{*cpuMem};
     routine(res, inputs, outputs);

@@ -21,7 +21,7 @@ namespace refactor::kernel {
         }
     };
 
-    auto GatherCuda::lower() const noexcept -> Routine {
+    auto GatherCuda::lower(Resources &) const noexcept -> Routine {
         return [info = this->info](Resources &, void const **inputs, void **outputs) {
             thrust::for_each_n(thrust::device,
                                thrust::counting_iterator<long>(0), info.prefix * info.midSizeO,

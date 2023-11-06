@@ -28,10 +28,10 @@ TEST(kernel, SplitCuda) {
     auto kCpu = SplitCpu::build(info);
     auto kernel = SplitCuda::build(info);
     ASSERT_TRUE(kCpu && kernel);
-    auto rCpu = kCpu->lower();
-    auto routine = kernel->lower();
-    // malloc
     auto res = runtime::Resources();
+    auto rCpu = kCpu->lower(res);
+    auto routine = kernel->lower(res);
+    // malloc
     res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
     auto memManager = res.fetch<runtime::MemManager>()->manager;
     Arc<mem_manager::ForeignBlob>

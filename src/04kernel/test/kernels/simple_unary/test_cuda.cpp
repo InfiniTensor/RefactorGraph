@@ -13,8 +13,9 @@ static void testOp(SimpleUnaryType opType) {
     auto kernel = SimpleUnaryCuda::build(opType, *dataTensor);
     auto kCpu = SimpleUnaryCpu::build(opType, *dataTensor);
     ASSERT_TRUE(kernel && kCpu);
-    auto routine = kernel->lower(),
-         rCpu = kCpu->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res),
+         rCpu = kCpu->lower(res);
     // malloc
     auto gpuMem = mem_manager::ForeignBlob::share(
         Target(Target::NvidiaGpu).memManager(),
@@ -24,7 +25,6 @@ static void testOp(SimpleUnaryType opType) {
     for (auto i : range0_(data.size())) { data[i] = i * 1e-4f; }
     gpuMem->copyIn(data.data(), dataTensor->bytesSize());
     // inference
-    auto res = runtime::Resources();
     {
         void const *inputs[]{*gpuMem};
         void *outputs[]{*gpuMem};

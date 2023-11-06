@@ -8,7 +8,7 @@ namespace refactor::kernel {
     using namespace runtime;
     using DT = DataType;
 
-    auto BatchNormalizationCudnn::lower() const noexcept -> Routine {
+    auto BatchNormalizationCudnn::lower(Resources &res) const noexcept -> Routine {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, param;
@@ -37,6 +37,8 @@ namespace refactor::kernel {
 
         CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->x, cudnnDataTypeConvert(info.dtX), 4, info.dimAx, strideAx));
         CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->param, cudnnDataTypeConvert(info.dtParam), 4, dimAp, strideAp));
+
+        res.fetchOrStore<CudnnContext>();
 
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d),

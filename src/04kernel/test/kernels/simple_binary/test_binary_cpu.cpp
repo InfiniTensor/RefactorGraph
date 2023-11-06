@@ -12,19 +12,16 @@ void testBinaryCPU(SimpleBinaryType binaryOPT, std::function<float(float, float)
     auto cTensor = Tensor::share(DataType::F32, Shape{10, 20, 30, 40}, LayoutType::NCHW);
     auto cpuKernel = Binary11Cpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel);
-    auto cpuRoutine = cpuKernel->lower();
-
+    auto res = runtime::Resources();
+    auto cpuRoutine = cpuKernel->lower(res);
     // Init inputs and outputs
     std::vector<float> a(aTensor->elementsSize(), 3.0f);
     std::vector<float> b(bTensor->elementsSize(), 2.0f);
     std::vector<float> c(cTensor->elementsSize());
-
     // Compute
-    auto res = runtime::Resources();
     void const *inputsCPU[]{a.data(), b.data()};
     void *outputsCPU[]{c.data()};
     cpuRoutine(res, inputsCPU, outputsCPU);
-
     // Compare
     for (auto i : range0_(c.size())) {
         EXPECT_FLOAT_EQ(c[i], operation(a[i], b[i]));
@@ -45,7 +42,8 @@ TEST(kernel, BinaryCpuBroadcast) {
     auto c = Tensor::share(DataType::F32, Shape{20, 30, 50});
     auto kernel = BinaryBasicCpu::build(SimpleBinaryType::Add, *a, *b);
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, a->bytesSize());
@@ -59,7 +57,6 @@ TEST(kernel, BinaryCpuBroadcast) {
     for (auto i : range0_(data.size())) { data[i] = 7; }
     mb->copyIn(data.data(), b->bytesSize());
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*ma, *mb};
     void *outputs[]{*mc};
     routine(res, inputs, outputs);

@@ -12,13 +12,13 @@ TEST(kernel, GatherCPU) {
         auto output = Tensor::share(DataType::F32, Shape{2, 2, 2}, LayoutType::NCHW);
         auto cpuKernel = GatherCpu::build(GatherInfo(0, *data, *indices));
         ASSERT_TRUE(cpuKernel);
-        auto cpuRoutine = cpuKernel->lower();
+        auto res = runtime::Resources();
+        auto cpuRoutine = cpuKernel->lower(res);
         // Init inputs and outputs
         std::vector<float> a{1.0, 1.2, 2.3, 3.4, 4.5, 5.7};
         std::vector<int64_t> b{0, 1, 1, 2};
         std::vector<float> c(output->elementsSize());
         // Compute
-        auto res = runtime::Resources();
         {
             void const *inputs[]{a.data(), b.data()};
             void *outputs[]{c.data()};
@@ -39,13 +39,13 @@ TEST(kernel, GatherCPU) {
         auto output = Tensor::share(DataType::F32, Shape{3, 1, 2}, LayoutType::NCHW);
         auto cpuKernel = GatherCpu::build(GatherInfo(1, *data, *indices));
         ASSERT_TRUE(cpuKernel);
-        auto cpuRoutine = cpuKernel->lower();
+        auto res = runtime::Resources();
+        auto cpuRoutine = cpuKernel->lower(res);
         // Init inputs and outputs
         std::vector<float> a{1.0, 1.2, 1.9, 2.3, 3.4, 3.9, 4.5, 5.7, 5.9};
         std::vector<int32_t> b{0, 2};
         std::vector<float> c(output->elementsSize());
         // Compute
-        auto res = runtime::Resources();
         {
             void const *inputs[]{a.data(), b.data()};
             void *outputs[]{c.data()};

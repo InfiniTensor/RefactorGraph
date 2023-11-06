@@ -15,8 +15,9 @@ TEST(kernel, TransposeCuda) {
     auto kCpu = TransposeCpu::build(dataTensor->dataType, info);
     auto kernel = TransposeCuda::build(dataTensor->dataType, info);
     ASSERT_TRUE(kCpu && kernel);
-    auto rCpu = kCpu->lower();
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto rCpu = kCpu->lower(res);
+    auto routine = kernel->lower(res);
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
     auto bytes = dataTensor->bytesSize();
@@ -29,7 +30,6 @@ TEST(kernel, TransposeCuda) {
     std::iota(cpuIn.begin(), cpuIn.end(), 0);
     gpuIn->copyIn(cpuIn.data(), bytes);
     // inference
-    auto res = runtime::Resources();
     {
         void const *inputs[]{cpuIn.data()};
         void *outputs[]{cpuOut.data()};

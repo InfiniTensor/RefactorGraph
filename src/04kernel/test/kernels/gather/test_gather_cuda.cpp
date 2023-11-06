@@ -19,8 +19,9 @@ TEST(kernel, GatherCuda) {
         auto cudaKernel = GatherCuda::build(info);
         auto cpuKernel = GatherCpu::build(info);
         ASSERT_TRUE(cudaKernel && cpuKernel);
-        auto cudaRoutine = cudaKernel->lower();
-        auto cpuRoutine = cpuKernel->lower();
+        auto res = runtime::Resources();
+        auto cudaRoutine = cudaKernel->lower(res);
+        auto cpuRoutine = cpuKernel->lower(res);
         // Init inputs and outputs
         std::vector<float> a{1.0, 1.2, 2.3, 3.4, 4.5, 5.7};
         std::vector<int64_t> b{0, 1, 1, 2};
@@ -31,7 +32,6 @@ TEST(kernel, GatherCuda) {
         aGPU->copyIn(a.data(), data->bytesSize());
         bGPU->copyIn(b.data(), indices->bytesSize());
         // Compute
-        auto res = runtime::Resources();
         {
             void const *inputs[]{*aGPU, *bGPU};
             void *outputs[]{*cGPU};
@@ -60,8 +60,9 @@ TEST(kernel, GatherCuda) {
         auto cudaKernel = GatherCuda::build(info);
         auto cpuKernel = GatherCpu::build(info);
         ASSERT_TRUE(cudaKernel && cpuKernel);
-        auto cudaRoutine = cudaKernel->lower();
-        auto cpuRoutine = cpuKernel->lower();
+        auto res = runtime::Resources();
+        auto cudaRoutine = cudaKernel->lower(res);
+        auto cpuRoutine = cpuKernel->lower(res);
         // Init inputs and outputs
         std::vector<float> a{1.0, 1.2, 1.9, 2.3, 3.4, 3.9, 4.5, 5.7, 5.9};
         std::vector<int> b{0, 2};
@@ -72,7 +73,6 @@ TEST(kernel, GatherCuda) {
         aGPU->copyIn(a.data(), data->bytesSize());
         bGPU->copyIn(b.data(), indices->bytesSize());
         // Compute
-        auto res = runtime::Resources();
         {
             void const *inputs[]{*aGPU, *bGPU};
             void *outputs[]{*cGPU};

@@ -17,7 +17,8 @@ TEST(kernel, MatMulCublas_OnlyBias) {
     MatMulInfo info(*A, *B, *C, tA, tB, alpha, beta);
     auto kernel = MatMulCublas::build(*A, *B, *Y, info);
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // malloc
     auto mfn = Target(Target::NvidiaGpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
@@ -33,7 +34,6 @@ TEST(kernel, MatMulCublas_OnlyBias) {
     mb->copyIn(dataB.data(), B->bytesSize());
     mc->copyIn(dataC.data(), C->bytesSize());
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*ma, *mb, *mc};
     void *outputs[]{*my};
     routine(res, inputs, outputs);
@@ -56,8 +56,9 @@ TEST(kernel, MatMulCublas_Broadcast) {
     auto cpuKernel = MatMulCPU::build(*A, *B, *Y, info);
     auto gpuKernel = MatMulCublas::build(*A, *B, *Y, info);
     ASSERT_TRUE(cpuKernel && gpuKernel);
-    auto cpuRoutine = cpuKernel->lower();
-    auto gpuRoutine = gpuKernel->lower();
+    auto res = runtime::Resources();
+    auto cpuRoutine = cpuKernel->lower(res);
+    auto gpuRoutine = gpuKernel->lower(res);
     // put input data
     std::vector<float> dataA{1.0, 2.0, 0.0, 0.5,
                              1.0, 0.0, 0.0, 1.0};
@@ -74,7 +75,6 @@ TEST(kernel, MatMulCublas_Broadcast) {
     mb->copyIn(dataB.data(), B->bytesSize());
     mc->copyIn(dataC.data(), C->bytesSize());
     // inference
-    auto res = runtime::Resources();
     {
         void const *inputs[]{*ma, *mb, *mc};
         void *outputs[]{*my};
@@ -103,8 +103,9 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     auto cpuKernel = MatMulCPU::build(*A, *B, *Y, info);
     auto gpuKernel = MatMulCublas::build(*A, *B, *Y, info);
     ASSERT_TRUE(cpuKernel && gpuKernel);
-    auto cpuRoutine = cpuKernel->lower();
-    auto gpuRoutine = gpuKernel->lower();
+    auto res = runtime::Resources();
+    auto cpuRoutine = cpuKernel->lower(res);
+    auto gpuRoutine = gpuKernel->lower(res);
     // put input data
     std::vector<float> dataA{1.0, 2.0, 0.0, 0.5,
                              1.0, 0.0, 0.0, 1.0,
@@ -119,7 +120,6 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     ma->copyIn(dataA.data(), A->bytesSize());
     mb->copyIn(dataB.data(), B->bytesSize());
     // inference
-    auto res = runtime::Resources();
     {
         void const *inputs[]{*ma, *mb};
         void *outputs[]{*my};
@@ -149,8 +149,9 @@ TEST(kernel, MatMulCublas_Large) {
     auto cpuKernel = MatMulCPU::build(*A, *B, *Y, info);
     auto gpuKernel = MatMulCublas::build(*A, *B, *Y, info);
     ASSERT_TRUE(cpuKernel && gpuKernel);
-    auto cpuRoutine = cpuKernel->lower();
-    auto gpuRoutine = gpuKernel->lower();
+    auto res = runtime::Resources();
+    auto cpuRoutine = cpuKernel->lower(res);
+    auto gpuRoutine = gpuKernel->lower(res);
     // put input data
     std::vector<float> dataA(A->elementsSize());
     for (auto i = 0; i < dataA.size(); i++) {
@@ -174,7 +175,6 @@ TEST(kernel, MatMulCublas_Large) {
     mb->copyIn(dataB.data(), B->bytesSize());
     mc->copyIn(dataC.data(), C->bytesSize());
     // inference
-    auto res = runtime::Resources();
     {
         void const *inputs[]{*ma, *mb, *mc};
         void *outputs[]{*my};

@@ -43,7 +43,7 @@ namespace refactor::kernel {
         return [strides = thrust::device_vector<uint_lv2>(broadcaster.strides.begin(), broadcaster.strides.end()), \
                 rank = broadcaster.inputsCount,                                                                    \
                 n = broadcaster.outputsCount](runtime::Resources &, void const **inputs, void **outputs) {         \
-            using T_ = primitive<DT::T>::type;                                                                   \
+            using T_ = primitive<DT::T>::type;                                                                     \
             auto a = reinterpret_cast<T_ const *>(inputs[0]);                                                      \
             auto b = reinterpret_cast<T_ const *>(inputs[1]);                                                      \
             auto c = reinterpret_cast<T_ *>(outputs[0]);                                                           \
@@ -69,7 +69,7 @@ namespace refactor::kernel {
                 UNREACHABLE();       \
         }
 
-    auto K::lower() const noexcept -> Routine {
+    Routine K::lower(Resources &) const noexcept {
         switch (opType) {
             CASE_OP(Add)
             CASE_OP(Sub)

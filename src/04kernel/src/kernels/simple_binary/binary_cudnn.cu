@@ -7,7 +7,8 @@
 namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
-    Routine BinaryCudnn::lower() const noexcept {
+
+    Routine BinaryCudnn::lower(Resources &res) const noexcept {
         struct Descriptors {
             cudnnOpTensorDescriptor_t opDesc;
             cudnnTensorDescriptor_t aDesc, bDesc, cDesc;
@@ -44,9 +45,9 @@ namespace refactor::kernel {
         CUDNN_ASSERT(cudnnSetOpTensorDescriptor(
             d->opDesc, cudnnOP, cudnnDataTypeConvert(dataType), CUDNN_NOT_PROPAGATE_NAN));
 
-        bool swap = aDims != cDims;
-
-        return [d_ = std::move(d), swap](Resources &res, void const **inputs, void **outputs) {
+        res.fetchOrStore<CudnnContext>();
+        return [swap = aDims != cDims,
+                d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             auto const &d = *d_;
             // name inputs and outputs
