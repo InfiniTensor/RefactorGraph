@@ -18,9 +18,9 @@ namespace refactor::computation {
         virtual void transposeTo(LayoutType);
         virtual kernel::CollectorBox candidateKernels(Target) const;
 
-        template<class T>
-        bool is() const {
-            return opTypeId() == T::typeId();
+        template<class T, class... Args>
+        bool is(Args &&...args) const noexcept {
+            return this->opTypeId() == T::typeId(std::forward<Args>(args)...);
         }
     };
 

@@ -65,8 +65,9 @@ namespace refactor::frontend {
         virtual InferResult infer(TensorRefs, InferOptions const &) const = 0;
         virtual computation::OpBox lower(TensorRefs) const { UNREACHABLE(); }
 
-        bool typeEqual(size_t opTypeId) const noexcept {
-            return this->opTypeId() == opTypeId;
+        template<class T, class... Args>
+        bool is(Args &&...args) const noexcept {
+            return this->opTypeId() == T::typeId(std::forward<Args>(args)...);
         }
 
         using Builder = OpBox (*)(std::string_view, Attributes);
