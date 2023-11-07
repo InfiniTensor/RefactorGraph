@@ -1,10 +1,8 @@
 #ifndef KERNEL_SOFTMAX_CUDA_HH
 #define KERNEL_SOFTMAX_CUDA_HH
 
-#include "cpu_kernel.hh"
 #include "kernel/attributes/softmax_info.h"
 #include "kernel/collectors/softmax.h"
-#include "kernel/tensor.h"
 
 namespace refactor::kernel {
 

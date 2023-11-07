@@ -3,9 +3,6 @@
 
 #include "kernel/attributes/softmax_info.h"
 #include "kernel/collectors/softmax.h"
-#include "kernel/kernel.h"
-#include "kernel/tensor.h"
-#include <numeric>
 
 namespace refactor::kernel {
 

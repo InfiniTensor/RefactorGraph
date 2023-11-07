@@ -20,7 +20,7 @@ namespace refactor::kernel {
                 break;
             }
             case Target::NvidiaGpu: {
-                if (auto ptr = SoftmaxCudnn::build(cudnn::SoftmaxAlgo::ACCURATE, cudnn::SoftmaxMode::CHANNEL, info); ptr) {
+                if (auto ptr = SoftmaxCudnn::build(cudnn::SoftmaxAlgo::ACCURATE, info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 if (auto ptr = SoftmaxCuda::build(info); ptr) {

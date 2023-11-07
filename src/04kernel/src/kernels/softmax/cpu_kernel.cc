@@ -1,5 +1,4 @@
 #include "cpu_kernel.hh"
-#include <algorithm>
 #include <execution>
 
 namespace refactor::kernel {

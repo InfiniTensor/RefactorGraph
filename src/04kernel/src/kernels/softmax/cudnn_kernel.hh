@@ -3,7 +3,6 @@
 
 #include "kernel/attributes/softmax_info.h"
 #include "kernel/collectors/softmax.h"
-#include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
@@ -13,26 +12,16 @@ namespace refactor::kernel {
             ACCURATE = 1,
             LOG = 2,
         };
-        enum class SoftmaxMode {
-            INSTANCE = 0,
-            CHANNEL = 1,
-        };
     }// namespace cudnn
 
     struct SoftmaxCudnn final : public Kernel {
         cudnn::SoftmaxAlgo algo;
-        cudnn::SoftmaxMode mode;
         DataType dataType;
         std::vector<int> dim;
 
-        SoftmaxCudnn(cudnn::SoftmaxAlgo,
-                     cudnn::SoftmaxMode,
-                     DataType,
-                     std::vector<int>) noexcept;
+        SoftmaxCudnn(cudnn::SoftmaxAlgo, DataType, std::vector<int>) noexcept;
 
-        static KernelBox build(cudnn::SoftmaxAlgo,
-                               cudnn::SoftmaxMode,
-                               SoftmaxInfo) noexcept;
+        static KernelBox build(cudnn::SoftmaxAlgo, SoftmaxInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

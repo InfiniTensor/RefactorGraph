@@ -14,8 +14,7 @@ TEST(kernel, SoftmaxCuda) {
     uint_lv2 axis = 1;
     auto kCpu = SoftmaxCpu::build(SoftmaxInfo(*xTensor, axis));
     auto kCuda = SoftmaxCuda::build(SoftmaxInfo(*xTensor, axis));
-    ASSERT_TRUE(kCpu);
-    ASSERT_TRUE(kCuda);
+    ASSERT_TRUE(kCpu && kCuda);
     auto res = runtime::Resources();
     auto rCpu = kCpu->lower(res);
     auto rCuda = kCuda->lower(res);
