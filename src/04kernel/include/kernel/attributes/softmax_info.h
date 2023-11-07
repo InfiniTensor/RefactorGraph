@@ -10,7 +10,6 @@ namespace refactor::kernel {
         DataType type;
 
         SoftmaxInfo(Tensor const &data, uint_lv2 axis) noexcept;
-        void locate(uint_lv2 k, uint_lv2 ans[]) const noexcept;
     };
 
 }// namespace refactor::kernel

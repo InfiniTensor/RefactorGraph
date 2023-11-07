@@ -1,6 +1,7 @@
 #ifndef KERNEL_SOFTMAX_CUDNN_HH
 #define KERNEL_SOFTMAX_CUDNN_HH
 
+#include "kernel/attributes/softmax_info.h"
 #include "kernel/collectors/softmax.h"
 #include "kernel/tensor.h"
 
@@ -31,7 +32,7 @@ namespace refactor::kernel {
 
         static KernelBox build(cudnn::SoftmaxAlgo,
                                cudnn::SoftmaxMode,
-                               Tensor const &) noexcept;
+                               SoftmaxInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

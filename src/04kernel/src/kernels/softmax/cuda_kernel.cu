@@ -8,17 +8,17 @@ namespace refactor::kernel {
 
 
     template<typename T>
-    struct MD {   // update the global max and sum, store the output at
-                  // max_tmp and sum_tmp
-        T max_tmp;// store max
-        T sum_tmp;// store sum
+    struct MD {  // update the global max and sum, store the output at
+                 // maxTmp and sumTmp
+        T maxTmp;// store max
+        T sumTmp;// store sum
     };
     template<typename T>
     __device__ __forceinline__ MD<T> reduce_md_op(MD<T> a, MD<T> b) {
-        bool a_bigger = (a.max_tmp > b.max_tmp);
-        auto bigger = a_bigger ? a : b;
-        auto smaller = a_bigger ? b : a;
-        return {bigger.max_tmp, bigger.sum_tmp + smaller.sum_tmp * __expf(smaller.max_tmp - bigger.max_tmp)};
+        bool compair = (a.maxTmp > b.maxTmp);
+        auto bigger = compair ? a : b;
+        auto smaller = compair ? b : a;
+        return {bigger.maxTmp, bigger.sumTmp + smaller.sumTmp * __expf(smaller.maxTmp - bigger.maxTmp)};
     }
 
     template<int BLOCK_DIM, typename T>
@@ -30,37 +30,35 @@ namespace refactor::kernel {
         // blockDim.x = size/dimsize = IKS
         // blockIdx.x = i(KS) + k(S) + s,blockIdx.x%stride = k(S) + s
 
-        int tid =
-            blockIdx.x % stride + (blockIdx.x - blockIdx.x % stride) *
-                                      dimsize;// now, tid = i(JKS) + k(S) + s;
+        // now, tid = i(JKS) + k(S) + s;
+        int tid = blockIdx.x % stride + (blockIdx.x - blockIdx.x % stride) * dimsize;
 
-        MD<T> md_partial;
-        md_partial.max_tmp = -__FLT_MAX__;
-        md_partial.sum_tmp = 0.0f;
-        MD<T> md_input;
+        MD<T> mdPartial;
+        mdPartial.maxTmp = -__FLT_MAX__;
+        mdPartial.sumTmp = 0.0f;
+        MD<T> mdInput;
         for (int ph = 0; threadIdx.x + ph * BLOCK_DIM < dimsize; ph++) {
 
-            md_input.max_tmp = input[tid + (threadIdx.x + ph * BLOCK_DIM) * stride];
+            mdInput.maxTmp = input[tid + (threadIdx.x + ph * BLOCK_DIM) * stride];
 
-            md_input.sum_tmp = 1.0f;
-            md_partial = reduce_md_op(md_partial,
-                                      md_input);// reduce the data to one block
+            mdInput.sumTmp = 1.0f;
+            mdPartial = reduce_md_op(mdPartial, mdInput);// reduce the data to one block
         }
         typedef cub::BlockReduce<MD<T>, BLOCK_DIM> BlockReduce;
-        __shared__ typename BlockReduce::TempStorage temp_storage;
-        __shared__ MD<T> md_total;
-        MD<T> md_block = BlockReduce(temp_storage).Reduce(md_partial, reduce_md_op<T>);
-        if (threadIdx.x ==
-            0) {// must set threadIdx.x = 0 write the output to memory
-            md_total = md_block;
+        __shared__ typename BlockReduce::TempStorage tempStorage;
+        __shared__ MD<T> mdTotal;
+        MD<T> mdBlock = BlockReduce(tempStorage).Reduce(mdPartial, reduce_md_op<T>);
+        if (threadIdx.x == 0) {
+            // must set threadIdx.x = 0 write the output to memory
+            mdTotal = mdBlock;
         }
         __syncthreads();
 
         for (int ph = 0; threadIdx.x + ph * BLOCK_DIM < dimsize; ph++) {
             output[tid + (threadIdx.x + ph * BLOCK_DIM) * stride] =
                 __expf(input[tid + (threadIdx.x + ph * BLOCK_DIM) * stride] -
-                       md_total.max_tmp) *
-                __fdividef(1.0F, md_total.sum_tmp);
+                       mdTotal.maxTmp) *
+                __fdividef(1.0F, mdTotal.sumTmp);
         }
     }
 
@@ -76,15 +74,15 @@ namespace refactor::kernel {
         }
     };
     template<template<typename> class ReductionOp, typename T,
-             int thread_group_width>
+             int threadGroupWidth>
     __inline__ __device__ T WarpAllReduce(T val) {
-        for (int mask = thread_group_width / 2; mask > 0; mask /= 2) {
+        for (int mask = threadGroupWidth / 2; mask > 0; mask /= 2) {
             val = ReductionOp<T>()(val, __shfl_xor_sync(0xffffffff, val, mask));
         }
         return val;
     }
 #define max_function(a, b) ((a) > (b) ? (a) : (b))
-    template<int BLOCK_DIM_x, int BLOCK_DIM_y, typename T>
+    template<int BLOCK_DIM_X, int BLOCK_DIM_Y, typename T>
     __global__ void _warpSoftmaxKernel(T const *__restrict input,
                                        T *__restrict output, int size,
                                        int dimsize, int stride) {
@@ -94,42 +92,42 @@ namespace refactor::kernel {
 
         if (otherIdx < otherSize) {
 
-            __shared__ float max_total[BLOCK_DIM_y];
-            __shared__ float sum_total[BLOCK_DIM_y];
-            T max_data = -__FLT_MAX__;
+            __shared__ float maxTotal[BLOCK_DIM_Y];
+            __shared__ float sumTotal[BLOCK_DIM_Y];
+            T maxData = -__FLT_MAX__;
 
-            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_x < dimsize; ph++) {
-                max_data = max_function(
-                    max_data,
-                    input[tid + (threadIdx.x + ph * BLOCK_DIM_x) * stride]);
+            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_X < dimsize; ph++) {
+                maxData = max_function(
+                    maxData,
+                    input[tid + (threadIdx.x + ph * BLOCK_DIM_X) * stride]);
             }
 
-            max_data = WarpAllReduce<MaxOp, T, BLOCK_DIM_x>(max_data);
+            maxData = WarpAllReduce<MaxOp, T, BLOCK_DIM_X>(maxData);
 
             if (threadIdx.x == 0)
-                max_total[threadIdx.y] = max_data;
+                maxTotal[threadIdx.y] = maxData;
 
             //--------------------------------------------
-            T sum_data = 0.0f;
+            T sumData = 0.0f;
 
-            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_x < dimsize; ph++) {
-                sum_data +=
-                    __expf(input[tid + (threadIdx.x + ph * BLOCK_DIM_x) * stride] -
-                           max_total[threadIdx.y]);
+            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_X < dimsize; ph++) {
+                sumData +=
+                    __expf(input[tid + (threadIdx.x + ph * BLOCK_DIM_X) * stride] -
+                           maxTotal[threadIdx.y]);
             }
 
-            sum_data = WarpAllReduce<SumOp, T, BLOCK_DIM_x>(sum_data);
+            sumData = WarpAllReduce<SumOp, T, BLOCK_DIM_X>(sumData);
 
             if (threadIdx.x == 0)
-                sum_total[threadIdx.y] = sum_data;
+                sumTotal[threadIdx.y] = sumData;
 
             //--------------------------------------------
 
-            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_x < dimsize; ph++) {
-                output[tid + (threadIdx.x + ph * BLOCK_DIM_x) * stride] =
-                    __expf(input[tid + (threadIdx.x + ph * BLOCK_DIM_x) * stride] -
-                           max_total[threadIdx.y]) *
-                    __fdividef(1.0F, sum_total[threadIdx.y]);
+            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_X < dimsize; ph++) {
+                output[tid + (threadIdx.x + ph * BLOCK_DIM_X) * stride] =
+                    __expf(input[tid + (threadIdx.x + ph * BLOCK_DIM_X) * stride] -
+                           maxTotal[threadIdx.y]) *
+                    __fdividef(1.0F, sumTotal[threadIdx.y]);
             }
         }
     }
@@ -142,44 +140,44 @@ namespace refactor::kernel {
         return [info](Resources &, void const **inputs, void **outputs) {
             auto x = reinterpret_cast<dt const *>(inputs[0]);
             auto y = reinterpret_cast<dt *>(outputs[0]);
-            int num_blocks = info.pre * info.post;
+            int numBlocks = info.pre * info.post;
             int dimsize = info.mid;
             int size = info.size;
             int stride = info.post;
             if (dimsize > 1024) {
-                _blockSoftmaxKernel<1024><<<num_blocks, 1024>>>(x, y, size, dimsize, stride);
+                _blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, size, dimsize, stride);
             } else if (dimsize > 31) {
-                int BLOCK_DIM_x = 32;
-                int BLOCK_DIM_y = 32;
-                int num_block_x = (num_blocks + BLOCK_DIM_y - 1) / BLOCK_DIM_y;
-                dim3 block_dim(BLOCK_DIM_x, BLOCK_DIM_y, 1);
-                dim3 grid_dim(num_block_x, 1, 1);
+                int BLOCK_DIM_X = 32;
+                int BLOCK_DIM_Y = 32;
+                int NUM_BLOCK_X = (numBlocks + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y;
+                dim3 block_dim(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
+                dim3 grid_dim(NUM_BLOCK_X, 1, 1);
                 _warpSoftmaxKernel<32, 32>
                     <<<grid_dim, block_dim>>>(x, y, size, dimsize, stride);
             } else if (dimsize > 15) {
-                int BLOCK_DIM_x = 16;
-                int BLOCK_DIM_y = 64;
-                int num_block_x = (num_blocks + BLOCK_DIM_y - 1) / BLOCK_DIM_y;
-                dim3 block_dim(BLOCK_DIM_x, BLOCK_DIM_y, 1);
-                dim3 grid_dim(num_block_x, 1, 1);
+                int BLOCK_DIM_X = 16;
+                int BLOCK_DIM_Y = 64;
+                int NUM_BLOCK_X = (numBlocks + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y;
+                dim3 block_dim(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
+                dim3 grid_dim(NUM_BLOCK_X, 1, 1);
 
                 _warpSoftmaxKernel<16, 64>
                     <<<grid_dim, block_dim>>>(x, y, size, dimsize, stride);
             } else if (dimsize > 7) {
-                int BLOCK_DIM_x = 8;
-                int BLOCK_DIM_y = 128;
-                int num_block_x = (num_blocks + BLOCK_DIM_y - 1) / BLOCK_DIM_y;
-                dim3 block_dim(BLOCK_DIM_x, BLOCK_DIM_y, 1);
-                dim3 grid_dim(num_block_x, 1, 1);
+                int BLOCK_DIM_X = 8;
+                int BLOCK_DIM_Y = 128;
+                int NUM_BLOCK_X = (numBlocks + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y;
+                dim3 block_dim(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
+                dim3 grid_dim(NUM_BLOCK_X, 1, 1);
 
                 _warpSoftmaxKernel<8, 128>
                     <<<grid_dim, block_dim>>>(x, y, size, dimsize, stride);
             } else {
-                int BLOCK_DIM_x = 4;
-                int BLOCK_DIM_y = 256;
-                int num_block_x = (num_blocks + BLOCK_DIM_y - 1) / BLOCK_DIM_y;
-                dim3 block_dim(BLOCK_DIM_x, BLOCK_DIM_y, 1);
-                dim3 grid_dim(num_block_x, 1, 1);
+                int BLOCK_DIM_X = 4;
+                int BLOCK_DIM_Y = 256;
+                int NUM_BLOCK_X = (numBlocks + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y;
+                dim3 block_dim(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
+                dim3 grid_dim(NUM_BLOCK_X, 1, 1);
 
                 _warpSoftmaxKernel<4, 256>
                     <<<grid_dim, block_dim>>>(x, y, size, dimsize, stride);

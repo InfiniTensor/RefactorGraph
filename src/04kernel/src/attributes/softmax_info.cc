@@ -14,12 +14,4 @@ namespace refactor::kernel {
         size = std::accumulate(data.shape.begin(), data.shape.end(), 1, std::multiplies<>());
     };
 
-    void SoftmaxInfo::locate(uint_lv2 k, uint_lv2 ans[]) const noexcept {
-        std::fill_n(ans, 2, 0);
-        long rem = k;
-        auto d = std::div(rem, mid * post);
-        ans[0] = d.quot;
-        ans[1] = d.rem % post;
-    };
-
 }// namespace refactor::kernel

@@ -20,3 +20,4 @@ namespace refactor::kernel {
 }// namespace refactor::kernel
 
 #endif// KERNEL_SOFTMAX_H
+

@@ -9,19 +9,12 @@ namespace refactor::kernel {
                     std::vector<int> shape_) noexcept : Kernel(), algo(algo_), mode(mode_), dataType(type_), dim(shape_) {}
     auto K::build(cudnn::SoftmaxAlgo algo,
                   cudnn::SoftmaxMode mode,
-                  Tensor const &x) noexcept -> KernelBox {
+                  SoftmaxInfo info) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        // cudnn softmax not support 4D/5D tensor
-        if (x.rank() != 4 && x.rank() != 5) {
-            return nullptr;
-        }
-        std::vector<int> shape(x.rank());
-        std::transform(x.shape.begin(), x.shape.end(), shape.begin(), [](auto const i) {
-            return static_cast<int>(i);
-        });
-        return std::make_unique<K>(algo, mode, x.dataType, shape);
+        std::vector<int> shape = {info.pre, info.mid, info.post, 1};
+        return std::make_unique<K>(algo, mode, info.type, shape);
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
