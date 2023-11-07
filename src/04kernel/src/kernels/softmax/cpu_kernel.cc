@@ -34,24 +34,34 @@ namespace refactor::kernel {
             auto x = reinterpret_cast<dt const *>(inputs[0]);
             auto y = reinterpret_cast<dt *>(outputs[0]);
 
-            std::for_each_n(std::execution::par_unseq, natural_t(0), info.post * info.pre,
-                            [&x, &y, info](auto const i) {
-                                auto d = std::div((long) i, info.post);
-                                auto indexPartial = d.quot * info.mid * info.post + d.rem;
-                                auto maxii = std::max_element(natural_t(0u), natural_t(info.mid), [&](auto const &m, auto const &n) {
-                                    return x[m * info.post + indexPartial] < x[n * info.post + indexPartial];
-                                });
-                                auto max = x[*maxii * info.post + indexPartial];
-                                auto sum = std::accumulate(natural_t(0u), natural_t(info.mid), 0, [&](auto acc, auto const k) {
-                                    auto index = indexPartial + k * info.post;
-                                    y[index] = std::exp(x[index] - max);
-                                    return acc + y[index];
-                                });
-                                std::for_each_n(std::execution::par_unseq, natural_t(0), info.mid,
-                                                [&](auto const j) {
-                                                    auto index = indexPartial + j * info.post;
-                                                    y[index] /= sum;
-                                                });
+            std::for_each_n(std::execution::par_unseq,
+                            natural_t(0), info.post * info.pre,
+                            [&x, &y, &info](auto const i) {
+                                auto post = info.post;
+                                auto calcIdx =
+                                    [base = i / post * post * info.mid + i % post,
+                                     post](auto const j) {
+                                        return base + j * post;
+                                    };
+                                auto range = range0_(info.mid);
+                                auto maxi = *std::max_element(
+                                    std::execution::unseq,
+                                    range.begin(), range.end(),
+                                    [&](auto const m, auto const n) {
+                                        return x[calcIdx(m)] < x[calcIdx(n)];
+                                    });
+                                auto sum = std::accumulate(
+                                    range.begin(), range.end(), 0,
+                                    [&, max = x[calcIdx(maxi)]](auto const acc, auto const j) {
+                                        auto idx = calcIdx(j);
+                                        return acc + (y[idx] = std::exp(x[idx] - max));
+                                    });
+                                std::for_each(
+                                    std::execution::par_unseq,
+                                    range.begin(), range.end(),
+                                    [&](auto const j) {
+                                        y[calcIdx(j)] /= sum;
+                                    });
                             });
         };
     }
