@@ -17,15 +17,12 @@ namespace refactor::kernel {
     /// | `midSizeI` | xa                                       | `xa` 维度重排前的大小
     /// | `midSizeO` | π t∈[0,m) it = i0 * i1 * ... * im-1     | `xa` 维度重排后的大小，即 `indices` 形状打包
     GatherInfo::GatherInfo(uint_lv2 axis, Tensor const &data, Tensor const &indices) noexcept
-        : prefix(0),
-          postfix(0),
-          midSizeI(data.shape[axis]),
-          midSizeO(0),
-          idxType(indices.dataType) {
-        auto eleSize = data.dataType.size();
+        : prefix(0), postfix(0), midSizeI(0), midSizeO(0), idxType(indices.dataType) {
+
         auto axisIt = data.shape.begin() + axis;
         prefix = std::accumulate(data.shape.begin(), axisIt, 1, std::multiplies<>());
-        postfix = std::accumulate(++axisIt, data.shape.end(), eleSize, std::multiplies<>());
+        midSizeI = *axisIt++;
+        postfix = std::accumulate(axisIt, data.shape.end(), data.dataType.size(), std::multiplies<>());
         midSizeO = std::accumulate(indices.shape.begin(), indices.shape.end(), 1, std::multiplies<>());
     }
 

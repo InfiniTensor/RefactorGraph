@@ -32,7 +32,7 @@ namespace refactor {
 
     template<class T> using Arc = std::shared_ptr<T>;
 
-    template<typename T, size_t N> std::string vecToString(absl::InlinedVector<T, N> const &vec) {
+    template<class Container> std::string vec2str(Container const &vec) {
         std::stringstream ss;
         ss << "[ ";
         for (auto d : vec) {

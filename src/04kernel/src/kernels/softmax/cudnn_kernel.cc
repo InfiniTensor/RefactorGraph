@@ -3,17 +3,17 @@
 namespace refactor::kernel {
     using K = SoftmaxCudnn;
 
-    K::SoftmaxCudnn(cudnn::SoftmaxAlgo algo_,
-                    DataType type_,
-                    std::vector<int> shape_) noexcept : Kernel(), algo(algo_), dataType(type_), dim(shape_) {}
-    auto K::build(cudnn::SoftmaxAlgo algo,
-                  SoftmaxInfo info) noexcept -> KernelBox {
+    K::SoftmaxCudnn(cudnn::SoftmaxAlgo algo_, DataType type_,
+                    int pre_, int mid_, int post_) noexcept
+        : Kernel(), algo(algo_), dataType(type_),
+          pre(pre_), mid(mid_), post(post_) {}
+
+    auto K::build(cudnn::SoftmaxAlgo algo, SoftmaxInfo info) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
 
-        std::vector<int> shape = {info.pre, info.mid, info.post, 1};
-        return std::make_unique<K>(algo, info.type, shape);
+        return std::make_unique<K>(algo, info.type, info.pre, info.mid, info.post);
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

@@ -17,9 +17,9 @@ namespace refactor::kernel {
     struct SoftmaxCudnn final : public Kernel {
         cudnn::SoftmaxAlgo algo;
         DataType dataType;
-        std::vector<int> dim;
+        int pre, mid, post;
 
-        SoftmaxCudnn(cudnn::SoftmaxAlgo, DataType, std::vector<int>) noexcept;
+        SoftmaxCudnn(cudnn::SoftmaxAlgo, DataType, int, int, int) noexcept;
 
         static KernelBox build(cudnn::SoftmaxAlgo, SoftmaxInfo) noexcept;
         static size_t typeId() noexcept;

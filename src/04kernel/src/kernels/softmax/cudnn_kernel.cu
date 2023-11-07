@@ -9,38 +9,34 @@ namespace refactor::kernel {
     Routine SoftmaxCudnn::lower(Resources &res) const noexcept {
         // RAII for closure
         struct Descriptors {
-            cudnnTensorDescriptor_t x, y;
+            cudnnTensorDescriptor_t t;
             cudnnSoftmaxAlgorithm_t algo;
 
             Descriptors(cudnnSoftmaxAlgorithm_t algo_) : algo(algo_) {
-                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
-                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&y));
+                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&t));
             }
             ~Descriptors() {
-                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(x));
-                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(y));
+                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(t));
             }
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
 
         auto d = std::make_shared<Descriptors>(static_cast<cudnnSoftmaxAlgorithm_t>(algo));
-        setCudnnTensor(d->x, dataType, dim);
-        setCudnnTensor(d->y, dataType, dim);
+        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(
+            d->t, CUDNN_TENSOR_NCHW, cudnnDataTypeConvert(dataType), pre, mid, post, 1));
 
         res.fetchOrStore<CudnnContext>();
 
         return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             auto const &d = *d_;
-            auto x = inputs[0];
-            auto y = outputs[0];
             float alpha = 1, beta = 0;
             CUDNN_ASSERT(cudnnSoftmaxForward(
                 res.fetchOrStore<CudnnContext>()->handle,
                 d.algo,
                 CUDNN_SOFTMAX_MODE_CHANNEL,
-                &alpha, d.x, x,
-                &beta, d.y, y));
+                &alpha, d.t, inputs[0],
+                &beta, d.t, outputs[0]));
         };
     }
 }// namespace refactor::kernel

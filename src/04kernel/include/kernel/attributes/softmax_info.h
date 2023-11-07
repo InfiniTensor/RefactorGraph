@@ -6,7 +6,7 @@
 namespace refactor::kernel {
 
     struct SoftmaxInfo {
-        uint_lv2 pre, mid, post, size;
+        uint_lv2 pre, mid, post;
         DataType type;
 
         SoftmaxInfo(Tensor const &data, uint_lv2 axis) noexcept;

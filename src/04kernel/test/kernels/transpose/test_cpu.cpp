@@ -22,12 +22,6 @@ TEST(kernel, TransposeCpu) {
     void *outputs[]{out.data()};
     routine(res, inputs, outputs);
     // check
-    for (auto i : range0_(data.size())) {
-        fmt::print("{} ", data[i]);
-    }
-    fmt::println("");
-    for (auto i : range0_(out.size())) {
-        fmt::print("{} ", out[i]);
-    }
-    fmt::println("");
+    fmt::println("{}", vec2str(data));
+    fmt::println("{}", vec2str(out));
 }

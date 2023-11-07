@@ -142,7 +142,7 @@ namespace refactor::kernel {
             auto y = reinterpret_cast<dt *>(outputs[0]);
             int numBlocks = info.pre * info.post;
             int dimsize = info.mid;
-            int size = info.size;
+            int size = numBlocks * dimsize;
             int stride = info.post;
             if (dimsize > 1024) {
                 _blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, size, dimsize, stride);

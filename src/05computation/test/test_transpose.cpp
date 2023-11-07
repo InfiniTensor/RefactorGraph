@@ -74,7 +74,7 @@ namespace refactor::computation {
         fmt::println("\n Edges info :");
         for (size_t i = 0; i < g_.edges.size(); ++i) {
             fmt::println("{}. \"{}\" Shape is {}, Layout is {}", i, g_.edges[i].name,
-                         vecToString(g_.edges[i].tensor->shape), g_.edges[i].tensor->layout.name());
+                         vec2str(g_.edges[i].tensor->shape), g_.edges[i].tensor->layout.name());
         }
         ASSERT_EQ(g_.nodes.size(), 9);
         ASSERT_EQ(g_.edges.size(), 16);
@@ -155,7 +155,7 @@ namespace refactor::computation {
         fmt::println("\n Edges info :");
         for (size_t i = 0; i < g_.edges.size(); ++i) {
             fmt::println("{}. \"{}\" Shape is {}, Layout is {}", i, g_.edges[i].name,
-                         vecToString(g_.edges[i].tensor->shape), g_.edges[i].tensor->layout.name());
+                         vec2str(g_.edges[i].tensor->shape), g_.edges[i].tensor->layout.name());
         }
         ASSERT_EQ(g_.nodes.size(), 9);
         ASSERT_EQ(g_.edges.size(), 14);
