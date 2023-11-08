@@ -1,6 +1,6 @@
 #include "kernel/collectors/reduce.h"
 #include "../kernels/reduce/cpu_kernel.hh"
-// #include "../kernels/reduce/cudnn_kernel.hh"
+#include "../kernels/reduce/cudnn_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -17,9 +17,9 @@ namespace refactor::kernel {
             case Target::Cpu:
                 REGISTER(ReduceCpu)
                 break;
-            // case Target::NvidiaGpu:
-            //     REGISTER(ReduceCudnn)
-            //     break;
+            case Target::NvidiaGpu:
+                REGISTER(ReduceCudnn)
+                break;
             default:
                 UNREACHABLEX(void, "Unknown target");
         }
