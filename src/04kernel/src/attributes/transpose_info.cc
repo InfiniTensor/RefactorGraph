@@ -26,7 +26,7 @@ namespace refactor::kernel {
             }
         }
 
-        // 整理出根据输出维度顺序排列的、合并后的各维度形状和输出位置。
+        // 整理出根据输入维度顺序排列的、合并后的各维度形状和输出位置。
         struct SizePerm {
             uint_lv2 sizeI, perm, sizeO, strideI, strideO;
         };

@@ -22,7 +22,6 @@ namespace refactor::kernel {
                    : nullptr;
     }
     auto K::typeId() noexcept -> size_t {
-        // 这里 ID 是什么含义？
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
@@ -53,33 +52,34 @@ namespace refactor::kernel {
             onAxesSize *= shape[axis];
         }
         TransposeInfo info = TransposeInfo(shape, perm);
-        auto accumulate = [reduceType](dt const a, dt const b) {
-            switch (reduceType) {
-                case ReduceType::Mean:
-                case ReduceType::Sum:
-                    return static_cast<dt>(a + b);
-                case ReduceType::Max:
-                    return std::max(a, b);
-                case ReduceType::Min:
-                    return std::min(a, b);
-                default:
-                    UNREACHABLE();
-            }
-        };
-        auto tailInvoke = [reduceType, onAxesSize](dt const a) {
-            switch (reduceType) {
-                case ReduceType::Mean:
-                    return static_cast<dt>(a / onAxesSize);
-                    break;
-                case ReduceType::Max:
-                case ReduceType::Min:
-                case ReduceType::Sum:
-                    return a;
-                    break;
-                default:
-                    UNREACHABLE();
-            }
-        };
+        dt (*accumulate)(dt const a, dt const b);
+        switch (reduceType) {
+            case ReduceType::Mean:
+            case ReduceType::Sum:
+                accumulate = [](dt const a, dt const b) { return static_cast<dt>(a + b); };
+                break;
+            case ReduceType::Max:
+                accumulate = [](dt const a, dt const b) { return std::max(a, b); };
+                break;
+            case ReduceType::Min:
+                accumulate = [](dt const a, dt const b) { return std::min(a, b); };
+                break;
+            default:
+                UNREACHABLE();
+        }
+        dt (*tailInvoke)(dt const a, size_t onAxesSize);
+        switch (reduceType) {
+            case ReduceType::Mean:
+                tailInvoke = [](dt const a, size_t onAxesSize) { return static_cast<dt>(a / onAxesSize); };
+                break;
+            case ReduceType::Max:
+            case ReduceType::Min:
+            case ReduceType::Sum:
+                tailInvoke = [](dt const a, size_t onAxesSize) { return a; };
+                break;
+            default:
+                UNREACHABLE();
+        }
         return [info, outsideSize, onAxesSize, accumulate, tailInvoke](Resources &res, void const **inputs, void **outputs) {
             auto input = reinterpret_cast<dt const *>(inputs[0]);
             auto output = reinterpret_cast<dt *>(outputs[0]);
@@ -89,7 +89,7 @@ namespace refactor::kernel {
                     auto k = info.locate(i * onAxesSize + j);
                     output[i] = accumulate(output[i], input[k]);
                 }
-                output[i] = tailInvoke(output[i]);
+                output[i] = tailInvoke(output[i], onAxesSize);
             }
         };
     }

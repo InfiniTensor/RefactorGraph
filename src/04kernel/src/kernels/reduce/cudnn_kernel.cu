@@ -67,11 +67,12 @@ namespace refactor::kernel {
         // recomended to use cudnnSetTensor4dDescriptor and set the unused
         // dimension size to 1.
         // get inputs outputs
+        auto cudnnDataType = cudnnDataTypeConvert(dataType);
         if (nInDims > 3) {
             CUDNN_ASSERT(cudnnSetTensorNdDescriptor(
-                d->inDesc, CUDNN_DATA_FLOAT, nInDims, inDimArray.data(), inStrideArray.data()));
+                d->inDesc, cudnnDataType, nInDims, inDimArray.data(), inStrideArray.data()));
             CUDNN_ASSERT(cudnnSetTensorNdDescriptor(
-                d->outDesc, CUDNN_DATA_FLOAT, nOutDims, outDimArray.data(), outStrideArray.data()));
+                d->outDesc, cudnnDataType, nOutDims, outDimArray.data(), outStrideArray.data()));
         } else {
             int idims[4] = {1, 1, 1, 1}, odims[4] = {1, 1, 1, 1};
             for (int i = 0; i < nInDims; ++i) {
@@ -82,10 +83,10 @@ namespace refactor::kernel {
             }
 
             CUDNN_ASSERT(cudnnSetTensor4dDescriptor(
-                d->inDesc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, idims[0], idims[1],
+                d->inDesc, CUDNN_TENSOR_NCHW, cudnnDataType, idims[0], idims[1],
                 idims[2], idims[3]));
             CUDNN_ASSERT(cudnnSetTensor4dDescriptor(
-                d->outDesc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, odims[0],
+                d->outDesc, CUDNN_TENSOR_NCHW, cudnnDataType, odims[0],
                 odims[1], odims[2], odims[3]));
         }
 
@@ -117,7 +118,7 @@ namespace refactor::kernel {
                 UNREACHABLE();
         };
         CUDNN_ASSERT(cudnnSetReduceTensorDescriptor(
-            d->reduceDesc, reduceOp, CUDNN_DATA_FLOAT,
+            d->reduceDesc, reduceOp, cudnnDataType,
             CUDNN_NOT_PROPAGATE_NAN, CUDNN_REDUCE_TENSOR_NO_INDICES,
             CUDNN_32BIT_INDICES));
 
