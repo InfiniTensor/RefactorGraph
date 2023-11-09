@@ -13,7 +13,8 @@ TEST(kernel, WhereCpu) {
     auto outTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5});
     auto kernel = WhereCpu::build({*cTensor, *xTensor, *yTensor});
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto mc = mem_manager::ForeignBlob::share(mfn, cTensor->bytesSize());
@@ -31,7 +32,6 @@ TEST(kernel, WhereCpu) {
     for (auto i : range0_(data.size())) { data[i] = 3; }
     my->copyIn(data.data(), yTensor->bytesSize());
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*mc, *mx, *my};
     void *outputs[]{*mout};
     routine(res, inputs, outputs);

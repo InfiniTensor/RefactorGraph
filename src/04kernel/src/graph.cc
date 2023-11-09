@@ -15,13 +15,17 @@ namespace refactor::kernel {
           }) {}
 
     runtime::Stream Graph::lower(Allocator allocator) const {
+
+        runtime::Resources res;
+        res.fetchOrStore<runtime::MemManager>(_target.memManager());
+
         std::vector<Routine> routines;
         routines.reserve(_internal.nodes.size());
         std::transform(_internal.nodes.begin(), _internal.nodes.end(),
                        std::back_inserter(routines),
-                       [](auto const &node) {
+                       [&](auto const &node) {
                            return node.kernel
-                                      ? node.kernel->lower()
+                                      ? node.kernel->lower(res)
                                       : refactor::runtime::emptyRoutine;
                        });
         auto [stack, offsets] = allocator(_internal, sizeof(uint64_t));
@@ -30,8 +34,7 @@ namespace refactor::kernel {
         std::transform(outputs.begin(), outputs.end(),
                        outputs_.begin(),
                        [this](auto const &edge) { return _internal.edges[edge].size; });
-        runtime::Resources res;
-        res.fetchOrStore<runtime::MemManager>(_target.memManager());
+
         return runtime::Stream(
             std::move(res),
             stack,

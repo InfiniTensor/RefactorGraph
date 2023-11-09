@@ -23,8 +23,9 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
                           ? Binary11Cuda::build(binaryOPT, *aTensor, *bTensor)
                           : BinaryBasicCuda::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel && cudaKernel);
-    auto cpuRoutine = cpuKernel->lower();
-    auto cudaRoutine = cudaKernel->lower();
+    auto res = runtime::Resources();
+    auto cpuRoutine = cpuKernel->lower(res);
+    auto cudaRoutine = cudaKernel->lower(res);
 
     // Init inputs and outputs
     std::vector<T_> a(aTensor->elementsSize(), 3.0f);
@@ -37,7 +38,6 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     bGPU->copyIn(b.data(), bTensor->bytesSize());
 
     // Compute
-    auto res = runtime::Resources();
     void const *inputsGPU[]{*aGPU, *bGPU};
     void *outputsGPU[]{*cGPU};
     cudaRoutine(res, inputsGPU, outputsGPU);

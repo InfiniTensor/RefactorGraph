@@ -26,7 +26,7 @@ namespace refactor::kernel {
         }
     };
 
-    auto TransposeCuda::lower() const noexcept -> Routine {
+    Routine TransposeCuda::lower(Resources &) const noexcept {
         return [dims = thrust::device_vector<Dim>(info.dims.begin(), info.dims.end()),
                 eleSize = static_cast<long>(dataType.size()),
                 n = static_cast<long>(info.size)](

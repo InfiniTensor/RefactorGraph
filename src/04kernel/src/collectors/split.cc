@@ -1,14 +1,24 @@
 ﻿#include "kernel/collectors/split.h"
+#include "../kernels/split/cpu_kernel.hh"
+#include "../kernels/split/cuda_kernel.hh"
 
 namespace refactor::kernel {
 
     std::vector<KernelBox>
     SplitCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
+        SplitInfo info(axis, outputs);
+
         std::vector<KernelBox> ans;
         switch (target) {
             case Target::Cpu:
+                if (auto ptr = SplitCpu::build(info); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             case Target::NvidiaGpu:
+                if (auto ptr = SplitCuda::build(info); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

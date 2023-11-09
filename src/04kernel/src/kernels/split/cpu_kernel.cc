@@ -22,7 +22,7 @@ namespace refactor::kernel {
         return "Performing split operation on generic cpu";
     }
 
-    auto K::lower() const noexcept -> Routine {
+    Routine K::lower(Resources &) const noexcept {
         using namespace runtime;
         return [info = this->info](Resources &, void const **inputs, void **outputs) {
             auto data = reinterpret_cast<uint8_t const *>(inputs[0]);

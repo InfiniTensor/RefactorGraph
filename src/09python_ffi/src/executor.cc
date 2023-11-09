@@ -28,4 +28,11 @@ namespace refactor::python_ffi {
         _stream.run();
     }
 
+    void Executor::debugInfo() const noexcept {
+        auto const &nodes = _graph.internal().contiguous().nodes;
+        for (auto i : range0_(nodes.size())) {
+            fmt::println("{}. {}", i, nodes[i].name);
+        }
+    }
+
 }// namespace refactor::python_ffi

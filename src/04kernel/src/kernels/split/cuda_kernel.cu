@@ -25,7 +25,7 @@ namespace refactor::kernel {
         }
     };
 
-    auto SplitCuda::lower() const noexcept -> Routine {
+    Routine SplitCuda::lower(Resources &) const noexcept {
         return [segments = thrust::device_vector<uint_lv2>(info.segments.begin(), info.segments.end()),
                 blockCount = info.blockCount,
                 sum = info.sum](Resources &res, void const **inputs, void **outputs) {

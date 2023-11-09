@@ -14,8 +14,9 @@ TEST(kernel, ActivationCudnn) {
     ASSERT_TRUE(kCpu);
     auto kernel = ActivationCudnn::build(SimpleUnaryType::Tanh, *dataTensor);
     ASSERT_TRUE(kernel);
-    auto rCpu = kCpu->lower();
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto rCpu = kCpu->lower(res);
+    auto routine = kernel->lower(res);
     // malloc
     auto cpuMem = mem_manager::ForeignBlob::share(
         Target(Target::Cpu).memManager(),
@@ -28,7 +29,6 @@ TEST(kernel, ActivationCudnn) {
     for (auto i : range0_(dataTensor->elementsSize())) { data[i] = i * 1e-4f; }
     gpuMem->copyIn(data, dataTensor->bytesSize());
     // inference
-    auto res = runtime::Resources();
     {
         void const *inputs[]{*cpuMem};
         void *outputs[]{*cpuMem};

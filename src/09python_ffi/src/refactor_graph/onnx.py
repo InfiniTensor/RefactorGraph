@@ -1,5 +1,4 @@
-﻿from pyexpat import model
-from onnx import ModelProto, NodeProto, AttributeProto
+﻿from onnx import ModelProto, NodeProto, AttributeProto
 from onnx.numpy_helper import to_array
 from onnx.external_data_helper import ExternalDataInfo
 from typing import Any

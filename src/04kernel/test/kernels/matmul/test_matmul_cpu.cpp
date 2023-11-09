@@ -13,7 +13,8 @@ TEST(kernel, MatMulCPU_WithBias) {
     MatMulInfo info(*A, *B, *C);
     auto kernel = MatMulCPU::build(*A, *B, *Y, info);
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
@@ -29,7 +30,6 @@ TEST(kernel, MatMulCPU_WithBias) {
     mb->copyIn(dataB.data(), B->bytesSize());
     mc->copyIn(dataC.data(), C->bytesSize());
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*ma, *mb, *mc};
     void *outputs[]{*my};
     routine(res, inputs, outputs);
@@ -50,7 +50,8 @@ TEST(kernel, MatMulCPU_UINT16NoBias) {
     MatMulInfo info(*A, *B);
     auto kernel = MatMulCPU::build(*A, *B, *Y, info);
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
@@ -64,7 +65,6 @@ TEST(kernel, MatMulCPU_UINT16NoBias) {
     mb->copyIn(dataB.data(), B->bytesSize());
 
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*ma, *mb};
     void *outputs[]{*my};
     routine(res, inputs, outputs);
@@ -86,7 +86,8 @@ TEST(kernel, MatMulCPU_Broadcast) {
     MatMulInfo info(*A, *B, *C);
     auto kernel = MatMulCPU::build(*A, *B, *Y, info);
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
@@ -107,7 +108,6 @@ TEST(kernel, MatMulCPU_Broadcast) {
     mb->copyIn(dataB.data(), B->bytesSize());
     mc->copyIn(dataC.data(), C->bytesSize());
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*ma, *mb, *mc};
     void *outputs[]{*my};
     routine(res, inputs, outputs);

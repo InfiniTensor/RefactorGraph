@@ -8,7 +8,7 @@ namespace refactor::kernel {
     using namespace runtime;
     using Ty = SimpleUnaryType;
 
-    auto ActivationCudnn::lower() const noexcept -> Routine {
+    Routine ActivationCudnn::lower(Resources &res) const noexcept {
         // RAII for closure
         struct Descriptors {
             cudnnActivationDescriptor_t activation;
@@ -39,6 +39,7 @@ namespace refactor::kernel {
         CUDNN_ASSERT(cudnnSetActivationDescriptor(d->activation, mode, CUDNN_PROPAGATE_NAN, 0.0));
         CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->tensor, CUDNN_TENSOR_NCHW, cudnnDataTypeConvert(dataType), 1, 1, 1, size));
 
+        res.fetchOrStore<CudnnContext>();
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources

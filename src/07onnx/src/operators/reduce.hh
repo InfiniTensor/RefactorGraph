@@ -1,6 +1,7 @@
 ﻿#ifndef ONNX_REDUCE_HH
 #define ONNX_REDUCE_HH
 
+#include "computation/operators/reduce.h"
 #include "frontend/operator.h"
 
 namespace refactor::onnx {
@@ -21,9 +22,10 @@ namespace refactor::onnx {
 
     struct Reduce final : public Operator {
         ReduceType type;
+        Ints axes;
         bool keepdims, noopWithEmptyAxes;
 
-        Reduce(ReduceType, bool, bool);
+        Reduce(ReduceType, Ints, bool, bool);
 
         static OpBox build(std::string_view, Attributes);
         static size_t typeId(ReduceType);

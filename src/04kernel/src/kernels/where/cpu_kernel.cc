@@ -25,7 +25,7 @@ namespace refactor::kernel {
         return "Performing where operation on generic cpu";
     }
 
-    auto K::lower() const noexcept -> Routine {
+    Routine K::lower(Resources &) const noexcept {
         using namespace runtime;
 
         return [broadcaster = this->broadcaster,

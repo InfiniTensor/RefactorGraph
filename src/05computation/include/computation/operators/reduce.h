@@ -2,31 +2,20 @@
 #define COMPUTATION_REDUCE_H
 
 #include "../operator.h"
+#include "kernel/collectors/reduce.h"
 #include <absl/container/inlined_vector.h>
 
 namespace refactor::computation {
-
-    enum class ReduceType {
-        Mean,
-        L1,
-        L2,
-        LogSum,
-        LogSumExp,
-        Max,
-        Min,
-        Prod,
-        Sum,
-        SumSquare,
-    };
+    using kernel::ReduceType;
 
     struct Reduce final : public Operator {
         ReduceType type;
-        absl::InlinedVector<uint32_t, 4> axes;// empty means reduce all axes
+        kernel::Axes axes;// empty means reduce all axes
         uint32_t rank;
         bool keepDims;
 
         Reduce(ReduceType,
-               absl::InlinedVector<uint32_t, 4> axes,
+               kernel::Axes axes,
                uint32_t rank,
                bool keepDims) noexcept;
 
@@ -35,6 +24,7 @@ namespace refactor::computation {
         std::string_view name() const noexcept final;
         bool isLayoutDependent() const noexcept final;
         void transposeTo(LayoutType target) noexcept final;
+        kernel::CollectorBox candidateKernels(Target) const noexcept final;
     };
 
 }// namespace refactor::computation

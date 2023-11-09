@@ -9,7 +9,7 @@ namespace refactor::kernel {
 
     struct ConvCollector final : public InfoCollector {
         Target target;
-        PoolAttributes poolAttributes;
+        PoolAttributes poolAttrs;
 
         ConvCollector(Target, PoolAttributes) noexcept;
 

@@ -37,7 +37,8 @@ namespace refactor::python_ffi {
             .def("set_input"       , &Executor::setInput         , return_::automatic )
             .def("get_output"      , &Executor::getOutput        , return_::move      )
             .def("prepare"         , &Executor::prepare          , return_::move      )
-            .def("run"             , &Executor::run              , return_::automatic );
+            .def("run"             , &Executor::run              , return_::automatic )
+            .def("dbg"             , &Executor::debugInfo        , return_::automatic );
 
         // clang-format on
     }

@@ -21,7 +21,8 @@ TEST(kernel, SplitCpu) {
                    [](auto const &it) { return std::cref(*it); });
     auto kernel = SplitCpu::build(SplitInfo(3, outputs_));
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // put input data
     std::vector<float>
         data(dataTensor->elementsSize()),
@@ -33,7 +34,6 @@ TEST(kernel, SplitCpu) {
         };
     std::iota(data.begin(), data.end(), 0);
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{data.data()};
     void *outputs[]{outs[0].data(), outs[1].data(), outs[2].data(), outs[3].data()};
     routine(res, inputs, outputs);

@@ -16,8 +16,9 @@ TEST(kernel, WhereCuda) {
     auto kCpu = WhereCpu::build({*cTensor, *xTensor, *yTensor});
     auto kCuda = WhereCuda::build({*cTensor, *xTensor, *yTensor});
     ASSERT_TRUE(kCpu && kCuda);
-    auto rCpu = kCpu->lower();
-    auto rCuda = kCuda->lower();
+    auto res = runtime::Resources();
+    auto rCpu = kCpu->lower(res);
+    auto rCuda = kCuda->lower(res);
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
     auto gpuC = mem_manager::ForeignBlob::share(memManager, cTensor->bytesSize());
@@ -36,7 +37,6 @@ TEST(kernel, WhereCuda) {
     gpuY->copyIn(dataY.data(), yTensor->bytesSize());
     std::vector<float> cpuOut(outTensor->elementsSize());
     // inference
-    auto res = runtime::Resources();
     {
         void const *inputs[]{dataC, dataX.data(), dataY.data()};
         void *outputs[]{cpuOut.data()};

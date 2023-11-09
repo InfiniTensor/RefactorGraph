@@ -1,18 +1,19 @@
 ﻿#include "computation/operators/reduce.h"
 
 namespace refactor::computation {
+    using Op = Reduce;
 
-    Reduce::Reduce(ReduceType type_,
-                   absl::InlinedVector<uint32_t, 4> axes_,
-                   uint32_t rank_,
-                   bool keepDims_) noexcept
+    Op::Reduce(ReduceType type_,
+               kernel::Axes axes_,
+               uint32_t rank_,
+               bool keepDims_) noexcept
         : Operator(),
           type(type_),
           axes(std::move(axes_)),
           rank(rank_),
           keepDims(keepDims_) {}
 
-    size_t Reduce::typeId(ReduceType type) noexcept {
+    auto Op::typeId(ReduceType type) noexcept -> size_t {
         switch (type) {
             case ReduceType::Mean: {
                 static uint8_t ID = 1;
@@ -58,10 +59,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t Reduce::opTypeId() const noexcept {
+    auto Op::opTypeId() const noexcept -> size_t {
         return typeId(type);
     }
-    std::string_view Reduce::name() const noexcept {
+    auto Op::name() const noexcept -> std::string_view {
         switch (type) {
             case ReduceType::Mean:
                 return "ReduceMean";
@@ -87,8 +88,8 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    bool Reduce::isLayoutDependent() const noexcept { return rank != 4; }
-    void Reduce::transposeTo(LayoutType target) noexcept {
+    auto Op::isLayoutDependent() const noexcept -> bool { return rank != 4; }
+    auto Op::transposeTo(LayoutType target) noexcept -> void {
         Operator::transposeTo(target);
         switch (target) {
             case LayoutType::NCHW:
@@ -104,6 +105,9 @@ namespace refactor::computation {
             default:
                 UNREACHABLE();
         }
+    }
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        return std::make_unique<kernel::ReduceCollector>(target, type, axes);
     }
 
 }// namespace refactor::computation

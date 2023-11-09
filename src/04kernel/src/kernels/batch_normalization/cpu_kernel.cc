@@ -85,7 +85,7 @@ namespace refactor::kernel {
         };
     }
 
-    auto K::lower() const noexcept -> Routine {
+    auto K::lower(Resources &) const noexcept -> Routine {
         // clang-format off
         static_assert(sizeof(decltype(DT::internal)) == 1);
         #define MERGE(DT0, DT1, DT2)                      \

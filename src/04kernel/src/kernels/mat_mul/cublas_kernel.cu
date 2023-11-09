@@ -137,8 +137,7 @@ namespace refactor::kernel {
         }                                                                                                 \
     }
 
-    auto
-    MatMulCublas::lower() const noexcept -> Routine {
+    Routine MatMulCublas::lower(Resources &res) const noexcept {
         size_t strideC0 = 0, strideC1 = 0;
         switch (info.biasType) {
             case BiasType::NoBias:
@@ -158,6 +157,7 @@ namespace refactor::kernel {
                 UNREACHABLE();
         }
 
+        res.fetchOrStore<CublasContext>();
         switch (info.dataType) {
             CASE(F32, CUDA_R_32F);
             CASE(F64, CUDA_R_64F);

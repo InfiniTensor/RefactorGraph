@@ -75,7 +75,7 @@ namespace refactor::kernel {
     CASE(FUNC, U64)
 
 
-    auto K::lower() const noexcept -> Routine {
+    Routine K::lower(Resources &) const noexcept {
         switch (opType) {
             case Op::Abs:
                 switch (dataType) {

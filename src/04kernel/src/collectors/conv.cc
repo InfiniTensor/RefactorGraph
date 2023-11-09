@@ -8,18 +8,7 @@ namespace refactor::kernel {
         PoolAttributes attrs) noexcept
         : InfoCollector(),
           target(target_),
-          poolAttributes(std::move(attrs)) {}
-
-#define REGISTER_CUDNN(ALGO)                   \
-    if (auto ptr = ConvCudnn::build(           \
-            (cudnn::ConvolutionFwdAlgo::ALGO), \
-            poolAttributes,                    \
-            x,                                 \
-            w,                                 \
-            y);                                \
-        ptr) {                                 \
-        ans.emplace_back(std::move(ptr));      \
-    }
+          poolAttrs(std::move(attrs)) {}
 
     std::vector<KernelBox>
     ConvCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
@@ -32,15 +21,9 @@ namespace refactor::kernel {
             case Target::Cpu:
                 break;
             case Target::NvidiaGpu:
-                REGISTER_CUDNN(IMPLICIT_GEMM)
-                REGISTER_CUDNN(IMPLICIT_PRECOMP_GEMM)
-                REGISTER_CUDNN(GEMM)
-                REGISTER_CUDNN(DIRECT)
-                REGISTER_CUDNN(FFT)
-                REGISTER_CUDNN(FFT_TILING)
-                REGISTER_CUDNN(WINOGRAD)
-                REGISTER_CUDNN(WINOGRAD_NONFUSED)
-                REGISTER_CUDNN(COUNT)
+                if (auto ptr = ConvCudnn::build(poolAttrs, x, w, y); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

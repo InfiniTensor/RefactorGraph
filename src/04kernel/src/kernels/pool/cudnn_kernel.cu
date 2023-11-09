@@ -7,7 +7,7 @@ namespace refactor::kernel {
     using namespace runtime;
     using Ty = PoolType;
 
-    auto PoolCudnn::lower() const noexcept -> Routine {
+    Routine PoolCudnn::lower(Resources &res) const noexcept {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, y;
@@ -50,6 +50,7 @@ namespace refactor::kernel {
             pp[0], pp[1],
             ss[0], ss[1]));
 
+        res.fetchOrStore<CudnnContext>();
         // nvcc at c++11 doesn't support real move capture
         return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources

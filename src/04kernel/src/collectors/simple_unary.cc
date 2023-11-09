@@ -21,8 +21,8 @@ namespace refactor::kernel {
                 REGISTER(SimpleUnaryCpu)
                 break;
             case Target::NvidiaGpu:
-                REGISTER(SimpleUnaryCuda)
                 REGISTER(ActivationCudnn)
+                REGISTER(SimpleUnaryCuda)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

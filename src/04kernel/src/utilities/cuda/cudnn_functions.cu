@@ -20,16 +20,23 @@ namespace refactor::kernel::cudnn {
         }
     }
 
-    void setCudnnTensor(cudnnTensorDescriptor_t aDesc, DataType dt, std::vector<int> aDims) {
-        if (aDims.size() <= 4) {
-            int a[4] = {1, 1, 1, 1};
-            std::copy(aDims.begin(), aDims.end(), a + (4 - aDims.size()));
-            CUDNN_ASSERT(cudnnSetTensor4dDescriptor(aDesc, CUDNN_TENSOR_NCHW,
-                                                    cudnnDataTypeConvert(dt), a[0], a[1],
-                                                    a[2], a[3]));
+    void setCudnnTensor(cudnnTensorDescriptor_t aDesc, DataType dt, int const *dims, size_t rank) {
+        if (rank <= 4) {
+            int a[]{1, 1, 1, 1};
+            std::copy_n(dims, rank, a + 4 - rank);
+            CUDNN_ASSERT(cudnnSetTensor4dDescriptor(aDesc,
+                                                    CUDNN_TENSOR_NCHW,
+                                                    cudnnDataTypeConvert(dt),
+                                                    a[0],
+                                                    a[1],
+                                                    a[2],
+                                                    a[3]));
         } else {
-            CUDNN_ASSERT(cudnnSetTensorNdDescriptorEx(aDesc, CUDNN_TENSOR_NCHW,
-                                                      cudnnDataTypeConvert(dt), aDims.size(), aDims.data()));
+            CUDNN_ASSERT(cudnnSetTensorNdDescriptorEx(aDesc,
+                                                      CUDNN_TENSOR_NCHW,
+                                                      cudnnDataTypeConvert(dt),
+                                                      rank,
+                                                      dims));
         }
     }
 }// namespace refactor::kernel::cudnn

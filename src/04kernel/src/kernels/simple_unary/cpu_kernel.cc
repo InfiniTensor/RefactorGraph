@@ -68,7 +68,7 @@ namespace refactor::kernel {
                             [y, x](auto i) { y[i] = OP(x[i]); });                            \
         }
 
-    auto K::lower() const noexcept -> Routine {
+    Routine K::lower(Resources &) const noexcept {
         switch (opType) {
             case Op::Abs:
                 switch (dataType) {

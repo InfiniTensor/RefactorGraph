@@ -17,7 +17,8 @@ void testPoolCudnn(PoolType poolType, int rank, const int64_t *pads, const int64
 
     auto kernel = PoolCudnn::build(poolType, ceil, kernelShape, poolAttributes, *dataTensor, *yTensor);
     ASSERT_TRUE(kernel);
-    auto routine = kernel->lower();
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res);
     // cuda malloc
     auto gpuMem = mem_manager::ForeignBlob::share(
         Target(Target::NvidiaGpu).memManager(),
@@ -27,7 +28,6 @@ void testPoolCudnn(PoolType poolType, int rank, const int64_t *pads, const int64
     for (auto i : range0_(data.size())) { data[i] = i * 0.1f; }
     gpuMem->copyIn(data.data(), dataTensor->bytesSize());
     // inference
-    auto res = runtime::Resources();
     void const *inputs[]{*gpuMem};
     void *outputs[]{*gpuMem};
     routine(res, inputs, outputs);
