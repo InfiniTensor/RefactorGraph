@@ -43,6 +43,22 @@ answer = session.run(None, {session.get_inputs()[0].name: input})
 print([(executor.get_output(i) - answer[i]).flatten() for i in range(len(answer))])
 ```
 
+对于使用外部数据的模型，支持直接加载以减少一次拷贝：
+
+```python
+import sys
+from pathlib import Path
+from onnx import load
+from refactor_graph.onnx import make_compiler
+
+model_path = Path(sys.argv[1])  # ---------------------------- 假设模型和数据保存在相同路径
+model = load(model_path.as_uri(), load_external_data=False)  # 不直接加载外部数据以避免额外拷贝
+compiler = make_compiler(model, model_path.parent.as_uri())  # 导入时直接加载外部数据
+executor = compiler.compile("cuda", "default", [])  # -------- 编译模型
+
+# 下同
+```
+
 ## 项目结构
 
 ### 构建系统

@@ -16,6 +16,9 @@ namespace refactor::kernel {
                 }
                 break;
             case Target::NvidiaGpu:
+                if (auto ptr = GatherCuda::build(info); ptr != nullptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");
