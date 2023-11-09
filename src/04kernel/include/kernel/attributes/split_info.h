@@ -14,6 +14,7 @@ namespace refactor::kernel {
         absl::InlinedVector<uint_lv2, 4> segments;
 
         SplitInfo(uint_lv2 axis, TensorRefs const &outputs) noexcept;
+        uint_lv2 submultiple() const noexcept;
     };
 
 }// namespace refactor::kernel

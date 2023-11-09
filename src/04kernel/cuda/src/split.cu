@@ -7,17 +7,15 @@ namespace refactor::kernel::cuda {
         unsigned long long n,
         uint8_t const *data, unsigned int const *segments, uint8_t **outputs,
         unsigned int outputCount,
-        unsigned int sum) {
+        unsigned int sum,
+        unsigned int sub) {
         for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
                   step = blockDim.x * gridDim.x;
              tid < n;
              tid += step) {
-            auto offset = tid * sum;
-            for (auto j = 0u; j < outputCount; ++j) {
-                auto len = segments[j];
-                memcpy(outputs[j] + tid * len, data + offset, len);
-                offset += len;
-            }
+            auto i = tid % sum, j = i * sub, k = 0u;
+            while (j >= segments[k]) { j -= segments[k++]; }
+            memcpy(outputs[k] + (tid / sum) * segments[k] + j, data + tid * sub, sub);
         }
     }
 
@@ -25,7 +23,8 @@ namespace refactor::kernel::cuda {
         KernelLaunchParameters const &params,
         void const *data, unsigned int const *segments, void **outputs,
         unsigned int outputCount,
-        unsigned int sum) {
+        unsigned int sum,
+        unsigned int sub) {
         splitKernel<<<
             params.gridSize,
             params.blockSize,
@@ -36,7 +35,8 @@ namespace refactor::kernel::cuda {
             segments,
             reinterpret_cast<uint8_t **>(outputs),
             outputCount,
-            sum);
+            sum,
+            sub);
     }
 
 }// namespace refactor::kernel::cuda

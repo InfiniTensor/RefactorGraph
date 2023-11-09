@@ -9,7 +9,8 @@ namespace refactor::kernel::cuda {
         KernelLaunchParameters const &params,
         void const *data, unsigned int const *segments, void **outputs,
         unsigned int outputCount,
-        unsigned int sum);
+        unsigned int sum,
+        unsigned int sub);
 
 }// namespace refactor::kernel::cuda
 
