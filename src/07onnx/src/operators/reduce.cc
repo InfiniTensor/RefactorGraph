@@ -1,22 +1,23 @@
-﻿#include "computation/operators/reduce.h"
+﻿#include "reduce.hh"
 #include "common.h"
 #include "computation/operators/identity.h"
-#include "reduce.hh"
 #include <execution>
 
 namespace refactor::onnx {
     using Op = Reduce;
     using Ty = ReduceType;
 
-    Op::Reduce(Ty type_, bool keepdims_, bool noopWithEmptyAxes_)
+    Op::Reduce(Ty type_, Ints axes_, bool keepdims_, bool noopWithEmptyAxes_)
         : Operator(),
           type(type_),
+          axes(std::move(axes_)),
           keepdims(keepdims_),
           noopWithEmptyAxes(noopWithEmptyAxes_) {}
 
     auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
         auto keepDims = defaultOr(attributes, "keepdims", {1}).int_() != 0;
         auto noopWithEmptyAxes = defaultOr(attributes, "noop_with_empty_axes", {0}).int_() != 0;
+        auto axes = defaultOr(attributes, "axes", {{}}).ints();
         Ty ty;
         if (opType == "onnx::ReduceMean") {
             ty = Ty::Mean;
@@ -41,7 +42,7 @@ namespace refactor::onnx {
         } else {
             UNREACHABLEX(void, "Unsupported reduce operator: {}", opType);
         }
-        return OpBox(std::make_unique<Op>(ty, keepDims, noopWithEmptyAxes));
+        return OpBox(std::make_unique<Op>(ty, std::move(axes), keepDims, noopWithEmptyAxes));
     }
 
     auto Op::typeId(Ty type) -> size_t {
@@ -130,7 +131,7 @@ namespace refactor::onnx {
         if (!data.dataType.isNumberic()) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
-        if (inputs.size() == 1) {
+        if (inputs.size() == 1 && axes.empty()) {
             if (noopWithEmptyAxes) {
                 return Ok(Tensors{Tensor::share(data)});
             } else if (keepdims) {
@@ -143,15 +144,15 @@ namespace refactor::onnx {
                                                 extractDependency(inputs))});
             }
         }
-        auto const &axes = inputs[1];
-        if (axes.dataType != DataType::I64 || axes.rank() != 1 || !axes.data) {
-            return Err(InferError(ERROR_MSG("Axes not support")));
-        }
-        auto axes_ = axes.data->get<int64_t>();
+        // auto const &axes = inputs[1];
+        // if (axes.dataType != DataType::I64 || axes.rank() != 1 || !axes.data) {
+        //     return Err(InferError(ERROR_MSG("Axes not support")));
+        // }
+        auto axes_ = axes.data();
         auto const &shape = data.shape;
-        EXPECT_VAL(axes.shape[0], axesSize)
+        // EXPECT_VAL(axes.shape[0], axesSize)
         std::unordered_set<int64_t> axes__;
-        for (auto i : range0_(axesSize)) {
+        for (auto i : range0_(axes.size())) {
             auto axis = axes_[i];
             axes__.insert(axis < 0 ? axis + shape.size() : axis);
         }
@@ -209,20 +210,20 @@ namespace refactor::onnx {
         }
 
         auto rank = inputs[0].rank();
-        if (inputs.size() == 1) {
+        if (inputs.size() == 1 && axes.empty()) {
             if (noopWithEmptyAxes) {
                 return std::make_unique<computation::Identity>();
             } else {
                 return std::make_unique<Op_>(type_, decltype(Op_::axes){}, rank, keepdims);
             }
         }
-        auto const &axes = inputs[1];
-        auto axes_ = axes.data->get<int64_t>();
-        auto axesSize = axes.shape[0].value();
+        // auto const &axes = inputs[1];
+        // auto axes_ = axes.data->get<int64_t>();
+        // auto axesSize = axes.shape[0].value();
 
-        decltype(Op_::axes) axes__(axesSize);
+        decltype(Op_::axes) axes__(axes.size());
         std::transform(std::execution::unseq,
-                       axes_, axes_ + axesSize, axes__.begin(), [rank](auto axis) {
+                       axes.begin(), axes.end(), axes__.begin(), [rank](auto axis) {
                            return axis < 0 ? axis + rank : axis;
                        });
 
