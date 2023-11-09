@@ -4,6 +4,7 @@ project(kernel)
 file(GLOB_RECURSE KERNEL_SRC src/*.cc src/*.cpp)
 if(USE_CUDA)
     file(GLOB_RECURSE KERNEL_CUDA_SRC src/*.cu)
+    add_subdirectory(cuda)
 endif()
 
 add_library(kernel STATIC ${KERNEL_SRC} ${KERNEL_CUDA_SRC})
@@ -20,8 +21,7 @@ else()
 endif()
 
 if(USE_CUDA)
-    target_link_libraries(kernel PUBLIC cudnn)
-    target_link_libraries(kernel PUBLIC cublas)
+    target_link_libraries(kernel PUBLIC cublas cudnn kernel_cuda)
 endif()
 
 file(GLOB_RECURSE KERNEL_TEST test/*.cpp)
