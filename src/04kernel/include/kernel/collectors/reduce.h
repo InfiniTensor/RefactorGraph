@@ -5,6 +5,9 @@
 #include "../target.h"
 
 namespace refactor::kernel {
+
+    using Axes = absl::InlinedVector<uint32_t, 4>;
+
     enum class ReduceType {
         Mean,
         L1,
@@ -21,13 +24,11 @@ namespace refactor::kernel {
     struct ReduceCollector final : public InfoCollector {
         Target target;
         ReduceType reduceType;
-        std::vector<int64_t> axes;
+        Axes axes;
 
-        ReduceCollector(Target target_, ReduceType reduceType_, std::vector<int64_t> axes_) noexcept
-            : InfoCollector(), target(target_), reduceType(reduceType_), axes(axes_) {}
+        ReduceCollector(Target, ReduceType, Axes) noexcept;
 
-        std::vector<KernelBox>
-        filter(TensorRefs inputs, TensorRefs outputs) const final;
+        std::vector<KernelBox> filter(TensorRefs inputs, TensorRefs outputs) const final;
     };
 }// namespace refactor::kernel
 

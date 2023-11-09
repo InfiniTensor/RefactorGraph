@@ -9,9 +9,17 @@ namespace refactor::kernel {
         ans.emplace_back(std::move(ptr));                     \
     }
 
+    ReduceCollector::ReduceCollector(
+        Target targets_,
+        ReduceType type_,
+        Axes axes_) noexcept
+        : InfoCollector(),
+          target(targets_),
+          reduceType(type_),
+          axes(std::move(axes_)) {}
+
     std::vector<KernelBox>
     ReduceCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-
         std::vector<KernelBox> ans;
         switch (target) {
             case Target::Cpu:

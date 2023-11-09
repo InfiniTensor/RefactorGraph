@@ -9,7 +9,7 @@ namespace refactor::kernel {
 
     struct ReduceCudnn final : public Kernel {
         DataType dataType;
-        std::vector<int64_t> axes;
+        Axes axes;
         ReduceType reduceType;
         Shape shape;
 
