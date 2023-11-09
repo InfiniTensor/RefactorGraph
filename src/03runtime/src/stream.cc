@@ -82,7 +82,7 @@ namespace refactor::runtime {
         return unknownInputs;
     }
 
-    void Stream::run() {
+    void Stream::run(void (*sync)()) {
         auto map = [this](auto i) { return _internal.edges[i](*_stack); };
         std::vector<void *> buffer(16);
         for (auto const [nodeIdx, i, o] : _internal.topology) {
@@ -91,6 +91,7 @@ namespace refactor::runtime {
                  outputs_ = std::transform(i.begin(), i.end(), inputs_, map);
             /* alignment */ std::transform(o.begin(), o.end(), outputs_, map);
             _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
+            if (sync) { sync(); }
         }
     }
 

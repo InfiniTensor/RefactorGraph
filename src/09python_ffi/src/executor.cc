@@ -1,5 +1,9 @@
 ﻿#include "executor.h"
 
+#ifdef USE_CUDA
+#include "kernel/cuda/functions.cuh"
+#endif// USE_CUDA
+
 namespace refactor::python_ffi {
 
     Executor::Executor(computation::Graph graph, runtime::Stream stream)
@@ -24,8 +28,14 @@ namespace refactor::python_ffi {
         return _stream.prepare();
     }
 
-    void Executor::run() {
-        _stream.run();
+    void Executor::run(bool sync) {
+#ifdef USE_CUDA
+        if (sync) {
+            _stream.run(kernel::cuda::sync);
+            return;
+        }
+#endif// USE_CUDA
+        _stream.run(nullptr);
     }
 
     void Executor::debugInfo() const noexcept {
