@@ -2,6 +2,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
 #include <thrust/for_each.h>
+#include <thrust/host_vector.h>
 
 namespace refactor::kernel {
     using namespace runtime;
@@ -18,7 +19,7 @@ namespace refactor::kernel {
         __device__ void operator()(long i) const noexcept {
             auto ic = 0l, ix = 0l, iy = 0l, rem = i;
             for (auto j = 0l; j < rank; ++j) {
-                auto dim = strides + 4 * i;
+                auto dim = strides + 4 * j;
                 auto quot = rem / dim[3];
                 rem %= dim[3];
                 ic += quot * dim[0];
