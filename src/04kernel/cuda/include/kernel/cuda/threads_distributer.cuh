@@ -3,17 +3,25 @@
 
 namespace refactor::kernel::cuda {
 
+    /// @brief 内核的启动参数。
+    struct KernelLaunchParameters {
+        /// @brief 网格中块的数量和块中线程的数量。
+        int gridSize, blockSize;
+        /// @brief 要处理任务总量。
+        size_t n;
+        /// @brief 动态共享内存的大小。
+        size_t dynamicSharedBytes;
+        /// @brief 用于执行内核的流。
+        void *stream;
+    };
+
     class ThreadsDistributer {
         int _maxGridSize;
 
     public:
-        struct GridLayout {
-            int gridSize, blockSize;
-        };
-
         ThreadsDistributer();
 
-        GridLayout operator()(unsigned long long n) const noexcept;
+        KernelLaunchParameters operator()(size_t n) const noexcept;
     };
 
 }// namespace refactor::kernel::cuda

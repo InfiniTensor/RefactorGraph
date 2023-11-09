@@ -1,5 +1,5 @@
 ﻿#include "common.h"
-#include "kernel/cuda/naive.cuh"
+#include "kernel/cuda/bench.cuh"
 #include "kernel/cuda/threads_distributer.cuh"
 #include <chrono>
 #include <thrust/device_vector.h>
@@ -19,11 +19,11 @@ namespace refactor::kernel::cuda {
             out_(n);
 
         ThreadsDistributer distributer;
-        auto [grid, block] = distributer(n);
+        auto params = distributer(n);
 
         auto t0 = std::chrono::high_resolution_clock::now();
         for (auto i = 0; i < 1000; ++i)
-            sigmoidKernel<<<grid, block>>>(out_.data().get(), in_.data().get(), n);
+            sigmoidKernel<<<params.gridSize, params.blockSize>>>(out_.data().get(), in_.data().get(), n);
         cudaDeviceSynchronize();
         auto t1 = std::chrono::high_resolution_clock::now();
         fmt::println("gpu: {} ns", std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count());

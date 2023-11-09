@@ -1,5 +1,5 @@
 ﻿#include "common.h"
-#include "kernel/cuda/naive.cuh"
+#include "kernel/cuda/bench.cuh"
 #include <chrono>
 #include <execution>
 #include <gtest/gtest.h>

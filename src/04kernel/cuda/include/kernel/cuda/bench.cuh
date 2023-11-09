@@ -1,5 +1,5 @@
-﻿#ifndef KERNEL_CUDA_NAIVE_CUH
-#define KERNEL_CUDA_NAIVE_CUH
+﻿#ifndef KERNEL_CUDA_BENCH_CUH
+#define KERNEL_CUDA_BENCH_CUH
 
 namespace refactor::kernel::cuda {
 
@@ -7,4 +7,4 @@ namespace refactor::kernel::cuda {
 
 }// namespace refactor::kernel::cuda
 
-#endif// KERNEL_CUDA_NAIVE_CUH
+#endif// KERNEL_CUDA_BENCH_CUH

@@ -1,5 +1,5 @@
-﻿#include "kernel/cuda/macro.cuh"
-#include "kernel/cuda/threads_distributer.cuh"
+﻿#include "kernel/cuda/threads_distributer.cuh"
+#include "macro.cuh"
 
 namespace refactor::kernel::cuda {
 
@@ -25,10 +25,10 @@ namespace refactor::kernel::cuda {
         _maxGridSize = mpc * tps * MaxWaves / BlockSize;
     }
 
-    auto ThreadsDistributer::operator()(unsigned long long n) const noexcept -> GridLayout {
+    auto ThreadsDistributer::operator()(size_t n) const noexcept -> KernelLaunchParameters {
         auto gridSize = (n + BlockSize - 1) / BlockSize;
         ASSERT(gridSize <= std::numeric_limits<int>::max(), "");
-        return {std::clamp(static_cast<int>(gridSize), 1, _maxGridSize), BlockSize};
+        return {std::clamp(static_cast<int>(gridSize), 1, _maxGridSize), BlockSize, n};
     }
 
 }// namespace refactor::kernel::cuda
