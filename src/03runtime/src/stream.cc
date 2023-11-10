@@ -64,7 +64,7 @@ namespace refactor::runtime {
         _internal.edges[globalOutputs[i]].blob()->copyOut(data, size);
     }
 
-    std::vector<uint_lv1> Stream::prepare() {
+    auto Stream::prepare() -> std::vector<uint_lv1> {
         auto globalInputs = _internal.topology.globalInputs();
         std::vector<uint_lv1> unknownInputs;
         for (auto i : range0_(globalInputs.size())) {
@@ -82,7 +82,7 @@ namespace refactor::runtime {
         return unknownInputs;
     }
 
-    void Stream::run(void (*sync)()) {
+    void Stream::run() {
         auto map = [this](auto i) { return _internal.edges[i](*_stack); };
         std::vector<void *> buffer(16);
         for (auto const [nodeIdx, i, o] : _internal.topology) {
@@ -91,8 +91,25 @@ namespace refactor::runtime {
                  outputs_ = std::transform(i.begin(), i.end(), inputs_, map);
             /* alignment */ std::transform(o.begin(), o.end(), outputs_, map);
             _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
-            if (sync) { sync(); }
         }
+    }
+
+    auto Stream::bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds> {
+        auto map = [this](auto i) { return _internal.edges[i](*_stack); };
+        std::vector<void *> buffer(16);
+        std::vector<std::chrono::nanoseconds> ans(_internal.nodes.size());
+        for (auto const [nodeIdx, i, o] : _internal.topology) {
+            buffer.resize(i.size() + o.size());
+            auto inputs_ = buffer.data(),
+                 outputs_ = std::transform(i.begin(), i.end(), inputs_, map);
+            /* alignment */ std::transform(o.begin(), o.end(), outputs_, map);
+            auto t0 = std::chrono::high_resolution_clock::now();
+            _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
+            if (sync) { sync(); }
+            auto t1 = std::chrono::high_resolution_clock::now();
+            ans[nodeIdx] = t1 - t0;
+        }
+        return ans;
     }
 
 }// namespace refactor::runtime

@@ -16,7 +16,8 @@ namespace refactor::python_ffi {
         void setInput(uint_lv1, pybind11::array);
         auto getOutput(uint_lv1) -> pybind11::array;
         auto prepare() -> std::vector<uint_lv1>;
-        void run(bool sync);
+        void run();
+        void bench(bool sync);
         void debugInfo() const noexcept;
     };
 

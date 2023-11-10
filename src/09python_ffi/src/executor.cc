@@ -28,14 +28,23 @@ namespace refactor::python_ffi {
         return _stream.prepare();
     }
 
-    void Executor::run(bool sync) {
+    void Executor::run() {
+        _stream.run();
+    }
+
+    void Executor::bench(bool sync) {
 #ifdef USE_CUDA
-        if (sync) {
-            _stream.run(kernel::cuda::sync);
-            return;
-        }
+        auto ans = _stream.bench(sync ? kernel::cuda::sync : nullptr);
+#else
+        auto ans = _stream.bench(nullptr);
 #endif// USE_CUDA
-        _stream.run(nullptr);
+        auto const &nodes = _graph.internal().contiguous().nodes;
+        for (auto i : range0_(nodes.size())) {
+            fmt::println("{} {} {}",
+                         i,
+                         nodes[i].name,
+                         std::chrono::duration_cast<std::chrono::microseconds>(ans[i]).count());
+        }
     }
 
     void Executor::debugInfo() const noexcept {

@@ -5,6 +5,7 @@
 #include "mem_manager/foreign_blob.hh"
 #include "resource.h"
 #include <absl/container/inlined_vector.h>
+#include <chrono>
 #include <functional>
 #include <variant>
 
@@ -45,8 +46,9 @@ namespace refactor::runtime {
         void setInput(uint_lv1, void const *, size_t);
         void setInput(uint_lv1, mem_manager::SharedForeignBlob);
         void getOutput(uint_lv1, void *, size_t) const;
-        std::vector<uint_lv1> prepare();
-        void run(void (*sync)());
+        auto prepare() -> std::vector<uint_lv1>;
+        void run();
+        auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;
     };
 
 }// namespace refactor::runtime
