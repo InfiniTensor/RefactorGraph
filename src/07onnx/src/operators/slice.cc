@@ -4,7 +4,7 @@
 #include <execution>
 
 namespace refactor::onnx {
-    using computation::Dim;
+    using computation::Dimensions;
     using Op = Slice;
 
     Op::Slice() : Operator() {}
@@ -22,7 +22,7 @@ namespace refactor::onnx {
     auto Op::opTypeName() const -> std::string_view { return "onnx::Slice"; }
     auto Op::valueDependentInputs() const -> InputVec { return {1, 2, 3, 4}; }
 
-    Result<std::vector<Dim>, InferError> buildDims(
+    Result<Dimensions, InferError> buildDims(
         size_t rank,
         size_t size,
         Shape const &data,
@@ -30,7 +30,7 @@ namespace refactor::onnx {
         int64_t const *const ends,
         int64_t const *const axes,
         int64_t const *const steps) {
-        std::vector<Dim> dims(rank);
+        Dimensions dims(rank);
         std::vector<bool> flags(rank, false);
         for (auto i : range0_(size)) {
             int64_t axis = axes ? axes[i] : i,
@@ -139,7 +139,7 @@ namespace refactor::onnx {
         Shape output(dims.size(), DimExpr(1));
         std::transform(std::execution::unseq,
                        dims.begin(), dims.end(), output.begin(),
-                       [](auto const &dim) { return DimExpr(dim.number); });
+                       [](auto const &dim) { return DimExpr(dim.length); });
 
         auto ans = Tensor::share(data.dataType, std::move(output), extractDependency(inputs));
         if (!data.data) { return Ok(Tensors{std::move(ans)}); }

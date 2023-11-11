@@ -9,7 +9,7 @@ namespace refactor::computation {
         return reinterpret_cast<size_t>(&ID);
     }
     auto Op::opTypeId() const noexcept -> size_t { return typeId(); }
-    auto Op::name() const noexcept -> std::string_view { return "Split"; }
+    auto Op::name() const noexcept -> std::string_view { return "Concat"; }
     auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
         using Collector_ = kernel::ConcatCollector;
         return std::make_unique<Collector_>(target, axis);
