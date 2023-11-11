@@ -6,7 +6,7 @@
 namespace refactor::kernel::cuda {
 
     void launchSplit(
-        KernelLaunchParameters const &params,
+        KernelLaunchParameters const &,
         void const *data, unsigned int const *segments, void **outputs,
         unsigned int outputCount,
         unsigned int sum,
