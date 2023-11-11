@@ -25,15 +25,15 @@ namespace refactor::kernel {
     Routine K::lower(Resources &) const noexcept {
         using namespace runtime;
         return [info = this->info](Resources &, void const **inputs, void **outputs) {
-            auto data = reinterpret_cast<uint8_t const *>(inputs[0]);
+            auto src = reinterpret_cast<uint8_t const *>(inputs[0]);
             std::for_each_n(std::execution::par_unseq,
                             natural_t(0), info.blockCount,
                             [=, &info](auto i) {
                                 auto offset = i * info.sum;
                                 for (auto j : range0_(info.segments.size())) {
                                     auto len = info.segments[j];
-                                    auto out = reinterpret_cast<uint8_t *>(outputs[j]);
-                                    std::memcpy(out + i * len, data + offset, len);
+                                    auto dst = reinterpret_cast<uint8_t *>(outputs[j]);
+                                    std::memcpy(dst + i * len, src + offset, len);
                                     offset += len;
                                 }
                             });
