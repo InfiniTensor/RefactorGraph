@@ -135,7 +135,7 @@ namespace refactor::frontend {
 
     TensorRefs::TensorRefs(
         std::vector<Edge> const &edges,
-        slice_t<graph_topo::idx_t> slice)
+        slice_t<count_t> slice)
         : _edges(edges), _slice(slice) {}
     Tensor const &TensorRefs::operator[](size_t i) const {
         return *_edges[_slice[i]].tensor;

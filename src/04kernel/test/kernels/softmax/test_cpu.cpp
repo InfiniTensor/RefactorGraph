@@ -9,7 +9,7 @@ TEST(kernel, SoftmaxCpu) {
     // build routine
     auto xTensor = Tensor::share(DataType::F64, Shape{2, 3, 2, 4});
     auto yTensor = Tensor::share(DataType::F64, Shape{2, 3, 2, 4});
-    uint_lv2 axis = 1;
+    dim_t axis = 1;
     auto kernel = SoftmaxCpu::build(SoftmaxInfo(*xTensor, axis));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();

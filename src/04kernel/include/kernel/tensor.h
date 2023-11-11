@@ -6,8 +6,8 @@
 
 namespace refactor::kernel {
 
-    using Shape = absl::InlinedVector<uint_lv2, 4>;
-    using Strides = absl::InlinedVector<uint_lv3, 4>;
+    using Shape = absl::InlinedVector<dim_t, 4>;
+    using Strides = absl::InlinedVector<dim_t, 4>;
 
     struct Tensor {
         DataType dataType;

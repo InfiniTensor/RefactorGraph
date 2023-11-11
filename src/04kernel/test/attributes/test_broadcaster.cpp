@@ -23,14 +23,14 @@ TEST(kernel, Broadcaster) {
     });
     EXPECT_EQ(broadcaster.outputsCount, 210);
     EXPECT_EQ(broadcaster.strides,
-              (std::vector<uint_lv2>{
+              (std::vector<dim_t>{
                   0, 0, 0, 1, 105,
                   35, 0, 0, 0, 35,
                   1, 1, 0, 0, 1}));
 
-    std::vector<uint_lv2> ans(broadcaster.inputsCount);
+    std::vector<dim_t> ans(broadcaster.inputsCount);
     broadcaster.locate(1, ans.data());
-    EXPECT_EQ(ans, (std::vector<uint_lv2>{1, 1, 0, 0}));
+    EXPECT_EQ(ans, (std::vector<dim_t>{1, 1, 0, 0}));
     broadcaster.locate(40, ans.data());
-    EXPECT_EQ(ans, (std::vector<uint_lv2>{40, 5, 0, 0}));
+    EXPECT_EQ(ans, (std::vector<dim_t>{40, 5, 0, 0}));
 }

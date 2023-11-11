@@ -21,6 +21,6 @@ TEST(kernel, SplitInfo) {
     EXPECT_EQ(info.submultiple(), 8);
     auto postfix = 49 * 8u;
     EXPECT_EQ(info.sum, 20 * postfix);
-    EXPECT_EQ(info.segments, (absl::InlinedVector<uint_lv2, 4>{1 * postfix, 9 * postfix, 3 * postfix, 7 * postfix}));
+    EXPECT_EQ(info.segments, (absl::InlinedVector<dim_t, 4>{1 * postfix, 9 * postfix, 3 * postfix, 7 * postfix}));
     EXPECT_EQ(info.submultiple(), 8);
 }

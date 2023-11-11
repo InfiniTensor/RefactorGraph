@@ -3,17 +3,17 @@
 
 namespace refactor::graph_topo {
 
-    OnNode::OnNode(idx_t idx) noexcept
+    OnNode::OnNode(count_t idx) noexcept
         : edge(idx) {}
-    OnNode OnNode::input(idx_t idx) noexcept {
+    OnNode OnNode::input(count_t idx) noexcept {
         return OnNode(idx << 1);
     }
-    OnNode OnNode::output(idx_t idx) noexcept {
+    OnNode OnNode::output(count_t idx) noexcept {
         return OnNode((idx << 1) | 1);
     }
     bool OnNode::isInput() const noexcept { return (edge & 1) == 0; }
     bool OnNode::isOutput() const noexcept { return (edge & 1) == 1; }
-    idx_t OnNode::index() const noexcept { return edge >> 1; }
+    count_t OnNode::index() const noexcept { return edge >> 1; }
 
     InplaceModifier::InplaceModifier(GraphTopo _g) noexcept
         : _g(std::move(_g)) {}
@@ -79,7 +79,7 @@ namespace refactor::graph_topo {
         }
     }
 
-    auto InplaceModifier::reconnect(idx_t from, idx_t to) -> size_t {
+    auto InplaceModifier::reconnect(count_t from, count_t to) -> size_t {
         size_t ans = 0;
         for (auto &c : _g._connections) {
             if (c == from) {
@@ -90,7 +90,7 @@ namespace refactor::graph_topo {
         return ans;
     }
 
-    auto InplaceModifier::reconnect(std::unordered_map<idx_t, idx_t> const &map) -> size_t {
+    auto InplaceModifier::reconnect(std::unordered_map<count_t, count_t> const &map) -> size_t {
         size_t ans = 0;
         for (auto &c : _g._connections) {
             if (auto it = map.find(c); it != map.end()) {

@@ -3,7 +3,7 @@
 
 namespace refactor::kernel {
 
-    SoftmaxInfo::SoftmaxInfo(Tensor const &data, uint_lv2 axis) noexcept
+    SoftmaxInfo::SoftmaxInfo(Tensor const &data, dim_t axis) noexcept
         : pre(0), mid(0), post(0), type(data.dataType) {
 
         auto axisIt = data.shape.begin() + axis;

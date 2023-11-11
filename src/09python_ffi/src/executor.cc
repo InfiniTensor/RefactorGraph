@@ -10,11 +10,11 @@ namespace refactor::python_ffi {
         : _graph(std::move(graph)),
           _stream(std::move(stream)) {}
 
-    void Executor::setInput(uint_lv1 i, pybind11::array data) {
+    void Executor::setInput(count_t i, pybind11::array data) {
         _stream.setInput(i, data.data(), data.nbytes());
     }
 
-    auto Executor::getOutput(uint_lv1 i) -> pybind11::array {
+    auto Executor::getOutput(count_t i) -> pybind11::array {
         auto globalOutputs = _graph.internal().contiguous().topology.globalOutputs();
         ASSERT(i < globalOutputs.size(), "input index out of range");
 
@@ -24,7 +24,7 @@ namespace refactor::python_ffi {
         return ans;
     }
 
-    auto Executor::prepare() -> std::vector<uint_lv1> {
+    auto Executor::prepare() -> std::vector<count_t> {
         return _stream.prepare();
     }
 

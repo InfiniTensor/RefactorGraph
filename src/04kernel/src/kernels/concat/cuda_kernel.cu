@@ -9,7 +9,7 @@ namespace refactor::kernel {
 
     Routine ConcatCuda::lower(Resources &) const noexcept {
         auto sub = std::min(info.submultiple(), 16u);
-        return [segments = thrust::device_vector<uint_lv2>(info.segments.begin(), info.segments.end()),
+        return [segments = thrust::device_vector<dim_t>(info.segments.begin(), info.segments.end()),
                 params = cuda::ThreadsDistributer()(info.blockCount * info.sum / sub),
                 sum = info.sum / sub,
                 sub](Resources &res, void const **inputs, void **outputs) {

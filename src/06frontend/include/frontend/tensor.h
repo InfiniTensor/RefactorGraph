@@ -95,7 +95,7 @@ namespace refactor::frontend {
 
     class TensorRefs {
         std::vector<Edge> const &_edges;
-        slice_t<graph_topo::idx_t> _slice;
+        slice_t<count_t> _slice;
 
     public:
         TensorRefs(decltype(_edges) const &, decltype(_slice));

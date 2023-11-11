@@ -6,10 +6,10 @@
 namespace refactor::kernel {
 
     struct SoftmaxInfo {
-        uint_lv2 pre, mid, post;
+        dim_t pre, mid, post;
         DataType type;
 
-        SoftmaxInfo(Tensor const &data, uint_lv2 axis) noexcept;
+        SoftmaxInfo(Tensor const &data, dim_t axis) noexcept;
     };
 
 }// namespace refactor::kernel

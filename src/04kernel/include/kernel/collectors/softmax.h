@@ -8,9 +8,9 @@ namespace refactor::kernel {
 
     struct SoftmaxCollector final : public InfoCollector {
         Target target;
-        uint_lv2 axis;
+        dim_t axis;
 
-        constexpr SoftmaxCollector(Target target_, uint_lv2 axis_) noexcept
+        constexpr SoftmaxCollector(Target target_, dim_t axis_) noexcept
             : InfoCollector(), target(target_), axis(axis_) {}
 
         std::vector<KernelBox>
@@ -20,4 +20,3 @@ namespace refactor::kernel {
 }// namespace refactor::kernel
 
 #endif// KERNEL_SOFTMAX_H
-

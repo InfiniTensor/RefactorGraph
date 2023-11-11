@@ -22,15 +22,15 @@ namespace refactor::graph_topo {
 
         Graph<Node, Edge> build() noexcept {
             auto topology = GraphTopo(
-                static_cast<idx_t>(globalInputs.size()),
-                static_cast<idx_t>(globalOutputs.size()),
+                static_cast<count_t>(globalInputs.size()),
+                static_cast<count_t>(globalOutputs.size()),
                 this->topology.size());
             std::vector<Node> nodes;
             std::vector<Edge> edges;
 
-            std::unordered_map<EdgeKey, idx_t> keyToIdx;
+            std::unordered_map<EdgeKey, count_t> keyToIdx;
             auto mapEdge = [&keyToIdx, &edges, this](EdgeKey const &edge) {
-                keyToIdx[edge] = static_cast<idx_t>(edges.size());
+                keyToIdx[edge] = static_cast<count_t>(edges.size());
                 if (auto it = this->edges.find(edge); it != this->edges.end()) {
                     edges.emplace_back(std::move(it->second));
                 } else {
@@ -77,9 +77,9 @@ namespace refactor::graph_topo {
                     mappedNodes.insert(kn);
                     nodes.emplace_back(std::move(this->nodes.at(kn)));
                     topology._nodes.push_back({
-                        static_cast<idx_t>(newLocal.size()),
-                        static_cast<idx_t>(inputs.size()),
-                        static_cast<idx_t>(outputs.size()),
+                        static_cast<count_t>(newLocal.size()),
+                        static_cast<count_t>(inputs.size()),
+                        static_cast<count_t>(outputs.size()),
                     });
                     // map edges
                     for (auto const &edge : newLocal) { mapEdge(edge); }

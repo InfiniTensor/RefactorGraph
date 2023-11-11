@@ -13,9 +13,9 @@ namespace refactor::python_ffi {
 
     public:
         Executor(computation::Graph, runtime::Stream);
-        void setInput(uint_lv1, pybind11::array);
-        auto getOutput(uint_lv1) -> pybind11::array;
-        auto prepare() -> std::vector<uint_lv1>;
+        void setInput(count_t, pybind11::array);
+        auto getOutput(count_t) -> pybind11::array;
+        auto prepare() -> std::vector<count_t>;
         void run();
         void bench(bool sync);
         void debugInfo() const noexcept;

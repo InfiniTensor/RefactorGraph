@@ -46,7 +46,7 @@ namespace refactor::computation {
     }
 
     void Graph::layoutPermute() {
-        using SubgraphId = uint_lv1;
+        using SubgraphId = uint16_t;
         constexpr static auto EXTERNAL = std::numeric_limits<SubgraphId>::max();
         constexpr static auto DEPENDENT = EXTERNAL;
         constexpr static auto INDEPENDENT = DEPENDENT - 1;

@@ -12,7 +12,7 @@ TEST(infer, Einsum) {
         {Tensor::share(DataType::F32, Shape{DimExpr(3), DimExpr(2), DimExpr(5)}, {}), ""},
         {Tensor::share(DataType::F32, Shape{DimExpr(3), DimExpr(5), DimExpr(4)}, {}), ""},
     };
-    graph_topo::idx_t inputs[]{0, 1};
+    count_t inputs[]{0, 1};
     auto infered = Einsum("bik,bkj->bij").infer(TensorRefs(edges, slice(inputs, 2)), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());

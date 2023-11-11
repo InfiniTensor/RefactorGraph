@@ -10,9 +10,9 @@ namespace refactor::kernel {
 
         // 对 permutation 分段，每个段里是一些连续的维度号
         // 第 i 个 perm 到其所在的第 j 个段的映射
-        constexpr static auto INVALID = std::numeric_limits<uint_lv2>::max();
-        std::vector<uint_lv2> segOfDims(rank, 0);
-        uint_lv2 segs = 0, lastPerm = perm[0];
+        constexpr static auto INVALID = std::numeric_limits<dim_t>::max();
+        std::vector<dim_t> segOfDims(rank, 0);
+        dim_t segs = 0, lastPerm = perm[0];
         for (auto i : range(1ul, rank)) {
             if (auto p = perm[i]; p == lastPerm + 1) {
                 // 维度连续，不分段
@@ -28,10 +28,10 @@ namespace refactor::kernel {
 
         // 整理出根据输入维度顺序排列的、合并后的各维度形状和输出位置。
         struct SizePerm {
-            uint_lv2 sizeI, perm, sizeO, strideI, strideO;
+            dim_t sizeI, perm, sizeO, strideI, strideO;
         };
         absl::InlinedVector<SizePerm, 4> forward(++segs);
-        uint_lv2 j = 0;
+        dim_t j = 0;
         auto seg = INVALID;
         for (auto i : range0_(rank)) {
             if (segOfDims[i] == INVALID) { continue; }
@@ -59,8 +59,8 @@ namespace refactor::kernel {
         size = forward[0].sizeI * forward[0].strideI;
     }
 
-    uint_lv2 TransposeInfo::locate(uint_lv2 i) const noexcept {
-        uint_lv2 ans = 0;
+    dim_t TransposeInfo::locate(dim_t i) const noexcept {
+        dim_t ans = 0;
         long rem = i;
         for (auto [strideI, strideO] : dims) {
             auto d = std::div(rem, strideO);

@@ -11,7 +11,7 @@ TEST(kernel, SoftmaxCudnn) {
     // build routine
     auto xTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5, 4});
     auto outTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5, 4});
-    uint_lv2 axis = 2;
+    dim_t axis = 2;
     auto kCpu = SoftmaxCpu::build(SoftmaxInfo(*xTensor, axis));
     auto kCudnn = SoftmaxCudnn::build(cudnn::SoftmaxAlgo::FAST, SoftmaxInfo(*xTensor, axis));
     ASSERT_TRUE(kCpu && kCudnn);

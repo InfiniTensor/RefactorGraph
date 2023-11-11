@@ -3,7 +3,7 @@
 
 namespace refactor::kernel {
 
-    SplitInfo::SplitInfo(uint_lv2 axis, TensorRefs const &outputs) noexcept
+    SplitInfo::SplitInfo(dim_t axis, TensorRefs const &outputs) noexcept
         : segments(outputs.size()),
           blockCount(0),
           sum(std::accumulate(
@@ -21,10 +21,10 @@ namespace refactor::kernel {
                        [=](auto const &ref) { return ref.get().shape[axis] * postfix; });
     }
 
-    uint_lv2 SplitInfo::submultiple() const noexcept {
+    dim_t SplitInfo::submultiple() const noexcept {
         auto and_ = std::accumulate(segments.begin(), segments.end(), 0u,
                                     [&](auto acc, auto seg) { return acc | seg; });
-        for (uint_lv2 ans = ~0u; ans != 0; ans >>= 1) {
+        for (dim_t ans = ~0u; ans != 0; ans >>= 1) {
             if ((and_ & ans) == 0) {
                 return ans + 1;
             }

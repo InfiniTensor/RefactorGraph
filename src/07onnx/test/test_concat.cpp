@@ -13,7 +13,7 @@ TEST(infer, Concat) {
         {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(2)}, {}), ""},
         {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(5)}, {}), ""},
     };
-    graph_topo::idx_t inputs[]{0, 1, 2};
+    count_t inputs[]{0, 1, 2};
     auto infered = Concat(1).infer(TensorRefs(edges, slice(inputs, 3)), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());

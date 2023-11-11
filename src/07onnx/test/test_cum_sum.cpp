@@ -25,7 +25,7 @@ TEST(infer, CumSum) {
             auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 0;
         }
-        graph_topo::idx_t inputs[]{0, 1};
+        count_t inputs[]{0, 1};
         auto infered = CumSum(false, false).infer(TensorRefs(edges, slice(inputs, 2)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
@@ -52,7 +52,7 @@ TEST(infer, CumSum) {
             auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
             ptr[0] = 1;
         }
-        graph_topo::idx_t inputs[]{0, 1};
+        count_t inputs[]{0, 1};
         auto infered = CumSum(false, false).infer(TensorRefs(edges, slice(inputs, 2)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());

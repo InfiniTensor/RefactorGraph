@@ -6,7 +6,7 @@ namespace refactor::kernel {
     using namespace runtime;
 
     Routine WhereCuda::lower(Resources &) const noexcept {
-        return [strides = thrust::device_vector<uint_lv2>(broadcaster.strides.begin(), broadcaster.strides.end()),
+        return [strides = thrust::device_vector<dim_t>(broadcaster.strides.begin(), broadcaster.strides.end()),
                 params = cuda::ThreadsDistributer()(broadcaster.outputsCount),
                 eleSize = static_cast<long>(dataType.size())](Resources &res, void const **inputs, void **outputs) {
             cuda::launchWhere(
