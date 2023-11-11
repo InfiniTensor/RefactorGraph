@@ -1,16 +1,16 @@
-﻿#ifndef KERNEL_SPLIT_H
-#define KERNEL_SPLIT_H
+﻿#ifndef KERNEL_CONCAT_H
+#define KERNEL_CONCAT_H
 
 #include "../collector.h"
 #include "../target.h"
 
 namespace refactor::kernel {
 
-    struct SplitCollector final : public InfoCollector {
+    struct ConcatCollector final : public InfoCollector {
         Target target;
         uint32_t axis;
 
-        constexpr SplitCollector(Target target_, uint32_t axis_) noexcept
+        constexpr ConcatCollector(Target target_, uint32_t axis_) noexcept
             : InfoCollector(), target(target_), axis(axis_) {}
 
         std::vector<KernelBox>
@@ -19,4 +19,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_SPLIT_H
+#endif// KERNEL_CONCAT_H
