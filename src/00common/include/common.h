@@ -17,6 +17,8 @@ namespace refactor {
     using ddim_t = int16_t;
     /// @brief 用于表示形状的数值。
     using dim_t = uint32_t;
+    /// @brief 用于表示带符号的形状的数值。
+    using sdim_t = int32_t;
     /// @brief 用于表示对象的数量。
     using count_t = uint32_t;
 

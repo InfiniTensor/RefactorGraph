@@ -6,7 +6,6 @@
 #include "../target.h"
 
 namespace refactor::kernel {
-    using Dimensions = std::vector<SliceInfo::Dim>;
 
     struct SliceCollector final : public InfoCollector {
         Target target;
