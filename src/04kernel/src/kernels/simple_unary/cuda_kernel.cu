@@ -11,6 +11,9 @@ namespace refactor::kernel {
     template<class T> struct AbsFunctor {
         __device__ T operator()(T x) const { return abs(x); }
     };
+    template<class T> struct NegFunctor {
+        __device__ T operator()(T x) const { return -x; }
+    };
     template<class T> struct ReluFunctor {
         __device__ T operator()(T x) const { return x > 0 ? x : 0; }
     };
@@ -120,6 +123,13 @@ namespace refactor::kernel {
                     GROUP_F(Tanh);
                     GROUP_I(Tanh);
                     GROUP_U(Tanh);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Neg:
+                switch (dataType) {
+                    GROUP_F(Neg);
+                    GROUP_I(Neg);
                     default:
                         UNREACHABLE();
                 }

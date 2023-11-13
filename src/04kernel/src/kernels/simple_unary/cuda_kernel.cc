@@ -17,6 +17,7 @@ namespace refactor::kernel {
             Op::Sqrt,
             Op::Sigmoid,
             Op::Tanh,
+            Op::Neg,
         };
         if (supportedOp.find(op) == supportedOp.end()) {
             return nullptr;
