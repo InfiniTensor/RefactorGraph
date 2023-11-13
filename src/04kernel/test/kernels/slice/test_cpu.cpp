@@ -27,9 +27,11 @@ TEST(kernel, SliceCpu) {
         result(output->elementsSize());
     std::iota(data.begin(), data.end(), 0);
     // inference
-    void const *inputs[]{data.data()};
-    void *outputs[]{result.data()};
-    routine(res, inputs, outputs);
+    {
+        void const *inputs[]{data.data()};
+        void *outputs[]{result.data()};
+        routine(res, inputs, outputs);
+    }
     // check
     dim_t
         di[]{5, 3, 1},
@@ -49,4 +51,16 @@ TEST(kernel, SliceCpu) {
             }
         }
     }
+    // test reform
+    auto kernelReformed = SliceCpu::build(SliceInfo(dims, *input).reform(16));
+    ASSERT_TRUE(kernelReformed);
+    auto routineReformed = kernelReformed->lower(res);
+    std::vector<float> resultReformed(result.size());
+    {
+        void const *inputs[]{data.data()};
+        void *outputs[]{resultReformed.data()};
+        routineReformed(res, inputs, outputs);
+    }
+    // check
+    ASSERT_EQ(result, resultReformed);
 }

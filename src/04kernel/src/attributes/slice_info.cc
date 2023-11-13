@@ -1,4 +1,5 @@
 ﻿#include "kernel/attributes/slice_info.h"
+#include <numeric>
 
 namespace refactor::kernel {
 
@@ -10,6 +11,16 @@ namespace refactor::kernel {
     bool SliceInfo::Dim::operator!=(Dim const &rhs) const noexcept {
         return !operator==(rhs);
     }
+
+    SliceInfo::SliceInfo(
+        std::vector<Dim> dims_,
+        dim_t blockCount_,
+        dim_t blockSize_,
+        dim_t baseOffset_) noexcept
+        : blockCount(blockCount_),
+          blockSize(blockSize_),
+          baseOffset(baseOffset_),
+          dims(std::move(dims_)) {}
 
     SliceInfo::SliceInfo(Dimensions const &dims_, Tensor const &input) noexcept
         : blockCount(1),
@@ -52,5 +63,41 @@ namespace refactor::kernel {
         dims.pop_back();
         dims.shrink_to_fit();
     }
+
+    SliceInfo SliceInfo::reform(dim_t maxblockSize) const noexcept {
+        auto blockSize_ = std::gcd(blockSize, maxblockSize);
+        if (blockSize_ == blockSize) { return *this; }
+        auto times = blockSize / blockSize_;
+        SliceInfo ans{
+            std::vector<Dim>(dims.size() + 1),
+            blockCount * times,
+            blockSize_,
+            baseOffset,
+        };
+        for (auto i : range0_(dims.size())) {
+            auto const &d = dims[i];
+            ans.dims[i] = {
+                d.countStride * times,
+                d.sizeStart,
+                d.sizeStride,
+            };
+        }
+        ans.dims.back() = {1, 0, static_cast<sdim_t>(blockSize_)};
+        return ans;
+    }
+
+    void SliceInfo::reformAssign(dim_t maxblockSize) noexcept {
+        auto blockSize_ = std::gcd(blockSize, maxblockSize);
+        if (blockSize_ == blockSize) { return; }
+        auto times = blockSize / blockSize_;
+        blockCount *= times;
+        blockSize = blockSize_;
+        for (auto &d : dims) {
+            d.countStride *= times;
+        }
+        dims.resize(dims.size() + 1);
+        dims.back() = {1, 0, static_cast<sdim_t>(blockSize_)};
+    }
+
 
 }// namespace refactor::kernel

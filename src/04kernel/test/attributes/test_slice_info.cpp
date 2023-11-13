@@ -26,4 +26,18 @@ TEST(kernel, SliceInfo) {
               })
               // clang-format on
     );
+
+    auto reformed = info.reform(16);
+    EXPECT_EQ(reformed.blockCount, 36);
+    EXPECT_EQ(reformed.blockSize, 16);
+    EXPECT_EQ(reformed.baseOffset, 24);
+    EXPECT_EQ(reformed.dims,
+              // clang-format off
+              (decltype(reformed.dims){
+                  {48 / 24 * 6, 900 * 4, -360 * 4},
+                  {24 / 24 * 6,  60 * 4,   90 * 4},
+                  {          1,       0,       16},
+              })
+              // clang-format on
+    );
 }

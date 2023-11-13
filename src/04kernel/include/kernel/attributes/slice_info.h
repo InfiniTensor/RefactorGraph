@@ -24,7 +24,10 @@ namespace refactor::kernel {
         std::vector<Dim> dims;
         dim_t blockCount, blockSize, baseOffset;
 
+        SliceInfo(std::vector<Dim>, dim_t, dim_t, dim_t) noexcept;
         SliceInfo(Dimensions const &, Tensor const &) noexcept;
+        SliceInfo reform(dim_t maxblockSize) const noexcept;
+        void reformAssign(dim_t maxblockSize) noexcept;
     };
 
 }// namespace refactor::kernel
