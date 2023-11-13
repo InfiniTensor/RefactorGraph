@@ -22,7 +22,7 @@ namespace refactor::kernel {
             bool operator!=(Dim const &) const noexcept;
         };
         std::vector<Dim> dims;
-        dim_t blockSize;
+        dim_t blockCount, blockSize, baseOffset;
 
         SliceInfo(Dimensions const &, Tensor const &) noexcept;
     };

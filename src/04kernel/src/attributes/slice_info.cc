@@ -12,7 +12,10 @@ namespace refactor::kernel {
     }
 
     SliceInfo::SliceInfo(Dimensions const &dims_, Tensor const &input) noexcept
-        : blockSize(input.dataType.size()), dims(1) {
+        : blockCount(1),
+          blockSize(input.dataType.size()),
+          baseOffset(0),
+          dims(1) {
         ASSERT(dims_.size() == input.rank(), "Unreachable");
 
         auto continuous = true;
@@ -21,14 +24,13 @@ namespace refactor::kernel {
         for (auto i : range0_(input.rank()).rev()) {
             auto l = input.shape[i];
             auto const &d = dims_[i];
-            if (continuous && d.step == 1) {
-                auto &it = dims.back();
+            if (auto &it = dims.back(); continuous && d.step == 1) {
                 it.countStride *= d.length;
                 it.sizeStart = d.start * stride;
                 it.sizeStride *= l;
             } else {
                 dims.push_back(Dim{
-                    static_cast<dim_t>(dims.back().countStride * d.length),
+                    static_cast<dim_t>(it.countStride * d.length),
                     static_cast<dim_t>(d.start * stride),
                     static_cast<sdim_t>(d.step * stride),
                 });
@@ -36,12 +38,19 @@ namespace refactor::kernel {
             continuous = d.length == l;
             stride *= l;
         }
-        auto blockCount = dims[0].countStride;
-        blockSize *= blockCount;
+        baseOffset = dims[0].sizeStart;
+        auto elementCount = dims[0].countStride;
+        blockSize *= elementCount;
         for (auto &d : dims) {
-            d.countStride /= blockCount;
+            d.countStride /= elementCount;
         }
         std::reverse(dims.begin(), dims.end());
+        blockCount = dims[0].countStride;
+        for (auto i : range(1ul, dims.size())) {
+            dims[i - 1].countStride = dims[i].countStride;
+        }
+        dims.pop_back();
+        dims.shrink_to_fit();
     }
 
 }// namespace refactor::kernel
