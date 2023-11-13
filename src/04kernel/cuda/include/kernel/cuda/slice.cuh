@@ -13,6 +13,7 @@ namespace refactor::kernel::cuda {
     void launchSlice(
         KernelLaunchParameters const &,
         void const *src, DimInfo const *dims, void *output,
+        unsigned int rank,
         unsigned int blockSize);
 
 }// namespace refactor::kernel::cuda
