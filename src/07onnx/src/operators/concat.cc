@@ -40,7 +40,7 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
             for (auto i : range0_(static_cast<int64_t>(output.size()))) {
-                if (i == axis) {
+                if (i == axis_) {
                     EXPECT_VAL(output[i], a)
                     EXPECT_VAL(input.shape[i], b)
                     output[i] = DimExpr(a + b);
