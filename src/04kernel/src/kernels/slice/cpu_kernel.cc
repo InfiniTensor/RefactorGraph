@@ -32,7 +32,7 @@ namespace refactor::kernel {
                             [=, &info](auto i) {
                                 long rem = i;
                                 auto src_ = src;
-                                auto dst_ = dst + i * info.blockSize;
+                                auto dst_ = dst + rem * info.blockSize;
                                 for (auto const &dim : info.dims) {
                                     auto d = std::div(rem, dim.countStride);
                                     src_ += d.quot * dim.sizeStride + dim.sizeStart;

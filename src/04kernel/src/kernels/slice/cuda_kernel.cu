@@ -21,7 +21,9 @@ namespace refactor::kernel {
                 blockSize = reformed.blockSize,
                 baseOffset = reformed.baseOffset](Resources &, void const **inputs, void **outputs) {
             auto src = reinterpret_cast<uint8_t const *>(inputs[0]) + baseOffset;
-            cuda::launchSlice(params, src, dims.data().get(), outputs[0], blockSize);
+            cuda::launchSlice(params, src, dims.data().get(), outputs[0],
+                              dims.size(),
+                              blockSize);
         };
     }
 
