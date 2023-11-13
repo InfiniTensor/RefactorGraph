@@ -19,7 +19,7 @@ namespace refactor::kernel {
         KernelShape kernelShape(rank);
         std::transform(x.shape.begin() + 2, x.shape.end(),
                        kernelShape.begin(),
-                       [](auto dim) { return static_cast<uint_lv1>(dim); });
+                       [](auto dim) { return static_cast<ddim_t>(dim); });
         PoolAttributes attributes(rank, nullptr, nullptr, nullptr);
 
         std::vector<KernelBox> ans;

@@ -10,12 +10,12 @@ namespace refactor::kernel {
     template<typename T>                                    \
     __global__ void __binary_basic_kernel_##NAME(           \
         T const *a, T const *b, T *c,                       \
-        uint_lv2 const *strides, uint_lv2 rank,             \
+        dim_t const *strides, dim_t rank,             \
         size_t size) {                                      \
                                                             \
         size_t tid = threadIdx.x + blockIdx.x * blockDim.x; \
         if (tid >= size) { return; }                        \
-        uint_lv2 ia = 0, ib = 0;                            \
+        dim_t ia = 0, ib = 0;                            \
         auto rem = tid;                                     \
         for (auto i = 0; i < rank; ++i) {                   \
             auto dim = strides + 3 * i;                     \
@@ -40,7 +40,7 @@ namespace refactor::kernel {
 
 #define CASE_DT(NAME, T)                                                                                           \
     case DT::T:                                                                                                    \
-        return [strides = thrust::device_vector<uint_lv2>(broadcaster.strides.begin(), broadcaster.strides.end()), \
+        return [strides = thrust::device_vector<dim_t>(broadcaster.strides.begin(), broadcaster.strides.end()), \
                 rank = broadcaster.inputsCount,                                                                    \
                 n = broadcaster.outputsCount](runtime::Resources &, void const **inputs, void **outputs) {         \
             using T_ = primitive<DT::T>::type;                                                                     \

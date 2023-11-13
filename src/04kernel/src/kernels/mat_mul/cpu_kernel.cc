@@ -83,7 +83,7 @@ namespace refactor::kernel {
                 auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                        \
                 auto C = reinterpret_cast<T_ const *>(inputs[2]);                                                        \
                 auto Y = reinterpret_cast<T_ *>(outputs[0]);                                                             \
-                uint_lv2 offset[2];                                                                                      \
+                dim_t offset[2];                                                                                      \
                 for (size_t i = 0; i < batch; i++) {                                                                     \
                     broadcaster.locate(i, offset);                                                                       \
                     matrixMultiplyBias(A + stepA * offset[0], B + stepB * offset[1], C, Y + stepY * i, alpha, beta, md); \
@@ -100,7 +100,7 @@ namespace refactor::kernel {
                 auto A = reinterpret_cast<T_ const *>(inputs[0]);                                                        \
                 auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                        \
                 auto Y = reinterpret_cast<T_ *>(outputs[0]);                                                             \
-                uint_lv2 offset[2];                                                                                      \
+                dim_t offset[2];                                                                                      \
                 for (size_t i = 0; i < batch; i++) {                                                                     \
                     broadcaster.locate(i, offset);                                                                       \
                     matrixMultiply(A + stepA * offset[0], B + stepB * offset[1], Y + stepY * i, alpha, md);              \

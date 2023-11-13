@@ -16,7 +16,7 @@ namespace refactor::kernel {
     /// | `postfix`  | π i∈(a,n) xi = xa+1 * xa+2 * ... * xn-1 | `xa` 之后维度打包
     /// | `midSizeI` | xa                                       | `xa` 维度重排前的大小
     /// | `midSizeO` | π t∈[0,m) it = i0 * i1 * ... * im-1     | `xa` 维度重排后的大小，即 `indices` 形状打包
-    GatherInfo::GatherInfo(uint_lv2 axis, Tensor const &data, Tensor const &indices) noexcept
+    GatherInfo::GatherInfo(dim_t axis, Tensor const &data, Tensor const &indices) noexcept
         : prefix(0), postfix(0), midSizeI(0), midSizeO(0), idxType(indices.dataType) {
 
         auto axisIt = data.shape.begin() + axis;

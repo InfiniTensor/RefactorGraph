@@ -2,23 +2,20 @@
 #define COMPUTATION_SLICE_H
 
 #include "../operator.h"
+#include "kernel/collectors/slice.h"
 
 namespace refactor::computation {
-
-    struct Dim {
-        int64_t start, step, number;
-    };
+    using Dimensions = kernel::Dimensions;
 
     struct Slice final : public LayoutDependentOperator {
-        std::vector<Dim> dims;
+        Dimensions dims;
 
-        explicit Slice(std::vector<Dim> dims_) noexcept
-            : LayoutDependentOperator(),
-              dims(std::move(dims_)) {}
+        explicit Slice(Dimensions) noexcept;
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;
         std::string_view name() const noexcept final;
+        kernel::CollectorBox candidateKernels(Target) const noexcept final;
     };
 
 }// namespace refactor::computation

@@ -1,45 +1,25 @@
 ﻿#include "cuda_kernel.hh"
+#include "kernel/cuda/transpose.cuh"
 #include <thrust/device_vector.h>
-#include <thrust/execution_policy.h>
-#include <thrust/for_each.h>
+#include <thrust/host_vector.h>
 
 namespace refactor::kernel {
-    using namespace runtime;
-    using Dim = TransposeInfo::Dimension;
 
-    // NOTICE NVCC 编译的对象无论是否在相同编译单元，都不可以重名。
-    struct TransposeKernelFunctor {
-        uint8_t const *data;
-        uint8_t *transposed;
-        Dim const *dims;
-        long rank, eleSize;
-
-        __device__ void operator()(long i) const noexcept {
-            auto j = 0l, rem = i;
-            for (auto k = 0l; k < rank; ++k) {
-                auto const &d = dims[k];
-                j += rem / d.strideO * d.strideI;
-                rem %= d.strideO;
-            }
-
-            memcpy(transposed + i * eleSize, data + j * eleSize, eleSize);
-        }
-    };
-
-    Routine TransposeCuda::lower(Resources &) const noexcept {
-        return [dims = thrust::device_vector<Dim>(info.dims.begin(), info.dims.end()),
-                eleSize = static_cast<long>(dataType.size()),
-                n = static_cast<long>(info.size)](
-                   Resources &res, void const **inputs, void **outputs) {
-            thrust::for_each_n(thrust::device,
-                               thrust::counting_iterator<long>(0), n,
-                               TransposeKernelFunctor{
-                                   reinterpret_cast<uint8_t const *>(inputs[0]),
-                                   reinterpret_cast<uint8_t *>(outputs[0]),
-                                   dims.data().get(),
-                                   static_cast<long>(dims.size()),
-                                   eleSize,
-                               });
+    auto TransposeCuda::lower(Resources &) const noexcept -> Routine {
+        thrust::host_vector<cuda::DimStride> strides(info.dims.size());
+        std::transform(info.dims.begin(), info.dims.end(),
+                       strides.begin(),
+                       [](auto const &dim) { return cuda::DimStride{dim.strideI, dim.strideO}; });
+        return [strides = thrust::device_vector<cuda::DimStride>(strides),
+                params = cuda::ThreadsDistributer()(info.size),
+                eleSize = dataType.size()](Resources &, void const **inputs, void **outputs) {
+            cuda::launchTranspose(
+                params,
+                inputs[0],
+                strides.data().get(),
+                outputs[0],
+                strides.size(),
+                eleSize);
         };
     }
 

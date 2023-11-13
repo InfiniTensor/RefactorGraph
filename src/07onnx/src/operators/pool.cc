@@ -140,7 +140,7 @@ namespace refactor::onnx {
         decltype(Op_::kernelShape) kernelShape_(kernelShape.size());
         std::transform(kernelShape.begin(), kernelShape.end(),
                        kernelShape_.begin(),
-                       [](auto d) { return static_cast<uint16_t>(d); });
+                       [](auto d) { return static_cast<ddim_t>(d); });
         return std::make_unique<Op_>(
             type_,
             ceilMode,

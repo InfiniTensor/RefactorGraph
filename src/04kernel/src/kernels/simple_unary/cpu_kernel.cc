@@ -17,6 +17,7 @@ namespace refactor::kernel {
             Op::Sqrt,
             Op::Sigmoid,
             Op::Tanh,
+            Op::Neg,
         };
         if (supportedOp.find(op) == supportedOp.end()) {
             return nullptr;
@@ -60,7 +61,7 @@ namespace refactor::kernel {
 #define CASE(OP, T)                                                                          \
     case DT::T:                                                                              \
         return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
-            using T_ = primitive<DT::T>::type;                                             \
+            using T_ = primitive<DT::T>::type;                                               \
             auto x = reinterpret_cast<T_ const *>(inputs[0]);                                \
             auto y = reinterpret_cast<T_ *>(outputs[0]);                                     \
             std::for_each_n(std::execution::par_unseq,                                       \
@@ -144,6 +145,17 @@ namespace refactor::kernel {
                     CASE(convertTanh, U16);
                     CASE(convertTanh, U32);
                     CASE(convertTanh, U64);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Neg:
+                switch (dataType) {
+                    CASE(-, F32);
+                    CASE(-, F64);
+                    CASE(-, I8);
+                    CASE(-, I16);
+                    CASE(-, I32);
+                    CASE(-, I64);
                     default:
                         UNREACHABLE();
                 }

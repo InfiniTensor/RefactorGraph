@@ -6,13 +6,13 @@
 
 namespace refactor::kernel {
 
-    using Shape = absl::InlinedVector<uint_lv2, 4>;
+    using Shape = absl::InlinedVector<dim_t, 4>;
     using Permutation = Shape;
 
     /// @brief 优化用于计算的转置描述。
     struct TransposeInfo {
         struct Dimension {
-            uint_lv2 strideI, strideO;
+            dim_t strideI, strideO;
         };
 
         /// @brief 转置信息包含 `(1+1)rank` 个元素。
@@ -20,10 +20,10 @@ namespace refactor::kernel {
         ///        如果使用 uint32_t 并 inline，则共 8x4+8 = 40 字节，
         ///        这样拷贝开销还是可以接受的。
         absl::InlinedVector<Dimension, 4> dims;
-        uint_lv2 size;
+        dim_t size;
 
         TransposeInfo(Shape const &, Permutation const &) noexcept;
-        uint_lv2 locate(uint_lv2) const noexcept;
+        dim_t locate(dim_t) const noexcept;
     };
 
 }// namespace refactor::kernel

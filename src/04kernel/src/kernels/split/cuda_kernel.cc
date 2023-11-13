@@ -21,7 +21,7 @@ namespace refactor::kernel {
         return typeId();
     }
     auto K::description() const noexcept -> std::string_view {
-        return "Performing split operation using CUDA";
+        return "Performing concat operation using CUDA";
     }
 
 }// namespace refactor::kernel

@@ -34,7 +34,7 @@ namespace refactor::kernel {
             auto x = reinterpret_cast<uint8_t const *>(inputs[1]);
             auto y = reinterpret_cast<uint8_t const *>(inputs[2]);
             auto output = reinterpret_cast<uint8_t *>(outputs[0]);
-            uint_lv2 ii[3];
+            dim_t ii[3];
             for (auto i : range0_(broadcaster.outputsCount)) {
                 broadcaster.locate(i, ii);
                 std::memcpy(output + i * eleSize,

@@ -1,12 +1,22 @@
 ﻿#include "computation/operators/slice.h"
+#include "kernel/collectors/slice.h"
 
 namespace refactor::computation {
+    using Op = Slice;
 
-    size_t Slice::typeId() noexcept {
+    Op::Slice(Dimensions dims_) noexcept
+        : LayoutDependentOperator(),
+          dims(std::move(dims_)) { assert(!dims.empty()); }
+
+    auto Op::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    size_t Slice::opTypeId() const noexcept { return typeId(); }
-    std::string_view Slice::name() const noexcept { return "Slice"; }
+    auto Op::opTypeId() const noexcept -> size_t { return typeId(); }
+    auto Op::name() const noexcept -> std::string_view { return "Slice"; }
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        using Collector_ = kernel::SliceCollector;
+        return std::make_unique<Collector_>(target, dims);
+    }
 
 }// namespace refactor::computation

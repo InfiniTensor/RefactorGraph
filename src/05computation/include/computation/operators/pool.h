@@ -5,13 +5,14 @@
 #include "kernel/collectors/pool.h"
 
 namespace refactor::computation {
+    using kernel::KernelShape;
     using kernel::PoolAttributes;
     using kernel::PoolType;
 
     struct Pool final : public Operator {
         PoolType type;
         bool ceil;
-        absl::InlinedVector<uint16_t, 2> kernelShape;
+        KernelShape kernelShape;
         PoolAttributes attributes;
 
         Pool(PoolType, bool, decltype(kernelShape), PoolAttributes) noexcept;

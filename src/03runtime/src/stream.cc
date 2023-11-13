@@ -42,7 +42,7 @@ namespace refactor::runtime {
           }) {
     }
 
-    void Stream::setInput(uint_lv1 i, void const *data, size_t size) {
+    void Stream::setInput(count_t i, void const *data, size_t size) {
         auto globalInputs = _internal.topology.globalInputs();
         ASSERT(i < globalInputs.size(), "input index out of range");
 
@@ -51,22 +51,22 @@ namespace refactor::runtime {
         blob->copyIn(data, size);
         _internal.edges[globalInputs[i]].value = {std::move(blob)};
     }
-    void Stream::setInput(uint_lv1 i, mem_manager::SharedForeignBlob blob) {
+    void Stream::setInput(count_t i, mem_manager::SharedForeignBlob blob) {
         auto globalInputs = _internal.topology.globalInputs();
         ASSERT(i < globalInputs.size(), "input index out of range");
 
         _internal.edges[globalInputs[i]].value = {std::move(blob)};
     }
-    void Stream::getOutput(uint_lv1 i, void *data, size_t size) const {
+    void Stream::getOutput(count_t i, void *data, size_t size) const {
         auto globalOutputs = _internal.topology.globalOutputs();
         ASSERT(i < globalOutputs.size(), "input index out of range");
 
         _internal.edges[globalOutputs[i]].blob()->copyOut(data, size);
     }
 
-    std::vector<uint_lv1> Stream::prepare() {
+    auto Stream::prepare() -> std::vector<count_t> {
         auto globalInputs = _internal.topology.globalInputs();
-        std::vector<uint_lv1> unknownInputs;
+        std::vector<count_t> unknownInputs;
         for (auto i : range0_(globalInputs.size())) {
             if (!_internal.edges[globalInputs[i]].blob()) {
                 unknownInputs.push_back(i);
@@ -92,6 +92,24 @@ namespace refactor::runtime {
             /* alignment */ std::transform(o.begin(), o.end(), outputs_, map);
             _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
         }
+    }
+
+    auto Stream::bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds> {
+        auto map = [this](auto i) { return _internal.edges[i](*_stack); };
+        std::vector<void *> buffer(16);
+        std::vector<std::chrono::nanoseconds> ans(_internal.nodes.size());
+        for (auto const [nodeIdx, i, o] : _internal.topology) {
+            buffer.resize(i.size() + o.size());
+            auto inputs_ = buffer.data(),
+                 outputs_ = std::transform(i.begin(), i.end(), inputs_, map);
+            /* alignment */ std::transform(o.begin(), o.end(), outputs_, map);
+            auto t0 = std::chrono::high_resolution_clock::now();
+            _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
+            if (sync) { sync(); }
+            auto t1 = std::chrono::high_resolution_clock::now();
+            ans[nodeIdx] = t1 - t0;
+        }
+        return ans;
     }
 
 }// namespace refactor::runtime

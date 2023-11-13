@@ -1,12 +1,17 @@
 ﻿#include "computation/operators/concat.h"
+#include "kernel/collectors/concat.h"
 
 namespace refactor::computation {
+    using Op = Concat;
 
-    size_t Concat::typeId() noexcept {
+    auto Op::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    size_t Concat::opTypeId() const noexcept { return typeId(); }
-    std::string_view Concat::name() const noexcept { return "Concat"; }
-
+    auto Op::opTypeId() const noexcept -> size_t { return typeId(); }
+    auto Op::name() const noexcept -> std::string_view { return "Concat"; }
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        using Collector_ = kernel::ConcatCollector;
+        return std::make_unique<Collector_>(target, axis);
+    }
 }// namespace refactor::computation

@@ -9,7 +9,8 @@ namespace refactor::kernel::cuda {
         KernelLaunchParameters const &,
         void const *data, void const *indices, void *output,
         bool i64,
-        unsigned int postfix,
+        unsigned int batch,
+        unsigned int unit,
         unsigned int midSizeI,
         unsigned int midSizeO);
 

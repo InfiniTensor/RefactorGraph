@@ -7,27 +7,27 @@
 namespace refactor::graph_topo {
     /// @brief 描述连接节点的边。
     class OnNode {
-        idx_t edge;
+        count_t edge;
 
-        explicit OnNode(idx_t) noexcept;
+        explicit OnNode(count_t) noexcept;
 
     public:
         /// @brief 节点的入边。
-        static OnNode input(idx_t) noexcept;
+        static OnNode input(count_t) noexcept;
         /// @brief 节点的出边。
-        static OnNode output(idx_t) noexcept;
+        static OnNode output(count_t) noexcept;
         /// @brief 判断是否为入边。
         bool isInput() const noexcept;
         /// @brief 判断是否为出边。
         bool isOutput() const noexcept;
         /// @brief 获取边的索引。
-        idx_t index() const noexcept;
+        count_t index() const noexcept;
     };
 
     /// @brief 搭建桥梁节点，即入度出度都为 1 的节点。
     struct Bridge {
         /// @brief 桥接到的节点号。
-        idx_t node;
+        count_t node;
         /// @brief 要桥接的边。
         OnNode edge;
     };
@@ -35,7 +35,7 @@ namespace refactor::graph_topo {
     /// @brief 建好的桥梁节点坐标。
     struct BridgePos {
         /// @brief 桥梁节点和其出边的序号。
-        idx_t node, edge;
+        count_t node, edge;
     };
 
     class InplaceModifier {
@@ -59,12 +59,12 @@ namespace refactor::graph_topo {
         /// @param from 原本连接的边。
         /// @param to 要切换到的边。
         /// @return 发生重连的次数。
-        size_t reconnect(idx_t from, idx_t to);
+        size_t reconnect(count_t from, count_t to);
 
         /// @brief 重新连接边。
         /// @param map 重连对应表。
         /// @return 发生重连的次数。
-        size_t reconnect(std::unordered_map<idx_t, idx_t> const &);
+        size_t reconnect(std::unordered_map<count_t, count_t> const &);
     };
 
 }// namespace refactor::graph_topo

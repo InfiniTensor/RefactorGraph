@@ -30,17 +30,28 @@ namespace refactor::kernel {
 
 #ifdef USE_CUDA
     auto K::lower(Resources &) const noexcept -> Routine {
-        auto params = cuda::ThreadsDistributer()(info.prefix * info.midSizeO);
-        return [info = this->info, params](Resources &, void const **inputs, void **outputs) {
+        struct Info {
+            uint32_t batch, unit, midSizeI, midSizeO;
+            bool i64;
+        } info_{
+            info.postfix / std::min(info.postfix, 16u),
+            std::min(info.postfix, 16u),
+            info.midSizeI,
+            info.midSizeO,
+            info.idxType == DataType::I64,
+        };
+        auto params = cuda::ThreadsDistributer()(info.prefix * info.midSizeO * info_.batch);
+        return [info_, params](Resources &, void const **inputs, void **outputs) {
             cuda::launchGather(
                 params,
                 inputs[0],
                 inputs[1],
                 outputs[0],
-                info.idxType == DataType::I64,
-                info.postfix,
-                info.midSizeI,
-                info.midSizeO);
+                info_.i64,
+                info_.batch,
+                info_.unit,
+                info_.midSizeI,
+                info_.midSizeO);
         };
     }
 #endif

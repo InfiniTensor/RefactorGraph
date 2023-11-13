@@ -17,7 +17,7 @@ TEST(infer, Expand) {
         int64_t shape_[]{7, 2, 3, 5};
         std::copy(shape_, shape_ + 4, reinterpret_cast<int64_t *>(shape->malloc()));
     }
-    graph_topo::idx_t inputs[]{0, 1};
+    count_t inputs[]{0, 1};
     auto infered = Expand().infer(TensorRefs(edges, slice(inputs, 2)), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());

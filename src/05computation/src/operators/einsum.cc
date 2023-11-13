@@ -48,7 +48,7 @@ namespace refactor::computation {
         if (implicit) {
             _items.push_back(_indices.size());
             std::vector<bool> appear(26 * 2, false);
-            uint_lv2 begin = 0;
+            dim_t begin = 0;
             for (auto i : range0_(_items.size())) {
                 for (auto j : range(begin, _items[i])) {
                     if (_indices[j] == '.') {
@@ -71,7 +71,7 @@ namespace refactor::computation {
                 }
             }
         } else {
-            for (auto i : range(_items.back(), static_cast<uint_lv2>(_indices.size()))) {
+            for (auto i : range(_items.back(), static_cast<dim_t>(_indices.size()))) {
                 noSum.insert(_indices[i]);
             }
         }
@@ -100,7 +100,7 @@ namespace refactor::computation {
 
     std::string EinsteinNotation::outputIndices() const noexcept {
         std::string ans;
-        for (auto i : range(_items.back(), static_cast<uint_lv2>(_indices.size()))) {
+        for (auto i : range(_items.back(), static_cast<dim_t>(_indices.size()))) {
             ans += static_cast<char>(_indices[i] >> 1);
         }
         return ans;
@@ -130,7 +130,7 @@ namespace refactor::computation {
         ans += " = Σ";
         ans += sumIndices();
         ans += ": ";
-        uint_lv2 begin = 0;
+        dim_t begin = 0;
         for (auto i : range0_(_items.size())) {
             ans += static_cast<char>('A' + i);
             ans += '_';

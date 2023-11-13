@@ -13,22 +13,14 @@
 #include <sstream>
 
 namespace refactor {
-    // 方便按“级别”定义整型数。
-
-    using sint_lv0 = int8_t;
-    using sint_lv1 = int16_t;
-    using sint_lv2 = int32_t;
-    using sint_lv3 = int64_t;
-
-    using uint_lv0 = uint8_t;
-    using uint_lv1 = uint16_t;
-    using uint_lv2 = uint32_t;
-    using uint_lv3 = uint64_t;
-
-    using sint_min = sint_lv0;
-    using sint_max = sint_lv3;
-    using uint_min = uint_lv0;
-    using uint_max = uint_lv3;
+    /// @brief 用于表示维度/形状的差的数值，主要是一些属性。
+    using ddim_t = int16_t;
+    /// @brief 用于表示形状的数值。
+    using dim_t = uint32_t;
+    /// @brief 用于表示带符号的形状的数值。
+    using sdim_t = int32_t;
+    /// @brief 用于表示对象的数量。
+    using count_t = uint32_t;
 
     template<class T> using Arc = std::shared_ptr<T>;
 

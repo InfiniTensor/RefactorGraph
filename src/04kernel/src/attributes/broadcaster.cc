@@ -14,16 +14,16 @@ namespace refactor::kernel {
     ///
     /// 为了实现这些优化，广播器维护和比较两个布尔向量，记录当前维度的广播状态是否变化。
     /// 所有输入在某个维度的步长会在这个维度确定下来时计算和保存。
-    Broadcaster::Broadcaster(std::vector<slice_t<uint_lv2>> inputs) noexcept
+    Broadcaster::Broadcaster(std::vector<slice_t<dim_t>> inputs) noexcept
         : strides{}, outputsCount(1), inputsCount(inputs.size()) {
         ASSERT(inputsCount > 0, "Broadcaster: no inputs");
 
         std::vector<bool>
             broadcastState(inputsCount, false),
             broadcastNext(inputsCount);
-        std::vector<uint_lv2> muls(inputsCount, 1);
+        std::vector<dim_t> muls(inputsCount, 1);
         while (true) {
-            uint_lv2 shape = 1;
+            dim_t shape = 1;
             {
                 auto allEnd = true;
                 broadcastNext.assign(inputsCount, false);
@@ -71,13 +71,13 @@ namespace refactor::kernel {
 
     Broadcaster::Broadcaster(TensorRefs const &inputs) noexcept
         : Broadcaster([&] {
-              std::vector<slice_t<uint_lv2>> ans(inputs.size());
+              std::vector<slice_t<dim_t>> ans(inputs.size());
               std::transform(inputs.begin(), inputs.end(), ans.begin(),
                              [](auto const &t) { return slice(t.get().shape.data(), t.get().rank()); });
               return ans;
           }()) {}
 
-    void Broadcaster::locate(uint_lv2 k, uint_lv2 ans[]) const noexcept {
+    void Broadcaster::locate(dim_t k, dim_t ans[]) const noexcept {
         long rem = k;
         std::fill_n(ans, inputsCount, 0);
         for (auto i : range0_(strides.size() / (inputsCount + 1))) {

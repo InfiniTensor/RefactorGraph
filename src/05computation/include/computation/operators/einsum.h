@@ -6,7 +6,7 @@
 namespace refactor::computation {
 
     class EinsteinNotation {
-        std::vector<uint_lv2> _items;
+        std::vector<dim_t> _items;
         std::vector<uint8_t> _indices;
 
     public:

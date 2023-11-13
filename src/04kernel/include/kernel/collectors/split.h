@@ -1,5 +1,5 @@
-﻿#ifndef KERNEL_GATHER_H
-#define KERNEL_GATHER_H
+﻿#ifndef KERNEL_SPLIT_H
+#define KERNEL_SPLIT_H
 
 #include "../collector.h"
 #include "../target.h"
@@ -19,4 +19,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_GATHER_H
+#endif// KERNEL_SPLIT_H

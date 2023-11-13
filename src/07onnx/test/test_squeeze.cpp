@@ -10,7 +10,7 @@ TEST(infer, Squeeze) {
     onnx::register_();
     {
         auto edges = Edges{{Tensor::share(DataType::F32, Shape{DimExpr(1), DimExpr(3), DimExpr(1), DimExpr(5)}, {}), ""}};
-        graph_topo::idx_t inputs[]{0};
+        count_t inputs[]{0};
         auto infered = Squeeze().infer(TensorRefs(edges, slice(inputs, 1)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
@@ -29,7 +29,7 @@ TEST(infer, Squeeze) {
             int64_t val[]{2};
             std::copy(val, val + 1, reinterpret_cast<int64_t *>(axes->malloc()));
         }
-        graph_topo::idx_t inputs[]{0, 1};
+        count_t inputs[]{0, 1};
         auto infered = Squeeze().infer(TensorRefs(edges, slice(inputs, 2)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());

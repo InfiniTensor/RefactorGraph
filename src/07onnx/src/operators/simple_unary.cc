@@ -283,7 +283,7 @@ namespace refactor::onnx {
             case Ty::Erf      : type_ = Ty_::Erf      ; break;
          // case Ty::Log      : type_ = Ty_::Log      ; break;
             case Ty::Not      : type_ = Ty_::Not      ; break;
-         // case Ty::Neg      : type_ = Ty_::Neg      ; break;
+            case Ty::Neg      : type_ = Ty_::Neg      ; break;
             case Ty::Identity : return std::make_unique<computation::Identity>();
             default: UNREACHABLE();
         }

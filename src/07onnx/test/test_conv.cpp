@@ -12,7 +12,7 @@ TEST(infer, Conv) {
         {Tensor::share(DataType::F32, Shape{DimExpr(1), DimExpr(3), DimExpr(224), DimExpr(224)}, {}), ""},
         {Tensor::share(DataType::F32, Shape{DimExpr(64), DimExpr(3), DimExpr(7), DimExpr(7)}, {}), ""},
     };
-    graph_topo::idx_t inputs[]{0, 1};
+    count_t inputs[]{0, 1};
     auto infered = Conv({}, {{3, 3, 3, 3}}, {{2, 2}}).infer(TensorRefs(edges, slice(inputs, 2)), {true});
     if (infered.isErr()) { throw infered.unwrapErr(); }
     auto outputs = std::move(infered.unwrap());

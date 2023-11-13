@@ -39,7 +39,7 @@ namespace refactor::graph_topo {
         void replaceInput(Rc<Edge>, Rc<Edge>);
         void replaceOutput(Rc<Edge>, Rc<Edge>);
         Rc<Node> pushNode(TN, std::vector<Rc<Edge>>);
-        void eraseNode(idx_t);
+        void eraseNode(count_t);
         void eraseNode(Rc<Node>);
         size_t cleanup(bool useless(TE const &) = nullptr);
         bool sort();
@@ -62,8 +62,8 @@ namespace refactor::graph_topo {
         std::vector<Rc<Edge>> const &outputs() const;
         std::unordered_set<Rc<Node>> const &predecessors() const;
         std::unordered_set<Rc<Node>> const &successors() const;
-        void connect(idx_t, Rc<Edge>);
-        void disconnect(idx_t);
+        void connect(count_t, Rc<Edge>);
+        void disconnect(count_t);
         void reconnect(Rc<Edge>, Rc<Edge>);
     };
 
@@ -74,7 +74,7 @@ namespace refactor::graph_topo {
 
         TE _info;
         Rc<Node> _source;
-        std::unordered_map<Rc<Node>, idx_t> _targets;
+        std::unordered_map<Rc<Node>, count_t> _targets;
 
     public:
         explicit Edge(TE);
@@ -171,7 +171,7 @@ namespace refactor::graph_topo {
         return ans;
     }
 
-    LINKED_GRAPH_FN eraseNode(idx_t i)->void {
+    LINKED_GRAPH_FN eraseNode(count_t i)->void {
         ASSERT(i < _nodes.size(), "Node index out of range");
         auto it = _nodes.begin() + i;
         _cleanupNode(**it);
@@ -278,7 +278,7 @@ namespace refactor::graph_topo {
         return ans;
     }
 
-    LINKED_GRAPH_FN Node::connect(idx_t i, Rc<Edge> input)->void {
+    LINKED_GRAPH_FN Node::connect(count_t i, Rc<Edge> input)->void {
         if (i < _inputs.size()) {
             disconnect(i);
         }
@@ -291,7 +291,7 @@ namespace refactor::graph_topo {
         }
     }
 
-    LINKED_GRAPH_FN Node::disconnect(idx_t i)->void {
+    LINKED_GRAPH_FN Node::disconnect(count_t i)->void {
         if (auto edge = std::exchange(_inputs.at(i), nullptr); edge) {
             auto it = edge->_targets.find(this->shared_from_this());
             if (0 == --it->second) {
@@ -367,8 +367,8 @@ namespace refactor::graph_topo {
 
     LINKED_GRAPH_FN intoGraph() const->Graph<TN, TE> {
         auto topology = GraphTopo(
-            static_cast<idx_t>(_inputs.size()),
-            static_cast<idx_t>(_outputs.size()),
+            static_cast<count_t>(_inputs.size()),
+            static_cast<count_t>(_outputs.size()),
             _nodes.size());
         std::vector<TN> nodes;
         std::vector<TE> edges;
@@ -400,7 +400,7 @@ namespace refactor::graph_topo {
                 mappedNodes.insert(n.get());
                 nodes.emplace_back(std::move(n->_info));
 
-                idx_t newLocalCount = 0;
+                count_t newLocalCount = 0;
                 topology._connections.reserve(topology._connections.size() + n->_inputs.size());
                 for (auto &e : n->_inputs) {
                     auto [it, ok] = edgeIndices.try_emplace(e.get(), edgeIndices.size());
@@ -419,8 +419,8 @@ namespace refactor::graph_topo {
 
                 topology._nodes.push_back({
                     newLocalCount,
-                    static_cast<idx_t>(n->_inputs.size()),
-                    static_cast<idx_t>(n->_outputs.size()),
+                    static_cast<count_t>(n->_inputs.size()),
+                    static_cast<count_t>(n->_outputs.size()),
                 });
             }
             if (before == mappedNodes.size()) {

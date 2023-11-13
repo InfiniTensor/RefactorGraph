@@ -5,6 +5,7 @@
 #include "mem_manager/foreign_blob.hh"
 #include "resource.h"
 #include <absl/container/inlined_vector.h>
+#include <chrono>
 #include <functional>
 #include <variant>
 
@@ -42,11 +43,12 @@ namespace refactor::runtime {
                graph_topo::GraphTopo,
                std::vector<_N>,
                std::vector<_E>);
-        void setInput(uint_lv1, void const *, size_t);
-        void setInput(uint_lv1, mem_manager::SharedForeignBlob);
-        void getOutput(uint_lv1, void *, size_t) const;
-        std::vector<uint_lv1> prepare();
+        void setInput(count_t, void const *, size_t);
+        void setInput(count_t, mem_manager::SharedForeignBlob);
+        void getOutput(count_t, void *, size_t) const;
+        auto prepare() -> std::vector<count_t>;
         void run();
+        auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;
     };
 
 }// namespace refactor::runtime

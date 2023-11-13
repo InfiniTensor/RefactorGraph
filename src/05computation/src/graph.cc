@@ -19,7 +19,7 @@ namespace refactor::computation {
         std::vector<kernel::Node> nodes(graph.nodes.size());
         std::vector<kernel::Edge> edges(graph.edges.size());
 
-        std::unordered_map<graph_topo::idx_t, graph_topo::idx_t> identities;
+        std::unordered_map<count_t, count_t> identities;
         for (auto [nodeIdx, inputs, outputs] : graph.topology) {
             auto const &[op, name] = graph.nodes[nodeIdx];
             nodes[nodeIdx] = {nullptr, name};

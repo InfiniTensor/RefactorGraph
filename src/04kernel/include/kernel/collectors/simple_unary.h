@@ -24,6 +24,7 @@ namespace refactor::kernel {
         Sqrt,
         Sigmoid,
         Erf,
+        Neg,
         Not,
     };
 

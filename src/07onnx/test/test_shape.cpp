@@ -10,7 +10,7 @@ TEST(infer, Shape) {
     onnx::register_();
     {
         auto edges = Edges{{Tensor::share(DataType::F32, frontend::Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""}};
-        graph_topo::idx_t inputs[]{0};
+        count_t inputs[]{0};
         auto infered = onnx::Shape(0, std::nullopt).infer(TensorRefs(edges, slice(inputs, 1)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
@@ -24,7 +24,7 @@ TEST(infer, Shape) {
     }
     {
         auto edges = Edges{{Tensor::share(DataType::F32, frontend::Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""}};
-        graph_topo::idx_t inputs[]{0};
+        count_t inputs[]{0};
         auto infered = onnx::Shape(1, std::nullopt).infer(TensorRefs(edges, slice(inputs, 1)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
@@ -38,7 +38,7 @@ TEST(infer, Shape) {
     }
     {
         auto edges = Edges{{Tensor::share(DataType::F32, frontend::Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""}};
-        graph_topo::idx_t inputs[]{0};
+        count_t inputs[]{0};
         auto infered = onnx::Shape(1, {2}).infer(TensorRefs(edges, slice(inputs, 1)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
@@ -52,7 +52,7 @@ TEST(infer, Shape) {
     }
     {
         auto edges = Edges{{Tensor::share(DataType::F32, frontend::Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""}};
-        graph_topo::idx_t inputs[]{0};
+        count_t inputs[]{0};
         auto infered = onnx::Shape(1, {-1}).infer(TensorRefs(edges, slice(inputs, 1)), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());

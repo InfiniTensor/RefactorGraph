@@ -8,24 +8,24 @@ namespace refactor::kernel {
         int64_t const *pads,
         int64_t const *strides)
         : _values((1 + 1 + 2) * rank, 1) {
-        constexpr static int64_t LIMIT = std::numeric_limits<uint_lv1>::max();
+        constexpr static int64_t LIMIT = std::numeric_limits<ddim_t>::max();
 
-        uint_lv1 *dilations_ = _values.data(),
-                 *strides_ = dilations_ + rank,
-                 *pads_ = strides_ + rank;
+        ddim_t *dilations_ = _values.data(),
+               *strides_ = dilations_ + rank,
+               *pads_ = strides_ + rank;
         auto range = range0_(rank);
         if (dilations) {
             for (auto i : range) {
                 auto dilation = dilations[i];
                 ASSERT(0 < dilation && dilation <= LIMIT, "dilation out of range");
-                dilations_[i] = static_cast<uint_lv1>(dilation);
+                dilations_[i] = static_cast<ddim_t>(dilation);
             }
         }
         if (strides) {
             for (auto i : range) {
                 auto stride = strides[i];
                 ASSERT(0 < stride && stride <= LIMIT, "stride out of range");
-                strides_[i] = static_cast<uint_lv1>(stride);
+                strides_[i] = static_cast<ddim_t>(stride);
             }
         }
         if (pads) {
@@ -33,32 +33,32 @@ namespace refactor::kernel {
                 auto begin = pads[i], end = (pads + rank)[i];
 
                 ASSERT(0 <= begin && begin <= LIMIT, "pad out of range");
-                pads_[i] = static_cast<uint_lv1>(begin);
+                pads_[i] = static_cast<ddim_t>(begin);
 
                 ASSERT(0 <= end && end <= LIMIT, "pad out of range");
-                (pads_ + rank)[i] = static_cast<uint_lv1>(end);
+                (pads_ + rank)[i] = static_cast<ddim_t>(end);
             }
         } else {
-            std::memset(pads_, 0, rank * 2 * sizeof(uint_lv1));
+            std::memset(pads_, 0, rank * 2 * sizeof(ddim_t));
         }
     }
 
     auto PoolAttributes::rank() const noexcept -> size_t {
         return _values.size() / 4;
     }
-    auto PoolAttributes::dilations() const noexcept -> uint_lv1 const * {
+    auto PoolAttributes::dilations() const noexcept -> ddim_t const * {
         return _values.data();
     }
-    auto PoolAttributes::pads() const noexcept -> uint_lv1 const * {
+    auto PoolAttributes::pads() const noexcept -> ddim_t const * {
         return _values.data() + rank() * 2;
     }
-    auto PoolAttributes::padsBegin() const noexcept -> uint_lv1 const * {
+    auto PoolAttributes::padsBegin() const noexcept -> ddim_t const * {
         return _values.data() + rank() * 2;
     }
-    auto PoolAttributes::padsEnd() const noexcept -> uint_lv1 const * {
+    auto PoolAttributes::padsEnd() const noexcept -> ddim_t const * {
         return _values.data() + rank() * 3;
     }
-    auto PoolAttributes::strides() const noexcept -> uint_lv1 const * {
+    auto PoolAttributes::strides() const noexcept -> ddim_t const * {
         return _values.data() + rank();
     }
 
