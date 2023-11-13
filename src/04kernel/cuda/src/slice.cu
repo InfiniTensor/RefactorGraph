@@ -1,5 +1,6 @@
 ﻿#include "kernel/cuda/slice.cuh"
 #include <cstdint>
+#include <cstdio>
 
 namespace refactor::kernel::cuda {
 
