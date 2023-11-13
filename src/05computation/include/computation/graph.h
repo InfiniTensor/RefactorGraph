@@ -30,6 +30,7 @@ namespace refactor::computation {
 
         kernel::Graph lower(Target) const;
         auto internal() const -> decltype(_internal) const &;
+        auto internal() -> decltype(_internal) &;
     };
 
 }// namespace refactor::computation

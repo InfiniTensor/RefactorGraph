@@ -67,5 +67,6 @@ namespace refactor::computation {
     }
 
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
+    auto Graph::internal() -> decltype(_internal) & { return _internal; }
 
 }// namespace refactor::computation

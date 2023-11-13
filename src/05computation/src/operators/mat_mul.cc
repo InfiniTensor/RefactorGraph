@@ -1,5 +1,6 @@
 ﻿#include "computation/operators/mat_mul.h"
 #include "kernel/collectors/mat_mul.h"
+#include "runtime/resource.h"
 
 namespace refactor::computation {
     using Op = MatMul;
@@ -14,4 +15,38 @@ namespace refactor::computation {
         return std::make_unique<kernel::MatMulCollector>(target, alpha, beta, transA, transB);
     }
 
+    Shape MatMulBox::verify(Tensor const &a, Tensor const &b) const noexcept {
+        Shape ans = {};
+        if (a.rank() != 2 || b.rank() != 2) {
+            return ans;
+        }
+        if (a.shape[1] != b.shape[0]) {
+            return ans;
+        }
+        if (a.dataType != b.dataType) {
+            return ans;
+        }
+        ans = {a.shape[0],
+               b.shape[1]};
+        return ans;
+    }
+    bool MatMulBox::compute(Tensor const &a, Tensor const &b, Tensor &out) const noexcept {
+
+        if (a.data == nullptr || b.data == nullptr) {
+            return false;
+        }
+        //compute
+        auto kernels = this->base->candidateKernels(Target::Cpu)->filter({a, b}, {out});
+        ASSERT(kernels.size() != 0, "do not supposrt this kernel");
+        runtime::Resources res;
+        auto rou = kernels[0]->lower(res);
+        void const *inputs[]{*a.data, *b.data};
+        void *outputs[]{*out.data};
+        rou(res, inputs, outputs);
+        return true;
+    }
+
+    std::unique_ptr<Operator> MatMulBox::clone() const {
+        return std::make_unique<MatMul>(*dynamic_cast<MatMul const *>(base.get()));
+    }
 }// namespace refactor::computation

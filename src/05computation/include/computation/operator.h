@@ -6,7 +6,9 @@
 
 namespace refactor::computation {
     using kernel::LayoutType;
+    using kernel::Shape;
     using kernel::Target;
+    using kernel::Tensor;
 
     class Operator {
     public:
@@ -41,6 +43,20 @@ namespace refactor::computation {
     };
 
     using OpBox = std::unique_ptr<Operator>;
+
+    struct MyOperator {
+        size_t numInputs = 2;
+        Arc<Operator> base;
+
+        MyOperator() : numInputs(2) {}
+        MyOperator(size_t num) : numInputs(num) {}
+        //MyOperator(const MyOperator &other) : numInputs(other.numInputs) {}
+        //MyOperator(MyOperator &&other) : numInputs(other.numInputs) {}
+        // virtual std::unique_ptr<MyOperator> create() const = 0;
+        virtual std::unique_ptr<Operator> clone() const = 0;
+        virtual bool compute(Tensor const &, Tensor const &, Tensor &) const = 0;
+        virtual Shape verify(Tensor const &, Tensor const &) const = 0;
+    };
 
 }// namespace refactor::computation
 

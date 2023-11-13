@@ -1,8 +1,8 @@
 ﻿#ifndef GRAPH_TOPO_LINKED_GRAPH_H
 #define GRAPH_TOPO_LINKED_GRAPH_H
 
-#include "container.h"
 #include "common.h"
+#include "container.h"
 #include <algorithm>
 #include <sstream>
 #include <unordered_map>
@@ -30,6 +30,7 @@ namespace refactor::graph_topo {
         static auto shareEdge(TE) -> Rc<Edge>;
 
         std::string toString() const;
+        std::string toString(std::string func(TN const &)) const;
         Graph<TN, TE> intoGraph() const;
         std::vector<Rc<Node>> const &nodes() const;
         std::vector<Rc<Edge>> const &inputs() const;
@@ -43,6 +44,7 @@ namespace refactor::graph_topo {
         void eraseNode(Rc<Node>);
         size_t cleanup(bool useless(TE const &) = nullptr);
         bool sort();
+        LinkedGraph clone(TN cloneNode(TN const &), TE cloneEdge(TE const &)) const;
     };
 
     template<class TN, class TE>
@@ -120,6 +122,34 @@ namespace refactor::graph_topo {
             ss << ") -> ( ";
             for (auto const &e : n->_outputs) { f(e); }
             ss << ')' << std::endl;
+        }
+        ss << "*. <- ( ";
+        for (auto const &e : _outputs) { f(e); }
+        ss << ')' << std::endl;
+        return ss.str();
+    }
+
+    LINKED_GRAPH_FN toString(std::string func(TN const &)) const->std::string {
+        std::unordered_map<void *, size_t> indices;
+        std::stringstream ss;
+        auto f = [&indices, &ss](Rc<Edge> const &e) {
+            if (e) {
+                auto [it, ok] = indices.try_emplace(e.get(), indices.size());
+                ss << it->second << ' ';
+            } else {
+                ss << "? ";
+            }
+        };
+        ss << "*. -> ( ";
+        for (auto const &e : _inputs) { f(e); }
+        ss << ')' << std::endl;
+        for (auto i : range0_(_nodes.size())) {
+            auto n = _nodes[i];
+            ss << i << ". ( ";
+            for (auto const &e : n->_inputs) { f(e); }
+            ss << ") -> ( ";
+            for (auto const &e : n->_outputs) { f(e); }
+            ss << ')' << func(n->_info) << std::endl;
         }
         ss << "*. <- ( ";
         for (auto const &e : _outputs) { f(e); }
@@ -234,6 +264,42 @@ namespace refactor::graph_topo {
         }
         _nodes = std::move(ans);
         return true;
+    }
+
+    LINKED_GRAPH_FN clone(
+        TN cloneNode(TN const &),
+        TE cloneEdge(TE const &))
+        const->LinkedGraph {
+        LinkedGraph ans;
+        ans._inputs.reserve(_inputs.size());
+        ans._nodes.reserve(_nodes.size());
+        ans._outputs.reserve(_outputs.size());
+        std::unordered_map<void *, Rc<Edge>> edges;
+        auto mapEdge = [&](Rc<Edge> const &e) {
+            return edges.try_emplace(e.get(), shareEdge(cloneEdge(e->_info))).first->second;
+        };
+        for (auto const &e : _inputs) {
+            ans._inputs.emplace_back(mapEdge(e));
+        }
+        for (auto const &n : _nodes) {
+            std::vector<Rc<Edge>> outputs;
+            outputs.reserve(n->_outputs.size());
+            for (auto const &e : n->_outputs) {
+                outputs.emplace_back(mapEdge(e));
+            }
+            auto n_ = ans.pushNode(cloneNode(n->_info), std::move(outputs));
+            for (auto i : range0_(n->_inputs.size())) {
+                if (auto it = edges.find(n->_inputs[i].get()); it != edges.end()) {
+                    n_->connect(i, it->second);
+                } else {
+                    n_->connect(i, mapEdge(n->_inputs[i]));
+                }
+            }
+        }
+        for (auto const &e : _outputs) {
+            ans._outputs.emplace_back(std::move(edges.at(e.get())));
+        }
+        return ans;
     }
 
     LINKED_GRAPH_FN Node::share(TN info, std::vector<Rc<Edge>> outputs)

@@ -15,6 +15,17 @@ namespace refactor::computation {
         kernel::CollectorBox candidateKernels(Target) const noexcept final;
     };
 
+    using refactor::kernel::Tensor;
+    struct ConcatBox final : public MyOperator {
+        // Arc<Concat> base;
+
+        ConcatBox() noexcept : MyOperator() {
+            base = std::make_shared<Concat>(1, 2);
+        }
+        std::unique_ptr<Operator> clone() const final;
+        bool compute(Tensor const &, Tensor const &, Tensor &) const noexcept final;
+        Shape verify(Tensor const &, Tensor const &) const noexcept final;
+    };
 }// namespace refactor::computation
 
 #endif// COMPUTATION_CONCAT_H

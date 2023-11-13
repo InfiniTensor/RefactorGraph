@@ -22,6 +22,18 @@ namespace refactor::computation {
         kernel::CollectorBox candidateKernels(Target) const noexcept final;
     };
 
+    using refactor::kernel::Tensor;
+    struct MatMulBox final : public MyOperator {
+        // Arc<MatMul> base;
+
+        MatMulBox() noexcept : MyOperator() {
+            base = std::make_shared<MatMul>(1.0, 1.0, false, false);
+        }
+        std::unique_ptr<Operator> clone() const final;
+        bool compute(Tensor const &, Tensor const &, Tensor &) const noexcept final;
+        Shape verify(Tensor const &, Tensor const &) const noexcept final;
+    };
+
 }// namespace refactor::computation
 
 #endif// COMPUTATION_MAT_MUL_H
