@@ -13,8 +13,8 @@ namespace refactor::kernel {
         auto eleSize = outputs[0].get().dataType.size();
         auto const &shape = outputs[0].get().shape;
         auto axisIt = shape.begin() + axis;
-        blockCount = std::accumulate(shape.begin(), axisIt, 1, std::multiplies<>());
-        auto postfix = std::accumulate(++axisIt, shape.end(), eleSize, std::multiplies<>());
+        blockCount = std::accumulate(shape.begin(), axisIt, 1, std::multiplies());
+        auto postfix = std::accumulate(++axisIt, shape.end(), eleSize, std::multiplies());
         sum *= postfix;
         std::transform(outputs.begin(), outputs.end(),
                        segments.begin(),

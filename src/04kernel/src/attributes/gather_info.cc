@@ -20,10 +20,10 @@ namespace refactor::kernel {
         : prefix(0), postfix(0), midSizeI(0), midSizeO(0), idxType(indices.dataType) {
 
         auto axisIt = data.shape.begin() + axis;
-        prefix = std::accumulate(data.shape.begin(), axisIt, 1, std::multiplies<>());
+        prefix = std::accumulate(data.shape.begin(), axisIt, 1, std::multiplies());
         midSizeI = *axisIt++;
-        postfix = std::accumulate(axisIt, data.shape.end(), data.dataType.size(), std::multiplies<>());
-        midSizeO = std::accumulate(indices.shape.begin(), indices.shape.end(), 1, std::multiplies<>());
+        postfix = std::accumulate(axisIt, data.shape.end(), data.dataType.size(), std::multiplies());
+        midSizeO = std::accumulate(indices.shape.begin(), indices.shape.end(), 1, std::multiplies());
     }
 
 }// namespace refactor::kernel

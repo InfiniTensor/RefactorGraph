@@ -20,7 +20,7 @@ namespace refactor::kernel {
     }
 
     int64_t Tensor::rank() const { return shape.size(); }
-    size_t Tensor::elementsSize() const { return std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>()); }
+    size_t Tensor::elementsSize() const { return std::accumulate(shape.begin(), shape.end(), 1, std::multiplies()); }
     size_t Tensor::bytesSize() const { return dataType.size() * elementsSize(); }
 
     Strides Tensor::strides() const {

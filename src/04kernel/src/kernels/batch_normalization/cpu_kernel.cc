@@ -46,7 +46,7 @@ namespace refactor::kernel {
 
         auto n = shape[0],
              c = shape[1],
-             dims = std::accumulate(shape.begin() + 2, shape.end(), 1u, std::multiplies<>()),
+             dims = std::accumulate(shape.begin() + 2, shape.end(), 1u, std::multiplies()),
              sn = c * dims,
              sc = dims;
         return [n, c, sn, sc, epsilon](Resources &, void const **inputs, void **outputs) {
