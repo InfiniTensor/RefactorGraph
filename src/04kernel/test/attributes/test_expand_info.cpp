@@ -16,5 +16,5 @@ TEST(kernel, ExpandInfo) {
     auto reformed = info.reform(16);
     EXPECT_EQ(reformed.blockSize, 8);
     EXPECT_EQ(reformed.blockCount, 360);
-    EXPECT_EQ(reformed.strides, (std::vector<ExpandInfo::Dim>{{0, 180}, {3, 15}, {0, 3}, {1, 1}}));
+    EXPECT_EQ(reformed.strides, (std::vector<ExpandInfo::Dim>{{0, 180}, {3, 15}, {0, 3}, {3, 3}, {1, 1}}));
 }

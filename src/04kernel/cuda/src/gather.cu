@@ -1,4 +1,5 @@
 ﻿#include "kernel/cuda/gather.cuh"
+#include "macro.cuh"
 #include <cstdint>
 
 namespace refactor::kernel::cuda {
@@ -24,7 +25,7 @@ namespace refactor::kernel::cuda {
              tid += step) {
             auto i = tid / batch,
                  j = tid % batch;
-            memcpy(unit * tid + output,
+            optimizedMemcpy(unit * tid + output,
                    unit * (batch * (i / midSizeO * midSizeI + shared[i % midSizeO]) + j) + data,
                    unit);
         }

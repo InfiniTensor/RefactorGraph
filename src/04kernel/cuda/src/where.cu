@@ -1,4 +1,5 @@
 ﻿#include "kernel/cuda/where.cuh"
+#include "macro.cuh"
 #include <cstdint>
 
 namespace refactor::kernel::cuda {
@@ -25,7 +26,8 @@ namespace refactor::kernel::cuda {
                 ix += quot * dim[1];
                 iy += quot * dim[2];
             }
-            memcpy(output + tid * eleSize,
+
+            optimizedMemcpy(output + tid * eleSize,
                    c[ic]
                        ? x + ix * eleSize
                        : y + iy * eleSize,

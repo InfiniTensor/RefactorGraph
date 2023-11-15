@@ -1,4 +1,5 @@
 ﻿#include "kernel/cuda/transpose.cuh"
+#include "macro.cuh"
 #include <cstdint>
 
 namespace refactor::kernel::cuda {
@@ -19,7 +20,7 @@ namespace refactor::kernel::cuda {
                 rem %= d.o;
             }
 
-            memcpy(output + tid * eleSize, data + j * eleSize, eleSize);
+            optimizedMemcpy(output + tid * eleSize, data + j * eleSize, eleSize);
         }
     }
 

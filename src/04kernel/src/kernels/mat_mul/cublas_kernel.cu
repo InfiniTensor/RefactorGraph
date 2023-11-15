@@ -1,4 +1,5 @@
 ﻿#include "../../utilities/cuda/cublas_context.hh"
+#include "../expand/cuda_kernel.hh"
 #include "cublas_kernel.hh"
 #include <cublas_v2.h>
 #include <thrust/execution_policy.h>
@@ -9,27 +10,10 @@ namespace refactor::kernel {
     using namespace cublas;
 
     template<class T>
-    struct MatMulBroadcastBiasFunctor {
-        T const *src;
-        size_t const n, strideC0, strideC1;
-
-        __device__ T operator()(size_t i) const noexcept {
-            return src[i / n * strideC0 + i % n * strideC1];
-        }
-    };
-
-    template<class T>
-    struct MatMulCopyBiasFunctor {
-        T const *src;
-        size_t blockSize;
-
-        __device__ T operator()(size_t i) const noexcept {
-            return src[i % blockSize];
-        }
-    };
-
-    template<class T>
-    Routine lowerTyped(cudaDataType_t cudaDataType, MatMulInfo info, size_t strideC0, size_t strideC1) noexcept {
+    Routine lowerTyped(cudaDataType_t cudaDataType, MatMulInfo info, Resources &res, std::optional<ExpandInfo> biasExpand, size_t strideC0, size_t strideC1) noexcept {
+        auto biasEx = biasExpand
+                          ? std::make_optional(ExpandCuda(*biasExpand).lower(res))
+                          : std::nullopt;
         return [cudaDataType,
                 alpha = static_cast<T>(info.alpha),
                 beta = static_cast<T>(info.biasType != BiasType::NoBias ? info.beta : 0.0f),
@@ -42,29 +26,16 @@ namespace refactor::kernel {
                 strideC0, strideC1,
                 lda = info.transA ? info.m : info.k,
                 ldb = info.transB ? info.k : info.n,
+                biasEx,
                 broadcaster = info.broadcaster](Resources &res, void const **inputs, void **outputs) {
             auto a = reinterpret_cast<T const *>(inputs[0]);
             auto b = reinterpret_cast<T const *>(inputs[1]);
             auto y = reinterpret_cast<T *>(outputs[0]);
 
             if (beta != (T) 0) {
-                // Expand bias to 2D and store in final output Y
-                {
-                    auto c = reinterpret_cast<T const *>(inputs[2]);
-                    thrust::tabulate(
-                        thrust::device,
-                        y,
-                        y + strideY,
-                        MatMulBroadcastBiasFunctor<T>{c, n, strideC0, strideC1});
-                }
-                // Copy 2D bias to each batch
-                if (broadcaster.outputsCount > 1) {
-                    thrust::tabulate(
-                        thrust::device,
-                        y + strideY,
-                        y + strideY * broadcaster.outputsCount,
-                        MatMulCopyBiasFunctor<T>{y, strideY});
-                }
+                void const *inputs_[]{inputs[2]};
+                void *outputs_[]{outputs[0]};
+                (*biasEx)(res, inputs_, outputs_);
             }
 
             auto handle = res.fetchOrStore<CublasContext>()->handle;
@@ -102,11 +73,11 @@ namespace refactor::kernel {
         res.fetchOrStore<CublasContext>();
         switch (info.dataType) {
             case DataType::F32:
-                return lowerTyped<float>(CUDA_R_32F, info, strideC0, strideC1);
+                return lowerTyped<float>(CUDA_R_32F, info, res, biasExpand, strideC0, strideC1);
             case DataType::F64:
-                return lowerTyped<double>(CUDA_R_64F, info, strideC0, strideC1);
+                return lowerTyped<double>(CUDA_R_64F, info, res, biasExpand, strideC0, strideC1);
             case DataType::FP16:
-                return lowerTyped<half>(CUDA_R_16F, info, strideC0, strideC1);
+                return lowerTyped<half>(CUDA_R_16F, info, res, biasExpand, strideC0, strideC1);
             default:
                 UNREACHABLE();
         }

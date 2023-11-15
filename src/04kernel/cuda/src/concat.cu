@@ -1,4 +1,5 @@
 ﻿#include "kernel/cuda/concat.cuh"
+#include "macro.cuh"
 #include <cstdint>
 
 namespace refactor::kernel::cuda {
@@ -15,7 +16,7 @@ namespace refactor::kernel::cuda {
              tid += step) {
             auto i = tid % sum, j = i * sub, k = 0u;
             while (j >= segments[k]) { j -= segments[k++]; }
-            memcpy(output + tid * sub, inputs[k] + (tid / sum) * segments[k] + j, sub);
+            optimizedMemcpy(output + tid * sub, inputs[k] + (tid / sum) * segments[k] + j, sub);
         }
     }
 

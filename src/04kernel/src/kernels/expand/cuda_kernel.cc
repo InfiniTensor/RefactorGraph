@@ -4,14 +4,14 @@ namespace refactor::kernel {
     using K = ExpandCuda;
 
     K::ExpandCuda(ExpandInfo info_) noexcept
-        : Kernel(), info(std::move(info_)) {}
+        : Kernel(), info(info_.reform(32)) {}
 
     auto K::build(ExpandInfo info) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
 
-        return std::make_unique<K>(info.reform(16));
+        return std::make_unique<K>(std::move(info));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

@@ -1,6 +1,6 @@
 ﻿#include "kernel/cuda/slice.cuh"
+#include "macro.cuh"
 #include <cstdint>
-#include <cstdio>
 
 namespace refactor::kernel::cuda {
 
@@ -26,7 +26,7 @@ namespace refactor::kernel::cuda {
                 src_ += rem / dim.countStride * dim.sizeStride + dim.sizeStart;
                 rem %= dim.countStride;
             }
-            memcpy(dst_, src_, blockSize);
+            optimizedMemcpy(dst_, src_, blockSize);
         }
     }
 

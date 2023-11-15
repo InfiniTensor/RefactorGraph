@@ -42,6 +42,7 @@ namespace refactor::kernel {
         }
         std::reverse(strides.begin(), strides.end());
         strides.pop_back();
+        strides.shrink_to_fit();
 
         auto tail = strides.back();
         ASSERT(tail.i == 0, "Unreachable");
@@ -77,8 +78,9 @@ namespace refactor::kernel {
                 s.i *= times;
                 s.o *= times;
             }
-            strides.resize(strides.size() + 1);
-            strides.back() = {1, 1};
+            strides.resize(strides.size() + 2);
+            strides.rbegin()[1] = {times, times};
+            strides.rbegin()[0] = {1, 1};
         }
     }
 
