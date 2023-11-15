@@ -7,10 +7,8 @@ using namespace kernel;
 TEST(kernel, ExpandInfo) {
     auto input = Tensor::share(DataType::F32, {3, 4, 1, 6}),
          output = Tensor::share(DataType::F32, {2, 3, 4, 5, 6});
+
     ExpandInfo info(*input, *output);
-    for (auto s : info.strides) {
-        fmt::print("({} {}) ", s.i, s.o);
-    }
     EXPECT_EQ(info.blockSize, 24);
     EXPECT_EQ(info.blockCount, 120);
     EXPECT_EQ(info.strides, (std::vector<ExpandInfo::Dim>{{0, 60}, {1, 5}, {0, 1}}));

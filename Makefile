@@ -1,6 +1,6 @@
 ﻿.PHONY : build install-python reconfig clean clean-log format test
 
-TYPE ?= debug
+TYPE ?= Debug
 CUDA ?= OFF
 
 FORMAT_ORIGIN ?=

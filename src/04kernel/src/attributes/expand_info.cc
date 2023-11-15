@@ -11,37 +11,24 @@ namespace refactor::kernel {
     }
 
     ExpandInfo::ExpandInfo(
-        std::vector<Dim> strides_,
-        dim_t blockCount_,
-        dim_t blockSize_) noexcept
-        : strides(std::move(strides_)),
-          blockCount(blockCount_),
-          blockSize(blockSize_) {}
-
-    ExpandInfo::ExpandInfo(
-        Tensor const &input,
-        Tensor const &output) noexcept
+        DataType dataType,
+        slice_t<dim_t> input,
+        slice_t<dim_t> output) noexcept
         : strides{{1, 1}},
           blockCount(1),
-          blockSize(input.dataType.size()) {
-        ASSERT(input.rank() <= output.rank(), "Unreachable");
-        auto i = input.shape.rbegin(),
-             ei = input.shape.rend(),
-             o = output.shape.rbegin(),
-             eo = output.shape.rend();
+          blockSize(dataType.size()) {
+        ASSERT(input.size() <= output.size(), "Unreachable");
         dim_t stride = 1;
-        while (o != eo) {
-            auto i_ = i == ei ? 1 : *i++,
-                 o_ = *o++;
+        for (auto i = input.end_,
+                  o = output.end_;
+             o != output.begin_;) {
+            auto i_ = i == input.begin_ ? 1 : *--i,
+                 o_ = *--o;
             if (o_ == 1) { continue; }
             if (auto &it = strides.back(); i_ == 1) {
-                if (it.i != 0) {
-                    strides.push_back({0, blockCount});
-                }
+                if (it.i) { strides.push_back({0, blockCount}); }
             } else {
-                if (it.i == 0) {
-                    strides.push_back({stride, blockCount});
-                }
+                if (!it.i) { strides.push_back({stride, blockCount}); }
                 stride *= i_;
             }
             blockCount *= o_;
@@ -66,6 +53,13 @@ namespace refactor::kernel {
             s.o /= tail.o;
         }
     }
+
+    ExpandInfo::ExpandInfo(
+        Tensor const &input,
+        Tensor const &output) noexcept
+        : ExpandInfo(input.dataType,
+                     slice(input.shape.data(), input.rank()),
+                     slice(output.shape.data(), output.rank())) {}
 
     ExpandInfo ExpandInfo::reform(dim_t maxblockSize) const noexcept {
         auto ans = *this;
