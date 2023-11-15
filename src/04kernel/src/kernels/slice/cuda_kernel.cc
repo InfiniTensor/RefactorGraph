@@ -4,13 +4,14 @@ namespace refactor::kernel {
     using K = SliceCuda;
 
     K::SliceCuda(SliceInfo info_) noexcept
-        : Kernel(), info(info_.reform(16)) {}
+        : Kernel(), info(std::move(info_)) {}
 
     auto K::build(SliceInfo info) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        return std::make_unique<K>(std::move(info));
+
+        return std::make_unique<K>(info.reform(16));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

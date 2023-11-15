@@ -10,7 +10,8 @@ namespace refactor::kernel {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        return std::make_unique<K>(std::move(info));
+
+        return std::make_unique<K>(info.reform(16));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

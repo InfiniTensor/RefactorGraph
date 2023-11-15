@@ -6,7 +6,7 @@ using namespace refactor;
 using namespace kernel;
 
 TEST(kernel, ExpandCpu) {
-    // // build routine
+    // build routine
     auto input = Tensor::share(DataType::F32, {3, 4, 1, 6}),
          output = Tensor::share(DataType::F32, {2, 3, 4, 5, 6});
     auto kernel = ExpandCpu::build(ExpandInfo(*input, *output));
