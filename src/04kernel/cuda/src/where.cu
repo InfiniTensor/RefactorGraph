@@ -45,7 +45,7 @@ namespace refactor::kernel::cuda {
         whereKernel<<<
             params.gridSize,
             params.blockSize,
-            params.dynamicSharedBytes,
+            0,
             reinterpret_cast<cudaStream_t>(params.stream)>>>(
             params.n,
             strides,

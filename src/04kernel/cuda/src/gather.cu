@@ -13,6 +13,11 @@ namespace refactor::kernel::cuda {
         unsigned int unit,
         unsigned int midSizeI,
         unsigned int midSizeO) {
+        extern __shared__ uint32_t shared[];
+        for (auto i = threadIdx.x; i < midSizeO; i += blockDim.x) {
+            shared[i] = indices[i];
+        }
+        __syncthreads();
         for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
                   step = blockDim.x * gridDim.x;
              tid < n;
@@ -20,7 +25,7 @@ namespace refactor::kernel::cuda {
             auto i = tid / batch,
                  j = tid % batch;
             memcpy(unit * tid + output,
-                   unit * (batch * (i / midSizeO * midSizeI + indices[i % midSizeO]) + j) + data,
+                   unit * (batch * (i / midSizeO * midSizeI + shared[i % midSizeO]) + j) + data,
                    unit);
         }
     }
@@ -37,7 +42,7 @@ namespace refactor::kernel::cuda {
             gatherKernel<<<
                 params.gridSize,
                 params.blockSize,
-                params.dynamicSharedBytes,
+                midSizeO * sizeof(uint32_t),
                 reinterpret_cast<cudaStream_t>(params.stream)>>>(
                 params.n,
                 reinterpret_cast<uint8_t const *>(data),
@@ -51,7 +56,7 @@ namespace refactor::kernel::cuda {
             gatherKernel<<<
                 params.gridSize,
                 params.blockSize,
-                params.dynamicSharedBytes,
+                midSizeO * sizeof(uint32_t),
                 reinterpret_cast<cudaStream_t>(params.stream)>>>(
                 params.n,
                 reinterpret_cast<uint8_t const *>(data),

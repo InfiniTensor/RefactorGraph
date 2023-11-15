@@ -9,8 +9,6 @@ namespace refactor::kernel::cuda {
         int gridSize, blockSize;
         /// @brief 要处理任务总量。
         size_t n;
-        /// @brief 动态共享内存的大小。
-        size_t dynamicSharedBytes;
         /// @brief 用于执行内核的流。
         void *stream;
     };

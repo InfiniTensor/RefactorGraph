@@ -44,7 +44,7 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
     names = {}
     for node in model.graph.node:
         if node.name == "":
-            node.name = "missing_name"
+            node.name = "missing_name(" + node.op_type + ")"
         if node.name in names:
             names[node.name] += 1
             node.name += "_" + str(names[node.name])

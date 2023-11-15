@@ -9,6 +9,11 @@ namespace refactor::kernel::cuda {
         uint8_t const *src, DimInfo const *dims, uint8_t *output,
         unsigned int rank,
         unsigned int blockSize) {
+        extern __shared__ DimInfo dimInfo[];
+        for (auto i = threadIdx.x; i < rank; i += blockDim.x) {
+            dimInfo[i] = dims[i];
+        }
+        __syncthreads();
         for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
                   step = blockDim.x * gridDim.x;
              tid < n;
@@ -17,7 +22,7 @@ namespace refactor::kernel::cuda {
             auto src_ = src;
             auto dst_ = output + rem * blockSize;
             for (auto i = 0; i < rank; ++i) {
-                auto const &dim = dims[i];
+                auto const &dim = dimInfo[i];
                 src_ += rem / dim.countStride * dim.sizeStride + dim.sizeStart;
                 rem %= dim.countStride;
             }
@@ -33,7 +38,7 @@ namespace refactor::kernel::cuda {
         sliceKernel<<<
             params.gridSize,
             params.blockSize,
-            params.dynamicSharedBytes,
+            rank * sizeof(DimInfo),
             reinterpret_cast<cudaStream_t>(params.stream)>>>(
             params.n,
             reinterpret_cast<uint8_t const *>(src),

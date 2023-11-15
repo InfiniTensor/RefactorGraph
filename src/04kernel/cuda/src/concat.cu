@@ -28,7 +28,7 @@ namespace refactor::kernel::cuda {
         concatKernel<<<
             params.gridSize,
             params.blockSize,
-            params.dynamicSharedBytes,
+            0,
             reinterpret_cast<cudaStream_t>(params.stream)>>>(
             params.n,
             reinterpret_cast<uint8_t const **>(inputs),
