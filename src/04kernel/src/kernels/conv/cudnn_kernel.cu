@@ -47,21 +47,25 @@ namespace refactor::kernel {
         CUDNN_ASSERT(cudnnSetConvolution2dDescriptor(d->conv, pp[0], pp[1], ss[0], ss[1], dd[0], dd[1], CUDNN_CROSS_CORRELATION, cudnnDataType));
 
         auto handle = res.fetchOrStore<CudnnContext>()->handle;
-        int returnedAlgoCount;
-        cudnnConvolutionFwdAlgoPerf_t perfResults;
-        CUDNN_ASSERT(cudnnFindConvolutionForwardAlgorithm(
-            handle,
-            d->x, d->w, d->conv, d->y,
-            1, &returnedAlgoCount, &perfResults));
-        ASSERT(returnedAlgoCount == 1, "returnedAlgoCount != 1");
-        // for high accuracy, use this algo only
-        // d->algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
-        d->algo = perfResults.algo;
-        CUDNN_ASSERT(cudnnGetConvolutionForwardWorkspaceSize(
-            handle,
-            d->x, d->w, d->conv, d->y,
-            perfResults.algo,
-            &d->workspaceSize));
+        {
+            int returnedAlgoCount;
+            cudnnConvolutionFwdAlgoPerf_t perfResults;
+            CUDNN_ASSERT(cudnnFindConvolutionForwardAlgorithm(
+                handle,
+                d->x, d->w, d->conv, d->y,
+                1, &returnedAlgoCount, &perfResults));
+            ASSERT(returnedAlgoCount == 1, "returnedAlgoCount != 1");
+            d->algo = perfResults.algo;
+            // for high accuracy, use this algo only
+            // d->algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+        }
+        {
+            CUDNN_ASSERT(cudnnGetConvolutionForwardWorkspaceSize(
+                handle,
+                d->x, d->w, d->conv, d->y,
+                d->algo,
+                &d->workspaceSize));
+        }
         // nvcc at c++11 doesn't support real move capture
         return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
             using mem_manager::ForeignBlob;

@@ -14,6 +14,7 @@ namespace refactor::kernel {
     ConvCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         auto const &x = inputs[0].get();
         auto const &w = inputs[1].get();
+        auto b = inputs.size() == 3 ? std::make_optional(inputs[2]) : std::nullopt;
         auto const &y = outputs[0].get();
 
         std::vector<KernelBox> ans;
@@ -21,7 +22,7 @@ namespace refactor::kernel {
             case Target::Cpu:
                 break;
             case Target::NvidiaGpu:
-                if (auto ptr = ConvCudnn::build(poolAttrs, x, w, y); ptr) {
+                if (auto ptr = ConvCudnn::build(poolAttrs, x, w, b, y); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
