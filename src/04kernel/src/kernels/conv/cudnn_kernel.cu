@@ -15,6 +15,7 @@ namespace refactor::kernel {
             cudnnConvolutionDescriptor_t conv;
             cudnnConvolutionFwdAlgo_t algo;
             size_t workspaceSize;
+            bool f64;
 
             Descriptors() : workspaceSize(0) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
@@ -33,6 +34,7 @@ namespace refactor::kernel {
             Descriptors(Descriptors &&) = delete;
         };
         auto d = std::make_shared<Descriptors>();
+        d->f64 = info.dt == DataType::F64;
 
         auto cudnnDataType = cudnnDataTypeConvert(info.dt);
         auto xs = info.xShape, ys = info.yShape, ws = info.wShape;
@@ -52,6 +54,8 @@ namespace refactor::kernel {
             d->x, d->w, d->conv, d->y,
             1, &returnedAlgoCount, &perfResults));
         ASSERT(returnedAlgoCount == 1, "returnedAlgoCount != 1");
+        // for high accuracy, use this algo only
+        // d->algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
         d->algo = perfResults.algo;
         CUDNN_ASSERT(cudnnGetConvolutionForwardWorkspaceSize(
             handle,
@@ -65,16 +69,31 @@ namespace refactor::kernel {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             auto workspace = ForeignBlob::share(res.fetch<MemManager>()->manager, d.workspaceSize);
-            // TODO? build alpha/beta for double
-            float alpha = 1, beta = 0;
+            // build alpha/beta for double
+            union {
+                float f32[2];
+                double f64[2];
+            };
+            void *alpha, *beta;
+            if (d.f64) {
+                f64[0] = 1;
+                f64[1] = 0;
+                alpha = f64;
+                beta = f64 + 1;
+            } else {
+                f32[0] = 1;
+                f32[1] = 0;
+                alpha = f32;
+                beta = f32 + 1;
+            }
             CUDNN_ASSERT(cudnnConvolutionForward(
                 handle,
-                &alpha,
+                alpha,
                 d.x, inputs[0],
                 d.w, inputs[1],
                 d.conv, d.algo,
                 *workspace, d.workspaceSize,
-                &beta,
+                beta,
                 d.y, outputs[0]));
         };
     }

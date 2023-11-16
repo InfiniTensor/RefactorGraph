@@ -24,11 +24,7 @@ namespace refactor::kernel {
                              ? std::make_optional(ExpandCuda(*info.biasExpand).lower(res))
                              : std::nullopt,
                 broadcaster = info.broadcaster](Resources &res, void const **inputs, void **outputs) {
-            if (biasEx) {
-                void const *inputs_[]{inputs[2]};
-                void *outputs_[]{outputs[0]};
-                (*biasEx)(res, inputs_, outputs_);
-            }
+            if (biasEx) { (*biasEx)(res, inputs + 2, outputs); }
 
             auto handle = res.fetchOrStore<CublasContext>()->handle;
             auto a = reinterpret_cast<T const *>(inputs[0]);

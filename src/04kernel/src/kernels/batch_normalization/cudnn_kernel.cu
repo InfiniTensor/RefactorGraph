@@ -12,6 +12,7 @@ namespace refactor::kernel {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, param;
+            bool f64;
 
             Descriptors() : x(nullptr), param(nullptr) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
@@ -26,6 +27,7 @@ namespace refactor::kernel {
             Descriptors(Descriptors &&) = delete;
         };
         auto d = std::make_shared<Descriptors>();
+        d->f64 = info.dtParam == DT::F64;
 
         int strideAx[4]{0, 0, 0, 1},            // to calculate
             dimAp[4]{1, info.dimAx[1], 1, 1},   // 1xCx1x1
@@ -42,7 +44,6 @@ namespace refactor::kernel {
 
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d),
-                param32 = info.dtParam == DT::F32,
                 epsilon = info.epsilon](Resources &res, void const **inputs, void **outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
@@ -59,16 +60,16 @@ namespace refactor::kernel {
                 double f64[2];
             };
             void *alpha, *beta;
-            if (param32) {
-                f32[0] = 1;
-                f32[1] = 0;
-                alpha = f32;
-                beta = f32 + 1;
-            } else {
+            if (d->f64) {
                 f64[0] = 1;
                 f64[1] = 0;
                 alpha = f64;
                 beta = f64 + 1;
+            } else {
+                f32[0] = 1;
+                f32[1] = 0;
+                alpha = f32;
+                beta = f32 + 1;
             }
             CUDNN_ASSERT(cudnnBatchNormalizationForwardInference(
                 handle, CUDNN_BATCHNORM_SPATIAL, alpha, beta,
