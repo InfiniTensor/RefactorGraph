@@ -30,6 +30,7 @@ namespace refactor::python_ffi {
             .def("substitute"      , &Compiler::substitute       , return_::automatic )
             .def("set_input"       , &Compiler::setInput         , return_::automatic )
             .def("check_variables" , &Compiler::fillEdgeInfo     , return_::move      )
+            .def("zero_inputs"     , &Compiler::zeroInputs       , return_::move      )
             .def("get_tensor"      , &Compiler::getTensor        , return_::move      )
             .def("compile"         , &Compiler::compile          , return_::move      );
 

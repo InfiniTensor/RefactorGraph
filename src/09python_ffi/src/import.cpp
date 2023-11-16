@@ -32,6 +32,7 @@ namespace refactor::python_ffi {
                        [](auto d) { return DimExpr(d); });
         auto ans = Tensor::share(*DataType::parse(dataType), std::move(shape_), {});
         std::ifstream stream(file, std::ios::binary);
+        ASSERT(stream.is_open(), "No such file: \"{}\"", file);
         stream.seekg(offset);
         stream.read(static_cast<char *>(ans->malloc()), ans->bytesSize());
         return ans;

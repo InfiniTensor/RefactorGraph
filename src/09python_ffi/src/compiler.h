@@ -22,6 +22,7 @@ namespace refactor::python_ffi {
             std::string allocator,
             std ::vector<std::string> passes);
 
+        std::vector<pybind11::array> zeroInputs() const;
         std::optional<pybind11::array> getTensor(CStr) const;
     };
 

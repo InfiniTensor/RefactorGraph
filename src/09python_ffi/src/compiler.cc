@@ -78,6 +78,23 @@ namespace refactor::python_ffi {
             std::move(stream));
     }
 
+    std::vector<pybind11::array>
+    Compiler::zeroInputs() const {
+        std::vector<pybind11::array> ans;
+        ans.reserve(_g.internal().topology.globalInputsCount());
+        for (auto i : _g.internal().topology.globalInputs()) {
+            auto const &tensor = *_g.internal().edges[i].tensor;
+            ASSERT(!tensor.data, "Input tensor should not have data");
+
+            std::vector<int64_t> shape(tensor.rank());
+            std::transform(std::execution::unseq,
+                           tensor.shape.begin(), tensor.shape.end(), shape.begin(),
+                           [](auto const &d) { return d.value(); });
+            ans.push_back(py::array(buildNumpyDType(tensor.dataType), std::move(shape), nullptr));
+        }
+        return ans;
+    }
+
     std::optional<py::array>
     Compiler::getTensor(CStr name) const {
         auto const &edges = _g.internal().edges;
