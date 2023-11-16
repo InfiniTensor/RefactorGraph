@@ -7,12 +7,8 @@ namespace refactor::kernel {
     K::MatMulCPU(decltype(info) info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(Tensor const &a, Tensor const &b, Tensor const &y, MatMulInfo info) noexcept -> KernelBox {
-        auto dataType = info.dataType;
-        if (dataType != a.dataType ||
-            dataType != b.dataType ||
-            dataType != y.dataType ||
-            !dataType.isCpuNumberic()) {
+    auto K::build(MatMulInfo info) noexcept -> KernelBox {
+        if (!info.dataType.isCpuNumberic()) {
             return nullptr;
         }
 
@@ -71,10 +67,9 @@ namespace refactor::kernel {
 #define CASE(T)                                                                                                          \
     case DT::T: {                                                                                                        \
         using T_ = primitive<DT::T>::type;                                                                               \
-        if (info.biasType != BiasType::NoBias) {                                                                         \
+        if (info.biasExpand) {                                                                                           \
             return [alpha = static_cast<T_>(info.alpha), beta = static_cast<T_>(info.beta),                              \
                     broadcaster = info.broadcaster,                                                                      \
-                    batch = info.batch(),                                                                                \
                     md,                                                                                                  \
                     stepY = info.m * info.n,                                                                             \
                     stepA = info.m * info.k,                                                                             \
@@ -83,8 +78,8 @@ namespace refactor::kernel {
                 auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                        \
                 auto C = reinterpret_cast<T_ const *>(inputs[2]);                                                        \
                 auto Y = reinterpret_cast<T_ *>(outputs[0]);                                                             \
-                dim_t offset[2];                                                                                      \
-                for (size_t i = 0; i < batch; i++) {                                                                     \
+                dim_t offset[2];                                                                                         \
+                for (size_t i = 0; i < broadcaster.outputsCount; i++) {                                                  \
                     broadcaster.locate(i, offset);                                                                       \
                     matrixMultiplyBias(A + stepA * offset[0], B + stepB * offset[1], C, Y + stepY * i, alpha, beta, md); \
                 }                                                                                                        \
@@ -92,7 +87,6 @@ namespace refactor::kernel {
         } else {                                                                                                         \
             return [alpha = static_cast<T_>(info.alpha),                                                                 \
                     broadcaster = info.broadcaster,                                                                      \
-                    batch = info.batch(),                                                                                \
                     md,                                                                                                  \
                     stepY = info.m * info.n,                                                                             \
                     stepA = info.m * info.k,                                                                             \
@@ -100,8 +94,8 @@ namespace refactor::kernel {
                 auto A = reinterpret_cast<T_ const *>(inputs[0]);                                                        \
                 auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                        \
                 auto Y = reinterpret_cast<T_ *>(outputs[0]);                                                             \
-                dim_t offset[2];                                                                                      \
-                for (size_t i = 0; i < batch; i++) {                                                                     \
+                dim_t offset[2];                                                                                         \
+                for (size_t i = 0; i < broadcaster.outputsCount; i++) {                                                  \
                     broadcaster.locate(i, offset);                                                                       \
                     matrixMultiply(A + stepA * offset[0], B + stepB * offset[1], Y + stepY * i, alpha, md);              \
                 }                                                                                                        \
@@ -117,23 +111,6 @@ namespace refactor::kernel {
         md.strideB0 = info.transB ? 1 : info.n;
         md.strideB1 = info.transB ? info.k : 1;
         md.strideC0 = 0, md.strideC1 = 0;
-        switch (info.biasType) {
-            case BiasType::NoBias:
-            case BiasType::Scalar:
-                break;
-            case BiasType::RowVector:
-                md.strideC1 = 1;
-                break;
-            case BiasType::ColVector:
-                md.strideC0 = 1;
-                break;
-            case BiasType::Matrix:
-                md.strideC1 = 1;
-                md.strideC0 = info.n;
-                break;
-            default:
-                UNREACHABLE();
-        }
 
         switch (info.dataType) {
             CASE(F32);
