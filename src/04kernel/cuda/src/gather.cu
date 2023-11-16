@@ -26,8 +26,8 @@ namespace refactor::kernel::cuda {
             auto i = tid / batch,
                  j = tid % batch;
             optimizedMemcpy(unit * tid + output,
-                   unit * (batch * (i / midSizeO * midSizeI + shared[i % midSizeO]) + j) + data,
-                   unit);
+                            unit * (batch * (i / midSizeO * midSizeI + shared[i % midSizeO]) + j) + data,
+                            unit);
         }
     }
 

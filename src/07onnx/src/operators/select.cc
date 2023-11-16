@@ -72,7 +72,7 @@ namespace refactor::onnx {
         //-------------------------------------
 #define CASE(T)                                                                                                              \
     case DataType::T: {                                                                                                      \
-        using t = primitive<DataType::T>::type;                                                                            \
+        using t = primitive<DataType::T>::type;                                                                              \
         std::vector<t> src(inputs.size());                                                                                   \
         for (auto i : range0_(ans->elementsSize())) {                                                                        \
             auto indices = locateN(ans->shape, i);                                                                           \

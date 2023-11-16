@@ -1,4 +1,4 @@
-﻿import sys
+﻿import sys, os
 from pathlib import Path
 from subprocess import run
 
@@ -48,3 +48,15 @@ else:
             assert files[0][:2] == "a/"
             assert files[1][:2] == "b/"
             format_file(files[1][2:])
+
+
+def format_everything(dir):
+    if os.path.isdir(dir):
+        for root, dirs, files in os.walk(dir):
+            for file in files:
+                format_file(os.path.join(root, file))
+    else:
+        format_file(dir)
+
+
+format_everything("src")

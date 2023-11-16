@@ -1,8 +1,8 @@
 ﻿#ifndef GRAPH_TOPO_LINKED_GRAPH_H
 #define GRAPH_TOPO_LINKED_GRAPH_H
 
-#include "container.h"
 #include "common.h"
+#include "container.h"
 #include <algorithm>
 #include <sstream>
 #include <unordered_map>

@@ -36,7 +36,7 @@ namespace refactor::kernel {
             auto aa = reinterpret_cast<T_ const *>(inputs[0]);                                                \
             auto bb = reinterpret_cast<T_ const *>(inputs[1]);                                                \
             auto cc = reinterpret_cast<T_ *>(outputs[0]);                                                     \
-            dim_t ii[2];                                                                                   \
+            dim_t ii[2];                                                                                      \
             for (auto i : range0_(broadcaster.outputsCount)) {                                                \
                 broadcaster.locate(i, ii);                                                                    \
                 auto a = aa[ii[0]], b = bb[ii[1]];                                                            \

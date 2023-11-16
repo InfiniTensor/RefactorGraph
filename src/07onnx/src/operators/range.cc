@@ -62,12 +62,12 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input data not support")));
         }
         //-------------------------------------
-#define CASE(T)                                           \
-    case DataType::T:                                     \
+#define CASE(T)                                         \
+    case DataType::T:                                   \
         return calculate<primitive<DataType::T>::type>( \
-            start.data->get<void>(),                      \
-            limit.data->get<void>(),                      \
-            delta.data->get<void>(),                      \
+            start.data->get<void>(),                    \
+            limit.data->get<void>(),                    \
+            delta.data->get<void>(),                    \
             extractDependency(inputs))
         //-------------------------------------
         switch (dataType.internal) {

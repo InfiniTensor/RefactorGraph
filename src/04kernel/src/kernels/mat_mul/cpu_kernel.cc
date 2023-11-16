@@ -38,7 +38,8 @@ namespace refactor::kernel {
         for (size_t i = 0; i < md.M; i++) {
             for (size_t j = 0; j < md.N; j++) {
                 T sum = 0;
-#pragma omp simd reduction(+ : sum)
+#pragma omp simd reduction(+ \
+                           : sum)
                 for (size_t k = 0; k < md.K; k++) {
                     sum += A[i * md.strideA0 + k * md.strideA1] * B[k * md.strideB0 + j * md.strideB1];
                 }
@@ -55,7 +56,8 @@ namespace refactor::kernel {
         for (size_t i = 0; i < md.M; i++) {
             for (size_t j = 0; j < md.N; j++) {
                 T sum = 0;
-#pragma omp simd reduction(+ : sum)
+#pragma omp simd reduction(+ \
+                           : sum)
                 for (size_t k = 0; k < md.K; k++) {
                     sum += A[i * md.strideA0 + k * md.strideA1] * B[k * md.strideB0 + j * md.strideB1];
                 }

@@ -1,8 +1,8 @@
 ﻿#ifndef ONNX_INFER_H
 #define ONNX_INFER_H
 
-#include "frontend/operator.h"
 #include "common.h"
+#include "frontend/operator.h"
 #include <optional>
 
 namespace refactor::onnx {

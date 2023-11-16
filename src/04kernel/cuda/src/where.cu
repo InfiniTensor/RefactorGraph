@@ -28,10 +28,10 @@ namespace refactor::kernel::cuda {
             }
 
             optimizedMemcpy(output + tid * eleSize,
-                   c[ic]
-                       ? x + ix * eleSize
-                       : y + iy * eleSize,
-                   eleSize);
+                            c[ic]
+                                ? x + ix * eleSize
+                                : y + iy * eleSize,
+                            eleSize);
         }
     }
 
