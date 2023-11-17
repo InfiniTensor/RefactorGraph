@@ -49,7 +49,7 @@ namespace refactor::runtime {
         auto prepare() -> std::vector<count_t>;
         void run();
         auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;
-        void trace(std::function<void(count_t, void const **, void **)>);
+        void trace(std::function<void(count_t, void const *const *, void const *const *)>);
     };
 
 }// namespace refactor::runtime

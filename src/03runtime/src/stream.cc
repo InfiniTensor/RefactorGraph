@@ -96,7 +96,6 @@ namespace refactor::runtime {
     }
 
     void Stream::run() {
-        auto map = [this](auto i) { return _internal.edges[i](*_stack); };
         std::vector<void *> buffer(16);
         for (auto const [nodeIdx, i, o] : _internal.topology) {
             auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
@@ -105,7 +104,6 @@ namespace refactor::runtime {
     }
 
     auto Stream::bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds> {
-        auto map = [this](auto i) { return _internal.edges[i](*_stack); };
         std::vector<void *> buffer(16);
         std::vector<std::chrono::nanoseconds> ans(_internal.nodes.size());
         for (auto const [nodeIdx, i, o] : _internal.topology) {
@@ -119,8 +117,7 @@ namespace refactor::runtime {
         return ans;
     }
 
-    void Stream::trace(std::function<void(count_t, void const **, void **)> record) {
-        auto map = [this](auto i) { return _internal.edges[i](*_stack); };
+    void Stream::trace(std::function<void(count_t, void const *const *, void const *const *)> record) {
         std::vector<void *> buffer(16);
         for (auto const [nodeIdx, i, o] : _internal.topology) {
             auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);

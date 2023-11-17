@@ -34,7 +34,7 @@
 namespace refactor::onnx {
 
     void register_() {
-// clang-format off
+        // clang-format off
         #define REGISTER(NAME, CLASS) Operator::register_<CLASS>("onnx::" #NAME)
         REGISTER(BatchNormalization, BatchNormalization);
         REGISTER(Cast              , Cast              );

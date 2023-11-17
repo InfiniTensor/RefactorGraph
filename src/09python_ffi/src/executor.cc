@@ -51,11 +51,13 @@ namespace refactor::python_ffi {
 
     void Executor::trace(std::string path_) {
         namespace fs = std::filesystem;
+
         auto path = fs::path(std::move(path_));
         fs::create_directories(path);
         ASSERT(fs::is_directory(path), "Failed to create \"{}\"", path.c_str());
+
         auto it = _graph.internal().contiguous().topology.begin();
-        _stream.trace([&](count_t nodeIdx, void const **inputs, void **outputs) {
+        _stream.trace([&](count_t nodeIdx, void const *const *inputs, void const *const *outputs) {
             auto [nodeIdx_, i_, o_] = *it++;
             ASSERT(nodeIdx_ == nodeIdx, "node index mismatch");
             auto nodeName = _graph.internal().contiguous().nodes[nodeIdx].name;
@@ -63,10 +65,10 @@ namespace refactor::python_ffi {
             std::replace(nodeName.begin(), nodeName.end(), '.', '-');
 
             std::vector<char> buffer;
-            auto fn = [&](char dir, count_t idx, computation::Edge const &edge, void const *ptr) {
-                if (!ptr) { return; }
-                auto size = edge.tensor->bytesSize();
-                buffer.resize(size);
+            auto const &edges = _graph.internal().contiguous().edges;
+            auto fn = [&](char dir, count_t idx, count_t edgeIdx, void const *const *addresses) {
+                if (!addresses[idx]) { return; }
+                auto const &edge = edges[edgeIdx];
 
                 auto edgeName = edge.name;
                 std::replace(edgeName.begin(), edgeName.end(), '/', '_');
@@ -74,15 +76,17 @@ namespace refactor::python_ffi {
                 auto file = path / fmt::format("{}({}_{}{}).bin", edgeName, nodeName, dir, idx);
                 fs::remove(file);
                 std::ofstream os(file, std::ios::binary);
+
+                auto size = edge.tensor->bytesSize();
+                buffer.resize(size);
 #ifdef USE_CUDA
-                kernel::cuda::copyOut(buffer.data(), ptr, size);
+                kernel::cuda::copyOut(buffer.data(), addresses[idx], size);
 #endif
                 os.write(buffer.data(), size);
             };
 
-            auto const &edges = _graph.internal().contiguous().edges;
-            for (auto i : range0_(i_.size())) { fn('i', i, edges[i_[i]], inputs[i]); }
-            for (auto i : range0_(o_.size())) { fn('o', i, edges[o_[i]], outputs[i]); }
+            for (auto i : range0_(i_.size())) { fn('i', i, i_[i], inputs); }
+            for (auto i : range0_(o_.size())) { fn('o', i, o_[i], outputs); }
         });
     }
 
