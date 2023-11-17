@@ -10,9 +10,12 @@ namespace refactor::kernel::cuda {
         unsigned int outputCount,
         unsigned int sum,
         unsigned int sub) {
-        extern __shared__ unsigned int shared[];
+        extern __shared__ uint8_t *shared[];
+        auto outputs_ = shared;
+        auto segments_ = reinterpret_cast<unsigned int *>(shared + outputCount);
         for (auto i = threadIdx.x; i < outputCount; i += blockDim.x) {
-            shared[i] = segments[i];
+            outputs_[i] = outputs[i];
+            segments_[i] = segments[i];
         }
         __syncthreads();
         for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
@@ -20,8 +23,8 @@ namespace refactor::kernel::cuda {
              tid < n;
              tid += step) {
             auto i = tid % sum, j = i * sub, k = 0u;
-            while (j >= shared[k]) { j -= shared[k++]; }
-            optimizedMemcpy(outputs[k] + (tid / sum) * shared[k] + j, data + tid * sub, sub);
+            while (j >= segments_[k]) { j -= segments_[k++]; }
+            optimizedMemcpy(outputs_[k] + (tid / sum) * segments_[k] + j, data + tid * sub, sub);
         }
     }
 
@@ -34,7 +37,7 @@ namespace refactor::kernel::cuda {
         splitKernel<<<
             params.gridSize,
             params.blockSize,
-            outputCount * sizeof(unsigned int),
+            outputCount * (sizeof(unsigned int) + sizeof(void *)),
             reinterpret_cast<cudaStream_t>(params.stream)>>>(
             params.n,
             reinterpret_cast<uint8_t const *>(data),

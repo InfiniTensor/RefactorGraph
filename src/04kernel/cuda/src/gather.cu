@@ -31,6 +31,29 @@ namespace refactor::kernel::cuda {
         }
     }
 
+    template<class index_t>
+    void launchGather(
+        KernelLaunchParameters const &params,
+        void const *data, void const *indices, void *output,
+        unsigned int batch,
+        unsigned int unit,
+        unsigned int midSizeI,
+        unsigned int midSizeO) {
+        gatherKernel<<<
+            params.gridSize,
+            params.blockSize,
+            midSizeO * sizeof(uint32_t),
+            reinterpret_cast<cudaStream_t>(params.stream)>>>(
+            params.n,
+            reinterpret_cast<uint8_t const *>(data),
+            reinterpret_cast<index_t const *>(indices),
+            reinterpret_cast<uint8_t *>(output),
+            batch,
+            unit,
+            midSizeI,
+            midSizeO);
+    }
+
     void launchGather(
         KernelLaunchParameters const &params,
         void const *data, void const *indices, void *output,
@@ -40,33 +63,17 @@ namespace refactor::kernel::cuda {
         unsigned int midSizeI,
         unsigned int midSizeO) {
         if (i64) {
-            gatherKernel<<<
-                params.gridSize,
-                params.blockSize,
-                midSizeO * sizeof(uint32_t),
-                reinterpret_cast<cudaStream_t>(params.stream)>>>(
-                params.n,
-                reinterpret_cast<uint8_t const *>(data),
-                reinterpret_cast<int64_t const *>(indices),
-                reinterpret_cast<uint8_t *>(output),
-                batch,
-                unit,
-                midSizeI,
-                midSizeO);
+            launchGather<int64_t>(
+                params,
+                data, indices, output,
+                batch, unit,
+                midSizeI, midSizeO);
         } else {
-            gatherKernel<<<
-                params.gridSize,
-                params.blockSize,
-                midSizeO * sizeof(uint32_t),
-                reinterpret_cast<cudaStream_t>(params.stream)>>>(
-                params.n,
-                reinterpret_cast<uint8_t const *>(data),
-                reinterpret_cast<int32_t const *>(indices),
-                reinterpret_cast<uint8_t *>(output),
-                batch,
-                unit,
-                midSizeI,
-                midSizeO);
+            launchGather<int32_t>(
+                params,
+                data, indices, output,
+                batch, unit,
+                midSizeI, midSizeO);
         }
     }
 
