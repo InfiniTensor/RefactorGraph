@@ -6,6 +6,8 @@ __pycache__/
 *.so
 *.log
 *.onnx
+*.pb
+*.bin
 
 /scripts/*.py
 !/scripts/format.py

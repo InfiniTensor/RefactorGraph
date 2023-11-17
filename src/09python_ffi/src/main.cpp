@@ -40,6 +40,7 @@ namespace refactor::python_ffi {
             .def("prepare"         , &Executor::prepare          , return_::move      )
             .def("run"             , &Executor::run              , return_::automatic )
             .def("bench"           , &Executor::bench            , return_::automatic )
+            .def("trace"           , &Executor::trace            , return_::automatic )
             .def("dbg"             , &Executor::debugInfo        , return_::automatic );
 
         // clang-format on

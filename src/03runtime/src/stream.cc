@@ -6,7 +6,7 @@ namespace refactor::runtime {
 
     void emptyRoutine(runtime::Resources &, void const **, void **) {}
 
-    void *Address::operator()(void *stack) {
+    void *Address::operator()(void *stack) const {
         if (isBlob()) {
             auto blob = std::get<mem_manager::SharedForeignBlob>(value);
             return blob ? (void *) *blob : nullptr;
@@ -82,15 +82,25 @@ namespace refactor::runtime {
         return unknownInputs;
     }
 
+    template<class I, class O>
+    std::pair<void const **, void **> collectAddress(
+        void *stack,
+        std::vector<Address> const &addresses,
+        std::vector<void *> &buffer,
+        I i, O o) {
+        buffer.resize(i.size() + o.size());
+        auto inputs = buffer.data(),
+             outputs = std::transform(i.begin(), i.end(), inputs, [&](auto i) { return addresses[i](stack); });
+        /* alignnnnn*/ std::transform(o.begin(), o.end(), outputs, [&](auto i) { return addresses[i](stack); });
+        return {const_cast<void const **>(inputs), outputs};
+    }
+
     void Stream::run() {
         auto map = [this](auto i) { return _internal.edges[i](*_stack); };
         std::vector<void *> buffer(16);
         for (auto const [nodeIdx, i, o] : _internal.topology) {
-            buffer.resize(i.size() + o.size());
-            auto inputs_ = buffer.data(),
-                 outputs_ = std::transform(i.begin(), i.end(), inputs_, map);
-            /* alignment */ std::transform(o.begin(), o.end(), outputs_, map);
-            _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
+            auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
+            _internal.nodes[nodeIdx](_resources, inputs, outputs);
         }
     }
 
@@ -99,17 +109,24 @@ namespace refactor::runtime {
         std::vector<void *> buffer(16);
         std::vector<std::chrono::nanoseconds> ans(_internal.nodes.size());
         for (auto const [nodeIdx, i, o] : _internal.topology) {
-            buffer.resize(i.size() + o.size());
-            auto inputs_ = buffer.data(),
-                 outputs_ = std::transform(i.begin(), i.end(), inputs_, map);
-            /* alignment */ std::transform(o.begin(), o.end(), outputs_, map);
+            auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
             auto t0 = std::chrono::high_resolution_clock::now();
-            _internal.nodes[nodeIdx](_resources, const_cast<void const **>(inputs_), outputs_);
+            _internal.nodes[nodeIdx](_resources, inputs, outputs);
             if (sync) { sync(); }
             auto t1 = std::chrono::high_resolution_clock::now();
             ans[nodeIdx] = t1 - t0;
         }
         return ans;
+    }
+
+    void Stream::trace(std::function<void(count_t, void const **, void **)> record) {
+        auto map = [this](auto i) { return _internal.edges[i](*_stack); };
+        std::vector<void *> buffer(16);
+        for (auto const [nodeIdx, i, o] : _internal.topology) {
+            auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
+            _internal.nodes[nodeIdx](_resources, inputs, outputs);
+            record(nodeIdx, inputs, outputs);
+        }
     }
 
 }// namespace refactor::runtime

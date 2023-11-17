@@ -17,7 +17,7 @@ namespace refactor::runtime {
     struct Address {
         std::variant<size_t, mem_manager::SharedForeignBlob> value;
 
-        void *operator()(void *stack);
+        void *operator()(void *stack) const;
 
         bool isBlob() const noexcept;
         bool isOffset() const noexcept;
@@ -49,6 +49,7 @@ namespace refactor::runtime {
         auto prepare() -> std::vector<count_t>;
         void run();
         auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;
+        void trace(std::function<void(count_t, void const **, void **)>);
     };
 
 }// namespace refactor::runtime

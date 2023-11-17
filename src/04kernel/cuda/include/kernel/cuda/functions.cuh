@@ -5,6 +5,8 @@ namespace refactor::kernel::cuda {
 
     void sync();
 
+    void copyOut(void *dst, const void *src, size_t size);
+
 }// namespace refactor::kernel::cuda
 
 #endif// KERNEL_CUDA_FUNCTIONS_CUH

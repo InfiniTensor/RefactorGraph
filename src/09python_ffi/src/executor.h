@@ -18,6 +18,7 @@ namespace refactor::python_ffi {
         auto prepare() -> std::vector<count_t>;
         void run();
         void bench(bool sync);
+        void trace(std::string);
         void debugInfo() const noexcept;
     };
 
