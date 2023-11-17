@@ -8,6 +8,7 @@ __pycache__/
 *.onnx
 *.pb
 *.bin
+*.npy
 
 /scripts/*.py
 !/scripts/format.py
