@@ -68,20 +68,18 @@ namespace refactor::kernel {
         return ans;
     }
     void ExpandInfo::reformAssign(dim_t maxblockSize) noexcept {
+        if (strides.empty()) { return; }
         auto blockSize_ = std::gcd(blockSize, maxblockSize);
         if (blockSize_ == blockSize) { return; }
         auto times = blockSize / blockSize_;
         blockCount *= times;
         blockSize = blockSize_;
-        if (!strides.empty()) {
-            for (auto &s : strides) {
-                s.i *= times;
-                s.o *= times;
-            }
-            strides.resize(strides.size() + 2);
-            strides.rbegin()[1] = {times, times};
-            strides.rbegin()[0] = {1, 1};
+        for (auto &s : strides) {
+            s.i *= times;
+            s.o *= times;
         }
+        strides.resize(strides.size() + 1);
+        strides.rbegin()[0] = {1, 1};
     }
 
 }// namespace refactor::kernel
