@@ -9,7 +9,7 @@ namespace refactor::onnx {
     struct Slice final : public Operator {
         Slice();
 
-        static OpBox build(std::string_view, Attributes);
+        static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();
 
         size_t opTypeId() const final;

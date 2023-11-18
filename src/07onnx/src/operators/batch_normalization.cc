@@ -11,7 +11,7 @@ namespace refactor::onnx {
           trainingMode(trainingMode_),
           epsilon(epsilon_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto trainingMode = defaultOr(attributes, "training_mode", {0}).int_() != 0;
         auto epsilon = defaultOr(attributes, "epsilon", {1e-5f}).float_();
         return OpBox(std::make_unique<Op>(trainingMode, epsilon));

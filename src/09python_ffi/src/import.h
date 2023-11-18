@@ -17,7 +17,7 @@ namespace refactor::python_ffi {
         std::vector<int64_t> shape,
         std::string file,
         int64_t offset);
-    SharedOp makeOp(Name opType, AttributeMap);
+    SharedOp makeOp(AttributeMap, Name opType, AttributeMap);
     Arc<Compiler> makeCompiler(
         std::unordered_map<Name, std::pair<NameVec, NameVec>> topology,
         std::unordered_map<Name, SharedOp> nodes,

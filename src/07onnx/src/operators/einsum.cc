@@ -9,7 +9,7 @@ namespace refactor::onnx {
     Op::Einsum(std::string equation_)
         : Operator(), equation(std::move(equation_)) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         return OpBox(std::make_unique<Op>(std::move(attributes.at("equation").string())));
     }
     auto Op::typeId() -> size_t {

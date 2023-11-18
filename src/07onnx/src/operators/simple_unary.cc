@@ -11,7 +11,7 @@ namespace refactor::onnx {
     Op::SimpleUnary(Ty type_)
         : Operator(), type(type_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Simple binary operator should not have attributes");
 
         // clang-format off

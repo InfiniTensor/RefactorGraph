@@ -7,7 +7,7 @@ namespace refactor::communication {
     Op::AllGather(Int nranks_)
         : Operator(), nranks(nranks_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &ctx, std::string_view, Attributes attributes) -> OpBox {
         auto nranks = attributes.at("nranks").int_();
         return OpBox(std::make_unique<Op>(nranks));
     }

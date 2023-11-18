@@ -22,7 +22,7 @@ namespace refactor::onnx {
 
         explicit SimpleBinary(SimpleBinaryType);
 
-        static OpBox build(std::string_view, Attributes);
+        static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId(SimpleBinaryType);
 
         size_t opTypeId() const final;

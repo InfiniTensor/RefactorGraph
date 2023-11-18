@@ -50,6 +50,7 @@ namespace refactor::frontend {
         Tensors const &tensors() const;
     };
     using Attributes = std::unordered_map<std::string, Attribute>;
+    using ModelContext = std::unordered_map<std::string, Attribute>;
 
     class Operator;
     class OpBox;
@@ -70,8 +71,8 @@ namespace refactor::frontend {
             return this->opTypeId() == T::typeId(std::forward<Args>(args)...);
         }
 
-        using Builder = OpBox (*)(std::string_view, Attributes);
-        static OpBox build(std::string, Attributes);
+        using Builder = OpBox (*)(ModelContext const &, std::string_view, Attributes);
+        static OpBox build(ModelContext const &, std::string, Attributes);
         static void register_(std::string, Builder);
         template<class T> static void register_(std::string opTypeName) {
             register_(std::move(opTypeName), T::build);

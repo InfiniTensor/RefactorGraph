@@ -35,7 +35,7 @@ namespace refactor::onnx {
 
         explicit SimpleUnary(SimpleUnaryType);
 
-        static OpBox build(std::string_view, Attributes);
+        static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId(SimpleUnaryType);
 
         size_t opTypeId() const final;

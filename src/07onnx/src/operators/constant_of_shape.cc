@@ -8,7 +8,7 @@ namespace refactor::onnx {
     Op::ConstantOfShape(Tensor_ value_)
         : Operator(), value(std::move(value_)) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto it = attributes.find("value");
         auto value = it != attributes.end() ? std::move(it->second.tensor()) : nullptr;
         return OpBox(std::make_unique<Op>(std::move(value)));

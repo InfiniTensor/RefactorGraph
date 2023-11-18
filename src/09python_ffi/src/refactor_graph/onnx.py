@@ -51,10 +51,13 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
         else:
             names[node.name] = 0
     data = set(i.name for i in model.graph.initializer)
+    context = {
+        "opset_version": next(s.version for s in model.opset_import if s.domain == "")
+    }
     return _make_compiler(
         {node.name: (node.input, node.output) for node in model.graph.node},
         {
-            node.name: _make_operator(node.op_type, _parse_attribute(node))
+            node.name: _make_operator(context, node.op_type, _parse_attribute(node))
             for node in model.graph.node
         },
         edges,

@@ -27,7 +27,7 @@ namespace refactor::onnx {
 
         Reduce(ReduceType, Ints, bool, bool);
 
-        static OpBox build(std::string_view, Attributes);
+        static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId(ReduceType);
 
         size_t opTypeId() const final;

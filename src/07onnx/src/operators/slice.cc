@@ -9,7 +9,7 @@ namespace refactor::onnx {
 
     Op::Slice() : Operator() {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Slice operator should not have attributes");
         return OpBox(std::make_unique<Op>());
     }

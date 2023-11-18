@@ -16,8 +16,8 @@ namespace refactor::python_ffi {
 
         // clang-format off
 
-        py::class_<Tensor   , Arc<Tensor>  >(m, "Tensor"   );
-        py::class_<OpBox    , Arc<OpBox>   >(m, "Operator" );
+        py::class_<Tensor      , Arc<Tensor>      >(m, "Tensor"      );
+        py::class_<OpBox       , Arc<OpBox>       >(m, "Operator"    );
 
         m   .def("config_log"      , &configLog                  , return_::automatic )
             .def("_make_operator"  , &makeOp                     , return_::move      )

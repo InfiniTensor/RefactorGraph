@@ -18,7 +18,7 @@ namespace refactor::onnx {
           pads(std::move(pads_)),
           strides(std::move(strides_)) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         auto kernelShape = std::move(attributes.at("kernel_shape").ints());
         OptionalInts
             dilations = std::nullopt,

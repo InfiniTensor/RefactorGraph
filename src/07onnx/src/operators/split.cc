@@ -11,7 +11,7 @@ namespace refactor::onnx {
           axis(axis_),
           numOutputs(numOutputs_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto axis = defaultOr(attributes, "axis", {0}).int_();
         auto numOutputs = defaultOr(attributes, "num_outputs", {0}).int_();
         return OpBox(std::make_unique<Op>(axis, numOutputs));

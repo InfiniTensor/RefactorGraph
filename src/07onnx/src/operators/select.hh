@@ -16,7 +16,7 @@ namespace refactor::onnx {
 
         explicit Select(SelectType);
 
-        static OpBox build(std::string_view, Attributes);
+        static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId(SelectType);
 
         size_t opTypeId() const final;

@@ -9,7 +9,7 @@ namespace refactor::onnx {
           start(start_),
           end(end_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto start = defaultOr(attributes, "start", {0}).int_();
         std::optional<Int> end = std::nullopt;
         if (auto it = attributes.find("end"); it != attributes.end()) {

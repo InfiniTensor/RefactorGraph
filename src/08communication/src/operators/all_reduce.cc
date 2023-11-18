@@ -6,7 +6,7 @@ namespace refactor::communication {
 
     Op::AllReduce() : Operator() {}
 
-    auto Op::build(std::string_view, Attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes) -> OpBox {
         return OpBox(std::make_unique<Op>());
     }
     auto Op::typeId() -> size_t {

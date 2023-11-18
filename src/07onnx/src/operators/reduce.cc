@@ -14,7 +14,7 @@ namespace refactor::onnx {
           keepdims(keepdims_),
           noopWithEmptyAxes(noopWithEmptyAxes_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         auto keepDims = defaultOr(attributes, "keepdims", {1}).int_() != 0;
         auto noopWithEmptyAxes = defaultOr(attributes, "noop_with_empty_axes", {0}).int_() != 0;
         auto axes = defaultOr(attributes, "axes", {{}}).ints();

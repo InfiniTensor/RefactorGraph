@@ -10,7 +10,7 @@ namespace refactor::onnx {
     Op::Select(Ty type_)
         : Operator(), type(type_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Select operator should not have attributes");
 
         auto type = opType == "onnx::Max"   ? Ty::Max

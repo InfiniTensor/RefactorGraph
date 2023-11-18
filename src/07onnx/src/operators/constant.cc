@@ -7,7 +7,7 @@ namespace refactor::onnx {
     Op::Constant(Attribute value_)
         : Operator(), value(std::move(value_)) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         Attribute value;
         if (auto it = attributes.find("value"); it != attributes.end()) {
             value = std::move(it->second);

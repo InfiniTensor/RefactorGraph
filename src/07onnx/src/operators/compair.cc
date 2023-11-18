@@ -9,7 +9,7 @@ namespace refactor::onnx {
     Op::Compair(CompairType type_)
         : Operator(), type(type_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Compair operator should not have attributes");
 
         if (opType == "onnx::Equal") {

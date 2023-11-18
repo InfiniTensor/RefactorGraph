@@ -88,9 +88,9 @@ namespace refactor::frontend {
         auto [it, ok] = OP_BUILDERS.try_emplace(std::move(opType), builder);
         ASSERT(ok || it->second == builder, "Duplicate operator type");
     }
-    OpBox Operator::build(std::string opType, Attributes attributes) {
+    OpBox Operator::build(ModelContext const &ctx, std::string opType, Attributes attributes) {
         if (auto it = OP_BUILDERS.find(opType); it != OP_BUILDERS.end()) {
-            return it->second(opType, std::move(attributes));
+            return it->second(ctx, opType, std::move(attributes));
         }
         RUNTIME_ERROR(fmt::format("Unknown operator \"{}\"", opType));
     }
