@@ -104,26 +104,23 @@ namespace refactor::python_ffi {
         fs::create_directories(path);
         ASSERT(fs::is_directory(path), "Failed to create \"{}\"", path.c_str());
 
-        auto npy = format == "npy";
+        auto const npy = format == "npy";
+        size_t dataIdx = 0;
 
         auto it = _graph.internal().contiguous().topology.begin();
         _stream.trace([&](count_t nodeIdx, void const *const *inputs, void const *const *outputs) {
             auto [nodeIdx_, i_, o_] = *it++;
             ASSERT(nodeIdx_ == nodeIdx, "node index mismatch");
-            auto nodeName = _graph.internal().contiguous().nodes[nodeIdx].name;
-            std::replace(nodeName.begin(), nodeName.end(), '/', '_');
-            std::replace(nodeName.begin(), nodeName.end(), '.', '-');
 
+            std::stringstream meta;
             std::vector<char> buffer;
             auto const &edges = _graph.internal().contiguous().edges;
-            auto fn = [&](char dir, count_t idx, count_t edgeIdx, void const *const *addresses) {
-                if (!addresses[idx]) { return; }
+            auto fn = [&](char dir, count_t idx, count_t edgeIdx, void const *const *addresses)
+                -> std::string {
+                if (!addresses[idx]) { return ""; }
                 auto const &edge = edges[edgeIdx];
 
-                auto edgeName = edge.name;
-                std::replace(edgeName.begin(), edgeName.end(), '/', '_');
-                std::replace(edgeName.begin(), edgeName.end(), '.', '-');
-                auto file = path / fmt::format("{}({}_{}{}).{}", edgeName, nodeName, dir, idx, format);
+                auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);
                 fs::remove(file);
                 std::ofstream os(file, std::ios::binary);
 
@@ -138,10 +135,25 @@ namespace refactor::python_ffi {
                 } else {
                     writeBin(std::move(os), buffer.data(), size);
                 }
+
+                return file.string();
             };
 
-            for (auto i : range0_(i_.size())) { fn('i', i, i_[i], inputs); }
-            for (auto i : range0_(o_.size())) { fn('o', i, o_[i], outputs); }
+            meta << "node\t" << nodeIdx << '\t'
+                 << _graph.internal().contiguous().nodes[nodeIdx].name << std::endl;
+            for (auto i : range0_(i_.size())) {
+                auto edgeIdx = i_[i];
+                meta << "input\t" << i << '\t'
+                     << edges[edgeIdx].name << '\t'
+                     << fn('i', i, edgeIdx, inputs) << std::endl;
+            }
+            for (auto i : range0_(o_.size())) {
+                auto edgeIdx = o_[i];
+                meta << "output\t" << i << '\t'
+                     << edges[edgeIdx].name << '\t'
+                     << fn('o', i, edgeIdx, outputs) << std::endl;
+            }
+            std::ofstream(path / fmt::format("node{:06}.meta", nodeIdx)) << meta.str();
         });
     }
 

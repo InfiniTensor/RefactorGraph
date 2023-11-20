@@ -9,6 +9,7 @@ __pycache__/
 *.pb
 *.bin
 *.npy
+*.meta
 
 /scripts/*.py
 !/scripts/format.py
