@@ -16,13 +16,12 @@ namespace refactor::computation {
     };
 
     using refactor::kernel::Tensor;
-    struct ConcatBox final : public MyOperator {
+    struct ConcatBox final : public MyOperator_B {
         // Arc<Concat> base;
 
-        ConcatBox() noexcept : MyOperator() {
+        ConcatBox() noexcept : MyOperator_B() {
             base = std::make_shared<Concat>(1, 2);
         }
-        std::unique_ptr<Operator> clone() const final;
         bool compute(Tensor const &, Tensor const &, Tensor &) const noexcept final;
         Shape verify(Tensor const &, Tensor const &) const noexcept final;
     };

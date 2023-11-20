@@ -46,7 +46,4 @@ namespace refactor::computation {
         return true;
     }
 
-    std::unique_ptr<Operator> MatMulBox::clone() const {
-        return std::make_unique<MatMul>(*dynamic_cast<MatMul const *>(base.get()));
-    }
 }// namespace refactor::computation

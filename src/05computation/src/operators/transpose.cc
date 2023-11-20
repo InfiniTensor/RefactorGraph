@@ -32,4 +32,34 @@ namespace refactor::computation {
         return std::make_unique<Collector_>(target, perm);
     }
 
+    Shape TransposeBox::verify(Tensor const &a) const noexcept {
+        Shape ans = {};
+        if (a.rank() != 4) {
+            return ans;
+        }
+        if (perm == Shape{0, 2, 3, 1}) {
+            ans = {a.shape[0], a.shape[2], a.shape[3], a.shape[1]};
+        } else if (perm == Shape{1, 0, 2, 3}) {
+            ans = {a.shape[1], a.shape[0], a.shape[2], a.shape[3]};
+        } else if (perm == Shape{0, 3, 1, 2}) {
+            ans = {a.shape[0], a.shape[3], a.shape[1], a.shape[2]};
+        }
+        return ans;
+    }
+
+    bool TransposeBox::compute(Tensor const &a, Tensor &out) const noexcept {
+        if (a.data == nullptr) {
+            return false;
+        }
+        // compute
+        auto kernels = this->base->candidateKernels(Target::Cpu)->filter({a}, {out});
+        ASSERT(kernels.size() != 0, "do not supposrt this kernel");
+        runtime::Resources res;
+        auto rou = kernels[0]->lower(res);
+        void const *inputs[]{*a.data};
+        void *outputs[]{*out.data};
+        rou(res, inputs, outputs);
+        return true;
+    }
+
 }// namespace refactor::computation

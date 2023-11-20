@@ -23,13 +23,12 @@ namespace refactor::computation {
     };
 
     using refactor::kernel::Tensor;
-    struct MatMulBox final : public MyOperator {
+    struct MatMulBox final : public MyOperator_B {
         // Arc<MatMul> base;
 
-        MatMulBox() noexcept : MyOperator() {
+        MatMulBox() noexcept : MyOperator_B() {
             base = std::make_shared<MatMul>(1.0, 1.0, false, false);
         }
-        std::unique_ptr<Operator> clone() const final;
         bool compute(Tensor const &, Tensor const &, Tensor &) const noexcept final;
         Shape verify(Tensor const &, Tensor const &) const noexcept final;
     };

@@ -21,6 +21,17 @@ namespace refactor::computation {
         kernel::CollectorBox candidateKernels(Target) const noexcept final;
     };
 
+    using refactor::kernel::Tensor;
+    struct TransposeBox final : public MyOperator_U {
+        Shape perm;
+
+        TransposeBox(Shape perm_) noexcept : MyOperator_U(), perm(perm_) {
+            base = std::make_shared<Transpose>(perm);
+        }
+        bool compute(Tensor const &, Tensor &) const noexcept final;
+        Shape verify(Tensor const &) const noexcept final;
+    };
+
 }// namespace refactor::computation
 
 #endif// COMPUTATION_TRANSPOSE_H

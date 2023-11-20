@@ -1,4 +1,5 @@
 #include "computation/mutant_generator.h"
+#include "computation/operators/reshape.h"
 #define MAX_SIZE 1024x1024
 
 namespace refactor::computation {
@@ -72,6 +73,7 @@ namespace refactor::computation {
         for (size_t index = 0; index < opStorage[depth].size(); ++index) {
             auto op = opStorage[depth][index];
             if (op->numInputs == 2) {
+                auto opb = dynamic_cast<MyOperator_B *>(op.get());
                 for (size_t i = 0; i < numValidTensors; ++i) {
                     for (size_t j = 0; j < numValidTensors; ++j) {
                         if (i == j) {
@@ -79,14 +81,14 @@ namespace refactor::computation {
                         }
                         auto x = validTensors[i]->info().tensor;
                         auto y = validTensors[j]->info().tensor;
-                        auto ans = op->verify(*x, *y);
+                        auto ans = opb->verify(*x, *y);
                         if (ans.size() == 0) {
                             continue;
                         }
                         //fmt::println("{},{}, {}, {}", i, j, reinterpret_cast<void *>(x.get()), reinterpret_cast<void *>(y.get()));
                         auto out = Tensor::share(x->dataType, ans, LayoutType::Others);
                         out->malloc();
-                        if (!op->compute(*x, *y, *out) || have_same_op(op, i, j)) {
+                        if (!opb->compute(*x, *y, *out) || have_same_op(op, i, j)) {
                             out->free();
                             continue;
                         }
@@ -99,7 +101,7 @@ namespace refactor::computation {
                         newNode->connect(0, validTensors[i]);
                         newNode->connect(1, validTensors[j]);
                         validTensors.push_back(newEdge);
-                        //fmt::println("{}", curGraph.internal().toString([](Node const &o) -> std::string { return std::string(o.op->name()); }));
+                        // fmt::println("{}", curGraph.internal().toString([](Node const &o) -> std::string { return std::string(o.op->base->name()); }));
                         //fmt::println("{}", reinterpret_cast<void *>(validTensors[j]->info().tensor.get()));
                         dfs(depth + 1, inGraph, curGraph, outGraphs);
                         curGraph.internal().eraseNode(newNode);
@@ -110,10 +112,49 @@ namespace refactor::computation {
                     }
                 }
             }
+            if (op->numInputs == 1) {
+                // if (opFinger.size() != 0 && opFinger.back()->base->opTypeId() == op->base->opTypeId()) {
+                //     continue;
+                // }
+                auto opu = dynamic_cast<MyOperator_U *>(op.get());
+                for (size_t i = 0; i < numValidTensors; ++i) {
+                    auto x = validTensors[i]->info().tensor;
+                    auto ans = opu->verify(*x);
+                    if (ans.size() == 0) {
+                        continue;
+                    }
+                    auto out = Tensor::share(x->dataType, ans, LayoutType::Others);
+                    out->malloc();
+                    if (!opu->compute(*x, *out) || have_same_op(op, i, -1)) {
+                        out->free();
+                        continue;
+                    }
+                    numValidTensors++;
+                    opFinger.push_back(op);
+                    auto name = fmt::format("{}", depth);
+                    auto newEdge = curGraph.internal().shareEdge({out, "tensor_" + name});
+                    auto newNode = curGraph.internal().pushNode({op, "op_" + name},
+                                                                {newEdge});
+                    newNode->connect(0, validTensors[i]);
+                    validTensors.push_back(newEdge);
+                    // fmt::println("{}", curGraph.internal().toString([](Node const &o) -> std::string { return std::string(o.op->base->name()); }));
+                    dfs(depth + 1, inGraph, curGraph, outGraphs);
+                    curGraph.internal().eraseNode(newNode);
+                    validTensors.pop_back();
+                    opFinger.pop_back();
+                    delete_hash_op(op, i, -1);
+                    numValidTensors--;
+                }
+            }
         }
     }
 
     bool K::is_mutant(GraphMutant &curGraph, GraphMutant const &inGraph) noexcept {
+        if (opFinger.size() != 0 && opFinger.back()->base->opTypeId() == Reshape::typeId()) {
+            return false;
+        }
+        auto inputs = inGraph.internal().inputs();
+        auto outputs = inGraph.internal().outputs();
         // fmt::println("=======================output graph =================");
         // fmt::println("{}", curGraph.internal().toString([](Node const &o) -> std::string { return std::string(o.op->base->name()); }));
         // fmt::println("Edges info :");
@@ -121,8 +162,6 @@ namespace refactor::computation {
         //     fmt::println("{}. \"{}\" Shape is {}", i, validTensors[i]->info().name,
         //                  vec2str(validTensors[i]->info().tensor->shape));
         // }
-        auto inputs = inGraph.internal().inputs();
-        auto outputs = inGraph.internal().outputs();
         std::vector<refactor::Rc<refactor::graph_topo::LinkedGraph<Node, Edge>::Edge>> outEdges;
         for (auto output : outputs) {
             int found = -1;
@@ -170,6 +209,9 @@ namespace refactor::computation {
         if (opHashMaps.find(res) != opHashMaps.end()) {
             return true;
         }
+        hashInfo = {op->base->opTypeId(), numValidTensors, b};
+        auto res1 = hashVector(hashInfo);
+        opHashMaps.insert(std::move(res1));
         opHashMaps.insert(std::move(res));
         return false;
     }
@@ -177,8 +219,12 @@ namespace refactor::computation {
     void K::delete_hash_op(Arc<MyOperator> const &op, size_t a, size_t b) noexcept {
         std::vector<size_t> hashInfo = {op->base->opTypeId(), a, b};
         auto res = hashVector(hashInfo);
-        auto it = opHashMaps.find(res);
         if (auto it = opHashMaps.find(res); it != opHashMaps.end()) {
+            opHashMaps.erase(it);
+        }
+        hashInfo = {op->base->opTypeId(), numValidTensors, b};
+        auto res1 = hashVector(hashInfo);
+        if (auto it = opHashMaps.find(res1); it != opHashMaps.end()) {
             opHashMaps.erase(it);
         }
     }

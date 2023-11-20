@@ -45,7 +45,4 @@ namespace refactor::computation {
         return true;
     }
 
-    std::unique_ptr<Operator> ConcatBox::clone() const {
-        return std::make_unique<Concat>(*dynamic_cast<Concat const *>(base.get()));
-    }
 }// namespace refactor::computation

@@ -45,15 +45,23 @@ namespace refactor::computation {
     using OpBox = std::unique_ptr<Operator>;
 
     struct MyOperator {
-        size_t numInputs = 2;
+        size_t numInputs;
         Arc<Operator> base;
 
-        MyOperator() : numInputs(2) {}
         MyOperator(size_t num) : numInputs(num) {}
-        //MyOperator(const MyOperator &other) : numInputs(other.numInputs) {}
-        //MyOperator(MyOperator &&other) : numInputs(other.numInputs) {}
-        // virtual std::unique_ptr<MyOperator> create() const = 0;
-        virtual std::unique_ptr<Operator> clone() const = 0;
+        virtual ~MyOperator() = default;
+    };
+
+    struct MyOperator_U : public MyOperator {
+        MyOperator_U() : MyOperator(1) {}
+
+        virtual bool compute(Tensor const &, Tensor &) const = 0;
+        virtual Shape verify(Tensor const &) const = 0;
+    };
+
+    struct MyOperator_B : public MyOperator {
+        MyOperator_B() : MyOperator(2) {}
+
         virtual bool compute(Tensor const &, Tensor const &, Tensor &) const = 0;
         virtual Shape verify(Tensor const &, Tensor const &) const = 0;
     };

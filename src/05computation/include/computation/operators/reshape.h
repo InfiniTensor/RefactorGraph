@@ -14,6 +14,16 @@ namespace refactor::computation {
         bool isIdentity() const noexcept final;
     };
 
+    using refactor::kernel::Tensor;
+    struct ReshapeBox final : public MyOperator_U {
+        Shape shape;
+
+        ReshapeBox(Shape shape_) noexcept : MyOperator_U(), shape(shape_) {
+            base = std::make_shared<Reshape>();
+        }
+        bool compute(Tensor const &, Tensor &) const noexcept final;
+        Shape verify(Tensor const &) const noexcept final;
+    };
 }// namespace refactor::computation
 
 #endif// COMPUTATION_RESHAPE_H
