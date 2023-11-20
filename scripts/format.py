@@ -52,7 +52,7 @@ else:
 
 def format_everything(dir):
     if os.path.isdir(dir):
-        for root, dirs, files in os.walk(dir):
+        for root, _, files in os.walk(dir):
             for file in files:
                 format_file(os.path.join(root, file))
     else:

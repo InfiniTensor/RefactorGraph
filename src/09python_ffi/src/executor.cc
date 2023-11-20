@@ -83,14 +83,17 @@ namespace refactor::python_ffi {
         constexpr static auto ALIGN = 64;
         auto dictionary = fmt::format("{{'descr': '{}', 'fortran_order': False, 'shape': ({}), }}", dtstr, ss.str());
         auto aligned = (dictionary.size() + 11 + ALIGN - 1) & ~(ALIGN - 1);
-        auto headerLen = dictionary.size();
-        auto space = std::vector<char>(headerLen - 1, ' ');
-        os.write("\x93NUMPY\x01\x00", 8);
-        os.put(static_cast<char>(headerLen));
-        os.put(static_cast<char>(headerLen >> 8));
-        os.write(dictionary.data(), dictionary.size());
-        os.write(space.data(), space.size());
-        os.put('\n');
+
+        auto header = std::vector<char>(aligned, ' ');
+        constexpr static char MAGIC[]{0x93, 'N', 'U', 'M', 'P', 'Y', 1, 0};
+        std::memcpy(header.data(), MAGIC, sizeof(MAGIC));
+        auto headerLen = aligned - 10;
+        header[8] = static_cast<char>(headerLen);
+        header[9] = static_cast<char>(headerLen >> 8);
+        std::memcpy(header.data() + 10, dictionary.data(), dictionary.size());
+        header[aligned - 1] = '\n';
+
+        os.write(header.data(), aligned);
         os.write(ptr, size);
     }
 
