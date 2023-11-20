@@ -13,6 +13,8 @@ namespace refactor::onnx {
     using OptionalInts = std::optional<Ints>;
     using OptionalIntsRef = std::optional<std::reference_wrapper<Ints const>>;
 
+    constexpr Int StandardOpsetVersion = 18;
+
     /// @brief 多方向形状广播。
     /// @param inputs 所有输入的形状。
     /// @return 广播后的形状。

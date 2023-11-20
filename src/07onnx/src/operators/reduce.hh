@@ -22,10 +22,10 @@ namespace refactor::onnx {
 
     struct Reduce final : public Operator {
         ReduceType type;
-        Ints axes;
+        std::optional<Ints> axes;
         bool keepdims, noopWithEmptyAxes;
 
-        Reduce(ReduceType, Ints, bool, bool);
+        Reduce(ReduceType, decltype(axes), bool, bool);
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId(ReduceType);
