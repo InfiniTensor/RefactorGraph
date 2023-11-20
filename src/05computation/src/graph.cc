@@ -49,7 +49,7 @@ namespace refactor::computation {
 
         for (auto i : range0_(edges.size())) {
             auto const &[tensor, name] = graph.edges[i];
-            if (!tensor) {
+            if (!tensor || identities.find(i) != identities.end()) {
                 edges[i] = {nullptr, 0, name};
             } else if (!tensor->data) {
                 edges[i] = {nullptr, tensor->bytesSize(), name};

@@ -18,7 +18,7 @@ namespace refactor::kernel {
         mem_manager::OffsetCalculator calculator(alignBytes);
         for (auto [nodeIdx, inputs, outputs] : g.topology) {
             for (auto outputIdx : outputs) {
-                if (globalOutputs.find(outputIdx) == globalOutputs.end()) {
+                if (edgeRc[outputIdx] && globalOutputs.find(outputIdx) == globalOutputs.end()) {
                     addresses[outputIdx] = {calculator.alloc(g.edges[outputIdx].size)};
                 }
             }
