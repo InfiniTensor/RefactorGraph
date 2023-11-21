@@ -17,8 +17,8 @@ TEST(kernel, WhereCuda) {
     auto kCuda = WhereCuda::build({*cTensor, *xTensor, *yTensor});
     ASSERT_TRUE(kCpu && kCuda);
     auto res = runtime::Resources();
-    auto rCpu = kCpu->lower(res);
-    auto rCuda = kCuda->lower(res);
+    auto rCpu = kCpu->lower(res).routine;
+    auto rCuda = kCuda->lower(res).routine;
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
     auto gpuC = mem_manager::ForeignBlob::share(memManager, cTensor->bytesSize());

@@ -21,7 +21,7 @@ namespace refactor::kernel {
         return "Performing gather using CPU";
     }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
 
         return [info = this->info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {

@@ -24,8 +24,8 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
                           : BinaryBasicCuda::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel && cudaKernel);
     auto res = runtime::Resources();
-    auto cpuRoutine = cpuKernel->lower(res);
-    auto cudaRoutine = cudaKernel->lower(res);
+    auto cpuRoutine = cpuKernel->lower(res).routine;
+    auto cudaRoutine = cudaKernel->lower(res).routine;
 
     // Init inputs and outputs
     std::vector<T_> a(aTensor->elementsSize(), 3.0f);

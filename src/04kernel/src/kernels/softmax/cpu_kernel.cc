@@ -64,7 +64,7 @@ namespace refactor::kernel {
                             });
         };
     }
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
 #define CASE(T) \
     case T:     \
         return lowerTyped<DataType::T>(info);

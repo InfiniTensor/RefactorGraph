@@ -14,7 +14,7 @@ TEST(kernel, WhereCpu) {
     auto kernel = WhereCpu::build({*cTensor, *xTensor, *yTensor});
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto mc = mem_manager::ForeignBlob::share(mfn, cTensor->bytesSize());

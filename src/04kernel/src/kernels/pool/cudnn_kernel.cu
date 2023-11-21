@@ -7,7 +7,7 @@ namespace refactor::kernel {
     using namespace runtime;
     using Ty = PoolType;
 
-    Routine PoolCudnn::lower(Resources &res) const noexcept {
+    auto PoolCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, y;

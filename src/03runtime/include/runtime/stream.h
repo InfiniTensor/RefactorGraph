@@ -29,6 +29,11 @@ namespace refactor::runtime {
     struct Node {
         Routine routine;
         size_t workspaceOffset;
+
+        template<class T>
+        Node(T &&r, size_t wso = 0) noexcept
+            : routine(std::forward<T>(r)),
+              workspaceOffset(wso) {}
     };
 
     class Stream {

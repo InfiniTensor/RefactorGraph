@@ -13,7 +13,7 @@ TEST(kernel, SoftmaxCpu) {
     auto kernel = SoftmaxCpu::build(SoftmaxInfo(*xTensor, axis));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto mx = mem_manager::ForeignBlob::share(mfn, xTensor->bytesSize());

@@ -16,8 +16,8 @@ TEST(kernel, TransposeCuda) {
     auto kernel = TransposeCuda::build(dataTensor->dataType, info);
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
-    auto rCpu = kCpu->lower(res);
-    auto routine = kernel->lower(res);
+    auto rCpu = kCpu->lower(res).routine;
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
     auto bytes = dataTensor->bytesSize();

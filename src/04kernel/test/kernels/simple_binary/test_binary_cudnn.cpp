@@ -19,8 +19,8 @@ void testBinaryCudnn(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape d
                     : BinaryBasicCpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res),
-         rCpu = kCpu->lower(res);
+    auto routine = kernel->lower(res).routine,
+         rCpu = kCpu->lower(res).routine;
     // Init inputs and outputs
     std::vector<float>
         a(aTensor->elementsSize(), 3.0f),

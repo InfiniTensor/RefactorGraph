@@ -69,7 +69,7 @@ namespace refactor::kernel {
                 UNREACHABLE();       \
         }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         switch (opType) {
             CASE_OP(Add)
             CASE_OP(Sub)

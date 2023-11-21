@@ -16,8 +16,8 @@ TEST(kernel, SoftmaxCudnn) {
     auto kCudnn = SoftmaxCudnn::build(cudnn::SoftmaxAlgo::FAST, SoftmaxInfo(*xTensor, axis));
     ASSERT_TRUE(kCpu && kCudnn);
     auto res = runtime::Resources();
-    auto rCpu = kCpu->lower(res);
-    auto rCudnn = kCudnn->lower(res);
+    auto rCpu = kCpu->lower(res).routine;
+    auto rCudnn = kCudnn->lower(res).routine;
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
     auto gpuX = mem_manager::ForeignBlob::share(memManager, xTensor->bytesSize());

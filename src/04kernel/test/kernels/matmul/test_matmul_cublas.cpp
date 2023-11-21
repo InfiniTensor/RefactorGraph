@@ -18,7 +18,7 @@ TEST(kernel, MatMulCublas_OnlyBias) {
     auto kernel = MatMulCublas::build(info);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::NvidiaGpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
@@ -57,8 +57,8 @@ TEST(kernel, MatMulCublas_Broadcast) {
     auto gpuKernel = MatMulCublas::build(info);
     ASSERT_TRUE(cpuKernel && gpuKernel);
     auto res = runtime::Resources();
-    auto cpuRoutine = cpuKernel->lower(res);
-    auto gpuRoutine = gpuKernel->lower(res);
+    auto cpuRoutine = cpuKernel->lower(res).routine;
+    auto gpuRoutine = gpuKernel->lower(res).routine;
     // put input data
     std::vector<float> dataA{1.0, 2.0, 0.0, 0.5,
                              1.0, 0.0, 0.0, 1.0};
@@ -104,8 +104,8 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     auto gpuKernel = MatMulCublas::build(info);
     ASSERT_TRUE(cpuKernel && gpuKernel);
     auto res = runtime::Resources();
-    auto cpuRoutine = cpuKernel->lower(res);
-    auto gpuRoutine = gpuKernel->lower(res);
+    auto cpuRoutine = cpuKernel->lower(res).routine;
+    auto gpuRoutine = gpuKernel->lower(res).routine;
     // put input data
     std::vector<float> dataA{1.0, 2.0, 0.0, 0.5,
                              1.0, 0.0, 0.0, 1.0,
@@ -150,8 +150,8 @@ TEST(kernel, MatMulCublas_Large) {
     auto gpuKernel = MatMulCublas::build(info);
     ASSERT_TRUE(cpuKernel && gpuKernel);
     auto res = runtime::Resources();
-    auto cpuRoutine = cpuKernel->lower(res);
-    auto gpuRoutine = gpuKernel->lower(res);
+    auto cpuRoutine = cpuKernel->lower(res).routine;
+    auto gpuRoutine = gpuKernel->lower(res).routine;
     // put input data
     std::vector<float> dataA(A->elementsSize());
     for (auto i = 0; i < dataA.size(); i++) {

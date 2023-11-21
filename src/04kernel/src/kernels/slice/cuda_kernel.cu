@@ -6,7 +6,7 @@
 namespace refactor::kernel {
     using namespace runtime;
 
-    Routine SliceCuda::lower(Resources &) const noexcept {
+    auto SliceCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
         thrust::host_vector<cuda::DimInfo> dims(info.dims.size());
         std::transform(info.dims.begin(), info.dims.end(),
                        dims.begin(),

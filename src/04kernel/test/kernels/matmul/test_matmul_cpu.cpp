@@ -14,7 +14,7 @@ TEST(kernel, MatMulCPU_WithBias) {
     auto kernel = MatMulCPU::build(info);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
@@ -51,7 +51,7 @@ TEST(kernel, MatMulCPU_UINT16NoBias) {
     auto kernel = MatMulCPU::build(info);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
@@ -87,7 +87,7 @@ TEST(kernel, MatMulCPU_Broadcast) {
     auto kernel = MatMulCPU::build(info);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());

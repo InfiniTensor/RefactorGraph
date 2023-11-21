@@ -8,7 +8,9 @@ namespace refactor::kernel {
     using namespace cublas;
 
     template<class T>
-    Routine lowerTyped(cudaDataType_t cudaDataType, MatMulInfo info, Resources &res) noexcept {
+    auto lowerTyped(cudaDataType_t cudaDataType,
+                    MatMulInfo info,
+                    Resources &res) noexcept -> RoutineWorkspace {
         return [cudaDataType,
                 alpha = static_cast<T>(info.alpha),
                 beta = static_cast<T>(info.biasExpand ? info.beta : 0.0f),
@@ -21,7 +23,7 @@ namespace refactor::kernel {
                 lda = info.transA ? info.m : info.k,
                 ldb = info.transB ? info.k : info.n,
                 biasEx = info.biasExpand
-                             ? std::make_optional(ExpandCuda(*info.biasExpand).lower(res))
+                             ? std::make_optional(ExpandCuda(*info.biasExpand).lower(res).routine)
                              : std::nullopt,
                 broadcaster = info.broadcaster](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }
@@ -41,7 +43,7 @@ namespace refactor::kernel {
         };
     }
 
-    Routine MatMulCublas::lower(Resources &res) const noexcept {
+    auto MatMulCublas::lower(Resources &res) const noexcept -> RoutineWorkspace {
         res.fetchOrStore<CublasContext>();
         switch (info.dataType) {
             case DataType::F32:

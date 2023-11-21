@@ -23,7 +23,7 @@ namespace refactor::kernel {
         return "Performing transpose operation on generic cpu";
     }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
         return [eleSize = this->dataType.size(),
                 info = this->info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {

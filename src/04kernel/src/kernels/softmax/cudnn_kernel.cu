@@ -6,7 +6,7 @@ namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
 
-    Routine SoftmaxCudnn::lower(Resources &res) const noexcept {
+    auto SoftmaxCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t t;

@@ -22,7 +22,7 @@ TEST(kernel, SplitCpu) {
     auto kernel = SplitCpu::build(SplitInfo(3, outputs_));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // put input data
     std::vector<float>
         data(dataTensor->elementsSize()),

@@ -19,8 +19,8 @@ TEST(kernel, ExpandCuda) {
     auto kCpu = ExpandCpu::build(info);
     ASSERT_TRUE(kernel && kCpu);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
-    auto rCpu = kCpu->lower(res);
+    auto routine = kernel->lower(res).routine;
+    auto rCpu = kCpu->lower(res).routine;
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
     Arc<mem_manager::ForeignBlob>

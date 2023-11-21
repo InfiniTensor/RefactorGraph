@@ -61,7 +61,7 @@ namespace refactor::kernel {
                 UNREACHABLE();       \
         }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
 
         switch (opType) {

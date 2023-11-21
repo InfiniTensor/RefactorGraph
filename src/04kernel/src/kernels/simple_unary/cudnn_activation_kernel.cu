@@ -8,7 +8,7 @@ namespace refactor::kernel {
     using namespace runtime;
     using Ty = SimpleUnaryType;
 
-    Routine ActivationCudnn::lower(Resources &res) const noexcept {
+    auto ActivationCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnActivationDescriptor_t activation;

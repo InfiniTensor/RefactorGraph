@@ -94,7 +94,7 @@ namespace refactor::kernel {
         };
     }
 
-    auto K::lower(Resources &res) const noexcept -> Routine {
+    auto K::lower(Resources &res) const noexcept -> RoutineWorkspace {
 
 #define CASE(T) \
     case T:     \

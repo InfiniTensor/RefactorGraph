@@ -29,7 +29,7 @@ namespace refactor::kernel {
     }
 
 #ifdef USE_CUDA
-    auto K::lower(Resources &) const noexcept -> Routine {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         struct Info {
             uint32_t batch, unit, midSizeI, midSizeO;
             bool i64;

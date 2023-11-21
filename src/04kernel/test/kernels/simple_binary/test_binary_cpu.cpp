@@ -13,7 +13,7 @@ void testBinaryCPU(SimpleBinaryType binaryOPT, std::function<float(float, float)
     auto cpuKernel = Binary11Cpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel);
     auto res = runtime::Resources();
-    auto cpuRoutine = cpuKernel->lower(res);
+    auto cpuRoutine = cpuKernel->lower(res).routine;
     // Init inputs and outputs
     std::vector<float> a(aTensor->elementsSize(), 3.0f);
     std::vector<float> b(bTensor->elementsSize(), 2.0f);
@@ -43,7 +43,7 @@ TEST(kernel, BinaryCpuBroadcast) {
     auto kernel = BinaryBasicCpu::build(SimpleBinaryType::Add, *a, *b);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
     auto ma = mem_manager::ForeignBlob::share(mfn, a->bytesSize());

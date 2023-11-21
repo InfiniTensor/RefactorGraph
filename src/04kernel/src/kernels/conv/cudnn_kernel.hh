@@ -34,7 +34,7 @@ namespace refactor::kernel {
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
 #ifdef USE_CUDA
-        Routine lower(Resources &) const noexcept final;
+        RoutineWorkspace lower(Resources &) const noexcept final;
 #endif
     };
 

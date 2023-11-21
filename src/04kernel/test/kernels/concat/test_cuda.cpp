@@ -29,8 +29,8 @@ TEST(kernel, ConcatCuda) {
     auto kernel = ConcatCuda::build(info);
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
-    auto rCpu = kCpu->lower(res);
-    auto routine = kernel->lower(res);
+    auto rCpu = kCpu->lower(res).routine;
+    auto routine = kernel->lower(res).routine;
     // malloc
     res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
     auto memManager = res.fetch<runtime::MemManager>()->manager;

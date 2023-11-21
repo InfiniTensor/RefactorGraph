@@ -7,13 +7,14 @@
 namespace refactor::kernel {
     using runtime::Resources;
     using runtime::Routine;
+    using RoutineWorkspace = runtime::Node;
 
     class Kernel {
     public:
         virtual ~Kernel() = default;
         virtual size_t kernelTypeId() const = 0;
         virtual std::string_view description() const = 0;
-        virtual Routine lower(Resources &) const;
+        virtual RoutineWorkspace lower(Resources &) const;
 
         template<class T, class... Args>
         bool is(Args &&...args) const noexcept {

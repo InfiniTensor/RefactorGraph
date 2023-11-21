@@ -6,7 +6,7 @@
 namespace refactor::kernel {
     using namespace runtime;
 
-    Routine ExpandCuda::lower(Resources &) const noexcept {
+    auto ExpandCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
         using cuda::expand::DimStride;
         thrust::host_vector<DimStride> strides(info.strides.size());
         std::transform(info.strides.begin(), info.strides.end(),

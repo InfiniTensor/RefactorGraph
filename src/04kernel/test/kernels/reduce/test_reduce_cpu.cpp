@@ -11,7 +11,7 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     auto kernel = ReduceCpu::build(axes, ReduceType::Mean, {*dataTensor});
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // put input output data
     void const *inputs[]{data.data()};
     std::vector<float>

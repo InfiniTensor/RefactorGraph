@@ -12,7 +12,7 @@ TEST(kernel, ExpandCpu) {
     auto kernel = ExpandCpu::build(ExpandInfo(*input, *output));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // put input data
     std::vector<float>
         data(input->elementsSize()),
@@ -40,7 +40,7 @@ TEST(kernel, ExpandCpu) {
     // test reform
     auto kernelReformed = ExpandCpu::build(ExpandInfo(*input, *output).reform(16));
     ASSERT_TRUE(kernelReformed);
-    auto routineReformed = kernelReformed->lower(res);
+    auto routineReformed = kernelReformed->lower(res).routine;
     std::vector<float> resultReformed(result.size());
     {
         void const *inputs[]{data.data()};

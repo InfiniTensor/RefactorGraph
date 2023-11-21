@@ -15,7 +15,7 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // cuda malloc
     auto gpuMemIn = mem_manager::ForeignBlob::share(
         Target(Target::NvidiaGpu).memManager(),

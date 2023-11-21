@@ -15,8 +15,8 @@ TEST(kernel, ActivationCudnn) {
     auto kernel = ActivationCudnn::build(SimpleUnaryType::Tanh, *dataTensor);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto rCpu = kCpu->lower(res);
-    auto routine = kernel->lower(res);
+    auto rCpu = kCpu->lower(res).routine;
+    auto routine = kernel->lower(res).routine;
     // malloc
     auto cpuMem = mem_manager::ForeignBlob::share(
         Target(Target::Cpu).memManager(),

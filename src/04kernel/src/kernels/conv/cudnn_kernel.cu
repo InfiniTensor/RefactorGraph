@@ -7,7 +7,7 @@ namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
 
-    auto ConvCudnn::lower(Resources &res) const noexcept -> Routine {
+    auto ConvCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, y;

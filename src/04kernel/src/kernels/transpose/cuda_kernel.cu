@@ -5,7 +5,7 @@
 
 namespace refactor::kernel {
 
-    auto TransposeCuda::lower(Resources &) const noexcept -> Routine {
+    auto TransposeCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
         using cuda::transpose::DimStride;
         thrust::host_vector<DimStride> strides(info.dims.size());
         std::transform(info.dims.begin(), info.dims.end(),

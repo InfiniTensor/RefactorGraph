@@ -20,8 +20,8 @@ TEST(kernel, GatherCuda) {
         auto cpuKernel = GatherCpu::build(info);
         ASSERT_TRUE(cudaKernel && cpuKernel);
         auto res = runtime::Resources();
-        auto cudaRoutine = cudaKernel->lower(res);
-        auto cpuRoutine = cpuKernel->lower(res);
+        auto cudaRoutine = cudaKernel->lower(res).routine;
+        auto cpuRoutine = cpuKernel->lower(res).routine;
         // Init inputs and outputs
         std::vector<float> a{1.0, 1.2, 2.3, 3.4, 4.5, 5.7};
         std::vector<int64_t> b{0, 1, 1, 2};
@@ -61,8 +61,8 @@ TEST(kernel, GatherCuda) {
         auto cpuKernel = GatherCpu::build(info);
         ASSERT_TRUE(cudaKernel && cpuKernel);
         auto res = runtime::Resources();
-        auto cudaRoutine = cudaKernel->lower(res);
-        auto cpuRoutine = cpuKernel->lower(res);
+        auto cudaRoutine = cudaKernel->lower(res).routine;
+        auto cpuRoutine = cpuKernel->lower(res).routine;
         // Init inputs and outputs
         std::vector<float> a{1.0, 1.2, 1.9, 2.3, 3.4, 3.9, 4.5, 5.7, 5.9};
         std::vector<int> b{0, 2};

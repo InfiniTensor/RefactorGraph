@@ -25,10 +25,11 @@ namespace refactor::kernel {
         nodes.reserve(nodeCount);
         for (auto i : range0_(nodeCount)) {
             if (auto const &node = _internal.nodes[i]; node.kernel) {
-                nodes.emplace_back(runtime::Node{node.kernel->lower(res), 0});
-                workspace[i] = 0;
+                auto [routine, workspaceSize] = node.kernel->lower(res);
+                nodes.emplace_back(routine);
+                workspace[i] = workspaceSize;
             } else {
-                nodes.emplace_back(runtime::Node{runtime::emptyRoutine, 0});
+                nodes.emplace_back(runtime::emptyRoutine);
             }
         }
 

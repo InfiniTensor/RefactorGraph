@@ -14,8 +14,8 @@ static void testOp(SimpleUnaryType opType) {
     auto kCpu = SimpleUnaryCpu::build(opType, *dataTensor);
     ASSERT_TRUE(kernel && kCpu);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res),
-         rCpu = kCpu->lower(res);
+    auto routine = kernel->lower(res).routine,
+         rCpu = kCpu->lower(res).routine;
     // malloc
     auto gpuMem = mem_manager::ForeignBlob::share(
         Target(Target::NvidiaGpu).memManager(),
