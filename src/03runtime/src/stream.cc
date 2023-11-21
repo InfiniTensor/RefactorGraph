@@ -59,7 +59,7 @@ namespace refactor::runtime {
     }
     void Stream::getOutput(count_t i, void *data, size_t size) const {
         auto globalOutputs = _internal.topology.globalOutputs();
-        ASSERT(i < globalOutputs.size(), "input index out of range");
+        ASSERT(i < globalOutputs.size(), "output index out of range");
 
         _internal.edges[globalOutputs[i]].blob()->copyOut(data, size);
     }

@@ -13,12 +13,17 @@ namespace refactor::python_ffi {
           _stream(std::move(stream)) {}
 
     void Executor::setInput(count_t i, pybind11::array data) {
+        auto globalInputs = _graph.internal().contiguous().topology.globalInputs();
+        ASSERT(i < globalInputs.size(), "input index out of range");
+
+        auto const &tensor = *_graph.internal().contiguous().edges[globalInputs[i]].tensor;
+        ASSERT(tensor.bytesSize() == data.nbytes(), "input size mismatch");
         _stream.setInput(i, data.data(), data.nbytes());
     }
 
     auto Executor::getOutput(count_t i) -> pybind11::array {
         auto globalOutputs = _graph.internal().contiguous().topology.globalOutputs();
-        ASSERT(i < globalOutputs.size(), "input index out of range");
+        ASSERT(i < globalOutputs.size(), "output index out of range");
 
         auto const &tensor = *_graph.internal().contiguous().edges[globalOutputs[i]].tensor;
         auto ans = pybind11::array(buildNumpyDType(tensor.dataType), std::move(tensor.shape), nullptr);
@@ -48,7 +53,6 @@ namespace refactor::python_ffi {
                          std::chrono::duration_cast<std::chrono::microseconds>(ans[i]).count());
         }
     }
-
 
     static void writeBin(std::ofstream os, char const *ptr, size_t size) {
         os.write(ptr, size);
