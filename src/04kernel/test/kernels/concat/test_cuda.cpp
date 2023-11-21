@@ -64,12 +64,12 @@ TEST(kernel, ConcatCuda) {
     {
         void const *inputs[]{*gpuIns[0], *gpuIns[1], *gpuIns[2], *gpuIns[3]};
         void *outputs[]{*gpuOut};
-        routine(res, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{cpuIns[0].data(), cpuIns[1].data(), cpuIns[2].data(), cpuIns[3].data()};
         void *outputs[]{cpuOut.data()};
-        rCpu(res, inputs, outputs);
+        rCpu(res, nullptr, inputs, outputs);
     }
     // check
     gpuOut->copyOut(out.data(), result->bytesSize());

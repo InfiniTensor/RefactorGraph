@@ -20,7 +20,7 @@ namespace refactor::kernel {
         return [dims = thrust::device_vector<cuda::DimInfo>(dims),
                 params = cuda::ThreadsDistributer()(info.blockCount),
                 blockSize = info.blockSize,
-                baseOffset = info.baseOffset](Resources &, void const **inputs, void **outputs) {
+                baseOffset = info.baseOffset](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto src = reinterpret_cast<uint8_t const *>(inputs[0]) + baseOffset;
             cuda::launchSlice(params, src, dims.data().get(), outputs[0],
                               dims.size(),

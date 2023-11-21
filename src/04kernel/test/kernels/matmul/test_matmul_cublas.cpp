@@ -36,7 +36,7 @@ TEST(kernel, MatMulCublas_OnlyBias) {
     // inference
     void const *inputs[]{*ma, *mb, *mc};
     void *outputs[]{*my};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(Y->elementsSize());
     my->copyOut(result.data(), Y->bytesSize());
@@ -78,12 +78,12 @@ TEST(kernel, MatMulCublas_Broadcast) {
     {
         void const *inputs[]{*ma, *mb, *mc};
         void *outputs[]{*my};
-        gpuRoutine(res, inputs, outputs);
+        gpuRoutine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{dataA.data(), dataB.data(), dataC.data()};
         void *outputs[]{cpuOut.data()};
-        cpuRoutine(res, inputs, outputs);
+        cpuRoutine(res, nullptr, inputs, outputs);
     }
     // take output data
     std::vector<float> result(Y->elementsSize());
@@ -123,12 +123,12 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     {
         void const *inputs[]{*ma, *mb};
         void *outputs[]{*my};
-        gpuRoutine(res, inputs, outputs);
+        gpuRoutine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{dataA.data(), dataB.data()};
         void *outputs[]{cpuOut.data()};
-        cpuRoutine(res, inputs, outputs);
+        cpuRoutine(res, nullptr, inputs, outputs);
     }
     // take output data
     std::vector<float> result(Y->elementsSize());
@@ -178,12 +178,12 @@ TEST(kernel, MatMulCublas_Large) {
     {
         void const *inputs[]{*ma, *mb, *mc};
         void *outputs[]{*my};
-        gpuRoutine(res, inputs, outputs);
+        gpuRoutine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{dataA.data(), dataB.data(), dataC.data()};
         void *outputs[]{cpuOut.data()};
-        cpuRoutine(res, inputs, outputs);
+        cpuRoutine(res, nullptr, inputs, outputs);
     }
     // take output data
     std::vector<float> result(Y->elementsSize());

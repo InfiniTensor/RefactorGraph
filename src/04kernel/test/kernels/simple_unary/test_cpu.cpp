@@ -22,7 +22,7 @@ static void testOp(SimpleUnaryType opType, float check(float)) {
     // inference
     void const *inputs[]{*cpuMem};
     void *outputs[]{*cpuMem};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(dataTensor->elementsSize());
     cpuMem->copyOut(result.data(), dataTensor->bytesSize());

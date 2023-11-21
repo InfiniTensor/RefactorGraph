@@ -36,15 +36,17 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     auto cGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), cTensor->bytesSize());
     aGPU->copyIn(a.data(), aTensor->bytesSize());
     bGPU->copyIn(b.data(), bTensor->bytesSize());
-
     // Compute
-    void const *inputsGPU[]{*aGPU, *bGPU};
-    void *outputsGPU[]{*cGPU};
-    cudaRoutine(res, inputsGPU, outputsGPU);
-    void const *inputsCPU[]{a.data(), b.data()};
-    void *outputsCPU[]{c.data()};
-    cpuRoutine(res, inputsCPU, outputsCPU);
-
+    {
+        void const *inputs[]{*aGPU, *bGPU};
+        void *outputs[]{*cGPU};
+        cudaRoutine(res, nullptr, inputs, outputs);
+    }
+    {
+        void const *inputs[]{a.data(), b.data()};
+        void *outputs[]{c.data()};
+        cpuRoutine(res, nullptr, inputs, outputs);
+    }
     // Compare
     std::vector<T_> result(cTensor->elementsSize());
     cGPU->copyOut(result.data(), cTensor->bytesSize());

@@ -10,9 +10,9 @@
 #include <variant>
 
 namespace refactor::runtime {
-    using Routine = std::function<void(runtime::Resources &, void const **, void **)>;
+    using Routine = std::function<void(runtime::Resources &, void *, void const *const *, void *const *)>;
 
-    void emptyRoutine(runtime::Resources &, void const **, void **);
+    void emptyRoutine(runtime::Resources &, void *, void const *const *, void *const *);
 
     struct Address {
         std::variant<size_t, mem_manager::SharedForeignBlob> value;

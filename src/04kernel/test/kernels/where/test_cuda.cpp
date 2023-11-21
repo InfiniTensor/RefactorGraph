@@ -40,12 +40,12 @@ TEST(kernel, WhereCuda) {
     {
         void const *inputs[]{dataC, dataX.data(), dataY.data()};
         void *outputs[]{cpuOut.data()};
-        rCpu(res, inputs, outputs);
+        rCpu(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{*gpuC, *gpuX, *gpuY};
         void *outputs[]{*gpuOut};
-        rCuda(res, inputs, outputs);
+        rCuda(res, nullptr, inputs, outputs);
     }
     // take output data
     std::vector<float> result(outTensor->elementsSize());

@@ -30,7 +30,7 @@ void testPoolCudnn(PoolType poolType, int rank, const int64_t *pads, const int64
     // inference
     void const *inputs[]{*gpuMem};
     void *outputs[]{*gpuMem};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(yTensor->elementsSize());
     gpuMem->copyOut(result.data(), yTensor->bytesSize());

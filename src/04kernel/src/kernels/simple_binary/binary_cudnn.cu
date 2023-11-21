@@ -47,7 +47,7 @@ namespace refactor::kernel {
 
         res.fetchOrStore<CudnnContext>();
         return [swap = aDims != cDims,
-                d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
+                d_ = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             auto const &d = *d_;
             // name inputs and outputs

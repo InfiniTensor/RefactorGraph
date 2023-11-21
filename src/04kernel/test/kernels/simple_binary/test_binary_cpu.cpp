@@ -19,9 +19,9 @@ void testBinaryCPU(SimpleBinaryType binaryOPT, std::function<float(float, float)
     std::vector<float> b(bTensor->elementsSize(), 2.0f);
     std::vector<float> c(cTensor->elementsSize());
     // Compute
-    void const *inputsCPU[]{a.data(), b.data()};
-    void *outputsCPU[]{c.data()};
-    cpuRoutine(res, inputsCPU, outputsCPU);
+    void const *inputs[]{a.data(), b.data()};
+    void *outputs[]{c.data()};
+    cpuRoutine(res, nullptr, inputs, outputs);
     // Compare
     for (auto i : range0_(c.size())) {
         EXPECT_FLOAT_EQ(c[i], operation(a[i], b[i]));
@@ -59,7 +59,7 @@ TEST(kernel, BinaryCpuBroadcast) {
     // inference
     void const *inputs[]{*ma, *mb};
     void *outputs[]{*mc};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(c->elementsSize());
     mc->copyOut(result.data(), c->bytesSize());

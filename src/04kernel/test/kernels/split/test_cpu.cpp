@@ -36,7 +36,7 @@ TEST(kernel, SplitCpu) {
     // inference
     void const *inputs[]{data.data()};
     void *outputs[]{outs[0].data(), outs[1].data(), outs[2].data(), outs[3].data()};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // check
     constexpr static size_t
         loops[]{

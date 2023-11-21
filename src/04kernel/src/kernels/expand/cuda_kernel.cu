@@ -14,7 +14,7 @@ namespace refactor::kernel {
                        [](auto const &s) { return DimStride{s.i, s.o}; });
         return [strides = thrust::device_vector<DimStride>(strides),
                 params = cuda::ThreadsDistributer()(info.blockCount),
-                eleSize = info.blockSize](Resources &, void const **inputs, void **outputs) {
+                eleSize = info.blockSize](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             cuda::launchExpand(
                 params,
                 inputs[0],

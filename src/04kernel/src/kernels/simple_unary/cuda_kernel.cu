@@ -40,7 +40,7 @@ namespace refactor::kernel {
     auto lowerTyped(size_t n) noexcept {
         using namespace runtime;
 
-        return [n](Resources &, void const **inputs, void **outputs) {
+        return [n](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto const *x = static_cast<T const *>(inputs[0]);
             auto *y = static_cast<T *>(outputs[0]);
             thrust::transform(thrust::device, x, x + n, y, UnaryFuntor{});
@@ -51,7 +51,7 @@ namespace refactor::kernel {
     case DT::TYPE:       \
         return lowerTyped<primitive<DT::TYPE>::type, FUNC##Functor<primitive<DT::TYPE>::type>>(size)
 #define COPY                                                                                   \
-    return [size = size * dataType.size()](Resources &, void const **inputs, void **outputs) { \
+    return [size = size * dataType.size()](Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
         cudaMemcpyAsync(outputs[0], inputs[0], size, cudaMemcpyDeviceToDevice);                \
     }
 #define GROUP_F(FUNC) \

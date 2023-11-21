@@ -28,12 +28,12 @@ static void testOp(SimpleUnaryType opType) {
     {
         void const *inputs[]{*gpuMem};
         void *outputs[]{*gpuMem};
-        routine(res, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{data.data()};
         void *outputs[]{data.data()};
-        rCpu(res, inputs, outputs);
+        rCpu(res, nullptr, inputs, outputs);
     }
     // take output data
     std::vector<float> result(dataTensor->elementsSize());

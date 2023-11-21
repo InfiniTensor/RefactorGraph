@@ -67,7 +67,7 @@ namespace refactor::kernel {
                 &d->workspaceSize));
         }
         // nvcc at c++11 doesn't support real move capture
-        return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
+        return [d_ = std::move(d)](Resources &res, void *workspace_, void const *const *inputs, void *const *outputs) {
             using mem_manager::ForeignBlob;
             auto const &d = *d_;
             // fetch cudnn handle from resources

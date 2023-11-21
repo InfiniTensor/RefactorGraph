@@ -22,7 +22,7 @@ TEST(kernel, GatherCPU) {
         {
             void const *inputs[]{a.data(), b.data()};
             void *outputs[]{c.data()};
-            cpuRoutine(res, inputs, outputs);
+            cpuRoutine(res, nullptr, inputs, outputs);
         }
         // Compare
         std::vector<float> ans{1.0, 1.2, 2.3, 3.4, 2.3, 3.4, 4.5, 5.7};
@@ -49,7 +49,7 @@ TEST(kernel, GatherCPU) {
         {
             void const *inputs[]{a.data(), b.data()};
             void *outputs[]{c.data()};
-            cpuRoutine(res, inputs, outputs);
+            cpuRoutine(res, nullptr, inputs, outputs);
         }
         // Compare
         std::vector<float> ans{1.0, 1.9, 2.3, 3.9, 4.5, 5.9};

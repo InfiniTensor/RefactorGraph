@@ -34,7 +34,7 @@ TEST(kernel, WhereCpu) {
     // inference
     void const *inputs[]{*mc, *mx, *my};
     void *outputs[]{*mout};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(outTensor->elementsSize());
     mout->copyOut(result.data(), outTensor->bytesSize());

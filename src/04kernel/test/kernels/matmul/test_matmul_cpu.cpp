@@ -32,7 +32,7 @@ TEST(kernel, MatMulCPU_WithBias) {
     // inference
     void const *inputs[]{*ma, *mb, *mc};
     void *outputs[]{*my};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(Y->elementsSize());
     my->copyOut(result.data(), Y->bytesSize());
@@ -67,7 +67,7 @@ TEST(kernel, MatMulCPU_UINT16NoBias) {
     // inference
     void const *inputs[]{*ma, *mb};
     void *outputs[]{*my};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<uint16_t> result(Y->elementsSize());
     my->copyOut(result.data(), Y->bytesSize());
@@ -110,7 +110,7 @@ TEST(kernel, MatMulCPU_Broadcast) {
     // inference
     void const *inputs[]{*ma, *mb, *mc};
     void *outputs[]{*my};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(Y->elementsSize());
     my->copyOut(result.data(), Y->bytesSize());

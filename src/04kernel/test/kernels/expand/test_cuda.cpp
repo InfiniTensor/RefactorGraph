@@ -37,12 +37,12 @@ TEST(kernel, ExpandCuda) {
     {
         void const *inputs[]{*gpuIn};
         void *outputs[]{*gpuOut};
-        routine(res, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{data.data()};
         void *outputs[]{ans.data()};
-        rCpu(res, inputs, outputs);
+        rCpu(res, nullptr, inputs, outputs);
     }
     // check
     gpuOut->copyOut(result.data(), output->bytesSize());

@@ -28,7 +28,7 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     void const *inputs[]{*gpuMemIn};
     void *outputs[]{*gpuMemOut};
     // inference
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     Shape outDimArray;
     std::unordered_set axesSet(axes.begin(), axes.end());

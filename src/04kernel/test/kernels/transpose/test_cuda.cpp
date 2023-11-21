@@ -33,12 +33,12 @@ TEST(kernel, TransposeCuda) {
     {
         void const *inputs[]{cpuIn.data()};
         void *outputs[]{cpuOut.data()};
-        rCpu(res, inputs, outputs);
+        rCpu(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{*gpuIn};
         void *outputs[]{*gpuOut};
-        routine(res, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     // take output data
     std::vector<float> result(dataTensor->elementsSize());

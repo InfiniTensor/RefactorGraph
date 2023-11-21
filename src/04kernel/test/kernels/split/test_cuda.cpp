@@ -63,12 +63,12 @@ TEST(kernel, SplitCuda) {
     {
         void const *inputs[]{*gpuIn};
         void *outputs[]{*gpuOuts[0], *gpuOuts[1], *gpuOuts[2], *gpuOuts[3]};
-        routine(res, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{data.data()};
         void *outputs[]{outsCpu[0].data(), outsCpu[1].data(), outsCpu[2].data(), outsCpu[3].data()};
-        rCpu(res, inputs, outputs);
+        rCpu(res, nullptr, inputs, outputs);
     }
     // check
     for (auto i : range0_(outputTensors.size())) {

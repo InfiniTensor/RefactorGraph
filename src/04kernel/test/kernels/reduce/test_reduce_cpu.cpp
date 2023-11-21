@@ -18,7 +18,7 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
         out(data.size());
     void *outputs[]{out.data()};
     // inference
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // check
     for (auto i : range0_(ExpectData.size())) {
         EXPECT_FLOAT_EQ(ExpectData[i], out[i]);

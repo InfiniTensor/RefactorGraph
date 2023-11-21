@@ -137,7 +137,7 @@ namespace refactor::kernel {
         using namespace runtime;
         using dt = typename primitive<T>::type;
 
-        return [info](Resources &, void const **inputs, void **outputs) {
+        return [info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto x = reinterpret_cast<dt const *>(inputs[0]);
             auto y = reinterpret_cast<dt *>(outputs[0]);
             int numBlocks = info.pre * info.post;

@@ -20,7 +20,7 @@ TEST(kernel, TransposeCpu) {
     // inference
     void const *inputs[]{data.data()};
     void *outputs[]{out.data()};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // check
     fmt::println("{}", vec2str(data));
     fmt::println("{}", vec2str(out));

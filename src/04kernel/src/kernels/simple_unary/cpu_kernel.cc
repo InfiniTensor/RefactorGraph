@@ -53,14 +53,14 @@ namespace refactor::kernel {
         return static_cast<T>(std::tanh(static_cast<M>(x)));
     }
     auto copyForUnsigned(size_t n) noexcept -> Routine {
-        return [n](runtime::Resources &, void const **inputs, void **outputs) {
+        return [n](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             std::memcpy(outputs[0], inputs[0], n);
         };
     }
 
 #define CASE(OP, T)                                                                          \
     case DT::T:                                                                              \
-        return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
+        return [n = this->size](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
             using T_ = primitive<DT::T>::type;                                               \
             auto x = reinterpret_cast<T_ const *>(inputs[0]);                                \
             auto y = reinterpret_cast<T_ *>(outputs[0]);                                     \

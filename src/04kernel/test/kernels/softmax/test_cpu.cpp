@@ -24,7 +24,7 @@ TEST(kernel, SoftmaxCpu) {
     // inference
     void const *inputs[]{*mx};
     void *outputs[]{*my};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<double> result(yTensor->elementsSize());
     my->copyOut(result.data(), yTensor->bytesSize());

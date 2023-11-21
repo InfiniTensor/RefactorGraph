@@ -31,12 +31,12 @@ TEST(kernel, SoftmaxCudnn) {
     {
         void const *inputs[]{data.data()};
         void *outputs[]{cpuOut.data()};
-        rCpu(res, inputs, outputs);
+        rCpu(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{*gpuX};
         void *outputs[]{*gpuOut};
-        rCudnn(res, inputs, outputs);
+        rCudnn(res, nullptr, inputs, outputs);
     }
     // take output data
     std::vector<float> result(outTensor->elementsSize());

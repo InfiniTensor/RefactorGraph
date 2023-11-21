@@ -41,7 +41,7 @@ namespace refactor::kernel {
             info.idxType == DataType::I64,
         };
         auto params = cuda::ThreadsDistributer()(info.prefix * info.midSizeO * info_.batch);
-        return [info_, params](Resources &, void const **inputs, void **outputs) {
+        return [info_, params](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             cuda::launchGather(
                 params,
                 inputs[0],

@@ -28,7 +28,7 @@ namespace refactor::kernel {
 
         res.fetchOrStore<CudnnContext>();
 
-        return [d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
+        return [d_ = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto const &d = *d_;
             float alpha = 1, beta = 0;
             CUDNN_ASSERT(cudnnSoftmaxForward(

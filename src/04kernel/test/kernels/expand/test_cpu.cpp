@@ -22,7 +22,7 @@ TEST(kernel, ExpandCpu) {
     {
         void const *inputs[]{data.data()};
         void *outputs[]{result.data()};
-        routine(res, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     // check
     {
@@ -45,7 +45,7 @@ TEST(kernel, ExpandCpu) {
     {
         void const *inputs[]{data.data()};
         void *outputs[]{resultReformed.data()};
-        routineReformed(res, inputs, outputs);
+        routineReformed(res, nullptr, inputs, outputs);
     }
     // check
     ASSERT_EQ(result, resultReformed);

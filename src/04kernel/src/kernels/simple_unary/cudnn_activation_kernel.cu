@@ -41,7 +41,7 @@ namespace refactor::kernel {
 
         res.fetchOrStore<CudnnContext>();
         // nvcc at c++11 doesn't support real move capture
-        return [d = std::move(d)](Resources &res, void const **inputs, void **outputs) {
+        return [d = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             // name inputs and outputs

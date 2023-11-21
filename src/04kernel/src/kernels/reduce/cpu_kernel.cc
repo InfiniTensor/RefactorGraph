@@ -80,7 +80,7 @@ namespace refactor::kernel {
             default:
                 UNREACHABLE();
         }
-        return [info, outsideSize, onAxesSize, accumulate, tailInvoke](Resources &res, void const **inputs, void **outputs) {
+        return [info, outsideSize, onAxesSize, accumulate, tailInvoke](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto input = reinterpret_cast<dt const *>(inputs[0]);
             auto output = reinterpret_cast<dt *>(outputs[0]);
             for (auto i : range0_(outsideSize)) {

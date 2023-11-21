@@ -35,12 +35,12 @@ TEST(kernel, GatherCuda) {
         {
             void const *inputs[]{*aGPU, *bGPU};
             void *outputs[]{*cGPU};
-            cudaRoutine(res, inputs, outputs);
+            cudaRoutine(res, nullptr, inputs, outputs);
         }
         {
             void const *inputs[]{a.data(), b.data()};
             void *outputs[]{c.data()};
-            cpuRoutine(res, inputs, outputs);
+            cpuRoutine(res, nullptr, inputs, outputs);
         }
         // Compare
         std::vector<float> result(output->elementsSize());
@@ -76,12 +76,12 @@ TEST(kernel, GatherCuda) {
         {
             void const *inputs[]{*aGPU, *bGPU};
             void *outputs[]{*cGPU};
-            cudaRoutine(res, inputs, outputs);
+            cudaRoutine(res, nullptr, inputs, outputs);
         }
         {
             void const *inputs[]{a.data(), b.data()};
             void *outputs[]{c.data()};
-            cpuRoutine(res, inputs, outputs);
+            cpuRoutine(res, nullptr, inputs, outputs);
         }
         // Compare
         std::vector<float> result(output->elementsSize());

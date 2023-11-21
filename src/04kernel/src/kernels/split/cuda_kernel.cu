@@ -12,7 +12,7 @@ namespace refactor::kernel {
         return [segments = thrust::device_vector<dim_t>(info.segments.begin(), info.segments.end()),
                 params = cuda::ThreadsDistributer()(info.blockCount * info.sum / sub),
                 sum = info.sum / sub,
-                sub](Resources &res, void const **inputs, void **outputs) {
+                sub](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto size = segments.size() * sizeof(void *);
             auto outputs_ = mem_manager::ForeignBlob::share(res.fetch<MemManager>()->manager, size);
             outputs_->copyIn(outputs, size);

@@ -75,7 +75,7 @@ namespace refactor::kernel {
                     md,                                                                                                  \
                     stepY = info.m * info.n,                                                                             \
                     stepA = info.m * info.k,                                                                             \
-                    stepB = info.k * info.n](runtime::Resources &, void const **inputs, void **outputs) {                \
+                    stepB = info.k * info.n](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) {                \
                 auto A = reinterpret_cast<T_ const *>(inputs[0]);                                                        \
                 auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                        \
                 auto C = reinterpret_cast<T_ const *>(inputs[2]);                                                        \
@@ -92,7 +92,7 @@ namespace refactor::kernel {
                     md,                                                                                                  \
                     stepY = info.m * info.n,                                                                             \
                     stepA = info.m * info.k,                                                                             \
-                    stepB = info.k * info.n](runtime::Resources &, void const **inputs, void **outputs) {                \
+                    stepB = info.k * info.n](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) {                \
                 auto A = reinterpret_cast<T_ const *>(inputs[0]);                                                        \
                 auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                        \
                 auto Y = reinterpret_cast<T_ *>(outputs[0]);                                                             \
