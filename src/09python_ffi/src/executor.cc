@@ -15,19 +15,21 @@ namespace refactor::python_ffi {
     void Executor::setInput(count_t i, pybind11::array data) {
         auto globalInputs = _graph.internal().contiguous().topology.globalInputs();
         ASSERT(i < globalInputs.size(), "input index out of range");
+        i = globalInputs[i];
 
-        auto const &tensor = *_graph.internal().contiguous().edges[globalInputs[i]].tensor;
+        auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
         ASSERT(tensor.bytesSize() == data.nbytes(), "input size mismatch");
-        _stream.setInput(i, data.data(), data.nbytes());
+        _stream.setData(i, data.data(), data.nbytes());
     }
 
     auto Executor::getOutput(count_t i) -> pybind11::array {
         auto globalOutputs = _graph.internal().contiguous().topology.globalOutputs();
         ASSERT(i < globalOutputs.size(), "output index out of range");
+        i = globalOutputs[i];
 
-        auto const &tensor = *_graph.internal().contiguous().edges[globalOutputs[i]].tensor;
-        auto ans = pybind11::array(buildNumpyDType(tensor.dataType), std::move(tensor.shape), nullptr);
-        _stream.getOutput(i, ans.mutable_data(), ans.nbytes());
+        auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
+        auto ans = pybind11::array(buildNumpyDType(tensor.dataType), std::move(tensor.shape));
+        _stream.getData(i, ans.mutable_data(), ans.nbytes());
         return ans;
     }
 

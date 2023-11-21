@@ -53,9 +53,9 @@ namespace refactor::runtime {
                graph_topo::GraphTopo,
                std::vector<_N>,
                std::vector<_E>);
-        void setInput(count_t, void const *, size_t);
-        void setInput(count_t, mem_manager::SharedForeignBlob);
-        void getOutput(count_t, void *, size_t) const;
+        void setData(count_t, void const *, size_t);
+        void setData(count_t, mem_manager::SharedForeignBlob);
+        void getData(count_t, void *, size_t) const;
         auto prepare() -> std::vector<count_t>;
         void run();
         auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;

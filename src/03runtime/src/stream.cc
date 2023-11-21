@@ -42,26 +42,17 @@ namespace refactor::runtime {
           }) {
     }
 
-    void Stream::setInput(count_t i, void const *data, size_t size) {
-        auto globalInputs = _internal.topology.globalInputs();
-        ASSERT(i < globalInputs.size(), "input index out of range");
-
+    void Stream::setData(count_t i, void const *data, size_t size) {
         auto allocator = _resources.fetch<MemManager>()->manager;
         auto blob = ForeignBlob::share(std::move(allocator), size);
         blob->copyIn(data, size);
-        _internal.edges[globalInputs[i]].value = {std::move(blob)};
+        _internal.edges[i].value = {std::move(blob)};
     }
-    void Stream::setInput(count_t i, mem_manager::SharedForeignBlob blob) {
-        auto globalInputs = _internal.topology.globalInputs();
-        ASSERT(i < globalInputs.size(), "input index out of range");
-
-        _internal.edges[globalInputs[i]].value = {std::move(blob)};
+    void Stream::setData(count_t i, mem_manager::SharedForeignBlob blob) {
+        _internal.edges[i].value = {std::move(blob)};
     }
-    void Stream::getOutput(count_t i, void *data, size_t size) const {
-        auto globalOutputs = _internal.topology.globalOutputs();
-        ASSERT(i < globalOutputs.size(), "output index out of range");
-
-        _internal.edges[globalOutputs[i]].blob()->copyOut(data, size);
+    void Stream::getData(count_t i, void *data, size_t size) const {
+        _internal.edges[i].blob()->copyOut(data, size);
     }
 
     auto Stream::prepare() -> std::vector<count_t> {

@@ -90,7 +90,7 @@ namespace refactor::python_ffi {
             std::transform(std::execution::unseq,
                            tensor.shape.begin(), tensor.shape.end(), shape.begin(),
                            [](auto const &d) { return d.value(); });
-            ans.push_back(py::array(buildNumpyDType(tensor.dataType), std::move(shape), nullptr));
+            ans.push_back(py::array(buildNumpyDType(tensor.dataType), std::move(shape)));
         }
         return ans;
     }
@@ -108,7 +108,7 @@ namespace refactor::python_ffi {
                        tensor.shape.begin(), tensor.shape.end(), shape.begin(),
                        [](auto const &d) { return d.value(); });
 
-        auto ans = py::array(buildNumpyDType(tensor.dataType), std::move(shape), nullptr);
+        auto ans = py::array(buildNumpyDType(tensor.dataType), std::move(shape));
         if (tensor.data) { std::memcpy(ans.mutable_data(), tensor.data->get<void>(), ans.nbytes()); }
         return ans;
     }
