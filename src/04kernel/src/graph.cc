@@ -19,16 +19,26 @@ namespace refactor::kernel {
         runtime::Resources res;
         res.fetchOrStore<runtime::MemManager>(_target.memManager());
 
-        std::vector<Routine> routines;
-        routines.reserve(_internal.nodes.size());
-        std::transform(_internal.nodes.begin(), _internal.nodes.end(),
-                       std::back_inserter(routines),
-                       [&](auto const &node) {
-                           return node.kernel
-                                      ? node.kernel->lower(res)
-                                      : refactor::runtime::emptyRoutine;
-                       });
-        auto [stack, offsets] = allocator(_internal, sizeof(uint64_t));
+        auto nodeCount = _internal.nodes.size();
+        std::vector<size_t> workspace(nodeCount, 0);
+        std::vector<runtime::Node> nodes;
+        nodes.reserve(nodeCount);
+        for (auto i : range0_(nodeCount)) {
+            if (auto const &node = _internal.nodes[i]; node.kernel) {
+                nodes.emplace_back(runtime::Node{node.kernel->lower(res), 0});
+                workspace[i] = 0;
+            } else {
+                nodes.emplace_back(runtime::Node{runtime::emptyRoutine, 0});
+            }
+        }
+
+        auto [stack,
+              edgeOffsets,
+              worksapceOffsets] = allocator(_internal, slice(workspace.data(), workspace.size()), 32);
+        for (auto i : range0_(nodeCount)) {
+            nodes[i].workspaceOffset = worksapceOffsets[i];
+        }
+
         auto outputs = _internal.topology.globalOutputs();
         std::vector<size_t> outputs_(outputs.size());
         std::transform(outputs.begin(), outputs.end(),
@@ -40,8 +50,8 @@ namespace refactor::kernel {
             stack,
             std::move(outputs_),
             _internal.topology,
-            std::move(routines),
-            std::move(offsets));
+            std::move(nodes),
+            std::move(edgeOffsets));
     }
 
 }// namespace refactor::kernel

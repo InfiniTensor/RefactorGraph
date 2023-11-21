@@ -24,9 +24,10 @@ namespace refactor::kernel {
     struct AllocScheme {
         size_t size;
         std::vector<Address> addresses;
+        std::vector<size_t> workspaceOffsets;
     };
 
-    using Allocator = AllocScheme (*)(graph_topo::Graph<Node, Edge> const &, size_t);
+    using Allocator = AllocScheme (*)(graph_topo::Graph<Node, Edge> const &, slice_t<size_t>, size_t);
 
     struct Graph {
         using _N = Node;

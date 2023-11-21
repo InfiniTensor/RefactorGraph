@@ -99,7 +99,8 @@ namespace refactor::runtime {
         std::vector<void *> buffer(16);
         for (auto const [nodeIdx, i, o] : _internal.topology) {
             auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
-            _internal.nodes[nodeIdx](_resources, inputs, outputs);
+            auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
+            routine(_resources, inputs, outputs);
         }
     }
 
@@ -109,7 +110,8 @@ namespace refactor::runtime {
         for (auto const [nodeIdx, i, o] : _internal.topology) {
             auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
             auto t0 = std::chrono::high_resolution_clock::now();
-            _internal.nodes[nodeIdx](_resources, inputs, outputs);
+            auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
+            routine(_resources, inputs, outputs);
             if (sync) { sync(); }
             auto t1 = std::chrono::high_resolution_clock::now();
             ans[nodeIdx] = t1 - t0;
@@ -121,7 +123,8 @@ namespace refactor::runtime {
         std::vector<void *> buffer(16);
         for (auto const [nodeIdx, i, o] : _internal.topology) {
             auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
-            _internal.nodes[nodeIdx](_resources, inputs, outputs);
+            auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
+            routine(_resources, inputs, outputs);
             record(nodeIdx, inputs, outputs);
         }
     }

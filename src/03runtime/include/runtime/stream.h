@@ -26,8 +26,13 @@ namespace refactor::runtime {
         auto offset() const noexcept -> size_t;
     };
 
+    struct Node {
+        Routine routine;
+        size_t workspaceOffset;
+    };
+
     class Stream {
-        using _N = Routine;
+        using _N = Node;
         using _E = Address;
         using _G = graph_topo::Graph<_N, _E>;
 
