@@ -15,20 +15,20 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
-    auto routine = kernel->lower(res).routine;
+    auto [routine, workspaceSize] = kernel->lower(res);
     // cuda malloc
-    auto gpuMemIn = mem_manager::ForeignBlob::share(
-        Target(Target::NvidiaGpu).memManager(),
-        dataTensor->bytesSize());
-    auto gpuMemOut = mem_manager::ForeignBlob::share(
-        Target(Target::NvidiaGpu).memManager(),
-        dataTensor->bytesSize());
+    auto manager = Target(Target::NvidiaGpu).memManager();
+    auto workspace = mem_manager::ForeignBlob::share(manager, workspaceSize);
+    auto gpuMemIn = mem_manager::ForeignBlob::share(manager, dataTensor->bytesSize());
+    auto gpuMemOut = mem_manager::ForeignBlob::share(manager, dataTensor->bytesSize());
     // put input output data
     gpuMemIn->copyIn(data.data(), dataTensor->bytesSize());
-    void const *inputs[]{*gpuMemIn};
-    void *outputs[]{*gpuMemOut};
     // inference
-    routine(res, nullptr, inputs, outputs);
+    {
+        void const *inputs[]{*gpuMemIn};
+        void *outputs[]{*gpuMemOut};
+        routine(res, *workspace, inputs, outputs);
+    }
     // take output data
     Shape outDimArray;
     std::unordered_set axesSet(axes.begin(), axes.end());

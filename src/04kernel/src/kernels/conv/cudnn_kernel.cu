@@ -14,10 +14,9 @@ namespace refactor::kernel {
             cudnnFilterDescriptor_t w;
             cudnnConvolutionDescriptor_t conv;
             cudnnConvolutionFwdAlgo_t algo;
-            size_t workspaceSize;
             bool f64;
 
-            Descriptors() : workspaceSize(0) {
+            Descriptors(bool f64_) : f64(f64_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&y));
                 CUDNN_ASSERT(cudnnCreateFilterDescriptor(&w));
@@ -33,8 +32,7 @@ namespace refactor::kernel {
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
-        auto d = std::make_shared<Descriptors>();
-        d->f64 = info.dt == DataType::F64;
+        auto d = std::make_shared<Descriptors>(info.dt == DataType::F64);
 
         auto cudnnDataType = cudnnDataTypeConvert(info.dt);
         auto xs = info.xShape, ys = info.yShape, ws = info.wShape;
@@ -59,20 +57,21 @@ namespace refactor::kernel {
             // for high accuracy, use this algo only
             // d->algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
         }
+        size_t workspaceSize;
         {
             CUDNN_ASSERT(cudnnGetConvolutionForwardWorkspaceSize(
                 handle,
                 d->x, d->w, d->conv, d->y,
                 d->algo,
-                &d->workspaceSize));
+                &workspaceSize));
         }
         // nvcc at c++11 doesn't support real move capture
-        return [d_ = std::move(d)](Resources &res, void *workspace_, void const *const *inputs, void *const *outputs) {
+        auto routine = [d_ = std::move(d),
+                        workspaceSize](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             using mem_manager::ForeignBlob;
             auto const &d = *d_;
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
-            auto workspace = ForeignBlob::share(res.fetch<MemManager>()->manager, d.workspaceSize);
             // build alpha/beta for double
             union {
                 float f32[2];
@@ -96,10 +95,11 @@ namespace refactor::kernel {
                 d.x, inputs[0],
                 d.w, inputs[1],
                 d.conv, d.algo,
-                *workspace, d.workspaceSize,
+                workspace, workspaceSize,
                 beta,
                 d.y, outputs[0]));
         };
+        return {std::move(routine), workspaceSize};
     }
 
 }// namespace refactor::kernel

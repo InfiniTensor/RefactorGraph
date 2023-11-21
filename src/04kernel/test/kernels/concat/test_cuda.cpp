@@ -30,11 +30,12 @@ TEST(kernel, ConcatCuda) {
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
     auto rCpu = kCpu->lower(res).routine;
-    auto routine = kernel->lower(res).routine;
+    auto [routine, workspaceSize] = kernel->lower(res);
     // malloc
     res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
     auto memManager = res.fetch<runtime::MemManager>()->manager;
     Arc<mem_manager::ForeignBlob>
+        workspace = mem_manager::ForeignBlob::share(memManager, workspaceSize),
         gpuIns[]{
             mem_manager::ForeignBlob::share(memManager, inputTensors[0]->bytesSize()),
             mem_manager::ForeignBlob::share(memManager, inputTensors[1]->bytesSize()),
@@ -64,7 +65,7 @@ TEST(kernel, ConcatCuda) {
     {
         void const *inputs[]{*gpuIns[0], *gpuIns[1], *gpuIns[2], *gpuIns[3]};
         void *outputs[]{*gpuOut};
-        routine(res, nullptr, inputs, outputs);
+        routine(res, *workspace, inputs, outputs);
     }
     {
         void const *inputs[]{cpuIns[0].data(), cpuIns[1].data(), cpuIns[2].data(), cpuIns[3].data()};

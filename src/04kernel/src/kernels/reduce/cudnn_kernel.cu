@@ -2,7 +2,7 @@
 #include "../../utilities/cuda/cudnn_functions.h"
 #include "common.h"
 #include "cudnn_kernel.hh"
-#include "runtime/mem_manager.hh"
+#include "mem_manager/functions.h"
 
 namespace refactor::kernel {
     using namespace cudnn;
@@ -13,12 +13,9 @@ namespace refactor::kernel {
         struct Descriptors {
             cudnnTensorDescriptor_t inDesc;
             cudnnTensorDescriptor_t outDesc;
-
             cudnnReduceTensorDescriptor_t reduceDesc;
-            size_t workspaceSize;
-            size_t idxWorkspaceSize;
 
-            Descriptors() : workspaceSize(0), idxWorkspaceSize(0) {
+            Descriptors() {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&inDesc));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&outDesc));
                 CUDNN_ASSERT(cudnnCreateReduceTensorDescriptor(&reduceDesc));
@@ -122,36 +119,39 @@ namespace refactor::kernel {
             CUDNN_NOT_PROPAGATE_NAN, CUDNN_REDUCE_TENSOR_NO_INDICES,
             CUDNN_32BIT_INDICES));
 
-        // get workspace
-        CUDNN_ASSERT(
-            cudnnGetReductionWorkspaceSize(handler, d->reduceDesc,
-                                           d->inDesc, d->outDesc, &d->workspaceSize));
-
+        size_t idxWorkspaceSize, workspaceSize;
         // get index workspace
         CUDNN_ASSERT(
             cudnnGetReductionIndicesSize(handler, d->reduceDesc,
-                                         d->inDesc, d->outDesc, &d->idxWorkspaceSize));
-
+                                         d->inDesc, d->outDesc, &idxWorkspaceSize));
+        // get workspace
+        CUDNN_ASSERT(
+            cudnnGetReductionWorkspaceSize(handler, d->reduceDesc,
+                                           d->inDesc, d->outDesc, &workspaceSize));
+        idxWorkspaceSize = mem_manager::alignBytes(idxWorkspaceSize, 256);
 
         // nvcc at c++11 doesn't support real move capture
-        return [d_ = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            using mem_manager::ForeignBlob;
+        auto routine = [d_ = std::move(d),
+                        idxWorkspaceSize,
+                        workspaceSize](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             auto const &d = *d_;
-            auto wsData = ForeignBlob::share(res.fetch<runtime::MemManager>()->manager, d.workspaceSize);
-            auto idxWsData = ForeignBlob::share(res.fetch<runtime::MemManager>()->manager, d.idxWorkspaceSize);
-
             // name inputs and outputs
             auto inData = inputs[0];
             auto outData = outputs[0];
             // reduce
             float alpha = 1.f, beta = 0.f;
-            CUDNN_ASSERT(cudnnReduceTensor(handle, d.reduceDesc,
-                                           *idxWsData, d.idxWorkspaceSize, *wsData,
-                                           d.workspaceSize, &alpha, d.inDesc, inData,
-                                           &beta, d.outDesc, outData));
+            void *idxWorkspace = workspace,
+                 *dataWorkspace = reinterpret_cast<uint8_t *>(workspace) + idxWorkspaceSize;
+            CUDNN_ASSERT(cudnnReduceTensor(
+                handle, d.reduceDesc,
+                idxWorkspace, idxWorkspaceSize,
+                dataWorkspace, workspaceSize,
+                &alpha, d.inDesc, inData,
+                &beta, d.outDesc, outData));
         };
+        return RoutineWorkspace(std::move(routine), idxWorkspaceSize + workspaceSize);
     }
 
 }// namespace refactor::kernel
