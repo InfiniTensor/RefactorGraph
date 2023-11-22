@@ -1,7 +1,7 @@
 #ifndef MEM_MANAGER_MEM_OFFSET_CALCULATOR_H
 #define MEM_MANAGER_MEM_OFFSET_CALCULATOR_H
 
-#include <cstddef>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -31,8 +31,16 @@ namespace refactor::mem_manager {
         // value: blockSize of the block
         std::unordered_map<size_t, size_t> _tailAddrToBlockSize;
 
+        struct TraceInfo {
+            size_t allocTimes, freeTimes;
+        };
+        std::optional<TraceInfo> _traceInfo;
+        // trace format :
+        // CALCULATOR this alloc/free begin end size allocTimes freeTimes peak rate freeCount minBlockSize maxBlockSize
+        void trace(std::string event);
+
     public:
-        explicit OffsetCalculator(size_t alignment);
+        explicit OffsetCalculator(size_t alignment, bool trace = false);
 
         // function: simulate memory allocation
         // arguments:
@@ -47,7 +55,6 @@ namespace refactor::mem_manager {
         void free(size_t addr, size_t size);
 
         size_t peak() const noexcept;
-        std::string info() const noexcept;
     };
 
 }// namespace refactor::mem_manager

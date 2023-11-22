@@ -1,7 +1,7 @@
 #include "mem_manager/mem_offset_calculator.h"
 #include "common.h"
 #include "mem_manager/functions.h"
-#include <utility>
+#include <fmtlog.h>
 
 namespace refactor::mem_manager {
 
@@ -11,13 +11,20 @@ namespace refactor::mem_manager {
         return blockSize < rhs.blockSize || (blockSize == rhs.blockSize && addr < rhs.addr);
     }
 
-    OffsetCalculator::OffsetCalculator(size_t alignment)
+    OffsetCalculator::OffsetCalculator(size_t alignment, bool trace)
         : _used(0),
           _peak(0),
           _alignment(alignment),
           _freeBlocks{},
           _headAddrToBlockSize{},
-          _tailAddrToBlockSize{} {}
+          _tailAddrToBlockSize{},
+#ifndef NDEBUG
+          _traceInfo(trace ? std::make_optional(TraceInfo{0, 0}) : std::nullopt)
+#else
+          _traceInfo(std::nullopt)
+#endif
+    {
+    }
 
     size_t OffsetCalculator::alloc(size_t size) {
         // pad the size to the multiple of alignment
@@ -42,6 +49,10 @@ namespace refactor::mem_manager {
                 _tailAddrToBlockSize.emplace(tail, newSize);
                 _freeBlocks.insert({head, newSize});
             }
+            if (_traceInfo) {
+                ++_traceInfo->allocTimes;
+                trace(fmt::format("alloc {:>#10} {:>#10} {:<#10}", addr, addr + size, size));
+            }
             return addr;
         }
         // found an free memory block for allocation located at the end of the currently allocated memory
@@ -54,12 +65,20 @@ namespace refactor::mem_manager {
             _headAddrToBlockSize.erase(addr);
             _tailAddrToBlockSize.erase(it);
             _peak += size - blockSize;
+            if (_traceInfo) {
+                ++_traceInfo->allocTimes;
+                trace(fmt::format("alloc {:>#10} {:>#10} {:<#10}", addr, addr + size, size));
+            }
             return addr;
         }
         // no available free memory block for allocation, allocate memory at the end of the currently allocated memory
         {
             auto addr = _peak;
             _peak += size;
+            if (_traceInfo) {
+                ++_traceInfo->allocTimes;
+                trace(fmt::format("alloc {:>#10} {:>#10} {:<#10}", addr, addr + size, size));
+            }
             return addr;
         }
     }
@@ -88,14 +107,26 @@ namespace refactor::mem_manager {
         _freeBlocks.insert({head, size});
         _headAddrToBlockSize.emplace(head, size);
         _tailAddrToBlockSize.emplace(tail, size);
+
+        if (_traceInfo) {
+            ++_traceInfo->freeTimes;
+            trace(fmt::format("free  {:>#10} {:>#10} -{:<#9}", head, tail, size));
+        }
     }
 
     size_t OffsetCalculator::peak() const noexcept {
         return _peak;
     }
 
-    std::string OffsetCalculator::info() const noexcept {
-        return fmt::format("Used memory: {}, peak memory: {}", _used, _peak);
+    void OffsetCalculator::trace(std::string event) {
+        logi("CALCULATOR {} {} {:>5} {:>5} {:>#10} {:>#6f} {:>5} {:>#10} {:>#10}",
+             reinterpret_cast<void *>(this),
+             event,
+             _traceInfo->allocTimes, _traceInfo->freeTimes,
+             _peak, static_cast<double>(_used) / _peak,
+             _freeBlocks.size(),
+             _freeBlocks.empty() ? 0 : _freeBlocks.begin()->blockSize,
+             _freeBlocks.empty() ? 0 : _freeBlocks.rbegin()->blockSize);
     }
 
 }// namespace refactor::mem_manager
