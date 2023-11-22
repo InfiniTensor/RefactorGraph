@@ -19,7 +19,7 @@ namespace refactor::kernel {
         std::unordered_set<size_t> globalOutputs(globalOutputs_.begin(), globalOutputs_.end());
         std::vector<Address> addresses(g.edges.size(), {nullptr});
         std::vector<size_t> workspaceOffsets(workspace.size());
-        mem_manager::OffsetCalculator calculator(alignBytes);
+        mem_manager::OffsetCalculator calculator(alignBytes, true);
         for (auto [nodeIdx, inputs, outputs] : g.topology) {
             for (auto outputIdx : outputs) {
                 if (edgeRc[outputIdx] && globalOutputs.find(outputIdx) == globalOutputs.end()) {

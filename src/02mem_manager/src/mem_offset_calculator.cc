@@ -11,13 +11,14 @@ namespace refactor::mem_manager {
         return blockSize < rhs.blockSize || (blockSize == rhs.blockSize && addr < rhs.addr);
     }
 
-    OffsetCalculator::OffsetCalculator(size_t alignment)
+    OffsetCalculator::OffsetCalculator(size_t alignment, bool trace)
         : _used(0),
           _peak(0),
           _alignment(alignment),
           _freeBlocks{},
           _headAddrToBlockSize{},
-          _tailAddrToBlockSize{} {}
+          _tailAddrToBlockSize{},
+          _trace(trace) {}
 
     size_t OffsetCalculator::alloc(size_t size) {
         // pad the size to the multiple of alignment
@@ -42,6 +43,10 @@ namespace refactor::mem_manager {
                 _tailAddrToBlockSize.emplace(tail, newSize);
                 _freeBlocks.insert({head, newSize});
             }
+            if (_trace) {
+                fmt::println("alloc {:>10} bytes at offset {:>10}", size, addr);
+                fmt::println(info());
+            }
             return addr;
         }
         // found an free memory block for allocation located at the end of the currently allocated memory
@@ -54,12 +59,24 @@ namespace refactor::mem_manager {
             _headAddrToBlockSize.erase(addr);
             _tailAddrToBlockSize.erase(it);
             _peak += size - blockSize;
+            if (_trace) {
+                if (size - blockSize > 0) {
+                    fmt::println("[Info] Insufficient memory capacity requested at present, increase the peak.");
+                }
+                fmt::println("alloc {:>10} bytes at offset {:>10}", size, addr);
+                fmt::println(info());
+            }
             return addr;
         }
         // no available free memory block for allocation, allocate memory at the end of the currently allocated memory
         {
             auto addr = _peak;
             _peak += size;
+            if (_trace) {
+                fmt::println("[Info] Insufficient memory capacity requested at present, increase the peak.");
+                fmt::println("alloc {:>10} bytes at offset {:>10}", size, addr);
+                fmt::println(info());
+            }
             return addr;
         }
     }
@@ -68,6 +85,10 @@ namespace refactor::mem_manager {
         // pad the size to the multiple of alignment
         size = alignBytes(size, _alignment);
         _used -= size;
+        if (_trace) {
+            fmt::println("free {:>10} bytes at offset {:>10}", size, addr);
+            fmt::println(info());
+        }
 
         auto head = addr,
              tail = addr + size;
@@ -77,6 +98,9 @@ namespace refactor::mem_manager {
             _freeBlocks.erase({head, it->second});
             _headAddrToBlockSize.erase(head);
             _tailAddrToBlockSize.erase(it);
+            if (_trace) {
+                fmt::println("[Info] coalescence with freeBlock [head: {}, size: {}]", head, it->second);
+            }
         }
         if (auto it = _headAddrToBlockSize.find(tail); it != _headAddrToBlockSize.end()) {
             tail += it->second;
@@ -84,6 +108,9 @@ namespace refactor::mem_manager {
             _freeBlocks.erase({it->first, it->second});
             _headAddrToBlockSize.erase(it);
             _tailAddrToBlockSize.erase(tail);
+            if (_trace) {
+                fmt::println("[Info] coalescence with freeBlock [head:{}, size: {}]", it->first, it->second);
+            }
         }
         _freeBlocks.insert({head, size});
         _headAddrToBlockSize.emplace(head, size);
@@ -95,7 +122,7 @@ namespace refactor::mem_manager {
     }
 
     std::string OffsetCalculator::info() const noexcept {
-        return fmt::format("Used memory: {}, peak memory: {}", _used, _peak);
+        return fmt::format("[Info] Used memory: {:>10}, peak memory: {:>10}", _used, _peak);
     }
 
 }// namespace refactor::mem_manager

@@ -31,8 +31,11 @@ namespace refactor::mem_manager {
         // value: blockSize of the block
         std::unordered_map<size_t, size_t> _tailAddrToBlockSize;
 
+        // whether to track allocation information
+        bool _trace;
+
     public:
-        explicit OffsetCalculator(size_t alignment);
+        explicit OffsetCalculator(size_t alignment, bool trace = false);
 
         // function: simulate memory allocation
         // arguments:
