@@ -90,7 +90,7 @@ TEST(kernel, MatMulCublas_Broadcast) {
     my->copyOut(result.data(), Y->bytesSize());
     // check
     for (auto i = 0; i < result.size(); i++) {
-        // EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
+        EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
     }
 }
 
@@ -190,7 +190,7 @@ TEST(kernel, MatMulCublas_Large) {
     my->copyOut(result.data(), Y->bytesSize());
     // check
     for (auto i = 0; i < result.size(); i++) {
-        // EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
+        EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
     }
 }
 

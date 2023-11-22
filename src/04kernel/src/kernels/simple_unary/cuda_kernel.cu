@@ -50,9 +50,9 @@ namespace refactor::kernel {
 #define CASE(FUNC, TYPE) \
     case DT::TYPE:       \
         return lowerTyped<primitive<DT::TYPE>::type, FUNC##Functor<primitive<DT::TYPE>::type>>(size)
-#define COPY                                                                                   \
+#define COPY                                                                                                                \
     return [size = size * dataType.size()](Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
-        cudaMemcpyAsync(outputs[0], inputs[0], size, cudaMemcpyDeviceToDevice);                \
+        cudaMemcpyAsync(outputs[0], inputs[0], size, cudaMemcpyDeviceToDevice);                                             \
     }
 #define GROUP_F(FUNC) \
     CASE(FUNC, F32);  \

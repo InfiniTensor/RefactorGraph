@@ -31,7 +31,6 @@ namespace refactor::kernel {
         size_t strideA0, strideA1, strideB0, strideB1;
     };
 
-
     /*
     * 2D matrix multiplication: Y = a * A @ B + b * Y
     * Assume bias C has been broadcast to Y already. Beta should be 0 in the absence of bias.
@@ -52,7 +51,6 @@ namespace refactor::kernel {
             }
         }
     }
-
 
 #define CASE(T)                                                                                                                           \
     case DT::T: {                                                                                                                         \
@@ -78,7 +76,6 @@ namespace refactor::kernel {
             }                                                                                                                             \
         };                                                                                                                                \
     }
-
 
     auto K::lower(Resources &res) const noexcept -> RoutineWorkspace {
         MatMulCPUMetaData md;

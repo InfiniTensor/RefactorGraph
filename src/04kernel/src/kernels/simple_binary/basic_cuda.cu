@@ -38,18 +38,18 @@ namespace refactor::kernel {
     KERNEL(Xor,     a[ia] ^  b[ib])
     // clang-format on
 
-#define CASE_DT(NAME, T)                                                                                        \
-    case DT::T:                                                                                                 \
-        return [strides = thrust::device_vector<dim_t>(broadcaster.strides.begin(), broadcaster.strides.end()), \
-                rank = broadcaster.inputsCount,                                                                 \
-                n = broadcaster.outputsCount](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) {      \
-            using T_ = primitive<DT::T>::type;                                                                  \
-            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                                   \
-            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                                   \
-            auto c = reinterpret_cast<T_ *>(outputs[0]);                                                        \
-            size_t blocksize = 1024;                                                                            \
-            size_t gridsize = (n + blocksize - 1) / blocksize;                                                  \
-            __binary_basic_kernel_##NAME<<<gridsize, blocksize>>>(a, b, c, strides.data().get(), rank, n);      \
+#define CASE_DT(NAME, T)                                                                                                                \
+    case DT::T:                                                                                                                         \
+        return [strides = thrust::device_vector<dim_t>(broadcaster.strides.begin(), broadcaster.strides.end()),                         \
+                rank = broadcaster.inputsCount,                                                                                         \
+                n = broadcaster.outputsCount](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
+            using T_ = primitive<DT::T>::type;                                                                                          \
+            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                                                           \
+            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                                                           \
+            auto c = reinterpret_cast<T_ *>(outputs[0]);                                                                                \
+            size_t blocksize = 1024;                                                                                                    \
+            size_t gridsize = (n + blocksize - 1) / blocksize;                                                                          \
+            __binary_basic_kernel_##NAME<<<gridsize, blocksize>>>(a, b, c, strides.data().get(), rank, n);                              \
         }
 
 #define CASE_OP(NAME)                \

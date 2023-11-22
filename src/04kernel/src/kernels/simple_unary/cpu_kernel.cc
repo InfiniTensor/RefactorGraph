@@ -58,15 +58,15 @@ namespace refactor::kernel {
         };
     }
 
-#define CASE(OP, T)                                                                          \
-    case DT::T:                                                                              \
+#define CASE(OP, T)                                                                                                       \
+    case DT::T:                                                                                                           \
         return [n = this->size](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
-            using T_ = primitive<DT::T>::type;                                               \
-            auto x = reinterpret_cast<T_ const *>(inputs[0]);                                \
-            auto y = reinterpret_cast<T_ *>(outputs[0]);                                     \
-            std::for_each_n(std::execution::par_unseq,                                       \
-                            natural_t(0), n,                                                 \
-                            [y, x](auto i) { y[i] = OP(x[i]); });                            \
+            using T_ = primitive<DT::T>::type;                                                                            \
+            auto x = reinterpret_cast<T_ const *>(inputs[0]);                                                             \
+            auto y = reinterpret_cast<T_ *>(outputs[0]);                                                                  \
+            std::for_each_n(std::execution::par_unseq,                                                                    \
+                            natural_t(0), n,                                                                              \
+                            [y, x](auto i) { y[i] = OP(x[i]); });                                                         \
         }
 
     auto K::lower(Resources &) const noexcept -> RoutineWorkspace {

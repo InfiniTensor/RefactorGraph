@@ -37,7 +37,7 @@ namespace refactor::kernel::cuda {
         splitKernel<<<
             params.gridSize,
             params.blockSize,
-            outputCount * (sizeof(unsigned int) + sizeof(void *)),
+            outputCount *(sizeof(unsigned int) + sizeof(void *)),
             reinterpret_cast<cudaStream_t>(params.stream)>>>(
             params.n,
             reinterpret_cast<uint8_t const *>(data),
