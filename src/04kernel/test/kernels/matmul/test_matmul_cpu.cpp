@@ -116,6 +116,6 @@ TEST(kernel, MatMulCPU_Broadcast) {
     my->copyOut(result.data(), Y->bytesSize());
     // check
     for (auto i = 0; i < result.size(); i++) {
-        // EXPECT_FLOAT_EQ(result[i], ans[i]);
+        EXPECT_FLOAT_EQ(result[i], ans[i]);
     }
 }
