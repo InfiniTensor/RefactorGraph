@@ -18,7 +18,7 @@ TEST(infer, Unsqueeze) {
         std::copy(val, val + 2, reinterpret_cast<int64_t *>(axes->malloc()));
     }
     count_t inputs[]{0, 1};
-    auto infered = Unsqueeze().infer(TensorRefs(edges, slice(inputs, 2)), {true});
+    auto infered = Unsqueeze(std::nullopt).infer(TensorRefs(edges, slice(inputs, 2)), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

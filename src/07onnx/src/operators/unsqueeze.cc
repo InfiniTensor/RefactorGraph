@@ -5,11 +5,18 @@
 namespace refactor::onnx {
     using Op = Unsqueeze;
 
-    Op::Unsqueeze() : Operator() {}
+    Op::Unsqueeze(decltype(axes) axes_) : Operator(), axes(std::move(axes_)) {}
 
-    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Unsqueeze operator should not have attributes");
-        return OpBox(std::make_unique<Op>());
+    auto Op::build(ModelContext const &ctx, std::string_view, Attributes attributes) -> OpBox {
+        auto iter = ctx.find("opset_version");
+        auto opsetVer = iter != ctx.end() ? iter->second.int_() : StandardOpsetVersion;
+
+        if (opsetVer >= 13) {
+            ASSERT(attributes.empty(), "Unsqueeze operator should not have attributes");
+            return OpBox(std::make_unique<Op>(std::nullopt));
+        } else {
+            return OpBox(std::make_unique<Op>(std::make_optional(attributes.at("axes").ints())));
+        }
     }
     auto Op::typeId() -> size_t {
         static uint8_t ID = 1;
@@ -21,19 +28,27 @@ namespace refactor::onnx {
     auto Op::valueDependentInputs() const -> InputVec { return {1}; }
 
     auto Op::infer(TensorRefs inputs, InferOptions const &) const -> InferResult {
-        EXPECT_SIZE(2)
+        if (inputs.empty()) {
+            return Err(InferError(ERROR_MSG("Input size error")));
+        }
 
         auto const &data = inputs[0];
-        auto const &axes = inputs[1];
-
-        if (axes.dataType != DataType::I64 || axes.shape.size() != 1 || !axes.data) {
-            return Err(InferError(ERROR_MSG("Axes not support")));
+        slice_t<int64_t> axes_;
+        if (axes) {
+            axes_ = slice(axes->data(), axes->size());
+        } else {
+            EXPECT_SIZE(2)
+            auto const &axes__ = inputs[1];
+            if (axes__.dataType != DataType::I64 || axes__.shape.size() != 1 || !axes__.data) {
+                return Err(InferError(ERROR_MSG("Axes not support")));
+            }
+            EXPECT_VAL(axes__.shape[0], axesSize)
+            axes_ = slice(axes__.data->get<int64_t>(), axesSize);
         }
-        auto axes_ = axes.data->get<int64_t>();
-        EXPECT_VAL(axes.shape[0], axesSize)
-        auto rank = data.rank() + axesSize;
+
+        auto rank = data.rank() + axes_.size();
         Shape output(rank, DimExpr(-1));
-        for (auto axis : slice(axes_, axesSize)) {
+        for (auto axis : axes_) {
             if (axis < 0) {
                 axis += rank;
             }

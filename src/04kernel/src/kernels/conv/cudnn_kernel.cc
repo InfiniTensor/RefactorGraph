@@ -22,10 +22,10 @@ namespace refactor::kernel {
             ASSERT(b->get().shape[0] == y.shape[1], "");
             std::vector<dim_t> input(y.rank(), 1);
             input[1] = y.shape[1];
-            *biasExpand = ExpandInfo(
+            biasExpand.emplace(ExpandInfo(
                 b->get().dataType,
                 slice(input.data(), input.size()),
-                slice(y.shape.data(), y.rank()));
+                slice(y.shape.data(), y.rank())));
         }
 
         // group is not supported
