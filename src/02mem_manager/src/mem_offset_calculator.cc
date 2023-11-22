@@ -1,7 +1,7 @@
 #include "mem_manager/mem_offset_calculator.h"
 #include "common.h"
 #include "mem_manager/functions.h"
-#include <utility>
+#include <fmtlog.h>
 
 namespace refactor::mem_manager {
 
@@ -18,7 +18,13 @@ namespace refactor::mem_manager {
           _freeBlocks{},
           _headAddrToBlockSize{},
           _tailAddrToBlockSize{},
-          _traceInfo(trace ? std::make_optional(TraceInfo{0, 0}) : std::nullopt) {}
+#ifndef NDEBUG
+          _traceInfo(trace ? std::make_optional(TraceInfo{0, 0}) : std::nullopt)
+#else
+          _traceInfo(std::nullopt)
+#endif
+    {
+    }
 
     size_t OffsetCalculator::alloc(size_t size) {
         // pad the size to the multiple of alignment
@@ -113,13 +119,14 @@ namespace refactor::mem_manager {
     }
 
     void OffsetCalculator::trace(std::string event) {
-        fmt::println("{} {:>5} {:>5} {:>#10} {:>#6f} {:>5} {:>#10} {:>#10}",
-                     event,
-                     _traceInfo->allocTimes, _traceInfo->freeTimes,
-                     _peak, static_cast<double>(_used) / _peak,
-                     _freeBlocks.size(),
-                     _freeBlocks.empty() ? 0 : _freeBlocks.begin()->blockSize,
-                     _freeBlocks.empty() ? 0 : _freeBlocks.rbegin()->blockSize);
+        logi("CALCULATOR {} {} {:>5} {:>5} {:>#10} {:>#6f} {:>5} {:>#10} {:>#10}",
+             reinterpret_cast<void *>(this),
+             event,
+             _traceInfo->allocTimes, _traceInfo->freeTimes,
+             _peak, static_cast<double>(_used) / _peak,
+             _freeBlocks.size(),
+             _freeBlocks.empty() ? 0 : _freeBlocks.begin()->blockSize,
+             _freeBlocks.empty() ? 0 : _freeBlocks.rbegin()->blockSize);
     }
 
 }// namespace refactor::mem_manager

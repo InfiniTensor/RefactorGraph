@@ -36,7 +36,7 @@ namespace refactor::mem_manager {
         };
         std::optional<TraceInfo> _traceInfo;
         // trace format :
-        // alloc/free begin end size allocTimes freeTimes peak rate freeCount minBlockSize maxBlockSize
+        // CALCULATOR this alloc/free begin end size allocTimes freeTimes peak rate freeCount minBlockSize maxBlockSize
         void trace(std::string event);
 
     public:
