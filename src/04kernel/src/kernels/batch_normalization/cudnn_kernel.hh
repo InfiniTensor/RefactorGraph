@@ -10,7 +10,7 @@ namespace refactor::kernel {
     struct BatchNormalizationCudnn final : public Kernel {
         struct {
             float epsilon;
-            DataType dtX, dtParam;
+            DataType dtX, dtP;
             LayoutType layout;
             int dimAx[4];// dimA for x, cudnn naming convension
         } info;
