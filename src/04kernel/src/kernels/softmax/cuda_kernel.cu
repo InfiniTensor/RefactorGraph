@@ -23,19 +23,21 @@ namespace refactor::kernel {
                // max and sum
         T max; // store max
         T sum; // store sum
-    };
-    template<class T>
-    __device__ __forceinline__ MD<T> reduce_md_op(MD<T> a, MD<T> b) {
-        if (a.max > b.max) {
-            return {a.max, a.sum + b.sum * exp_(b.max - a.max)};
-        } else {
-            return {b.max, b.sum + a.sum * exp_(a.max - b.max)};
+
+        static __device__ __forceinline__ MD reduce(MD a, MD b) {
+            if (a.max > b.max) {
+                return {a.max, a.sum + b.sum * exp_(b.max - a.max)};
+            } else {
+                return {b.max, b.sum + a.sum * exp_(a.max - b.max)};
+            }
         }
-    }
+    };
 
     template<int BLOCK_DIM, class T>
     __launch_bounds__(BLOCK_DIM) __global__ void blockSoftmaxKernel(
-        T const *__restrict input, T *__restrict output, int size, int dimsize, int stride) {
+        T const *__restrict input,
+        T *__restrict output,
+        int size, int dimsize, int stride) {
         // if set axis = 1, inputShape=[I,J,K,S]
         // tid = i(JKS) + j(KS) + k(S) + s
 
@@ -47,12 +49,12 @@ namespace refactor::kernel {
 
         MD<T> mdPartial{-__FLT_MAX__, 0};
         for (int i = threadIdx.x; i < dimsize; i += BLOCK_DIM) {
-            mdPartial = reduce_md_op(mdPartial, {input[tid + i * stride], 1});// reduce the data to one block
+            mdPartial = MD<T>::reduce(mdPartial, {input[tid + i * stride], 1});// reduce the data to one block
         }
         using BlockReduce = cub::BlockReduce<MD<T>, BLOCK_DIM>;
         __shared__ typename BlockReduce::TempStorage tempStorage;
         __shared__ MD<T> mdTotal;
-        MD<T> mdBlock = BlockReduce(tempStorage).Reduce(mdPartial, reduce_md_op<T>);
+        auto mdBlock = BlockReduce(tempStorage).Reduce(mdPartial, MD<T>::reduce);
         if (threadIdx.x == 0) {
             mdTotal = mdBlock;// must set threadIdx.x = 0 write the output to memory
         }
@@ -65,12 +67,12 @@ namespace refactor::kernel {
     }
 
     template<class T> struct SumOp {
-        __device__ __forceinline__ T operator()(const T &a, const T &b) const {
+        __device__ __forceinline__ T operator()(T const &a, T const &b) const {
             return a + b;
         }
     };
     template<class T> struct MaxOp {
-        __device__ __forceinline__ T operator()(const T &a, const T &b) const {
+        __device__ __forceinline__ T operator()(T const &a, T const &b) const {
             return max_(a, b);
         }
     };
