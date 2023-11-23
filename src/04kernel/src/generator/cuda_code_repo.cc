@@ -29,5 +29,21 @@ namespace refactor::kernel {
         ASSERT(function, "Failed to load kernel function: {}", dlerror());
         return function;
     }
+    void *CudaCodeRepo::compile_(
+        const char *dir,
+        const char *code,
+        const char *symbol) {
+        static CudaCodeRepo repo;
+        return repo.compile(dir, code, symbol);
+    }
+    std::string_view CudaCodeRepo::memCopyType(size_t size) {
+        return size == 1    ? "char"
+               : size == 2  ? "short"
+               : size == 4  ? "float"
+               : size == 8  ? "float2"
+               : size == 16 ? "float4"
+               : size == 32 ? "double4"
+                            : UNREACHABLEX(const char *, "");
+    }
 
 }// namespace refactor::kernel

@@ -6,6 +6,13 @@
 namespace refactor::kernel {
 
     class CudaCodeRepo final : public CodeRepo {
+    public:
+        static void *compile_(
+            const char *dir,
+            const char *code,
+            const char *symbol);
+        static std::string_view memCopyType(size_t);
+
     protected:
         std::string_view hardware() const noexcept final;
         std::string_view extension() const noexcept final;

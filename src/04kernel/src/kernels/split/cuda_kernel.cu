@@ -5,21 +5,22 @@
 
 constexpr static const char *TEMPLATE = R"~(
 __global__ static void splitKernel({0:}char const *data) {{
+    using T = {1:};
 
     constexpr static unsigned int
-        n = {1:},
-        sum = {2:},
-        sub = {3:},
+        n = {2:},
+        sum = {3:},
         segments[]{{{4:}}};
+    auto data_ = reinterpret_cast<T const *>(data);
     char *outputs[]{{{5:}}};
 
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < n;
          tid += step) {{
-        auto i = tid % sum, j = i * sub, k = 0u;
+        auto i = tid % sum, j = i * static_cast<unsigned int>(sizeof(T)), k = 0u;
         while (j >= segments[k]) j -= segments[k++];
-        memcpy(outputs[k] + (tid / sum) * segments[k] + j, data + tid * sub, sub);
+        *reinterpret_cast<T *>(outputs[k] + (tid / sum) * segments[k] + j) = data_[tid];
     }}
 }}
 
@@ -66,21 +67,27 @@ namespace refactor::kernel {
         }
         auto s9 = ss.str();
 
+        ss.str("");
+        ss << "Split" << outputCount;
+        for (auto seg : info.segments) {
+            ss << '_' << seg;
+        }
+        auto name = ss.str();
         auto code = fmt::format(
             TEMPLATE,
-            s0,              // 0
-            params.n,        // 1
-            info.sum / sub,  // 2
-            sub,             // 3
-            s5,              // 4
-            s6,              // 5
-            params.gridSize, // 6
-            params.blockSize,// 7
-            s9               // 8
+            s0,                            // 0
+            CudaCodeRepo::memCopyType(sub),// 1
+            params.n,                      // 2
+            info.sum / sub,                // 3
+            s5,                            // 4
+            s6,                            // 5
+            params.gridSize,               // 6
+            params.blockSize,              // 7
+            s9                             // 8
         );
 
         using Fn = void (*)(void const *, void *const *);
-        auto function = reinterpret_cast<Fn>(CudaCodeRepo().compile("split", code.c_str(), "launchKernel"));
+        auto function = reinterpret_cast<Fn>(CudaCodeRepo::compile_(name.c_str(), code.c_str(), "launchKernel"));
         return [function](Resources &, void *, void const *const *inputs, void *const *outputs) {
             function(inputs[0], outputs);
         };
