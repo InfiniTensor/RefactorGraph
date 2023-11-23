@@ -33,32 +33,14 @@ namespace refactor::kernel {
         };
         auto d = std::make_shared<Descriptors>();
 
-        std::vector<int> dimsI(shape.begin(), shape.end()), dimsO(shape.begin(), shape.end());
+        std::vector<int>
+            dimsI(shape.begin(), shape.end()),
+            dimsO(shape.begin(), shape.end());
         for (auto axis : axes) {
             dimsO[axis] = 1;
         }
-
-        auto cudnnDataType = cudnnDataTypeConvert(dataType);
-        if (auto n = shape.size(); n <= 4) {
-            int idims[4] = {1, 1, 1, 1}, odims[4] = {1, 1, 1, 1};
-            for (auto i : range0_(n)) {
-                idims[4 - i - 1] = dimsI[n - i - 1];
-                odims[4 - i - 1] = dimsO[n - i - 1];
-            }
-            CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->x, CUDNN_TENSOR_NCHW, cudnnDataType, idims[0], idims[1], idims[2], idims[3]));
-            CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->y, CUDNN_TENSOR_NCHW, cudnnDataType, odims[0], odims[1], odims[2], odims[3]));
-        } else {
-            std::vector<int> strideI(n), strideO(n);
-            size_t stride[]{1, 1};
-            for (auto i : range0_(n).rev()) {
-                strideI[i] = stride[0];
-                strideO[i] = stride[1];
-                stride[0] *= dimsI[i];
-                stride[1] *= dimsO[i];
-            }
-            CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->x, cudnnDataType, n, dimsI.data(), strideI.data()));
-            CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->y, cudnnDataType, n, dimsO.data(), strideO.data()));
-        }
+        setCudnnTensor(d->x, dataType, slice(dimsI.data(), dimsI.size()));
+        setCudnnTensor(d->y, dataType, slice(dimsO.data(), dimsO.size()));
 
         // clang-format off
         auto reduceOp = reduceType == ReduceType::Mean ? CUDNN_REDUCE_TENSOR_AVG
@@ -71,7 +53,7 @@ namespace refactor::kernel {
                       : UNREACHABLEX(cudnnReduceTensorOp_t, "");
         // clang-format on
         CUDNN_ASSERT(cudnnSetReduceTensorDescriptor(
-            d->reduce, reduceOp, cudnnDataType,
+            d->reduce, reduceOp, cudnnDataTypeConvert(dataType),
             CUDNN_NOT_PROPAGATE_NAN, CUDNN_REDUCE_TENSOR_NO_INDICES, CUDNN_32BIT_INDICES));
 
         auto handler = res.fetchOrStore<CudnnContext>()->handle;
@@ -82,21 +64,19 @@ namespace refactor::kernel {
         idxWorkspaceSize = mem_manager::alignBytes(idxWorkspaceSize, 256);
 
         // nvcc at c++11 doesn't support real move capture
-        auto routine = [d_ = std::move(d),
+        auto routine = [d = std::move(d),
                         idxWorkspaceSize,
                         workspaceSize](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            // fetch cudnn handle from resources
-            auto const &d = *d_;
-            // reduce
-            float alpha = 1, beta = 0;
             void *idxWorkspace = workspace,
                  *dataWorkspace = reinterpret_cast<uint8_t *>(workspace) + idxWorkspaceSize;
+            float alpha = 1, beta = 0;
             CUDNN_ASSERT(cudnnReduceTensor(
-                res.fetchOrStore<CudnnContext>()->handle, d.reduce,
+                res.fetchOrStore<CudnnContext>()->handle,
+                d->reduce,
                 idxWorkspace, idxWorkspaceSize,
                 dataWorkspace, workspaceSize,
-                &alpha, d.x, inputs[0],
-                &beta, d.y, outputs[0]));
+                &alpha, d->x, inputs[0],
+                &beta, d->y, outputs[0]));
         };
         return RoutineWorkspace(std::move(routine), idxWorkspaceSize + workspaceSize);
     }

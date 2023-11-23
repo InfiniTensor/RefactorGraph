@@ -27,9 +27,9 @@ namespace refactor::kernel {
             Descriptors(Descriptors &&) = delete;
         };
         auto d = std::make_shared<Descriptors>(info.dtP == DT::F64);
-        auto n = info.dimAx[0], c = info.dimAx[1], h = info.dimAx[2], w = info.dimAx[3];
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->x, CUDNN_TENSOR_NCHW, cudnnDataTypeConvert(info.dtX), n, c, h, w));
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->p, CUDNN_TENSOR_NCHW, cudnnDataTypeConvert(info.dtP), 1, c, 1, 1));
+        int dimParam[]{1, info.dimAx[1], 1, 1};
+        setCudnnTensor(d->x, info.dtX, slice(info.dimAx, 4));
+        setCudnnTensor(d->p, info.dtP, slice(dimParam, 4));
 
         res.fetchOrStore<CudnnContext>();
         // nvcc at c++11 doesn't support real move capture

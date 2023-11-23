@@ -24,56 +24,46 @@ namespace refactor::kernel {
         return "Performing Softmax using CPU";
     }
 
-    template<decltype(DataType::internal) T>
+    template<class T>
     Routine lowerTyped(SoftmaxInfo info) {
         using namespace runtime;
-        using dt = typename primitive<T>::type;
 
         return [info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
-            auto x = reinterpret_cast<dt const *>(inputs[0]);
-            auto y = reinterpret_cast<dt *>(outputs[0]);
-
             std::for_each_n(std::execution::par_unseq,
-                            natural_t(0), info.post * info.pre,
-                            [&x, &y, &info](auto const i) {
-                                auto post = info.post;
-                                auto calcIdx =
-                                    [base = i / post * post * info.mid + i % post,
-                                     post](auto const j) {
-                                        return base + j * post;
-                                    };
+                            natural_t(0), info.pre * info.post,
+                            [x = reinterpret_cast<T const *>(inputs[0]),
+                             y = reinterpret_cast<T *>(outputs[0]),
+                             &info](auto const i) {
+                                auto stride = info.post;
+                                auto id = (i - i % stride) * info.mid + i % stride;
                                 auto range = range0_(info.mid);
                                 auto maxi = *std::max_element(
                                     std::execution::unseq,
                                     range.begin(), range.end(),
                                     [&](auto const m, auto const n) {
-                                        return x[calcIdx(m)] < x[calcIdx(n)];
+                                        return x[id + m * stride] < x[id + n * stride];
                                     });
                                 auto sum = std::accumulate(
                                     range.begin(), range.end(), 0,
-                                    [&, max = x[calcIdx(maxi)]](auto const acc, auto const j) {
-                                        auto idx = calcIdx(j);
-                                        return acc + (y[idx] = std::exp(x[idx] - max));
+                                    [&, max = x[id + maxi * stride]](auto const acc, auto const j) {
+                                        auto k = id + j * stride;
+                                        return acc + (y[k] = std::exp(x[k] - max));
                                     });
                                 std::for_each(
                                     std::execution::par_unseq,
                                     range.begin(), range.end(),
                                     [&](auto const j) {
-                                        y[calcIdx(j)] /= sum;
+                                        y[id + j * stride] /= sum;
                                     });
                             });
         };
     }
     auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
-#define CASE(T) \
-    case T:     \
-        return lowerTyped<DataType::T>(info);
-
         switch (info.type) {
-            CASE(DataType::F32);
-            CASE(DataType::F64);
-            // CASE(DataType::FP16);
-            // CASE(DataType::BF16);
+            case DataType::F32:
+                return lowerTyped<float>(info);
+            case DataType::F64:
+                return lowerTyped<double>(info);
             default:
                 UNREACHABLE();
         }

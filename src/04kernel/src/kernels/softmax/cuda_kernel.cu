@@ -19,10 +19,9 @@ namespace refactor::kernel {
     template<> __device__ __forceinline__ half reciprocal<half>(half x) { return hrcp(x); }
 
     template<class T>
-    struct MD {// update the global max and sum, store the output at
-               // max and sum
-        T max; // store max
-        T sum; // store sum
+    struct MD {
+        T max;
+        T sum;
 
         static __device__ __forceinline__ MD reduce(MD a, MD b) {
             if (a.max > b.max) {
@@ -45,7 +44,7 @@ namespace refactor::kernel {
         // blockIdx.x = i(KS) + k(S) + s,blockIdx.x%stride = k(S) + s
 
         // now, tid = i(JKS) + k(S) + s;
-        int tid = blockIdx.x % stride + (blockIdx.x - blockIdx.x % stride) * dimsize;
+        int tid = (blockIdx.x - blockIdx.x % stride) * dimsize + blockIdx.x % stride;
 
         MD<T> mdPartial{-__FLT_MAX__, 0};
         for (int i = threadIdx.x; i < dimsize; i += BLOCK_DIM) {
@@ -137,6 +136,7 @@ namespace refactor::kernel {
                 size = numBlocks * dimsize,
                 stride = info.post;
             if (dimsize > 1024) {
+                fmt::println("dimsize = {}, size = {}, stride = {}", dimsize, size, stride);
                 blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, size, dimsize, stride);
             } else {
                 int blockDimX;

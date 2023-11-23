@@ -15,7 +15,7 @@ namespace refactor::kernel::cudnn {
     cudnnDataType_t cudnnDataTypeConvert(DataType);
 
     // A helper function that set CuDNN tensor descriptor given tensor shape and type
-    void setCudnnTensor(cudnnTensorDescriptor_t aDesc, DataType dt, int const *dims, size_t rank);
+    void setCudnnTensor(cudnnTensorDescriptor_t, DataType, slice_t<int>);
 
 }// namespace refactor::kernel::cudnn
 

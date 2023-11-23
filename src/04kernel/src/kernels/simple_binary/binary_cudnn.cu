@@ -39,9 +39,9 @@ namespace refactor::kernel {
             cudnnOP = CUDNN_OP_TENSOR_MUL;
         }
 
-        setCudnnTensor(d->aDesc, dataType, aDims.data(), aDims.size());
-        setCudnnTensor(d->bDesc, dataType, bDims.data(), bDims.size());
-        setCudnnTensor(d->cDesc, dataType, cDims.data(), cDims.size());
+        setCudnnTensor(d->aDesc, dataType, slice(aDims.data(), aDims.size()));
+        setCudnnTensor(d->bDesc, dataType, slice(bDims.data(), bDims.size()));
+        setCudnnTensor(d->cDesc, dataType, slice(cDims.data(), cDims.size()));
         CUDNN_ASSERT(cudnnSetOpTensorDescriptor(
             d->opDesc, cudnnOP, cudnnDataTypeConvert(dataType), CUDNN_NOT_PROPAGATE_NAN));
 

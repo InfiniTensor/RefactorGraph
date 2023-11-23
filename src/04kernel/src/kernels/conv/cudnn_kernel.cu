@@ -35,9 +35,9 @@ namespace refactor::kernel {
         auto d = std::make_shared<Descriptors>(info.dt == DataType::F64);
 
         auto cudnnDataType = cudnnDataTypeConvert(info.dt);
-        auto xs = info.xShape, ys = info.yShape, ws = info.wShape;
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->x, CUDNN_TENSOR_NCHW, cudnnDataType, xs[0], xs[1], xs[2], xs[3]));
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->y, CUDNN_TENSOR_NCHW, cudnnDataType, ys[0], ys[1], ys[2], ys[3]));
+        setCudnnTensor(d->x, info.dt, slice(info.xShape, 4));
+        setCudnnTensor(d->y, info.dt, slice(info.yShape, 4));
+        auto ws = info.wShape;
         CUDNN_ASSERT(cudnnSetFilter4dDescriptor(d->w, cudnnDataType, CUDNN_TENSOR_NCHW, ws[0], ws[1], ws[2], ws[3]));
         auto pp = info.pad;
         auto ss = info.stride;
