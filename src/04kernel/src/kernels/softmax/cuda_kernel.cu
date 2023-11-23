@@ -5,6 +5,20 @@ namespace refactor::kernel {
     using namespace runtime;
 
     template<class T>
+    __device__ __forceinline__ T max_(T a, T b) { return a > b ? a : b; }
+
+    template<class T>
+    __device__ __forceinline__ T exp_(T x);
+    template<> __device__ __forceinline__ float exp_<float>(float x) { return expf(x); }
+    template<> __device__ __forceinline__ double exp_<double>(double x) { return exp(x); }
+    template<> __device__ __forceinline__ half exp_<half>(half x) { return hexp(x); }
+
+    template<class T> __device__ __forceinline__ T reciprocal(T x);
+    template<> __device__ __forceinline__ float reciprocal<float>(float x) { return fdividef(1, x); }
+    template<> __device__ __forceinline__ double reciprocal<double>(double x) { return 1 / x; }
+    template<> __device__ __forceinline__ half reciprocal<half>(half x) { return hrcp(x); }
+
+    template<class T>
     struct MD {// update the global max and sum, store the output at
                // max and sum
         T max; // store max
@@ -13,14 +27,14 @@ namespace refactor::kernel {
     template<class T>
     __device__ __forceinline__ MD<T> reduce_md_op(MD<T> a, MD<T> b) {
         if (a.max > b.max) {
-            return {a.max, a.sum + b.sum * __expf(b.max - a.max)};
+            return {a.max, a.sum + b.sum * exp_(b.max - a.max)};
         } else {
-            return {b.max, b.sum + a.sum * __expf(a.max - b.max)};
+            return {b.max, b.sum + a.sum * exp_(a.max - b.max)};
         }
     }
 
     template<int BLOCK_DIM, class T>
-    __launch_bounds__(BLOCK_DIM) __global__ void _blockSoftmaxKernel(
+    __launch_bounds__(BLOCK_DIM) __global__ void blockSoftmaxKernel(
         T const *__restrict input, T *__restrict output, int size, int dimsize, int stride) {
         // if set axis = 1, inputShape=[I,J,K,S]
         // tid = i(JKS) + j(KS) + k(S) + s
@@ -46,7 +60,7 @@ namespace refactor::kernel {
 
         for (int i = threadIdx.x; i < dimsize; i += BLOCK_DIM) {
             auto j = tid + i * stride;
-            output[j] = __expf(input[j] - mdTotal.max) * __fdividef(1, mdTotal.sum);
+            output[j] = exp_(input[j] - mdTotal.max) * reciprocal(mdTotal.sum);
         }
     }
 
@@ -57,19 +71,19 @@ namespace refactor::kernel {
     };
     template<class T> struct MaxOp {
         __device__ __forceinline__ T operator()(const T &a, const T &b) const {
-            return max(a, b);
+            return max_(a, b);
         }
     };
-    template<class ReductionOp, class T>
-    __device__ __forceinline__ T WarpAllReduce(T val, int threadGroupWidth, ReductionOp op) {
-        for (int mask = threadGroupWidth / 2; mask > 0; mask /= 2) {
+    template<class T, class ReductionOp>
+    __device__ __forceinline__ T WarpAllReduce(T val, ReductionOp op) {
+        for (int mask = blockDim.x >> 1; mask > 0; mask >>= 1) {
             val = op(val, __shfl_xor_sync(0xffffffff, val, mask));
         }
         return val;
     }
 
     template<class T>
-    __global__ void _warpSoftmaxKernel(
+    __global__ void warpSoftmaxKernel(
         T const *__restrict input,
         T *__restrict output,
         int size, int dimsize, int stride) {
@@ -84,9 +98,9 @@ namespace refactor::kernel {
 
             T maxData = -__FLT_MAX__;
             for (int i = threadIdx.x; i < dimsize; i += blockDim.x) {
-                maxData = max(maxData, input[tid + i * stride]);
+                maxData = max_(maxData, input[tid + i * stride]);
             }
-            maxData = WarpAllReduce(maxData, blockDim.x, MaxOp<T>{});
+            maxData = WarpAllReduce(maxData, MaxOp<T>{});
             if (threadIdx.x == 0) {
                 maxTotal[threadIdx.y] = maxData;
             }
@@ -94,9 +108,9 @@ namespace refactor::kernel {
             //--------------------------------------------
             T sumData = 0;
             for (int i = threadIdx.x; i < dimsize; i += blockDim.x) {
-                sumData += __expf(input[tid + i * stride] - maxTotal[threadIdx.y]);
+                sumData += exp_(input[tid + i * stride] - maxTotal[threadIdx.y]);
             }
-            sumData = WarpAllReduce(sumData, blockDim.x, SumOp<T>{});
+            sumData = WarpAllReduce(sumData, SumOp<T>{});
             if (threadIdx.x == 0) {
                 sumTotal[threadIdx.y] = sumData;
             }
@@ -104,7 +118,7 @@ namespace refactor::kernel {
             //--------------------------------------------
             for (int i = threadIdx.x; i < dimsize; i += blockDim.x) {
                 auto j = tid + i * stride;
-                output[j] = __expf(input[j] - maxTotal[threadIdx.y]) * __fdividef(1, sumTotal[threadIdx.y]);
+                output[j] = exp_(input[j] - maxTotal[threadIdx.y]) * reciprocal(sumTotal[threadIdx.y]);
             }
         }
     }
@@ -121,18 +135,14 @@ namespace refactor::kernel {
                 size = numBlocks * dimsize,
                 stride = info.post;
             if (dimsize > 1024) {
-                _blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, size, dimsize, stride);
+                blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, size, dimsize, stride);
             } else {
-                // clang-format off
-                int blockDimX = dimsize > 31 ? 32
-                              : dimsize > 15 ? 16
-                              : dimsize >  7 ?  8
-                                             :  4,
-                    blockDimY = 1024 / blockDimX;
-                // clang-format on
-                _warpSoftmaxKernel<<<(numBlocks + blockDimY - 1) / blockDimY,
-                                     dim3(blockDimX, blockDimY),
-                                     blockDimY * 2 * sizeof(T)>>>(x, y, size, dimsize, stride);
+                int blockDimX;
+                for (blockDimX = 32; blockDimX > 4 && dimsize < blockDimX; blockDimX /= 2) {}
+                auto blockDimY = 1024 / blockDimX;
+                warpSoftmaxKernel<<<(numBlocks + blockDimY - 1) / blockDimY,
+                                    dim3(blockDimX, blockDimY),
+                                    blockDimY * 2 * sizeof(T)>>>(x, y, size, dimsize, stride);
             }
         };
     }
@@ -143,8 +153,8 @@ namespace refactor::kernel {
                 return lowerTypedCuda<float>(info);
             case DataType::F64:
                 return lowerTypedCuda<double>(info);
-            // case DataType::FP16:
-            //     return lowerTypedCuda<half>(info);
+            case DataType::FP16:
+                return lowerTypedCuda<half>(info);
             default:
                 UNREACHABLE();
         }
