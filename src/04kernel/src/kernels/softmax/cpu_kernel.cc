@@ -33,10 +33,10 @@ namespace refactor::kernel {
                             natural_t(0), info.pre * info.post,
                             [x = reinterpret_cast<T const *>(inputs[0]),
                              y = reinterpret_cast<T *>(outputs[0]),
-                             &info](auto const i) {
-                                auto stride = info.post;
-                                auto id = (i - i % stride) * info.mid + i % stride;
-                                auto range = range0_(info.mid);
+                             mid = info.mid,
+                             stride = info.post](auto const i) {
+                                auto id = (i - i % stride) * mid + i % stride;
+                                auto range = range0_(mid);
                                 auto maxi = *std::max_element(
                                     std::execution::unseq,
                                     range.begin(), range.end(),

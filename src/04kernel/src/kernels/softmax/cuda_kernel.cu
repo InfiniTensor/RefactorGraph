@@ -18,50 +18,40 @@ namespace refactor::kernel {
     template<> __device__ __forceinline__ double reciprocal<double>(double x) { return 1 / x; }
     template<> __device__ __forceinline__ half reciprocal<half>(half x) { return hrcp(x); }
 
-    template<class T>
-    struct MD {
-        T max;
-        T sum;
-
-        static __device__ __forceinline__ MD reduce(MD a, MD b) {
-            if (a.max > b.max) {
-                return {a.max, a.sum + b.sum * exp_(b.max - a.max)};
-            } else {
-                return {b.max, b.sum + a.sum * exp_(a.max - b.max)};
-            }
-        }
-    };
-
     template<int BLOCK_DIM, class T>
     __launch_bounds__(BLOCK_DIM) __global__ void blockSoftmaxKernel(
-        T const *__restrict input,
-        T *__restrict output,
-        int size, int dimsize, int stride) {
-        // if set axis = 1, inputShape=[I,J,K,S]
-        // tid = i(JKS) + j(KS) + k(S) + s
+        T const *__restrict x,
+        T *__restrict y,
+        int mid,
+        int stride) {
+        int id = (blockIdx.x - blockIdx.x % stride) * mid + blockIdx.x % stride;
 
-        // blockDim.x = size/dimsize = IKS
-        // blockIdx.x = i(KS) + k(S) + s,blockIdx.x%stride = k(S) + s
+        struct MD {
+            T max, sum;
 
-        // now, tid = i(JKS) + k(S) + s;
-        int tid = (blockIdx.x - blockIdx.x % stride) * dimsize + blockIdx.x % stride;
-
-        MD<T> mdPartial{-__FLT_MAX__, 0};
-        for (int i = threadIdx.x; i < dimsize; i += BLOCK_DIM) {
-            mdPartial = MD<T>::reduce(mdPartial, {input[tid + i * stride], 1});// reduce the data to one block
+            static __device__ __forceinline__ MD reduce(MD a, MD b) {
+                if (a.max > b.max) {
+                    return {a.max, a.sum + b.sum * exp_(b.max - a.max)};
+                } else {
+                    return {b.max, b.sum + a.sum * exp_(a.max - b.max)};
+                }
+            }
+        } mdPartial{-__FLT_MAX__, 0};
+        for (int i = threadIdx.x; i < mid; i += BLOCK_DIM) {
+            mdPartial = MD::reduce(mdPartial, {x[id + i * stride], 1});// reduce the data to one block
         }
-        using BlockReduce = cub::BlockReduce<MD<T>, BLOCK_DIM>;
+        using BlockReduce = cub::BlockReduce<MD, BLOCK_DIM>;
         __shared__ typename BlockReduce::TempStorage tempStorage;
-        __shared__ MD<T> mdTotal;
-        auto mdBlock = BlockReduce(tempStorage).Reduce(mdPartial, MD<T>::reduce);
+        __shared__ MD mdTotal;
+        auto mdBlock = BlockReduce(tempStorage).Reduce(mdPartial, MD::reduce);
         if (threadIdx.x == 0) {
             mdTotal = mdBlock;// must set threadIdx.x = 0 write the output to memory
         }
         __syncthreads();
 
-        for (int i = threadIdx.x; i < dimsize; i += BLOCK_DIM) {
-            auto j = tid + i * stride;
-            output[j] = exp_(input[j] - mdTotal.max) * reciprocal(mdTotal.sum);
+        for (int i = threadIdx.x; i < mid; i += BLOCK_DIM) {
+            auto j = id + i * stride;
+            y[j] = exp_(x[j] - mdTotal.max) * reciprocal(mdTotal.sum);
         }
     }
 
@@ -131,20 +121,16 @@ namespace refactor::kernel {
         return [info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto x = reinterpret_cast<T const *>(inputs[0]);
             auto y = reinterpret_cast<T *>(outputs[0]);
-            int numBlocks = info.pre * info.post,
-                dimsize = info.mid,
-                size = numBlocks * dimsize,
-                stride = info.post;
-            if (dimsize > 1024) {
-                fmt::println("dimsize = {}, size = {}, stride = {}", dimsize, size, stride);
-                blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, size, dimsize, stride);
+            int numBlocks = info.pre * info.post;
+            if (info.mid > 1024) {
+                blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, info.mid, info.post);
             } else {
                 int blockDimX;
-                for (blockDimX = 32; blockDimX > 4 && dimsize < blockDimX; blockDimX /= 2) {}
+                for (blockDimX = 32; blockDimX > 4 && info.mid < blockDimX; blockDimX /= 2) {}
                 auto blockDimY = 1024 / blockDimX;
                 warpSoftmaxKernel<<<(numBlocks + blockDimY - 1) / blockDimY,
                                     dim3(blockDimX, blockDimY),
-                                    blockDimY * 2 * sizeof(T)>>>(x, y, size, dimsize, stride);
+                                    blockDimY * 2 * sizeof(T)>>>(x, y, numBlocks * info.mid, info.mid, info.post);
             }
         };
     }
