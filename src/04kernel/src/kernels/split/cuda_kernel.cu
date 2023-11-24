@@ -8,13 +8,13 @@ struct Outputs {{
     char *const addr[{0:}];
 }};
 
-__global__ static void splitKernel(Outputs outputs, char const *data) {{
+__global__ static void splitKernel(Outputs outputs, void const *input) {{
     using T = {1:};
 
     constexpr static unsigned int
         sum = {2:},
         segments[]{{{3:}}};
-    auto data_ = reinterpret_cast<T const *>(data);
+    auto src = reinterpret_cast<T const *>(input);
 
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
@@ -22,17 +22,17 @@ __global__ static void splitKernel(Outputs outputs, char const *data) {{
          tid += step) {{
         auto i = tid % sum * static_cast<unsigned int>(sizeof(T)), j = 0u;
         while (i >= segments[j]) i -= segments[j++];
-        *reinterpret_cast<T *>(outputs.addr[j] + (tid / sum) * segments[j] + i) = data_[tid];
+        *reinterpret_cast<T *>(outputs.addr[j] + (tid / sum) * segments[j] + i) = src[tid];
     }}
 }}
 
 extern "C" {{
 
-void launchKernel(void const *data, void *const *outputs) {{
+void launchKernel(void const *input, void *const *outputs) {{
     splitKernel<<<{5:}, {6:}>>>(
         {{{7:}
         }},
-        reinterpret_cast<char const *>(data));
+        input);
 }}
 
 }}
@@ -41,7 +41,7 @@ void launchKernel(void const *data, void *const *outputs) {{
 namespace refactor::kernel {
     using namespace runtime;
 
-    auto SplitCuda::lower(Resources &) const -> RoutineWorkspace {
+    auto SplitCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
         auto unit = info.unit(16);
         auto params = cuda::ThreadsDistributer()(info.blockCount * info.sum / unit);
         auto outputCount = info.segments.size();

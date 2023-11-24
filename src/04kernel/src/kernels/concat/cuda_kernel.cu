@@ -1,43 +1,87 @@
-﻿#include "cuda_kernel.hh"
-#include "kernel/cuda/concat.cuh"
-#include "mem_manager/foreign_blob.hh"
-#include "runtime/mem_manager.hh"
-#include <thrust/device_vector.h>
+﻿#include "../../generator/cuda_code_repo.hh"
+#include "cuda_kernel.hh"
+#include "kernel/cuda/threads_distributer.cuh"
+#include <sstream>
+
+constexpr static const char *TEMPLATE = R"~(
+struct Inputs {{
+    char const *const addr[{0:}];
+}};
+
+__global__ static void splitKernel(void *output, Inputs inputs) {{
+    using T = {1:};
+
+    constexpr static unsigned int
+        sum = {2:},
+        segments[]{{{3:}}};
+    auto dst = reinterpret_cast<T *>(output);
+
+    for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
+              step = blockDim.x * gridDim.x;
+         tid < {4:};
+         tid += step) {{
+        auto i = tid % sum * static_cast<unsigned int>(sizeof(T)), j = 0u;
+        while (i >= segments[j]) i -= segments[j++];
+        dst[tid] = *reinterpret_cast<T const *>(inputs.addr[j] + (tid / sum) * segments[j] + i);
+    }}
+}}
+
+extern "C" {{
+
+void launchKernel(void const *const *inputs, void *output) {{
+    splitKernel<<<{5:}, {6:}>>>(
+        output,
+        {{{7:}
+        }});
+}}
+
+}}
+)~";
 
 namespace refactor::kernel {
     using namespace runtime;
 
     auto ConcatCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
-        auto workspaceSize = info.segments.size() * sizeof(void *);
-        struct Workspace {
-            void *pageLocked;
-            size_t size;
+        auto unit = info.unit(16);
+        auto params = cuda::ThreadsDistributer()(info.blockCount * info.sum / unit);
+        auto inputCount = info.segments.size();
 
-            Workspace(size_t size) : size(size) {
-                cudaMallocHost(&pageLocked, size);
-            }
-            ~Workspace() {
-                cudaFreeHost(pageLocked);
-            }
+        std::stringstream ss;
+        for (auto seg : info.segments) {
+            ss << seg << ", ";
+        }
+        auto segments = ss.str();
+
+        ss.str("");
+        for (auto i : range0_(inputCount)) {
+            ss << std::endl
+               << "            reinterpret_cast<char const *>(inputs[" << i << "]), ";
+        }
+        auto castInputs = ss.str();
+
+        ss.str("");
+        ss << "Concat_" << info.blockCount << ',' << unit;
+        for (auto seg : info.segments) {
+            ss << ',' << seg;
+        }
+        auto name = ss.str();
+        auto code = fmt::format(
+            TEMPLATE,
+            inputCount,                     // 0
+            CudaCodeRepo::memCopyType(unit),// 1
+            info.sum / unit,                // 2
+            segments,                       // 3
+            params.n,                       // 4
+            params.gridSize,                // 5
+            params.blockSize,               // 6
+            castInputs                      // 7
+        );
+
+        using Fn = void (*)(void const *const *, void *);
+        auto function = reinterpret_cast<Fn>(CudaCodeRepo::compile_(name.c_str(), code.c_str(), "launchKernel"));
+        return [function](Resources &, void *, void const *const *inputs, void *const *outputs) {
+            function(inputs, outputs[0]);
         };
-        auto sub = info.unit(16);
-        auto routine = [params = cuda::ThreadsDistributer()(info.blockCount * info.sum / sub),
-                        segments = thrust::device_vector<dim_t>(info.segments.begin(), info.segments.end()),
-                        workspace_ = std::make_shared<Workspace>(workspaceSize),
-                        sum = info.sum / sub,
-                        sub](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            std::memcpy(workspace_->pageLocked, inputs, workspace_->size);
-            cudaMemcpyAsync(workspace, workspace_->pageLocked, workspace_->size, cudaMemcpyHostToDevice);
-            cuda::launchConcat(
-                params,
-                reinterpret_cast<void const **>(workspace),
-                segments.data().get(),
-                outputs[0],
-                segments.size(),
-                sum,
-                sub);
-        };
-        return RoutineWorkspace(std::move(routine), workspaceSize);
     }
 
 }// namespace refactor::kernel
