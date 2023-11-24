@@ -216,7 +216,9 @@ namespace refactor::frontend {
         auto const endTime = high_resolution_clock::now();
         logi("lowering cost time: {} μs", duration_cast<microseconds>(endTime - startTime).count());
 
-        return {_internal.topology, std::move(nodes), std::move(edges)};
+        computation::Graph graph(_internal.topology, std::move(nodes), std::move(edges));
+        graph.optimize();
+        return graph;
     }
 
     void Graph::logGraph() const {

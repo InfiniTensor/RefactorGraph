@@ -1,4 +1,6 @@
 ﻿#include "computation/graph.h"
+#include "computation/pass/convert.h"
+#include "computation/pass/pass_manager.h"
 #include <numeric>
 
 namespace refactor::computation {
@@ -207,5 +209,36 @@ namespace refactor::computation {
 
         return {ss.str(), edges.takeData()};
     }
+
+    void RunOptimizePass(std::vector<std::string_view> passes, const std::shared_ptr<GraphMutant> &g) {
+        for (auto pass : passes) {
+            auto convert = Converter::get(pass);
+            if (nullptr == convert) {
+                fmt::println("Can't find pass of {}.", pass);
+                continue;
+            }
+            bool valid = convert->execute(g);
+            if (!valid) {
+                fmt::println("Run {} Error", pass);
+            }
+        }
+    }
+
+    void Graph::optimize() {
+        auto graphMutant = GraphMutant(*this);
+        std::vector<std::string_view> passes = {
+            "MatMulTransposeFuse",
+        };
+        register_();//all pass insert
+        auto g = std::make_shared<GraphMutant>(graphMutant);
+        RunOptimizePass(passes, g);
+        _internal = g->internal();
+    }
+
+    GraphMutant::GraphMutant(Graph const &g) noexcept {
+        _internal = g.internal().linked();
+    }
+    auto GraphMutant::internal() const -> decltype(_internal) const & { return _internal; }
+    auto GraphMutant::internal() -> decltype(_internal) & { return _internal; }
 
 }// namespace refactor::computation
