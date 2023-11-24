@@ -18,6 +18,7 @@ namespace refactor::kernel {
     template<> __device__ __forceinline__ double reciprocal<double>(double x) { return 1 / x; }
     template<> __device__ __forceinline__ half reciprocal<half>(half x) { return hrcp(x); }
 
+    // blockDim.x === BLOCK_DIM
     template<int BLOCK_DIM, class T>
     __launch_bounds__(BLOCK_DIM) __global__ void blockSoftmaxKernel(
         T const *__restrict x,
@@ -26,32 +27,32 @@ namespace refactor::kernel {
         int stride) {
         int id = (blockIdx.x - blockIdx.x % stride) * mid + blockIdx.x % stride;
 
-        struct MD {
+        struct MaxSum {
             T max, sum;
 
-            static __device__ __forceinline__ MD reduce(MD a, MD b) {
+            static __device__ __forceinline__ MaxSum reduce(MaxSum a, MaxSum b) {
                 if (a.max > b.max) {
                     return {a.max, a.sum + b.sum * exp_(b.max - a.max)};
                 } else {
                     return {b.max, b.sum + a.sum * exp_(a.max - b.max)};
                 }
             }
-        } mdPartial{-__FLT_MAX__, 0};
-        for (int i = threadIdx.x; i < mid; i += BLOCK_DIM) {
-            mdPartial = MD::reduce(mdPartial, {x[id + i * stride], 1});// reduce the data to one block
+        } maxSumThread{x[id], 1};
+        for (int i = threadIdx.x + blockDim.x; i < mid; i += blockDim.x) {
+            maxSumThread = MaxSum::reduce(maxSumThread, {x[id + i * stride], 1});// reduce the data to one block
         }
-        using BlockReduce = cub::BlockReduce<MD, BLOCK_DIM>;
+        using BlockReduce = cub::BlockReduce<MaxSum, BLOCK_DIM>;
         __shared__ typename BlockReduce::TempStorage tempStorage;
-        __shared__ MD mdTotal;
-        auto mdBlock = BlockReduce(tempStorage).Reduce(mdPartial, MD::reduce);
+        __shared__ MaxSum maxSumTotal;
+        auto maxSumBlock = BlockReduce(tempStorage).Reduce(maxSumThread, MaxSum::reduce);
         if (threadIdx.x == 0) {
-            mdTotal = mdBlock;// must set threadIdx.x = 0 write the output to memory
+            maxSumTotal = maxSumBlock;// must set threadIdx.x = 0 write the output to memory
         }
         __syncthreads();
 
-        for (int i = threadIdx.x; i < mid; i += BLOCK_DIM) {
+        for (int i = threadIdx.x; i < mid; i += blockDim.x) {
             auto j = id + i * stride;
-            y[j] = exp_(x[j] - mdTotal.max) * reciprocal(mdTotal.sum);
+            y[j] = exp_(x[j] - maxSumTotal.max) * reciprocal(maxSumTotal.sum);
         }
     }
 
