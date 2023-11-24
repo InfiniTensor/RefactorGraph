@@ -4,31 +4,35 @@
 #include <sstream>
 
 constexpr static const char *TEMPLATE = R"~(
-__global__ static void splitKernel({0:}char const *data) {{
+struct Outputs {{
+    char *const addr[{0:}];
+}};
+
+__global__ static void splitKernel(Outputs outputs, char const *data) {{
     using T = {1:};
 
     constexpr static unsigned int
-        n = {2:},
-        sum = {3:},
-        segments[]{{{4:}}};
+        sum = {2:},
+        segments[]{{{3:}}};
     auto data_ = reinterpret_cast<T const *>(data);
-    char *outputs[]{{{5:}}};
 
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
-         tid < n;
+         tid < {4:};
          tid += step) {{
-        auto i = tid % sum, j = i * static_cast<unsigned int>(sizeof(T)), k = 0u;
-        while (j >= segments[k]) j -= segments[k++];
-        *reinterpret_cast<T *>(outputs[k] + (tid / sum) * segments[k] + j) = data_[tid];
+        auto i = tid % sum * static_cast<unsigned int>(sizeof(T)), j = 0u;
+        while (i >= segments[j]) i -= segments[j++];
+        *reinterpret_cast<T *>(outputs.addr[j] + (tid / sum) * segments[j] + i) = data_[tid];
     }}
 }}
 
 extern "C" {{
 
 void launchKernel(void const *data, void *const *outputs) {{
-    splitKernel<<<{6:}, {7:}>>>({8:}
-        reinterpret_cast<char const*>(data));
+    splitKernel<<<{5:}, {6:}>>>(
+        {{{7:}
+        }},
+        reinterpret_cast<char const *>(data));
 }}
 
 }}
@@ -37,53 +41,40 @@ void launchKernel(void const *data, void *const *outputs) {{
 namespace refactor::kernel {
     using namespace runtime;
 
-    auto SplitCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
-        auto sub = std::min(info.submultiple(), 16u);
-        auto params = cuda::ThreadsDistributer()(info.blockCount * info.sum / sub);
+    auto SplitCuda::lower(Resources &) const -> RoutineWorkspace {
+        auto unit = info.unit(16);
+        auto params = cuda::ThreadsDistributer()(info.blockCount * info.sum / unit);
         auto outputCount = info.segments.size();
 
         std::stringstream ss;
-        for (auto i : range0_(outputCount)) {
-            ss << "char *output" << i << ", ";
-        }
-        auto s0 = ss.str();
-
-        ss.str("");
         for (auto seg : info.segments) {
             ss << seg << ", ";
         }
-        auto s5 = ss.str();
-
-        ss.str("");
-        for (auto i : range0_(outputCount)) {
-            ss << "output" << i << ", ";
-        }
-        auto s6 = ss.str();
+        auto segments = ss.str();
 
         ss.str("");
         for (auto i : range0_(outputCount)) {
             ss << std::endl
-               << "        reinterpret_cast<char *>(outputs[" << i << "]), ";
+               << "            reinterpret_cast<char *>(outputs[" << i << "]), ";
         }
-        auto s9 = ss.str();
+        auto castOutputs = ss.str();
 
         ss.str("");
-        ss << "Split" << outputCount;
+        ss << "Split_" << info.blockCount << ',' << unit;
         for (auto seg : info.segments) {
-            ss << '_' << seg;
+            ss << ',' << seg;
         }
         auto name = ss.str();
         auto code = fmt::format(
             TEMPLATE,
-            s0,                            // 0
-            CudaCodeRepo::memCopyType(sub),// 1
-            params.n,                      // 2
-            info.sum / sub,                // 3
-            s5,                            // 4
-            s6,                            // 5
-            params.gridSize,               // 6
-            params.blockSize,              // 7
-            s9                             // 8
+            outputCount,                    // 0
+            CudaCodeRepo::memCopyType(unit),// 1
+            info.sum / unit,                // 2
+            segments,                       // 3
+            params.n,                       // 4
+            params.gridSize,                // 5
+            params.blockSize,               // 6
+            castOutputs                     // 7
         );
 
         using Fn = void (*)(void const *, void *const *);

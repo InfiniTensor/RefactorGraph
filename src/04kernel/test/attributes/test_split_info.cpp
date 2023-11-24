@@ -18,9 +18,9 @@ TEST(kernel, SplitInfo) {
                    [](auto const &it) { return std::cref(*it); });
     SplitInfo info(3, outputs_);
     EXPECT_EQ(info.blockCount, 6);
-    EXPECT_EQ(info.submultiple(), 8);
+    EXPECT_EQ(info.unit(16), 8);
     auto postfix = 49 * 8u;
     EXPECT_EQ(info.sum, 20 * postfix);
     EXPECT_EQ(info.segments, (absl::InlinedVector<dim_t, 4>{1 * postfix, 9 * postfix, 3 * postfix, 7 * postfix}));
-    EXPECT_EQ(info.submultiple(), 8);
+    EXPECT_EQ(info.unit(4), 4);
 }

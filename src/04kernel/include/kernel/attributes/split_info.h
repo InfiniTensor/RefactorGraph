@@ -14,7 +14,7 @@ namespace refactor::kernel {
         absl::InlinedVector<dim_t, 4> segments;
 
         SplitInfo(dim_t axis, TensorRefs const &outputs) noexcept;
-        dim_t submultiple() const noexcept;
+        dim_t unit(dim_t maxBlockSize) const noexcept;
     };
 
 }// namespace refactor::kernel

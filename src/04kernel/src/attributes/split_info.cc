@@ -21,15 +21,10 @@ namespace refactor::kernel {
                        [=](auto const &ref) { return ref.get().shape[axis] * postfix; });
     }
 
-    dim_t SplitInfo::submultiple() const noexcept {
-        auto and_ = std::accumulate(segments.begin(), segments.end(), 0u,
-                                    [&](auto acc, auto seg) { return acc | seg; });
-        for (dim_t ans = ~0u; ans != 0; ans >>= 1) {
-            if ((and_ & ans) == 0) {
-                return ans + 1;
-            }
-        }
-        return 1;
+    dim_t SplitInfo::unit(dim_t maxBlockSize) const noexcept {
+        auto or_ = std::accumulate(segments.begin(), segments.end(), 0u,
+                                   [&](auto acc, auto seg) { return acc | seg; });
+        return std::gcd(or_, maxBlockSize);
     }
 
 }// namespace refactor::kernel

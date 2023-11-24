@@ -20,7 +20,7 @@ namespace refactor::kernel {
                 cudaFreeHost(pageLocked);
             }
         };
-        auto sub = std::min(info.submultiple(), 32u);
+        auto sub = info.unit(16);
         auto routine = [params = cuda::ThreadsDistributer()(info.blockCount * info.sum / sub),
                         segments = thrust::device_vector<dim_t>(info.segments.begin(), info.segments.end()),
                         workspace_ = std::make_shared<Workspace>(workspaceSize),
