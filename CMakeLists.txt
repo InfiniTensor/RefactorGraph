@@ -3,6 +3,7 @@ project(refactor_graph VERSION 0.0.0 LANGUAGES CXX)
 
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
 option(USE_CUDA "Build with cuda" OFF)
+option(USE_KUNLUN "Support Kunlun XPU" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,6 +23,18 @@ if(USE_CUDA)
     endif()
     message(STATUS "CMAKE_CUDA_HOST_COMPILER set to " ${CMAKE_CUDA_HOST_COMPILER})
     message(STATUS "CMAKE_CUDA_ARCHITECTURES set to " ${CMAKE_CUDA_ARCHITECTURES})
+endif()
+
+if(USE_KUNLUN)
+    add_compile_definitions(USE_KUNLUN)
+    if (DEFINED KUNLUN_HOME)
+        set(KUNLUN_HOME ${KUNLUN_HOME} CACHE STRING "KUNLUN_HOME directory for Kunlun development")
+    elseif(DEFINED ENV{KUNLUN_HOME})
+        set(KUNLUN_HOME $ENV{KUNLUN_HOME} CACHE STRING "KUNLUN_HOME directory for Kunlun development")
+    else()
+        message(FATAL_ERROR "KUNLUN_HOME is not defined from cmake or env")
+    endif()
+    message(STATUS "KUNLUN_HOME: ${KUNLUN_HOME}")
 endif()
 
 # add_compile_options(-march=native) # this will cause error in some machine
