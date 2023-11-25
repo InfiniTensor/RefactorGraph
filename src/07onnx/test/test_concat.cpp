@@ -14,7 +14,7 @@ TEST(infer, Concat) {
         {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(5)}, {}), ""},
     };
     count_t inputs[]{0, 1, 2};
-    auto infered = Concat(1).infer(TensorRefs(edges, slice(inputs, 3)), {true});
+    auto infered = Concat(1).infer(TensorRefs(edges, inputs), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

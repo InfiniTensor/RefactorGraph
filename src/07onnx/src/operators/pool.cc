@@ -1,6 +1,7 @@
 ﻿#include "computation/operators/pool.h"
 #include "common.h"
 #include "pool.hh"
+#include <execution>
 
 namespace refactor::onnx {
     using Op = Pool;
@@ -113,7 +114,9 @@ namespace refactor::onnx {
         Shape output(input.rank(), DimExpr(0));
         output[0] = input.shape[0];
         output[1] = input.shape[1];
-        std::copy(output_.begin(), output_.end(), output.begin() + 2);
+        std::copy(std::execution::par_unseq,
+                  output_.begin(), output_.end(),
+                  output.begin() + 2);
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 

@@ -12,13 +12,10 @@ TEST(infer, Expand) {
         {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""},
         {Tensor::share(DataType::I64, Shape{DimExpr(4)}, {}), ""},
     };
-    {
-        auto &shape = edges[1].tensor;
-        int64_t shape_[]{7, 2, 3, 5};
-        std::copy(shape_, shape_ + 4, reinterpret_cast<int64_t *>(shape->malloc()));
-    }
+    int64_t shape[]{7, 2, 3, 5};
+    std::memcpy(edges[1].tensor->malloc(), shape, sizeof(shape));
     count_t inputs[]{0, 1};
-    auto infered = Expand().infer(TensorRefs(edges, slice(inputs, 2)), {true});
+    auto infered = Expand().infer(TensorRefs(edges, inputs), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

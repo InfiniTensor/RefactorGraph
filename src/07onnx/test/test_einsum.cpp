@@ -13,7 +13,7 @@ TEST(infer, Einsum) {
         {Tensor::share(DataType::F32, Shape{DimExpr(3), DimExpr(5), DimExpr(4)}, {}), ""},
     };
     count_t inputs[]{0, 1};
-    auto infered = Einsum("bik,bkj->bij").infer(TensorRefs(edges, slice(inputs, 2)), {true});
+    auto infered = Einsum("bik,bkj->bij").infer(TensorRefs(edges, inputs), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

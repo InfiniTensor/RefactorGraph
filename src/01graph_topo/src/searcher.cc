@@ -1,5 +1,6 @@
 ﻿#include "graph_topo/searcher.h"
 #include <algorithm>
+#include <span>
 
 namespace refactor::graph_topo {
     constexpr static count_t EXTERNAL = std::numeric_limits<count_t>::max();
@@ -89,7 +90,7 @@ namespace refactor::graph_topo {
         auto const &connections = _internal._graph._connections.data();
         std::vector<Edge> ans;
         ans.reserve(nodeIn._inputsCount);
-        for (auto edgeIdx : slice(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
+        for (auto edgeIdx : std::span(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
             ans.emplace_back(_internal, edgeIdx);
         }
         return ans;
@@ -113,7 +114,7 @@ namespace refactor::graph_topo {
             auto const &nodeIn = _internal._graph._nodes[_idx];
             auto const &nodeEx = _internal._nodes[_idx];
             auto const &connections = _internal._graph._connections.data();
-            for (auto edgeIdx : slice(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
+            for (auto edgeIdx : std::span(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
                 auto nodeIdx = _internal._edges[edgeIdx]._source;
                 if (nodeIdx != EXTERNAL) {
                     if (auto [it, ok] = predecessors.insert(nodeIdx); ok) {
