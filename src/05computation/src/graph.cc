@@ -55,7 +55,7 @@ namespace refactor::computation {
                 edges[i] = {nullptr, tensor->bytesSize(), name};
             } else {
                 auto bytes = tensor->bytesSize();
-                auto blob = mem_manager::ForeignBlob::share(target.memManager(), bytes);
+                auto blob = hardware::ForeignBlob::share(target.memManager(), bytes);
                 blob->copyIn(*(tensor->data), bytes);
                 edges[i] = {std::move(blob), bytes, name};
             }

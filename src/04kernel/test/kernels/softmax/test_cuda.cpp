@@ -20,8 +20,8 @@ TEST(kernel, SoftmaxCuda) {
     auto rCuda = kCuda->lower(res).routine;
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
-    auto gpuX = mem_manager::ForeignBlob::share(memManager, xTensor->bytesSize());
-    auto gpuOut = mem_manager::ForeignBlob::share(memManager, outTensor->bytesSize());
+    auto gpuX = hardware::ForeignBlob::share(memManager, xTensor->bytesSize());
+    auto gpuOut = hardware::ForeignBlob::share(memManager, outTensor->bytesSize());
     // put input data
     std::vector<float> data(xTensor->elementsSize());
     for (auto i : range0_(data.size())) { data[i] = 0.0; }

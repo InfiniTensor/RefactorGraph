@@ -20,7 +20,7 @@ void testPoolCudnn(PoolType poolType, int rank, const int64_t *pads, const int64
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
     // cuda malloc
-    auto gpuMem = mem_manager::ForeignBlob::share(
+    auto gpuMem = hardware::ForeignBlob::share(
         Target(Target::NvidiaGpu).memManager(),
         dataTensor->bytesSize());
     // put input data

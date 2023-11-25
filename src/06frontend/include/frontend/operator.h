@@ -72,11 +72,12 @@ namespace refactor::frontend {
         }
 
         using Builder = OpBox (*)(ModelContext const &, std::string_view, Attributes);
-        static OpBox build(ModelContext const &, std::string, Attributes);
         static void register_(std::string, Builder);
         template<class T> static void register_(std::string opTypeName) {
             register_(std::move(opTypeName), T::build);
         }
+
+        static OpBox build(ModelContext const &, std::string, Attributes);
     };
 
     class OpBox {

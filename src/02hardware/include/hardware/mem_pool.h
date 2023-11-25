@@ -6,9 +6,9 @@
 #include "mem_offset_calculator.h"
 #include <unordered_map>
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
-    class MemPool final : public mem_manager::MemManager {
+    class MemPool final : public hardware::MemManager {
         size_t _memPoolSize;
         OffsetCalculator _calculator;
         void *_ptr;
@@ -26,6 +26,6 @@ namespace refactor::mem_manager {
         ~MemPool();
     };
 
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware
 
 #endif// MEM_MANAGER_MEM_POOL_H

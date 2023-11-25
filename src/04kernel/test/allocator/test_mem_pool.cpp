@@ -1,6 +1,6 @@
-#include "../../../02mem_manager/include/mem_manager/mem_pool.h"
-#include "../../include/kernel/target.h"
-#include "../../include/kernel/tensor.h"
+#include "hardware/mem_pool.h"
+#include "kernel/target.h"
+#include "kernel/tensor.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;

@@ -26,9 +26,9 @@ void testBinaryCudnn(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape d
         a(aTensor->elementsSize(), 3.0f),
         b(bTensor->elementsSize(), 2.0f),
         c(cTensor->elementsSize());
-    auto aGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), aTensor->bytesSize()),
-         bGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), bTensor->bytesSize()),
-         cGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), cTensor->bytesSize());
+    auto aGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), aTensor->bytesSize()),
+         bGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), bTensor->bytesSize()),
+         cGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), cTensor->bytesSize());
     aGPU->copyIn(a.data(), aTensor->bytesSize());
     bGPU->copyIn(b.data(), bTensor->bytesSize());
     // Compute

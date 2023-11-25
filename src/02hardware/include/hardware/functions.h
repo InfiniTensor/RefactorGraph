@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
     constexpr size_t align2power(size_t size, int bits) {
         auto mask = (1 << bits) - 1;
@@ -14,6 +14,6 @@ namespace refactor::mem_manager {
         return (size + bytes - 1) / bytes * bytes;
     }
 
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware
 
 #endif// MEM_MANAGER_FUNCTIONS_H

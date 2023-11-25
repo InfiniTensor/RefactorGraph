@@ -4,7 +4,7 @@
 #include "common.h"
 #include "mem_manager.hh"
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
     /// @brief 显存内存块。
     class ForeignBlob {
@@ -33,6 +33,6 @@ namespace refactor::mem_manager {
 
     using SharedForeignBlob = std::shared_ptr<ForeignBlob>;
 
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware
 
 #endif// MEM_MANAGER_FOREIGN_BLOB_H

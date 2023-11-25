@@ -2,7 +2,7 @@
 #include "../../utilities/cuda/cudnn_functions.h"
 #include "common.h"
 #include "cudnn_kernel.hh"
-#include "mem_manager/functions.h"
+#include "hardware/functions.h"
 
 namespace refactor::kernel {
     using namespace cudnn;
@@ -61,7 +61,7 @@ namespace refactor::kernel {
         // get workspace
         CUDNN_ASSERT(cudnnGetReductionIndicesSize(handler, d->reduce, d->x, d->y, &idxWorkspaceSize));
         CUDNN_ASSERT(cudnnGetReductionWorkspaceSize(handler, d->reduce, d->x, d->y, &workspaceSize));
-        idxWorkspaceSize = mem_manager::alignBytes(idxWorkspaceSize, 256);
+        idxWorkspaceSize = hardware::alignBytes(idxWorkspaceSize, 256);
 
         // nvcc at c++11 doesn't support real move capture
         auto routine = [d = std::move(d),

@@ -3,7 +3,7 @@
 #include <numeric>
 
 namespace refactor::frontend {
-    using namespace mem_manager;
+    using namespace hardware;
 
     DimVariableInternal::DimVariableInternal(std::string name_, std::optional<int64_t> value_)
         : name(std::move(name_)), value(value_) {}

@@ -1,8 +1,8 @@
-﻿#include "mem_manager/blob.hh"
+﻿#include "hardware/blob.hh"
 #include <cstdlib>
 #include <utility>
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
     Blob::Blob(size_t bytes) : _ptr(std::malloc(bytes)) {}
     Blob::~Blob() { std::free(std::exchange(_ptr, nullptr)); }
@@ -15,4 +15,4 @@ namespace refactor::mem_manager {
     }
     Blob::operator void const *() const noexcept { return _ptr; }
 
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware

@@ -1,7 +1,7 @@
-﻿#include "mem_manager/foreign_blob.hh"
+﻿#include "hardware/foreign_blob.hh"
 #include <utility>
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
     ForeignBlob::ForeignBlob(Arc<MemManager> m, size_t bytes)
         : _memManager(std::move(m)),
@@ -28,4 +28,4 @@ namespace refactor::mem_manager {
     void ForeignBlob::copyTo(ForeignBlob &tgt, size_t bytes) const {
         _memManager->copyDD(tgt._ptr, _ptr, bytes);
     }
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware

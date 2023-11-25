@@ -1,6 +1,6 @@
-#include "mem_manager/mem_pool.h"
+#include "hardware/mem_pool.h"
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
     MemPool::MemPool(size_t memPoolSize, size_t alignment, Arc<MemManager> f)
         : _memPoolSize(memPoolSize),
           _calculator(OffsetCalculator(alignment)),
@@ -38,4 +38,4 @@ namespace refactor::mem_manager {
         _f->copyDD(dst, src, bytes);
         return dst;
     }
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware

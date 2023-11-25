@@ -2,7 +2,7 @@
 #define RUNTIME_STREAM_H
 
 #include "graph_topo.h"
-#include "mem_manager/foreign_blob.hh"
+#include "hardware/foreign_blob.hh"
 #include "resource.h"
 #include <absl/container/inlined_vector.h>
 #include <chrono>
@@ -15,14 +15,14 @@ namespace refactor::runtime {
     void emptyRoutine(runtime::Resources &, void *, void const *const *, void *const *);
 
     struct Address {
-        std::variant<size_t, mem_manager::SharedForeignBlob> value;
+        std::variant<size_t, hardware::SharedForeignBlob> value;
 
         void *operator()(void *stack) const;
 
         bool isBlob() const noexcept;
         bool isOffset() const noexcept;
 
-        auto blob() const noexcept -> mem_manager::SharedForeignBlob const &;
+        auto blob() const noexcept -> hardware::SharedForeignBlob const &;
         auto offset() const noexcept -> size_t;
     };
 
@@ -42,7 +42,7 @@ namespace refactor::runtime {
         using _G = graph_topo::Graph<_N, _E>;
 
         Resources _resources;
-        mem_manager::SharedForeignBlob _stack;
+        hardware::SharedForeignBlob _stack;
         std::vector<size_t> _outputsSize;
         _G _internal;
 
@@ -54,7 +54,7 @@ namespace refactor::runtime {
                std::vector<_N>,
                std::vector<_E>);
         void setData(count_t, void const *, size_t);
-        void setData(count_t, mem_manager::SharedForeignBlob);
+        void setData(count_t, hardware::SharedForeignBlob);
         void getData(count_t, void *, size_t) const;
         auto prepare() -> std::vector<count_t>;
         void run();

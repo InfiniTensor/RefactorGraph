@@ -4,13 +4,13 @@
 #define CUDA_MEM_CUH
 
 #include "common.h"
-#include "mem_manager/mem_manager.hh"
+#include "hardware/mem_manager.hh"
 
 namespace refactor::kernel::cuda {
 
-    class BasicCudaMemManager final : public mem_manager::MemManager {
+    class BasicCudaMemManager final : public hardware::MemManager {
     public:
-        static Arc<mem_manager::MemManager> instance();
+        static Arc<hardware::MemManager> instance();
         void *malloc(size_t bytes) noexcept final;
         void free(void *ptr) noexcept final;
         void *copyHD(void *dst, void const *src, size_t bytes) const noexcept final;

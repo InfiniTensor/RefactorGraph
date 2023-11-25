@@ -1,5 +1,5 @@
-#include "../../../02mem_manager/include/mem_manager/mem_offset_calculator.h"
-#include "../../include/kernel/tensor.h"
+#include "hardware/mem_offset_calculator.h"
+#include "kernel/tensor.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -11,7 +11,7 @@ TEST(MemOffsetCalculator, testMergeFreeBlocks) {
     auto b = Tensor::share(DataType::F32, shape);
     auto c = Tensor::share(DataType::F32, shape);
     auto d = Tensor::share(DataType::F32, shape);
-    mem_manager::OffsetCalculator calculator = mem_manager::OffsetCalculator(sizeof(uint64_t));
+    hardware::OffsetCalculator calculator = hardware::OffsetCalculator(sizeof(uint64_t));
     // allocate a->b->c->d
     calculator.alloc(a->bytesSize());
     size_t offsetB = calculator.alloc(b->bytesSize());
@@ -35,7 +35,7 @@ TEST(MemOffsetCalculator, testAllocFree) {
     auto b = Tensor::share(DataType::F32, shape);
     auto c = Tensor::share(DataType::F32, shape);
     auto d = Tensor::share(DataType::F32, shape);
-    mem_manager::OffsetCalculator calculator = mem_manager::OffsetCalculator(sizeof(uint64_t));
+    hardware::OffsetCalculator calculator = hardware::OffsetCalculator(sizeof(uint64_t));
     // allocate a->b->c
     calculator.alloc(a->bytesSize());
     size_t offsetB = calculator.alloc(b->bytesSize());
@@ -54,7 +54,7 @@ TEST(MemOffsetCalculator, testAllocWithEndFreeBlock) {
     auto c = Tensor::share(DataType::F32, shape);
     auto d =
         Tensor::share(DataType::F32, Shape{20, 20, 20, 30});
-    mem_manager::OffsetCalculator calculator = mem_manager::OffsetCalculator(sizeof(uint64_t));
+    hardware::OffsetCalculator calculator = hardware::OffsetCalculator(sizeof(uint64_t));
     // allocate a->b->c
     calculator.alloc(a->bytesSize());
     calculator.alloc(b->bytesSize());

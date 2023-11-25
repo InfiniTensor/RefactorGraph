@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(frontend)
 
 file(GLOB_RECURSE FRONTEND_SRC src/*.cc src/*.cpp)

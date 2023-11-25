@@ -17,10 +17,10 @@ TEST(kernel, WhereCpu) {
     auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
-    auto mc = mem_manager::ForeignBlob::share(mfn, cTensor->bytesSize());
-    auto mx = mem_manager::ForeignBlob::share(mfn, xTensor->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, yTensor->bytesSize());
-    auto mout = mem_manager::ForeignBlob::share(mfn, outTensor->bytesSize());
+    auto mc = hardware::ForeignBlob::share(mfn, cTensor->bytesSize());
+    auto mx = hardware::ForeignBlob::share(mfn, xTensor->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, yTensor->bytesSize());
+    auto mout = hardware::ForeignBlob::share(mfn, outTensor->bytesSize());
     // put inputs data
     int dataC[cTensor->elementsSize()];
     memset(dataC, 1, cTensor->elementsSize() * sizeof(bool));

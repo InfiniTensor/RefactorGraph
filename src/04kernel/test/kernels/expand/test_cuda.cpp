@@ -23,9 +23,9 @@ TEST(kernel, ExpandCuda) {
     auto rCpu = kCpu->lower(res).routine;
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
-    Arc<mem_manager::ForeignBlob>
-        gpuIn = mem_manager::ForeignBlob::share(memManager, input->bytesSize()),
-        gpuOut = mem_manager::ForeignBlob::share(memManager, output->bytesSize());
+    Arc<hardware::ForeignBlob>
+        gpuIn = hardware::ForeignBlob::share(memManager, input->bytesSize()),
+        gpuOut = hardware::ForeignBlob::share(memManager, output->bytesSize());
     // put input data
     std::vector<float>
         data(input->elementsSize()),

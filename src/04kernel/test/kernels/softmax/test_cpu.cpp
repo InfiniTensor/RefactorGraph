@@ -16,8 +16,8 @@ TEST(kernel, SoftmaxCpu) {
     auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
-    auto mx = mem_manager::ForeignBlob::share(mfn, xTensor->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, yTensor->bytesSize());
+    auto mx = hardware::ForeignBlob::share(mfn, xTensor->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, yTensor->bytesSize());
     std::vector<double> data(xTensor->elementsSize());
     for (auto i : range0_(data.size())) { data[i] = 0; }
     mx->copyIn(data.data(), xTensor->bytesSize());

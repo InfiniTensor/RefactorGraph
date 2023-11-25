@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
     class MemManager {
     public:
@@ -15,6 +15,6 @@ namespace refactor::mem_manager {
         virtual void *copyDD(void *dst, void const *src, size_t bytes) const = 0;
     };
 
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware
 
 #endif// MEM_MANAGER_MEM_FUNCTIONS_H

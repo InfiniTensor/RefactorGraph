@@ -6,7 +6,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
     class OffsetCalculator {
         size_t
@@ -57,6 +57,6 @@ namespace refactor::mem_manager {
         size_t peak() const noexcept;
     };
 
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware
 
 #endif// MEM_MANAGER_MEM_OFFSET_CALCULATOR_H

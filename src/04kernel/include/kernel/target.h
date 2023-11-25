@@ -2,10 +2,10 @@
 #define KRENEL_TARGET_H
 
 #include "common.h"
-#include "mem_manager/mem_manager.hh"
+#include "hardware/mem_manager.hh"
 
 namespace refactor::kernel {
-    using mem_manager::MemManager;
+    using hardware::MemManager;
 
     struct Target {
         enum : uint8_t {

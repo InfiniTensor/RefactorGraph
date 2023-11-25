@@ -1,9 +1,9 @@
-#include "mem_manager/mem_offset_calculator.h"
+#include "hardware/mem_offset_calculator.h"
 #include "common.h"
-#include "mem_manager/functions.h"
+#include "hardware/functions.h"
 #include <fmtlog.h>
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
     auto OffsetCalculator::FreeBlockInfo::
     operator<(const FreeBlockInfo &rhs) const noexcept -> bool {
@@ -129,4 +129,4 @@ namespace refactor::mem_manager {
              _freeBlocks.empty() ? 0 : _freeBlocks.rbegin()->blockSize);
     }
 
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware

@@ -18,9 +18,9 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     auto [routine, workspaceSize] = kernel->lower(res);
     // cuda malloc
     auto manager = Target(Target::NvidiaGpu).memManager();
-    auto workspace = mem_manager::ForeignBlob::share(manager, workspaceSize);
-    auto gpuMemIn = mem_manager::ForeignBlob::share(manager, dataTensor->bytesSize());
-    auto gpuMemOut = mem_manager::ForeignBlob::share(manager, dataTensor->bytesSize());
+    auto workspace = hardware::ForeignBlob::share(manager, workspaceSize);
+    auto gpuMemIn = hardware::ForeignBlob::share(manager, dataTensor->bytesSize());
+    auto gpuMemOut = hardware::ForeignBlob::share(manager, dataTensor->bytesSize());
     // put input output data
     gpuMemIn->copyIn(data.data(), dataTensor->bytesSize());
     // inference

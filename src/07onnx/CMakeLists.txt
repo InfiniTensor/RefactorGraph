@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(onnx)
 
 file(GLOB_RECURSE ONNX_SRC src/*.cc src/*.cpp)

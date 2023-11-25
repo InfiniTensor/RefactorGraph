@@ -3,7 +3,7 @@
 
 #include <memory>
 
-namespace refactor::mem_manager {
+namespace refactor::hardware {
 
     /// @brief 一次初始化的内存块。
     class Blob {
@@ -26,6 +26,6 @@ namespace refactor::mem_manager {
 
     using SharedBlob = std::shared_ptr<Blob>;
 
-}// namespace refactor::mem_manager
+}// namespace refactor::hardware
 
 #endif// MEM_MANAGER_BLOB_H

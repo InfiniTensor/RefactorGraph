@@ -21,10 +21,10 @@ TEST(kernel, MatMulCublas_OnlyBias) {
     auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::NvidiaGpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = mem_manager::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, Y->bytesSize());
+    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
+    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
+    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     // put input data
     std::vector<float> dataA{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     std::vector<float> dataB{0.0, 0.0, 0.0, 0.0};
@@ -67,10 +67,10 @@ TEST(kernel, MatMulCublas_Broadcast) {
     std::vector<float> dataC{1.0, 0.0};
     std::vector<float> cpuOut(Y->elementsSize());
     auto mfn = Target(Target::NvidiaGpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = mem_manager::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, Y->bytesSize());
+    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
+    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
+    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     ma->copyIn(dataA.data(), A->bytesSize());
     mb->copyIn(dataB.data(), B->bytesSize());
     mc->copyIn(dataC.data(), C->bytesSize());
@@ -114,9 +114,9 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
                              1.0, 0.0, 0.0, 1.0};
     std::vector<float> cpuOut(Y->elementsSize());
     auto mfn = Target(Target::NvidiaGpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, B->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, Y->bytesSize());
+    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
+    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     ma->copyIn(dataA.data(), A->bytesSize());
     mb->copyIn(dataB.data(), B->bytesSize());
     // inference
@@ -167,10 +167,10 @@ TEST(kernel, MatMulCublas_Large) {
     }
     std::vector<float> cpuOut(Y->elementsSize());
     auto mfn = Target(Target::NvidiaGpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = mem_manager::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, Y->bytesSize());
+    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
+    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
+    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     ma->copyIn(dataA.data(), A->bytesSize());
     mb->copyIn(dataB.data(), B->bytesSize());
     mc->copyIn(dataC.data(), C->bytesSize());

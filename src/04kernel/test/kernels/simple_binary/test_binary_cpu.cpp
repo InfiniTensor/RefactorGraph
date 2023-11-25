@@ -46,9 +46,9 @@ TEST(kernel, BinaryCpuBroadcast) {
     auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, a->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, b->bytesSize());
-    auto mc = mem_manager::ForeignBlob::share(mfn, c->bytesSize());
+    auto ma = hardware::ForeignBlob::share(mfn, a->bytesSize());
+    auto mb = hardware::ForeignBlob::share(mfn, b->bytesSize());
+    auto mc = hardware::ForeignBlob::share(mfn, c->bytesSize());
     // put input data
     std::vector<float> data(a->elementsSize());
     for (auto i : range0_(data.size())) { data[i] = 11; }

@@ -65,7 +65,7 @@ enable_testing()
 
 add_subdirectory(src/00common)
 add_subdirectory(src/01graph_topo)
-add_subdirectory(src/02mem_manager)
+add_subdirectory(src/02hardware)
 add_subdirectory(src/03runtime)
 add_subdirectory(src/04kernel)
 add_subdirectory(src/05computation)

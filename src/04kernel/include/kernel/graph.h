@@ -3,12 +3,12 @@
 
 #include "graph_topo.h"
 #include "kernel.h"
-#include "mem_manager/foreign_blob.hh"
+#include "hardware/foreign_blob.hh"
 #include "target.h"
 #include <span>
 
 namespace refactor::kernel {
-    using mem_manager::SharedForeignBlob;
+    using hardware::SharedForeignBlob;
     using runtime::Address;
 
     struct Node {
@@ -17,7 +17,7 @@ namespace refactor::kernel {
     };
 
     struct Edge {
-        mem_manager::SharedForeignBlob data;
+        hardware::SharedForeignBlob data;
         size_t size;
         std::string name;
     };

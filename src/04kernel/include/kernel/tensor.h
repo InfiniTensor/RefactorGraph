@@ -2,7 +2,7 @@
 #define KERNEL_TENSOR_H
 
 #include "layout.h"
-#include "mem_manager/blob.hh"
+#include "hardware/blob.hh"
 
 namespace refactor::kernel {
 
@@ -13,17 +13,17 @@ namespace refactor::kernel {
         DataType dataType;
         Shape shape;
         LayoutType layout;
-        Arc<mem_manager::Blob> data;
+        Arc<hardware::Blob> data;
 
         Tensor(DataType,
                Shape,
                LayoutType,
-               Arc<mem_manager::Blob>) noexcept;
+               Arc<hardware::Blob>) noexcept;
         static Arc<Tensor>
             share(DataType,
                   Shape,
                   LayoutType = LayoutType::Others,
-                  Arc<mem_manager::Blob> = nullptr) noexcept;
+                  Arc<hardware::Blob> = nullptr) noexcept;
 
         int64_t rank() const;
         size_t elementsSize() const;

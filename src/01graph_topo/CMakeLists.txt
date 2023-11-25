@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(graph_topo)
 
 file(GLOB_RECURSE GRAPH_TOPO_SRC src/*.cc src/*.cpp)

@@ -6,7 +6,7 @@ namespace refactor::runtime {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    auto MemManager::build(Arc<mem_manager::MemManager> ptr) noexcept -> ResourceBox {
+    auto MemManager::build(Arc<hardware::MemManager> ptr) noexcept -> ResourceBox {
         auto ans = std::make_unique<MemManager>();
         ans->manager = std::move(ptr);
         return ans;

@@ -34,15 +34,15 @@ TEST(kernel, ConcatCuda) {
     // malloc
     res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
     auto memManager = res.fetch<runtime::MemManager>()->manager;
-    Arc<mem_manager::ForeignBlob>
-        workspace = mem_manager::ForeignBlob::share(memManager, workspaceSize),
+    Arc<hardware::ForeignBlob>
+        workspace = hardware::ForeignBlob::share(memManager, workspaceSize),
         gpuIns[]{
-            mem_manager::ForeignBlob::share(memManager, inputTensors[0]->bytesSize()),
-            mem_manager::ForeignBlob::share(memManager, inputTensors[1]->bytesSize()),
-            mem_manager::ForeignBlob::share(memManager, inputTensors[2]->bytesSize()),
-            mem_manager::ForeignBlob::share(memManager, inputTensors[3]->bytesSize()),
+            hardware::ForeignBlob::share(memManager, inputTensors[0]->bytesSize()),
+            hardware::ForeignBlob::share(memManager, inputTensors[1]->bytesSize()),
+            hardware::ForeignBlob::share(memManager, inputTensors[2]->bytesSize()),
+            hardware::ForeignBlob::share(memManager, inputTensors[3]->bytesSize()),
         },
-        gpuOut = mem_manager::ForeignBlob::share(memManager, result->bytesSize());
+        gpuOut = hardware::ForeignBlob::share(memManager, result->bytesSize());
     // put input data
     std::vector<float>
         cpuIns[]{

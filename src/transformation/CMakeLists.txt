@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(transformation)
 
 file(GLOB_RECURSE GRAPH_SRC src/*.cc src/*.cpp)

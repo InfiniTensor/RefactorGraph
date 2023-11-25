@@ -18,10 +18,10 @@ TEST(kernel, ActivationCudnn) {
     auto rCpu = kCpu->lower(res).routine;
     auto routine = kernel->lower(res).routine;
     // malloc
-    auto cpuMem = mem_manager::ForeignBlob::share(
+    auto cpuMem = hardware::ForeignBlob::share(
         Target(Target::Cpu).memManager(),
         dataTensor->bytesSize());
-    auto gpuMem = mem_manager::ForeignBlob::share(
+    auto gpuMem = hardware::ForeignBlob::share(
         Target(Target::NvidiaGpu).memManager(),
         dataTensor->bytesSize());
     // put input data

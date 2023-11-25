@@ -21,10 +21,10 @@ TEST(kernel, WhereCuda) {
     auto rCuda = kCuda->lower(res).routine;
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
-    auto gpuC = mem_manager::ForeignBlob::share(memManager, cTensor->bytesSize());
-    auto gpuX = mem_manager::ForeignBlob::share(memManager, xTensor->bytesSize());
-    auto gpuY = mem_manager::ForeignBlob::share(memManager, yTensor->bytesSize());
-    auto gpuOut = mem_manager::ForeignBlob::share(memManager, outTensor->bytesSize());
+    auto gpuC = hardware::ForeignBlob::share(memManager, cTensor->bytesSize());
+    auto gpuX = hardware::ForeignBlob::share(memManager, xTensor->bytesSize());
+    auto gpuY = hardware::ForeignBlob::share(memManager, yTensor->bytesSize());
+    auto gpuOut = hardware::ForeignBlob::share(memManager, outTensor->bytesSize());
     // put input data
     int dataC[cTensor->elementsSize()];
     memset(dataC, 1, cTensor->elementsSize() * sizeof(bool));

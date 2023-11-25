@@ -3,7 +3,7 @@
 
 namespace refactor::kernel::cuda {
 
-    Arc<mem_manager::MemManager> BasicCudaMemManager::instance() {
+    Arc<hardware::MemManager> BasicCudaMemManager::instance() {
         static auto I = std::make_shared<BasicCudaMemManager>();
         return I;
     }

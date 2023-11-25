@@ -21,8 +21,8 @@ TEST(kernel, TransposeCuda) {
     // malloc
     auto memManager = Target(Target::NvidiaGpu).memManager();
     auto bytes = dataTensor->bytesSize();
-    auto gpuIn = mem_manager::ForeignBlob::share(memManager, bytes),
-         gpuOut = mem_manager::ForeignBlob::share(memManager, bytes);
+    auto gpuIn = hardware::ForeignBlob::share(memManager, bytes),
+         gpuOut = hardware::ForeignBlob::share(memManager, bytes);
     // put input data
     std::vector<float>
         cpuIn(dataTensor->elementsSize()),

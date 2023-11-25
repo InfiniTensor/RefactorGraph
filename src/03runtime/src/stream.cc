@@ -2,25 +2,25 @@
 #include "runtime/mem_manager.hh"
 
 namespace refactor::runtime {
-    using mem_manager::ForeignBlob;
+    using hardware::ForeignBlob;
 
     void emptyRoutine(runtime::Resources &, void *, void const *const *, void *const *) {}
 
     void *Address::operator()(void *stack) const {
         if (isBlob()) {
-            auto blob = std::get<mem_manager::SharedForeignBlob>(value);
+            auto blob = std::get<hardware::SharedForeignBlob>(value);
             return blob ? (void *) *blob : nullptr;
         }
         return reinterpret_cast<uint8_t *>(stack) + std::get<size_t>(value);
     }
     bool Address::isBlob() const noexcept {
-        return std::holds_alternative<mem_manager::SharedForeignBlob>(value);
+        return std::holds_alternative<hardware::SharedForeignBlob>(value);
     }
     bool Address::isOffset() const noexcept {
         return std::holds_alternative<size_t>(value);
     }
-    auto Address::blob() const noexcept -> mem_manager::SharedForeignBlob const & {
-        return std::get<mem_manager::SharedForeignBlob>(value);
+    auto Address::blob() const noexcept -> hardware::SharedForeignBlob const & {
+        return std::get<hardware::SharedForeignBlob>(value);
     }
     auto Address::offset() const noexcept -> size_t {
         return std::get<size_t>(value);
@@ -48,7 +48,7 @@ namespace refactor::runtime {
         blob->copyIn(data, size);
         _internal.edges[i].value = {std::move(blob)};
     }
-    void Stream::setData(count_t i, mem_manager::SharedForeignBlob blob) {
+    void Stream::setData(count_t i, hardware::SharedForeignBlob blob) {
         _internal.edges[i].value = {std::move(blob)};
     }
     void Stream::getData(count_t i, void *data, size_t size) const {

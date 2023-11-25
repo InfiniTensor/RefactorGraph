@@ -12,7 +12,7 @@ static void testOp(SimpleUnaryType opType, float check(float)) {
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
     // malloc
-    auto cpuMem = mem_manager::ForeignBlob::share(
+    auto cpuMem = hardware::ForeignBlob::share(
         Target(Target::Cpu).memManager(),
         dataTensor->bytesSize());
     // put input data

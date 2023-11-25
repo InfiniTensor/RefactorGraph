@@ -17,7 +17,7 @@ static void testOp(SimpleUnaryType opType) {
     auto routine = kernel->lower(res).routine,
          rCpu = kCpu->lower(res).routine;
     // malloc
-    auto gpuMem = mem_manager::ForeignBlob::share(
+    auto gpuMem = hardware::ForeignBlob::share(
         Target(Target::NvidiaGpu).memManager(),
         dataTensor->bytesSize());
     // put input data

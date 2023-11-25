@@ -1,5 +1,5 @@
 ﻿#include "kernel/allocators.h"
-#include "mem_manager/functions.h"
+#include "hardware/functions.h"
 
 namespace refactor::kernel {
 
@@ -24,12 +24,12 @@ namespace refactor::kernel {
             for (auto i : outputs) {
                 if (used[i] && !globalOutputs.contains(i)) {
                     addresses[i] = {size};
-                    size += mem_manager::alignBytes(g.edges[i].size, alignBytes);
+                    size += hardware::alignBytes(g.edges[i].size, alignBytes);
                 }
             }
             if (auto wsSize = workspace[nodeIdx]; wsSize) {
                 workspaceOffsets[nodeIdx] = size;
-                size += mem_manager::alignBytes(wsSize, alignBytes);
+                size += hardware::alignBytes(wsSize, alignBytes);
             }
         }
         for (auto i : range0_(addresses.size())) {

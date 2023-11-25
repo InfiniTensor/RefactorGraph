@@ -26,9 +26,9 @@ TEST(kernel, GatherCuda) {
         std::vector<float> a{1.0, 1.2, 2.3, 3.4, 4.5, 5.7};
         std::vector<int64_t> b{0, 1, 1, 2};
         std::vector<float> c(output->elementsSize());
-        auto aGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), data->bytesSize());
-        auto bGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), indices->bytesSize());
-        auto cGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), output->bytesSize());
+        auto aGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), data->bytesSize());
+        auto bGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), indices->bytesSize());
+        auto cGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), output->bytesSize());
         aGPU->copyIn(a.data(), data->bytesSize());
         bGPU->copyIn(b.data(), indices->bytesSize());
         // Compute
@@ -67,9 +67,9 @@ TEST(kernel, GatherCuda) {
         std::vector<float> a{1.0, 1.2, 1.9, 2.3, 3.4, 3.9, 4.5, 5.7, 5.9};
         std::vector<int> b{0, 2};
         std::vector<float> c(output->elementsSize());
-        auto aGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), data->bytesSize());
-        auto bGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), indices->bytesSize());
-        auto cGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), output->bytesSize());
+        auto aGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), data->bytesSize());
+        auto bGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), indices->bytesSize());
+        auto cGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), output->bytesSize());
         aGPU->copyIn(a.data(), data->bytesSize());
         bGPU->copyIn(b.data(), indices->bytesSize());
         // Compute

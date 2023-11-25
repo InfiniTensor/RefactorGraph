@@ -17,10 +17,10 @@ TEST(kernel, MatMulCPU_WithBias) {
     auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = mem_manager::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, Y->bytesSize());
+    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
+    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
+    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     // put input data
     std::vector<float> dataA{1.0, 2.0, 0.0, 0.5};
     std::vector<float> dataB{1.0, 2.0, 0.0, 0.5};
@@ -54,9 +54,9 @@ TEST(kernel, MatMulCPU_UINT16NoBias) {
     auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, B->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, Y->bytesSize());
+    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
+    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     // put input data
     std::vector<uint16_t> dataA{3, 2, 0, 1};
     std::vector<uint16_t> dataB{1, 0, 2, 3};
@@ -90,10 +90,10 @@ TEST(kernel, MatMulCPU_Broadcast) {
     auto routine = kernel->lower(res).routine;
     // malloc
     auto mfn = Target(Target::Cpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = mem_manager::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = mem_manager::ForeignBlob::share(mfn, Y->bytesSize());
+    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
+    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
+    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
+    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     // put input data
     std::vector<float> dataA{1.0, 2.0, 0.0, 0.5,
                              1.0, 0.0, 0.0, 1.0};
