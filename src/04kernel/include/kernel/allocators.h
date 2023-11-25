@@ -5,8 +5,8 @@
 
 namespace refactor::kernel {
 
-    AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &, slice_t<size_t>, size_t);
-    AllocScheme reusableAllocate(graph_topo::Graph<Node, Edge> const &, slice_t<size_t>, size_t);
+    AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &, std::span<size_t const>, size_t);
+    AllocScheme reusableAllocate(graph_topo::Graph<Node, Edge> const &, std::span<size_t const>, size_t);
 
 }// namespace refactor::kernel
 

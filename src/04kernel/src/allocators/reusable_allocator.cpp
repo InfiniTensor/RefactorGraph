@@ -4,7 +4,7 @@
 namespace refactor::kernel {
 
     AllocScheme reusableAllocate(graph_topo::Graph<Node, Edge> const &g,
-                                 slice_t<size_t> workspace,
+                                 std::span<size_t const> workspace,
                                  size_t alignBytes) {
         // counts edges reference
         std::vector<size_t> edgeRc;

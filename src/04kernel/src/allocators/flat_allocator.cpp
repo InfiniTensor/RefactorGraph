@@ -4,7 +4,7 @@
 namespace refactor::kernel {
 
     AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &g,
-                             slice_t<size_t> workspace,
+                             std::span<size_t const> workspace,
                              size_t alignBytes) {
         // check usage of edges
         std::vector<bool> used;
