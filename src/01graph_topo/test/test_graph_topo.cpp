@@ -31,7 +31,7 @@ TEST(graph_topo, Builder) {
         std::transform(localEdges.begin(), localEdges.end(), std::inserter(__localEdges, __localEdges.end()),
                        [&](auto const &edge) { return edges[edge.index()]; });
         ASSERT_EQ(__localEdges.size(), 2);
-        EXPECT_NE(__localEdges.find("|1"), __localEdges.end());
-        EXPECT_NE(__localEdges.find("|4"), __localEdges.end());
+        EXPECT_TRUE(__localEdges.contains("|1"));
+        EXPECT_TRUE(__localEdges.contains("|4"));
     }
 }

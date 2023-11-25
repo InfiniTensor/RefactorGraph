@@ -55,7 +55,7 @@ namespace refactor::python_ffi {
         _g.fillEdgeInfo(passes_.erase("ce"));
 
         auto computation = _g.lower();
-        if (passes_.find("lp") != passes_.end()) {
+        if (passes_.contains("lp")) {
             computation.layoutPermute();
         }
 

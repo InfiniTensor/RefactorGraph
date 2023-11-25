@@ -42,7 +42,7 @@ namespace refactor::kernel {
         size_t outsideSize = 1;
         size_t onAxesSize = 1;
         for (auto i : range0_(shape.size())) {
-            if (axesSet.find(i) == axesSet.end()) {
+            if (!axesSet.contains(i)) {
                 perm.push_back(i);
                 outsideSize *= shape[i];
             }

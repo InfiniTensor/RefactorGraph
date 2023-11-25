@@ -22,8 +22,8 @@ namespace refactor::kernel {
 #endif
 
         if (a.dataType != b.dataType ||
-            ARTHIMETIC.find(op) == ARTHIMETIC.end() ||
-            TYPE.find(a.dataType) == TYPE.end() ||
+            !ARTHIMETIC.contains(op) ||
+            !TYPE.contains(a.dataType) ||
             // At least one of a,b should have the same shape as c
             (a.shape != c.shape && b.shape != c.shape) ||
             // Sub only supports brocasting b
