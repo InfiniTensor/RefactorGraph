@@ -83,8 +83,7 @@ namespace refactor::python_ffi {
         for (auto &[name, tensor] : edges) {
             auto edge = Edge{std::move(tensor), name};
             auto it = builder.edges.find(name);
-            ASSERT(it != builder.edges.end(),
-                   fmt::format("edge {} not connected", name));
+            ASSERT(it != builder.edges.end(), "edge {} not connected", name);
             it->second.tensor = std::move(edge.tensor);
         }
         return std::make_shared<Compiler>(Graph(builder.build()));

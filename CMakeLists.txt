@@ -5,7 +5,7 @@ option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
 option(USE_CUDA "Build with cuda" OFF)
 option(USE_KUNLUN "Support Kunlun XPU" OFF)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

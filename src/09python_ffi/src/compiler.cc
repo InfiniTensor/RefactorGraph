@@ -11,14 +11,14 @@ namespace refactor::python_ffi {
 
     void
     Compiler::substitute(CStr name, int64_t value) {
-        ASSERT(_g.substitute(name, value),
-               fmt::format("Variable {} not exist", name));
+        auto ok = _g.substitute(name, value);
+        ASSERT(ok, "Variable {} not exist", name);
     }
 
     void
     Compiler::setInput(size_t index, int dataType, DimVec dims) {
         ASSERT(index < _g.internal().topology.globalInputsCount(),
-               fmt::format("Input {} not exist", index));
+               "Input {} not exist", index);
 
         auto dataType_ = *DataType::parse(dataType);
         _g.internal().edges[index].tensor = Tensor::share(dataType_, dimVec2Shape(dims), {});
