@@ -19,13 +19,9 @@ namespace refactor::kernel {
             Op::Tanh,
             Op::Neg,
         };
-        if (supportedOp.find(op) == supportedOp.end()) {
-            return nullptr;
-        }
-        if (!a.dataType.isCpuNumberic()) {
-            return nullptr;
-        }
-        return std::make_unique<K>(op, a.dataType, a.elementsSize());
+        return supportedOp.contains(op) && a.dataType.isCpuNumberic()
+                   ? std::make_unique<K>(op, a.dataType, a.elementsSize())
+                   : nullptr;
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

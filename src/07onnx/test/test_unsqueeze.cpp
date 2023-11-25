@@ -12,13 +12,10 @@ TEST(infer, Unsqueeze) {
         {Tensor::share(DataType::F32, Shape{DimExpr(3), DimExpr(5)}, {}), ""},
         {Tensor::share(DataType::I64, Shape{DimExpr(2)}, {}), ""},
     };
-    {
-        auto &axes = edges[1].tensor;
-        int64_t val[]{2, 0};
-        std::copy(val, val + 2, reinterpret_cast<int64_t *>(axes->malloc()));
-    }
+    int64_t axes[]{2, 0};
+    std::memcpy(edges[1].tensor->malloc(), axes, sizeof(axes));
     count_t inputs[]{0, 1};
-    auto infered = Unsqueeze(std::nullopt).infer(TensorRefs(edges, slice(inputs, 2)), {true});
+    auto infered = Unsqueeze(std::nullopt).infer(TensorRefs(edges, inputs), {true});
     ASSERT_TRUE(infered.isOk());
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

@@ -225,7 +225,7 @@ namespace refactor::computation {
                                 {g_.shareEdge({transposeNCHW(t), name + "_out"})});
                             newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
                             auto it = std::find(node->inputs().begin(), node->inputs().end(), outputs_[i]);
-                            node->connect(it - node->inputs().begin(), newNode->outputs()[0]);
+                            node->connect(std::distance(node->inputs().begin(), it), newNode->outputs()[0]);
                             tensorMap.insert({outputs_[i].get(), newNode->outputs()[0]});
                         }
                     }

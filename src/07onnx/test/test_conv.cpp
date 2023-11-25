@@ -13,7 +13,7 @@ TEST(infer, Conv) {
         {Tensor::share(DataType::F32, Shape{DimExpr(64), DimExpr(3), DimExpr(7), DimExpr(7)}, {}), ""},
     };
     count_t inputs[]{0, 1};
-    auto infered = Conv({}, {{3, 3, 3, 3}}, {{2, 2}}).infer(TensorRefs(edges, slice(inputs, 2)), {true});
+    auto infered = Conv({}, {{3, 3, 3, 3}}, {{2, 2}}).infer(TensorRefs(edges, inputs), {true});
     if (infered.isErr()) { throw infered.unwrapErr(); }
     auto outputs = std::move(infered.unwrap());
     ASSERT_EQ(outputs.size(), 1);

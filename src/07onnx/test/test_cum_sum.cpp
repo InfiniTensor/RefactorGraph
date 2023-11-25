@@ -9,24 +9,17 @@ using namespace onnx;
 
 TEST(infer, CumSum) {
     onnx::register_();
-    Arc<Tensor> x, axis;
     {
         auto edges = Edges{
             {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)}, {}), ""},
             {Tensor::share(DataType::I32, Shape{}, {}), ""},
         };
-        {
-            auto &x = edges[0].tensor;
-            auto ptr = reinterpret_cast<float *>(x->malloc());
-            std::iota(ptr, ptr + x->elementsSize(), 1);
-        }
-        {
-            auto &axis = edges[1].tensor;
-            auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
-            ptr[0] = 0;
-        }
+        auto &x = edges[0].tensor;
+        auto ptr = reinterpret_cast<float *>(x->malloc());
+        std::iota(ptr, ptr + x->elementsSize(), 1);
+        *reinterpret_cast<int32_t *>(edges[1].tensor->malloc()) = 0;
         count_t inputs[]{0, 1};
-        auto infered = CumSum(false, false).infer(TensorRefs(edges, slice(inputs, 2)), {true});
+        auto infered = CumSum(false, false).infer(TensorRefs(edges, inputs), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -42,18 +35,12 @@ TEST(infer, CumSum) {
             {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)}, {}), ""},
             {Tensor::share(DataType::I32, Shape{}, {}), ""},
         };
-        {
-            auto &x = edges[0].tensor;
-            auto ptr = reinterpret_cast<float *>(x->malloc());
-            std::iota(ptr, ptr + x->elementsSize(), 1);
-        }
-        {
-            auto &axis = edges[1].tensor;
-            auto ptr = reinterpret_cast<int32_t *>(axis->malloc());
-            ptr[0] = 1;
-        }
+        auto &x = edges[0].tensor;
+        auto ptr = reinterpret_cast<float *>(x->malloc());
+        std::iota(ptr, ptr + x->elementsSize(), 1);
+        *reinterpret_cast<int32_t *>(edges[1].tensor->malloc()) = 1;
         count_t inputs[]{0, 1};
-        auto infered = CumSum(false, false).infer(TensorRefs(edges, slice(inputs, 2)), {true});
+        auto infered = CumSum(false, false).infer(TensorRefs(edges, inputs), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);

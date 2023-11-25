@@ -4,7 +4,7 @@
 namespace refactor::kernel {
 
     AllocScheme flatAllocate(graph_topo::Graph<Node, Edge> const &g,
-                             slice_t<size_t> workspace,
+                             std::span<size_t const> workspace,
                              size_t alignBytes) {
         // check usage of edges
         std::vector<bool> used;
@@ -22,7 +22,7 @@ namespace refactor::kernel {
         std::vector<size_t> workspaceOffsets(workspace.size(), SIZE_MAX);
         for (auto [nodeIdx, inputs, outputs] : g.topology) {
             for (auto i : outputs) {
-                if (used[i] && globalOutputs.find(i) == globalOutputs.end()) {
+                if (used[i] && !globalOutputs.contains(i)) {
                     addresses[i] = {size};
                     size += mem_manager::alignBytes(g.edges[i].size, alignBytes);
                 }

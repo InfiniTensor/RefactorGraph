@@ -1,6 +1,7 @@
 ﻿#include "constant_of_shape.hh"
 #include "common.h"
 #include <execution>
+#include <span>
 
 namespace refactor::onnx {
     using Op = ConstantOfShape;
@@ -33,8 +34,7 @@ namespace refactor::onnx {
 
         EXPECT_VAL(input.shape[0], shapeSize)
         Shape output(shapeSize, DimExpr(1));
-        auto shape = input.data->get<int64_t>();
-        auto slice = slice_t<int64_t>{shape, shape + shapeSize};
+        std::span slice(input.data->get<int64_t>(), shapeSize);
         std::transform(std::execution::unseq,
                        slice.begin(), slice.end(), output.begin(),
                        [](auto const d) { return DimExpr(d); });

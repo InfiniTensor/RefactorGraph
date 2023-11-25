@@ -1,6 +1,7 @@
 ﻿#include "unsqueeze.hh"
 #include "common.h"
 #include "computation/operators/reshape.h"
+#include <span>
 
 namespace refactor::onnx {
     using Op = Unsqueeze;
@@ -33,9 +34,9 @@ namespace refactor::onnx {
         }
 
         auto const &data = inputs[0];
-        slice_t<int64_t> axes_;
+        std::span<int64_t const> axes_;
         if (axes) {
-            axes_ = slice(axes->data(), axes->size());
+            axes_ = *axes;
         } else {
             EXPECT_SIZE(2)
             auto const &axes__ = inputs[1];
@@ -43,7 +44,7 @@ namespace refactor::onnx {
                 return Err(InferError(ERROR_MSG("Axes not support")));
             }
             EXPECT_VAL(axes__.shape[0], axesSize)
-            axes_ = slice(axes__.data->get<int64_t>(), axesSize);
+            axes_ = std::span(axes__.data->get<int64_t>(), axesSize);
         }
 
         auto rank = data.rank() + axes_.size();

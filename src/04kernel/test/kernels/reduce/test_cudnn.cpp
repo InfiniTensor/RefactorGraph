@@ -33,7 +33,7 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     Shape outDimArray;
     std::unordered_set axesSet(axes.begin(), axes.end());
     for (size_t i = 0; i < shape.size(); ++i) {
-        if (axesSet.find(i) != axesSet.end()) {
+        if (axesSet.contains(i)) {
             outDimArray.push_back(shape[i]);
         }
     }

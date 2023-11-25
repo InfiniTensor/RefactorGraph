@@ -4,6 +4,7 @@
 #include "absl/container/inlined_vector.h"
 #include "graph_topo.h"
 #include "mem_manager/blob.hh"
+#include <span>
 #include <unordered_set>
 #include <variant>
 
@@ -95,7 +96,7 @@ namespace refactor::frontend {
 
     class TensorRefs {
         std::vector<Edge> const &_edges;
-        slice_t<count_t> _slice;
+        std::span<count_t const> _slice;
 
     public:
         TensorRefs(decltype(_edges) const &, decltype(_slice));

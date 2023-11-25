@@ -5,6 +5,7 @@
 #include "kernel.h"
 #include "mem_manager/foreign_blob.hh"
 #include "target.h"
+#include <span>
 
 namespace refactor::kernel {
     using mem_manager::SharedForeignBlob;
@@ -27,7 +28,10 @@ namespace refactor::kernel {
         std::vector<size_t> workspaceOffsets;
     };
 
-    using Allocator = AllocScheme (*)(graph_topo::Graph<Node, Edge> const &, slice_t<size_t>, size_t);
+    using Allocator = AllocScheme (*)(
+        graph_topo::Graph<Node, Edge> const &,
+        std::span<size_t const>,
+        size_t);
 
     struct Graph {
         using _N = Node;

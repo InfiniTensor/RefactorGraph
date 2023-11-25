@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(refactor_graph VERSION 0.0.0 LANGUAGES CXX)
 
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
 option(USE_CUDA "Build with cuda" OFF)
 option(USE_KUNLUN "Support Kunlun XPU" OFF)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

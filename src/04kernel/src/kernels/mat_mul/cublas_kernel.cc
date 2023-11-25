@@ -12,11 +12,10 @@ namespace refactor::kernel {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        if (TYPE.find(info.dataType) == TYPE.end()) {
-            return nullptr;
-        }
 
-        return std::make_unique<K>(std::move(info));
+        return TYPE.contains(info.dataType)
+                   ? std::make_unique<K>(std::move(info))
+                   : nullptr;
     }
 
     auto K::typeId() noexcept -> size_t {

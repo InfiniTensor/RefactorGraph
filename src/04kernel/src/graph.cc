@@ -33,9 +33,7 @@ namespace refactor::kernel {
             }
         }
 
-        auto [stack,
-              edgeOffsets,
-              worksapceOffsets] = allocator(_internal, slice(workspace.data(), workspace.size()), 32);
+        auto [stack, edgeOffsets, worksapceOffsets] = allocator(_internal, workspace, 32);
         for (auto i : range0_(nodeCount)) {
             nodes[i].workspaceOffset = worksapceOffsets[i];
         }

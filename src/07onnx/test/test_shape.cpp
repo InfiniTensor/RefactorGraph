@@ -11,7 +11,7 @@ TEST(infer, Shape) {
     {
         auto edges = Edges{{Tensor::share(DataType::F32, frontend::Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""}};
         count_t inputs[]{0};
-        auto infered = onnx::Shape(0, std::nullopt).infer(TensorRefs(edges, slice(inputs, 1)), {true});
+        auto infered = onnx::Shape(0, std::nullopt).infer(TensorRefs(edges, inputs), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -25,7 +25,7 @@ TEST(infer, Shape) {
     {
         auto edges = Edges{{Tensor::share(DataType::F32, frontend::Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""}};
         count_t inputs[]{0};
-        auto infered = onnx::Shape(1, std::nullopt).infer(TensorRefs(edges, slice(inputs, 1)), {true});
+        auto infered = onnx::Shape(1, std::nullopt).infer(TensorRefs(edges, inputs), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -39,7 +39,7 @@ TEST(infer, Shape) {
     {
         auto edges = Edges{{Tensor::share(DataType::F32, frontend::Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""}};
         count_t inputs[]{0};
-        auto infered = onnx::Shape(1, {2}).infer(TensorRefs(edges, slice(inputs, 1)), {true});
+        auto infered = onnx::Shape(1, {2}).infer(TensorRefs(edges, inputs), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);
@@ -53,7 +53,7 @@ TEST(infer, Shape) {
     {
         auto edges = Edges{{Tensor::share(DataType::F32, frontend::Shape{DimExpr(2), DimExpr(3), DimExpr(1)}, {}), ""}};
         count_t inputs[]{0};
-        auto infered = onnx::Shape(1, {-1}).infer(TensorRefs(edges, slice(inputs, 1)), {true});
+        auto infered = onnx::Shape(1, {-1}).infer(TensorRefs(edges, inputs), {true});
         ASSERT_TRUE(infered.isOk());
         auto outputs = std::move(infered.unwrap());
         ASSERT_EQ(outputs.size(), 1);

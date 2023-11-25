@@ -170,7 +170,7 @@ namespace refactor::onnx {
         }
         Shape output;
         for (auto i : range0_(shape.size())) {
-            if (axes__.find(i) == axes__.end()) {
+            if (!axes__.contains(i)) {
                 output.emplace_back(shape[i]);
             } else if (keepdims) {
                 output.emplace_back(1);
