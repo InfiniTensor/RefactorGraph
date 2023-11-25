@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(refactor_graph VERSION 0.0.0 LANGUAGES CXX)
 
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
