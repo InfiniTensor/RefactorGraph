@@ -1,4 +1,6 @@
 ﻿#include "communication/operators.h"
+#include "hardware/devices/cpu.h"
+#include "hardware/devices/nvidia.h"
 #include "import.h"
 #include "onnx/operators.h"
 #include <pybind11/stl.h>// keep this line to convert stl types
@@ -6,10 +8,14 @@
 namespace py = pybind11;
 
 namespace refactor::python_ffi {
+    using namespace hardware;
 
     PYBIND11_MODULE(python_ffi, m) {
         using return_ = py::return_value_policy;
         using namespace frontend;
+
+        Device::register_<Cpu>("cpu");
+        Device::register_<Nvidia>("nvidia");
 
         onnx::register_();
         communication::register_();

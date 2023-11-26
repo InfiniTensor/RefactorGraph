@@ -23,9 +23,15 @@ namespace refactor::hardware {
         _memManager->copyDH(host, _ptr, bytes);
     }
     void ForeignBlob::copyFrom(ForeignBlob const &src, size_t bytes) {
-        _memManager->copyDD(_ptr, src._ptr, bytes);
+        if (_device == src._device) {
+            _device->copyDD(_ptr, src._ptr, bytes);
+        } else {
+            std::vector<uint8_t> tmp(bytes);
+            src.copyOut(tmp.data(), bytes);
+            copyIn(tmp.data(), bytes);
+        }
     }
     void ForeignBlob::copyTo(ForeignBlob &tgt, size_t bytes) const {
-        _memManager->copyDD(tgt._ptr, _ptr, bytes);
+        tgt.copyFrom(*this, bytes);
     }
 }// namespace refactor::hardware

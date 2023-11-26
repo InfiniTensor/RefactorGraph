@@ -2,13 +2,15 @@
 
 #include "../../../src/kernels/concat/cpu_kernel.hh"
 #include "../../../src/kernels/concat/cuda_kernel.hh"
+#include "hardware/device.h"
+#include "hardware/devices/nvidia.h"
 #include "kernel/target.h"
-#include "runtime/mem_manager.hh"
 #include <gtest/gtest.h>
 #include <numeric>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, ConcatCuda) {
     // build routine
@@ -30,12 +32,12 @@ TEST(kernel, ConcatCuda) {
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
     auto rCpu = kCpu->lower(res).routine;
-    auto [routine, workspaceSize] = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
-    res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
-    auto memManager = res.fetch<runtime::MemManager>()->manager;
+    Device::register_<Nvidia>("nvidia");
+    auto device = hardware::Device::init("nvidia", 0, "");
+    auto memManager = Target(Target::NvidiaGpu).memManager();
     Arc<hardware::ForeignBlob>
-        workspace = hardware::ForeignBlob::share(memManager, workspaceSize),
         gpuIns[]{
             hardware::ForeignBlob::share(memManager, inputTensors[0]->bytesSize()),
             hardware::ForeignBlob::share(memManager, inputTensors[1]->bytesSize()),
@@ -65,7 +67,7 @@ TEST(kernel, ConcatCuda) {
     {
         void const *inputs[]{*gpuIns[0], *gpuIns[1], *gpuIns[2], *gpuIns[3]};
         void *outputs[]{*gpuOut};
-        routine(res, *workspace, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{cpuIns[0].data(), cpuIns[1].data(), cpuIns[2].data(), cpuIns[3].data()};

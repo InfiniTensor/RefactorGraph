@@ -1,7 +1,7 @@
 ﻿#ifndef MEM_MANAGER_FOREIGN_BLOB_H
 #define MEM_MANAGER_FOREIGN_BLOB_H
 
-#include "common.h"
+#include "device.h"
 #include "mem_manager.hh"
 
 namespace refactor::hardware {
@@ -9,6 +9,7 @@ namespace refactor::hardware {
     /// @brief 显存内存块。
     class ForeignBlob {
         Arc<MemManager> _memManager;
+        Arc<Device> _device;
 
         /// @brief ! NOTICE 指针必须非空。
         void *_ptr;
