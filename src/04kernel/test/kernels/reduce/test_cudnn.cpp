@@ -1,11 +1,12 @@
 #ifdef USE_CUDA
-#include "../../../include/kernel/target.h"
+
 #include "../../../src/kernels/reduce/cudnn_kernel.hh"
-#include "runtime/mem_manager.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 static void testReducemean(const Shape &shape, const std::vector<float> &data,
                            Axes axes, const std::vector<float> ExpectData) {
@@ -14,15 +15,15 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     auto kernel = ReduceCudnn::build(axes, ReduceType::Mean, {*dataTensor});
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
     auto [routine, workspaceSize] = kernel->lower(res);
     // cuda malloc
-    auto manager = Target(Target::NvidiaGpu).memManager();
-    auto workspace = hardware::ForeignBlob::share(manager, workspaceSize);
-    auto gpuMemIn = hardware::ForeignBlob::share(manager, dataTensor->bytesSize());
-    auto gpuMemOut = hardware::ForeignBlob::share(manager, dataTensor->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto workspace = device->malloc(workspaceSize),
+         gpuMemIn = device->malloc(dataTensor->bytesSize()),
+         gpuMemOut = device->malloc(dataTensor->bytesSize());
     // put input output data
-    gpuMemIn->copyIn(data.data(), dataTensor->bytesSize());
+    gpuMemIn->copyFromHost(data.data(), dataTensor->bytesSize());
     // inference
     {
         void const *inputs[]{*gpuMemIn};
@@ -39,7 +40,7 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     }
     auto outputTensor = Tensor::share(DataType::F32, outDimArray);
     std::vector<float> result(outDimArray.size());
-    gpuMemOut->copyOut(result.data(), outputTensor->bytesSize());
+    gpuMemOut->copyToHost(result.data(), outputTensor->bytesSize());
     // check
     for (auto i : range0_(ExpectData.size())) {
         EXPECT_FLOAT_EQ(ExpectData[i], result[i]);

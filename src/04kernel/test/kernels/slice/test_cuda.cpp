@@ -2,13 +2,13 @@
 
 #include "../../../src/kernels/slice/cpu_kernel.hh"
 #include "../../../src/kernels/slice/cuda_kernel.hh"
-#include "kernel/target.h"
-#include "runtime/mem_manager.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, SliceCuda) {
     // build routine
@@ -30,17 +30,17 @@ TEST(kernel, SliceCuda) {
     auto routine = kernel->lower(res).routine;
     auto rCpu = kCpu->lower(res).routine;
     // malloc
-    auto memManager = Target(Target::NvidiaGpu).memManager();
-    Arc<hardware::ForeignBlob>
-        gpuIn = hardware::ForeignBlob::share(memManager, input->bytesSize()),
-        gpuOut = hardware::ForeignBlob::share(memManager, output->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto gpuIn = device->malloc(input->bytesSize()),
+         gpuOut = device->malloc(output->bytesSize());
     // put input data
     std::vector<float>
         data(input->elementsSize()),
         ans(output->elementsSize()),
         result(ans.size());
     std::iota(data.begin(), data.end(), 0);
-    gpuIn->copyIn(data.data(), input->bytesSize());
+    gpuIn->copyFromHost(data.data(), input->bytesSize());
     // inference
     {
         void const *inputs[]{*gpuIn};
@@ -53,7 +53,7 @@ TEST(kernel, SliceCuda) {
         rCpu(res, nullptr, inputs, outputs);
     }
     // check
-    gpuOut->copyOut(result.data(), output->bytesSize());
+    gpuOut->copyToHost(result.data(), output->bytesSize());
     EXPECT_EQ(result, ans);
 }
 

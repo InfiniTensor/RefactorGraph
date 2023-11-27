@@ -11,21 +11,16 @@ static void testOp(SimpleUnaryType opType, float check(float)) {
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
-    // malloc
-    auto cpuMem = hardware::ForeignBlob::share(
-        Target(Target::Cpu).memManager(),
-        dataTensor->bytesSize());
     // put input data
     std::vector<float> data(dataTensor->elementsSize());
     for (auto i : range0_(data.size())) { data[i] = i * 1e-4f; }
-    cpuMem->copyIn(data.data(), dataTensor->bytesSize());
+    auto result = data;
     // inference
-    void const *inputs[]{*cpuMem};
-    void *outputs[]{*cpuMem};
-    routine(res, nullptr, inputs, outputs);
-    // take output data
-    std::vector<float> result(dataTensor->elementsSize());
-    cpuMem->copyOut(result.data(), dataTensor->bytesSize());
+    {
+        void const *inputs[]{result.data()};
+        void *outputs[]{result.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
     // check
     for (auto i : range0_(data.size())) {
         EXPECT_FLOAT_EQ(check(data[i]), result[i]);

@@ -4,10 +4,12 @@
 #include "../src/kernels/simple_binary/basic_cuda.hh"
 #include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
 #include "../src/kernels/simple_binary/no_broadcast_cuda.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape dimC) {
     // Create Tensor and build kernels
@@ -31,11 +33,13 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     std::vector<T_> a(aTensor->elementsSize(), 3.0f);
     std::vector<T_> b(bTensor->elementsSize(), 2.0f);
     std::vector<T_> c(cTensor->elementsSize());
-    auto aGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), aTensor->bytesSize());
-    auto bGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), bTensor->bytesSize());
-    auto cGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), cTensor->bytesSize());
-    aGPU->copyIn(a.data(), aTensor->bytesSize());
-    bGPU->copyIn(b.data(), bTensor->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto aGPU = device->malloc(aTensor->bytesSize()),
+         bGPU = device->malloc(bTensor->bytesSize()),
+         cGPU = device->malloc(cTensor->bytesSize());
+    aGPU->copyFromHost(a.data(), aTensor->bytesSize());
+    bGPU->copyFromHost(b.data(), bTensor->bytesSize());
     // Compute
     {
         void const *inputs[]{*aGPU, *bGPU};
@@ -49,7 +53,7 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     }
     // Compare
     std::vector<T_> result(cTensor->elementsSize());
-    cGPU->copyOut(result.data(), cTensor->bytesSize());
+    cGPU->copyToHost(result.data(), cTensor->bytesSize());
     for (auto i : range0_(result.size())) {
         EXPECT_EQ(c[i], result[i]);
     }

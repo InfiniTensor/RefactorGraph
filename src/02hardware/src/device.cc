@@ -3,6 +3,31 @@
 
 namespace refactor::hardware {
 
+    Device::Blob::Blob(decltype(_device) device, size_t size)
+        : _device(device), _ptr(device._mem->malloc(size)) {}
+
+    Device::Blob::~Blob() {
+        _device._mem->free(std::exchange(_ptr, nullptr));
+    }
+    void Device::Blob::copyFromHost(void const *ptr, size_t size) const {
+        _device._mem->copyHD(_ptr, ptr, size);
+    }
+    void Device::Blob::copyToHost(void *ptr, size_t size) const {
+        _device._mem->copyDH(ptr, _ptr, size);
+    }
+    void Device::Blob::copyFrom(Blob const &rhs, size_t size) const {
+        if (_device._mem == rhs._device._mem) {
+            _device._mem->copyDD(_ptr, rhs._ptr, size);
+        } else {
+            std::vector<uint8_t> tmp(size);
+            rhs.copyToHost(tmp.data(), size);
+            copyFromHost(tmp.data(), size);
+        }
+    }
+    void Device::Blob::copyTo(Blob const &rhs, size_t size) const {
+        rhs.copyFrom(*this, size);
+    }
+
     Device::Device(decltype(_deviceTypeName) deviceTypeName,
                    decltype(_typeId) typeId,
                    decltype(_cardId) cardId,
@@ -12,20 +37,8 @@ namespace refactor::hardware {
           _cardId(cardId),
           _mem(std::move(mem)) {}
 
-    void *Device::malloc(size_t size) {
-        return _mem->malloc(size);
-    }
-    void Device::free(void *ptr) {
-        _mem->free(ptr);
-    }
-    void *Device::copyHD(void *dst, void const *src, size_t bytes) const {
-        return _mem->copyHD(dst, src, bytes);
-    }
-    void *Device::copyDH(void *dst, void const *src, size_t bytes) const {
-        return _mem->copyDH(dst, src, bytes);
-    }
-    void *Device::copyDD(void *dst, void const *src, size_t bytes) const {
-        return _mem->copyDD(dst, src, bytes);
+    auto Device::malloc(size_t size) -> Arc<Blob> {
+        return Arc<Blob>(new Blob(*this, size));
     }
 
     struct DeviceType {

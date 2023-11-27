@@ -2,10 +2,12 @@
 
 #include "../../../src/kernels/where/cpu_kernel.hh"
 #include "../../../src/kernels/where/where_cuda.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, WhereCuda) {
     // build routine
@@ -20,21 +22,22 @@ TEST(kernel, WhereCuda) {
     auto rCpu = kCpu->lower(res).routine;
     auto rCuda = kCuda->lower(res).routine;
     // malloc
-    auto memManager = Target(Target::NvidiaGpu).memManager();
-    auto gpuC = hardware::ForeignBlob::share(memManager, cTensor->bytesSize());
-    auto gpuX = hardware::ForeignBlob::share(memManager, xTensor->bytesSize());
-    auto gpuY = hardware::ForeignBlob::share(memManager, yTensor->bytesSize());
-    auto gpuOut = hardware::ForeignBlob::share(memManager, outTensor->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto gpuC = device->malloc(cTensor->bytesSize()),
+         gpuX = device->malloc(xTensor->bytesSize()),
+         gpuY = device->malloc(yTensor->bytesSize()),
+         gpuOut = device->malloc(outTensor->bytesSize());
     // put input data
     int dataC[cTensor->elementsSize()];
     memset(dataC, 1, cTensor->elementsSize() * sizeof(bool));
-    gpuC->copyIn(dataC, cTensor->bytesSize());
+    gpuC->copyFromHost(dataC, cTensor->bytesSize());
     std::vector<float> dataX(xTensor->elementsSize());
     for (auto i : range0_(dataX.size())) { dataX[i] = 7; }
-    gpuX->copyIn(dataX.data(), xTensor->bytesSize());
+    gpuX->copyFromHost(dataX.data(), xTensor->bytesSize());
     std::vector<float> dataY(yTensor->elementsSize());
     for (auto i : range0_(dataY.size())) { dataY[i] = 3; }
-    gpuY->copyIn(dataY.data(), yTensor->bytesSize());
+    gpuY->copyFromHost(dataY.data(), yTensor->bytesSize());
     std::vector<float> cpuOut(outTensor->elementsSize());
     // inference
     {
@@ -49,7 +52,7 @@ TEST(kernel, WhereCuda) {
     }
     // take output data
     std::vector<float> result(outTensor->elementsSize());
-    gpuOut->copyOut(result.data(), outTensor->bytesSize());
+    gpuOut->copyToHost(result.data(), outTensor->bytesSize());
     // check
     for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(cpuOut[i], result[i]);

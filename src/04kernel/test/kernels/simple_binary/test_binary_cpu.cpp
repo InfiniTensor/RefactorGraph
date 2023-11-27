@@ -44,27 +44,21 @@ TEST(kernel, BinaryCpuBroadcast) {
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
-    // malloc
-    auto mfn = Target(Target::Cpu).memManager();
-    auto ma = hardware::ForeignBlob::share(mfn, a->bytesSize());
-    auto mb = hardware::ForeignBlob::share(mfn, b->bytesSize());
-    auto mc = hardware::ForeignBlob::share(mfn, c->bytesSize());
     // put input data
-    std::vector<float> data(a->elementsSize());
-    for (auto i : range0_(data.size())) { data[i] = 11; }
-    ma->copyIn(data.data(), a->bytesSize());
-    data.resize(b->elementsSize());
-    for (auto i : range0_(data.size())) { data[i] = 7; }
-    mb->copyIn(data.data(), b->bytesSize());
+    std::vector<float>
+        dataA(a->elementsSize()),
+        dataB(b->elementsSize()),
+        dataC(c->elementsSize());
+    for (auto i : range0_(dataA.size())) { dataA[i] = 11; }
+    for (auto i : range0_(dataB.size())) { dataB[i] = 7; }
     // inference
-    void const *inputs[]{*ma, *mb};
-    void *outputs[]{*mc};
-    routine(res, nullptr, inputs, outputs);
-    // take output data
-    std::vector<float> result(c->elementsSize());
-    mc->copyOut(result.data(), c->bytesSize());
+    {
+        void const *inputs[]{dataA.data(), dataB.data()};
+        void *outputs[]{dataC.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
     // check
-    for (auto x : result) {
+    for (auto x : dataC) {
         EXPECT_FLOAT_EQ(18, x);
     }
 }

@@ -24,7 +24,7 @@ namespace refactor::hardware {
     }
     void ForeignBlob::copyFrom(ForeignBlob const &src, size_t bytes) {
         if (_device == src._device) {
-            _device->copyDD(_ptr, src._ptr, bytes);
+            _memManager->copyDD(_ptr, src._ptr, bytes);
         } else {
             std::vector<uint8_t> tmp(bytes);
             src.copyOut(tmp.data(), bytes);

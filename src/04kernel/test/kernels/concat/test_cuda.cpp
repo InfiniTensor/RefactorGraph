@@ -2,9 +2,7 @@
 
 #include "../../../src/kernels/concat/cpu_kernel.hh"
 #include "../../../src/kernels/concat/cuda_kernel.hh"
-#include "hardware/device.h"
 #include "hardware/devices/nvidia.h"
-#include "kernel/target.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -35,16 +33,15 @@ TEST(kernel, ConcatCuda) {
     auto routine = kernel->lower(res).routine;
     // malloc
     Device::register_<Nvidia>("nvidia");
-    auto device = hardware::Device::init("nvidia", 0, "");
-    auto memManager = Target(Target::NvidiaGpu).memManager();
-    Arc<hardware::ForeignBlob>
+    auto device = Device::init("nvidia", 0, "");
+    Arc<Device::Blob>
         gpuIns[]{
-            hardware::ForeignBlob::share(memManager, inputTensors[0]->bytesSize()),
-            hardware::ForeignBlob::share(memManager, inputTensors[1]->bytesSize()),
-            hardware::ForeignBlob::share(memManager, inputTensors[2]->bytesSize()),
-            hardware::ForeignBlob::share(memManager, inputTensors[3]->bytesSize()),
+            device->malloc(inputTensors[0]->bytesSize()),
+            device->malloc(inputTensors[1]->bytesSize()),
+            device->malloc(inputTensors[2]->bytesSize()),
+            device->malloc(inputTensors[3]->bytesSize()),
         },
-        gpuOut = hardware::ForeignBlob::share(memManager, result->bytesSize());
+        gpuOut = device->malloc(result->bytesSize());
     // put input data
     std::vector<float>
         cpuIns[]{
@@ -59,10 +56,10 @@ TEST(kernel, ConcatCuda) {
     std::iota(cpuIns[1].begin(), cpuIns[1].end(), 0);
     std::iota(cpuIns[2].begin(), cpuIns[2].end(), 0);
     std::iota(cpuIns[3].begin(), cpuIns[3].end(), 0);
-    gpuIns[0]->copyIn(cpuIns[0].data(), inputTensors[0]->bytesSize());
-    gpuIns[1]->copyIn(cpuIns[1].data(), inputTensors[1]->bytesSize());
-    gpuIns[2]->copyIn(cpuIns[2].data(), inputTensors[2]->bytesSize());
-    gpuIns[3]->copyIn(cpuIns[3].data(), inputTensors[3]->bytesSize());
+    gpuIns[0]->copyFromHost(cpuIns[0].data(), inputTensors[0]->bytesSize());
+    gpuIns[1]->copyFromHost(cpuIns[1].data(), inputTensors[1]->bytesSize());
+    gpuIns[2]->copyFromHost(cpuIns[2].data(), inputTensors[2]->bytesSize());
+    gpuIns[3]->copyFromHost(cpuIns[3].data(), inputTensors[3]->bytesSize());
     // inference
     {
         void const *inputs[]{*gpuIns[0], *gpuIns[1], *gpuIns[2], *gpuIns[3]};
@@ -75,7 +72,7 @@ TEST(kernel, ConcatCuda) {
         rCpu(res, nullptr, inputs, outputs);
     }
     // check
-    gpuOut->copyOut(out.data(), result->bytesSize());
+    gpuOut->copyToHost(out.data(), result->bytesSize());
     EXPECT_EQ(out, cpuOut);
 }
 

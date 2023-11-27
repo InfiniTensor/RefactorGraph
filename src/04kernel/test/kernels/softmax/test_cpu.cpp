@@ -14,20 +14,16 @@ TEST(kernel, SoftmaxCpu) {
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
-    // malloc
-    auto mfn = Target(Target::Cpu).memManager();
-    auto mx = hardware::ForeignBlob::share(mfn, xTensor->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, yTensor->bytesSize());
-    std::vector<double> data(xTensor->elementsSize());
-    for (auto i : range0_(data.size())) { data[i] = 0; }
-    mx->copyIn(data.data(), xTensor->bytesSize());
+    // set input data
+    std::vector<double>
+        data(xTensor->elementsSize(), 0),
+        result(yTensor->elementsSize());
     // inference
-    void const *inputs[]{*mx};
-    void *outputs[]{*my};
-    routine(res, nullptr, inputs, outputs);
-    // take output data
-    std::vector<double> result(yTensor->elementsSize());
-    my->copyOut(result.data(), yTensor->bytesSize());
+    {
+        void const *inputs[]{data.data()};
+        void *outputs[]{result.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
     // check
     for (auto x : result) {
         EXPECT_DOUBLE_EQ(1.0 / 3, x);

@@ -18,17 +18,34 @@ namespace refactor::hardware {
                decltype(_mem));
 
     public:
+        class Blob {
+            friend class Device;
+
+            Device &_device;
+            void *_ptr;
+
+            Blob(decltype(_device) device, size_t);
+
+        public:
+            ~Blob();
+            void copyFromHost(void const *, size_t) const;
+            void copyToHost(void *, size_t) const;
+            void copyFrom(Blob const &, size_t) const;
+            void copyTo(Blob const &, size_t) const;
+
+            constexpr void *get() const noexcept { return _ptr; }
+            constexpr operator void *() const noexcept { return get(); }
+            constexpr operator bool() const noexcept { return get(); }
+        };
+        friend class Blob;
+
         virtual ~Device() = default;
 
         constexpr int32_t typeId() const noexcept { return _typeId; }
         constexpr int32_t cardId() const noexcept { return _cardId; }
         constexpr std::string_view deviceTypeName() const noexcept { return _deviceTypeName; }
 
-        void *malloc(size_t);
-        void free(void *);
-        void *copyHD(void *dst, void const *src, size_t bytes) const;
-        void *copyDH(void *dst, void const *src, size_t bytes) const;
-        void *copyDD(void *dst, void const *src, size_t bytes) const;
+        Arc<Blob> malloc(size_t);
 
         using Builder = Arc<Device> (*)(decltype(_deviceTypeName),
                                         decltype(_typeId),

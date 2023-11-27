@@ -2,13 +2,13 @@
 
 #include "../../../src/kernels/split/cpu_kernel.hh"
 #include "../../../src/kernels/split/cuda_kernel.hh"
-#include "kernel/target.h"
-#include "runtime/mem_manager.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, SplitCuda) {
     // build routine
@@ -30,18 +30,17 @@ TEST(kernel, SplitCuda) {
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
     auto rCpu = kCpu->lower(res).routine;
-    auto [routine, workspaceSize] = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // malloc
-    res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
-    auto memManager = res.fetch<runtime::MemManager>()->manager;
-    Arc<hardware::ForeignBlob>
-        workspace = hardware::ForeignBlob::share(memManager, workspaceSize),
-        gpuIn = hardware::ForeignBlob::share(memManager, dataTensor->bytesSize()),
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    Arc<Device::Blob>
+        gpuIn = device->malloc(dataTensor->bytesSize()),
         gpuOuts[]{
-            hardware::ForeignBlob::share(memManager, outputTensors[0]->bytesSize()),
-            hardware::ForeignBlob::share(memManager, outputTensors[1]->bytesSize()),
-            hardware::ForeignBlob::share(memManager, outputTensors[2]->bytesSize()),
-            hardware::ForeignBlob::share(memManager, outputTensors[3]->bytesSize()),
+            device->malloc(outputTensors[0]->bytesSize()),
+            device->malloc(outputTensors[1]->bytesSize()),
+            device->malloc(outputTensors[2]->bytesSize()),
+            device->malloc(outputTensors[3]->bytesSize()),
         };
     // put input data
     std::vector<float>
@@ -59,12 +58,12 @@ TEST(kernel, SplitCuda) {
             std::vector<float>(outputTensors[3]->elementsSize()),
         };
     std::iota(data.begin(), data.end(), 0);
-    gpuIn->copyIn(data.data(), dataTensor->bytesSize());
+    gpuIn->copyFromHost(data.data(), dataTensor->bytesSize());
     // inference
     {
         void const *inputs[]{*gpuIn};
         void *outputs[]{*gpuOuts[0], *gpuOuts[1], *gpuOuts[2], *gpuOuts[3]};
-        routine(res, *workspace, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{data.data()};
@@ -73,7 +72,7 @@ TEST(kernel, SplitCuda) {
     }
     // check
     for (auto i : range0_(outputTensors.size())) {
-        gpuOuts[i]->copyOut(outs[i].data(), outputTensors[i]->bytesSize());
+        gpuOuts[i]->copyToHost(outs[i].data(), outputTensors[i]->bytesSize());
         EXPECT_EQ(outs[i], outsCpu[i]);
     }
 }

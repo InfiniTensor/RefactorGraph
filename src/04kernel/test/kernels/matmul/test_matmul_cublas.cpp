@@ -1,12 +1,16 @@
 #ifdef USE_CUDA
+
 #include "../src/kernels/mat_mul/cpu_kernel.hh"
 #include "../src/kernels/mat_mul/cublas_kernel.hh"
-#include "kernel/target.h"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
+
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, MatMulCublas_OnlyBias) {
+
     // build routine
     auto A = Tensor::share(DataType::F32, Shape{2, 2, 2});
     auto B = Tensor::share(DataType::F32, Shape{2, 2});
@@ -20,26 +24,27 @@ TEST(kernel, MatMulCublas_OnlyBias) {
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
     // malloc
-    auto mfn = Target(Target::NvidiaGpu).memManager();
-    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto ma = device->malloc(A->bytesSize()),
+         mb = device->malloc(B->bytesSize()),
+         mc = device->malloc(C->bytesSize()),
+         my = device->malloc(Y->bytesSize());
     // put input data
     std::vector<float> dataA{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     std::vector<float> dataB{0.0, 0.0, 0.0, 0.0};
     std::vector<float> dataC{2.5};
     std::vector<float> ans{2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5};
-    ma->copyIn(dataA.data(), A->bytesSize());
-    mb->copyIn(dataB.data(), B->bytesSize());
-    mc->copyIn(dataC.data(), C->bytesSize());
+    ma->copyFromHost(dataA.data(), A->bytesSize());
+    mb->copyFromHost(dataB.data(), B->bytesSize());
+    mc->copyFromHost(dataC.data(), C->bytesSize());
     // inference
     void const *inputs[]{*ma, *mb, *mc};
     void *outputs[]{*my};
     routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(Y->elementsSize());
-    my->copyOut(result.data(), Y->bytesSize());
+    my->copyToHost(result.data(), Y->bytesSize());
     // check
     for (auto i = 0; i < result.size(); i++) {
         EXPECT_FLOAT_EQ(result[i], ans[i]);
@@ -66,14 +71,15 @@ TEST(kernel, MatMulCublas_Broadcast) {
                              1.0, 0.0, 0.0, 1.0};
     std::vector<float> dataC{1.0, 0.0};
     std::vector<float> cpuOut(Y->elementsSize());
-    auto mfn = Target(Target::NvidiaGpu).memManager();
-    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
-    ma->copyIn(dataA.data(), A->bytesSize());
-    mb->copyIn(dataB.data(), B->bytesSize());
-    mc->copyIn(dataC.data(), C->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto ma = device->malloc(A->bytesSize()),
+         mb = device->malloc(B->bytesSize()),
+         mc = device->malloc(C->bytesSize()),
+         my = device->malloc(Y->bytesSize());
+    ma->copyFromHost(dataA.data(), A->bytesSize());
+    mb->copyFromHost(dataB.data(), B->bytesSize());
+    mc->copyFromHost(dataC.data(), C->bytesSize());
     // inference
     {
         void const *inputs[]{*ma, *mb, *mc};
@@ -87,7 +93,7 @@ TEST(kernel, MatMulCublas_Broadcast) {
     }
     // take output data
     std::vector<float> result(Y->elementsSize());
-    my->copyOut(result.data(), Y->bytesSize());
+    my->copyToHost(result.data(), Y->bytesSize());
     // check
     for (auto i = 0; i < result.size(); i++) {
         EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
@@ -113,12 +119,13 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     std::vector<float> dataB{1.0, 2.0, 0.0, 0.5,
                              1.0, 0.0, 0.0, 1.0};
     std::vector<float> cpuOut(Y->elementsSize());
-    auto mfn = Target(Target::NvidiaGpu).memManager();
-    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
-    ma->copyIn(dataA.data(), A->bytesSize());
-    mb->copyIn(dataB.data(), B->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto ma = device->malloc(A->bytesSize()),
+         mb = device->malloc(B->bytesSize()),
+         my = device->malloc(Y->bytesSize());
+    ma->copyFromHost(dataA.data(), A->bytesSize());
+    mb->copyFromHost(dataB.data(), B->bytesSize());
     // inference
     {
         void const *inputs[]{*ma, *mb};
@@ -132,7 +139,7 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     }
     // take output data
     std::vector<float> result(Y->elementsSize());
-    my->copyOut(result.data(), Y->bytesSize());
+    my->copyToHost(result.data(), Y->bytesSize());
     // check
     for (auto i = 0; i < result.size(); i++) {
         EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
@@ -166,14 +173,14 @@ TEST(kernel, MatMulCublas_Large) {
         dataC[i] = 1.0 * (i % 4) - 2.0;
     }
     std::vector<float> cpuOut(Y->elementsSize());
-    auto mfn = Target(Target::NvidiaGpu).memManager();
-    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
-    ma->copyIn(dataA.data(), A->bytesSize());
-    mb->copyIn(dataB.data(), B->bytesSize());
-    mc->copyIn(dataC.data(), C->bytesSize());
+    auto device = Device::init("nvidia", 0, "");
+    auto ma = device->malloc(A->bytesSize()),
+         mb = device->malloc(B->bytesSize()),
+         mc = device->malloc(C->bytesSize()),
+         my = device->malloc(Y->bytesSize());
+    ma->copyFromHost(dataA.data(), A->bytesSize());
+    mb->copyFromHost(dataB.data(), B->bytesSize());
+    mc->copyFromHost(dataC.data(), C->bytesSize());
     // inference
     {
         void const *inputs[]{*ma, *mb, *mc};
@@ -187,7 +194,7 @@ TEST(kernel, MatMulCublas_Large) {
     }
     // take output data
     std::vector<float> result(Y->elementsSize());
-    my->copyOut(result.data(), Y->bytesSize());
+    my->copyToHost(result.data(), Y->bytesSize());
     // check
     for (auto i = 0; i < result.size(); i++) {
         EXPECT_FLOAT_EQ(result[i], cpuOut[i]);

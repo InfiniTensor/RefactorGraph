@@ -15,29 +15,21 @@ TEST(kernel, WhereCpu) {
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
-    // malloc
-    auto mfn = Target(Target::Cpu).memManager();
-    auto mc = hardware::ForeignBlob::share(mfn, cTensor->bytesSize());
-    auto mx = hardware::ForeignBlob::share(mfn, xTensor->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, yTensor->bytesSize());
-    auto mout = hardware::ForeignBlob::share(mfn, outTensor->bytesSize());
     // put inputs data
-    int dataC[cTensor->elementsSize()];
-    memset(dataC, 1, cTensor->elementsSize() * sizeof(bool));
-    mc->copyIn(dataC, cTensor->bytesSize());
-    std::vector<float> data(xTensor->elementsSize());
-    for (auto i : range0_(data.size())) { data[i] = 7; }
-    mx->copyIn(data.data(), xTensor->bytesSize());
-    data.resize(yTensor->elementsSize());
-    for (auto i : range0_(data.size())) { data[i] = 3; }
-    my->copyIn(data.data(), yTensor->bytesSize());
+    bool dataC[cTensor->elementsSize()];
+    std::generate_n(dataC, cTensor->elementsSize(), []() { return true; });
+    std::vector<float>
+        dataX(xTensor->elementsSize()),
+        dataY(yTensor->elementsSize()),
+        result(outTensor->elementsSize());
+    for (auto i : range0_(dataX.size())) { dataX[i] = 7; }
+    for (auto i : range0_(dataY.size())) { dataY[i] = 3; }
     // inference
-    void const *inputs[]{*mc, *mx, *my};
-    void *outputs[]{*mout};
-    routine(res, nullptr, inputs, outputs);
-    // take output data
-    std::vector<float> result(outTensor->elementsSize());
-    mout->copyOut(result.data(), outTensor->bytesSize());
+    {
+        void const *inputs[]{dataC, dataX.data(), dataY.data()};
+        void *outputs[]{result.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
     // check
     for (auto x : result) {
         EXPECT_FLOAT_EQ(7, x);

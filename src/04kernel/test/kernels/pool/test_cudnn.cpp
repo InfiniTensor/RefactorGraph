@@ -1,11 +1,12 @@
 #ifdef USE_CUDA
 
-#include "../../../include/kernel/target.h"
 #include "../../../src/kernels/pool/cudnn_kernel.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 void testPoolCudnn(PoolType poolType, int rank, const int64_t *pads, const int64_t *strides, KernelShape kernelShape, Shape xShape, Shape yShape, const std::vector<float> &ExpectData) {
     auto dataTensor = Tensor::share(DataType::F32, xShape);
@@ -20,20 +21,20 @@ void testPoolCudnn(PoolType poolType, int rank, const int64_t *pads, const int64
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
     // cuda malloc
-    auto gpuMem = hardware::ForeignBlob::share(
-        Target(Target::NvidiaGpu).memManager(),
-        dataTensor->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto gpuMem = device->malloc(dataTensor->bytesSize());
     // put input data
     std::vector<float> data(dataTensor->elementsSize());
     for (auto i : range0_(data.size())) { data[i] = i * 0.1f; }
-    gpuMem->copyIn(data.data(), dataTensor->bytesSize());
+    gpuMem->copyFromHost(data.data(), dataTensor->bytesSize());
     // inference
     void const *inputs[]{*gpuMem};
     void *outputs[]{*gpuMem};
     routine(res, nullptr, inputs, outputs);
     // take output data
     std::vector<float> result(yTensor->elementsSize());
-    gpuMem->copyOut(result.data(), yTensor->bytesSize());
+    gpuMem->copyToHost(result.data(), yTensor->bytesSize());
     // check
     for (auto i : range0_(ExpectData.size())) {
         EXPECT_FLOAT_EQ(ExpectData[i], result[i]);

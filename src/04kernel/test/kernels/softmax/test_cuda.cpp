@@ -2,10 +2,12 @@
 
 #include "../../../src/kernels/softmax/cpu_kernel.hh"
 #include "../../../src/kernels/softmax/cuda_kernel.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, SoftmaxCuda) {
     // build routine
@@ -19,14 +21,15 @@ TEST(kernel, SoftmaxCuda) {
     auto rCpu = kCpu->lower(res).routine;
     auto rCuda = kCuda->lower(res).routine;
     // malloc
-    auto memManager = Target(Target::NvidiaGpu).memManager();
-    auto gpuX = hardware::ForeignBlob::share(memManager, xTensor->bytesSize());
-    auto gpuOut = hardware::ForeignBlob::share(memManager, outTensor->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto gpuIn = device->malloc(xTensor->bytesSize()),
+         gpuOut = device->malloc(outTensor->bytesSize());
     // put input data
-    std::vector<float> data(xTensor->elementsSize());
-    for (auto i : range0_(data.size())) { data[i] = 0.0; }
-    gpuX->copyIn(data.data(), xTensor->bytesSize());
-    std::vector<float> cpuOut(outTensor->elementsSize());
+    std::vector<float>
+        data(xTensor->elementsSize(), 0),
+        cpuOut(outTensor->elementsSize());
+    gpuIn->copyFromHost(data.data(), xTensor->bytesSize());
     // inference
     {
         void const *inputs[]{data.data()};
@@ -34,13 +37,13 @@ TEST(kernel, SoftmaxCuda) {
         rCpu(res, nullptr, inputs, outputs);
     }
     {
-        void const *inputs[]{*gpuX};
+        void const *inputs[]{*gpuIn};
         void *outputs[]{*gpuOut};
         rCuda(res, nullptr, inputs, outputs);
     }
     // take output data
     std::vector<float> result(outTensor->elementsSize());
-    gpuOut->copyOut(result.data(), outTensor->bytesSize());
+    gpuOut->copyToHost(result.data(), outTensor->bytesSize());
     // check
     for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(cpuOut[i], result[i]);

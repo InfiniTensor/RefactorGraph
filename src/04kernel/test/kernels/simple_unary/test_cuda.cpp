@@ -2,10 +2,12 @@
 
 #include "../../../src/kernels/simple_unary/cpu_kernel.hh"
 #include "../../../src/kernels/simple_unary/cuda_kernel.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 static void testOp(SimpleUnaryType opType) {
     // build routine
@@ -17,13 +19,13 @@ static void testOp(SimpleUnaryType opType) {
     auto routine = kernel->lower(res).routine,
          rCpu = kCpu->lower(res).routine;
     // malloc
-    auto gpuMem = hardware::ForeignBlob::share(
-        Target(Target::NvidiaGpu).memManager(),
-        dataTensor->bytesSize());
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
+    auto gpuMem = device->malloc(dataTensor->bytesSize());
     // put input data
     std::vector<float> data(dataTensor->elementsSize());
     for (auto i : range0_(data.size())) { data[i] = i * 1e-4f; }
-    gpuMem->copyIn(data.data(), dataTensor->bytesSize());
+    gpuMem->copyFromHost(data.data(), dataTensor->bytesSize());
     // inference
     {
         void const *inputs[]{*gpuMem};
@@ -37,7 +39,7 @@ static void testOp(SimpleUnaryType opType) {
     }
     // take output data
     std::vector<float> result(dataTensor->elementsSize());
-    gpuMem->copyOut(result.data(), dataTensor->bytesSize());
+    gpuMem->copyToHost(result.data(), dataTensor->bytesSize());
     // check
     for (auto i : range0_(data.size())) {
         EXPECT_FLOAT_EQ(data[i], result[i]);

@@ -2,13 +2,16 @@
 
 #include "../src/kernels/gather/cpu_kernel.hh"
 #include "../src/kernels/gather/cuda_kernel.hh"
-#include "kernel/target.h"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, GatherCuda) {
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
     // Case axis = 0, indexType= int64
     {
         // Create Tensor and build kernels
@@ -26,11 +29,11 @@ TEST(kernel, GatherCuda) {
         std::vector<float> a{1.0, 1.2, 2.3, 3.4, 4.5, 5.7};
         std::vector<int64_t> b{0, 1, 1, 2};
         std::vector<float> c(output->elementsSize());
-        auto aGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), data->bytesSize());
-        auto bGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), indices->bytesSize());
-        auto cGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), output->bytesSize());
-        aGPU->copyIn(a.data(), data->bytesSize());
-        bGPU->copyIn(b.data(), indices->bytesSize());
+        auto aGPU = device->malloc(data->bytesSize()),
+             bGPU = device->malloc(indices->bytesSize()),
+             cGPU = device->malloc(output->bytesSize());
+        aGPU->copyFromHost(a.data(), data->bytesSize());
+        bGPU->copyFromHost(b.data(), indices->bytesSize());
         // Compute
         {
             void const *inputs[]{*aGPU, *bGPU};
@@ -44,7 +47,7 @@ TEST(kernel, GatherCuda) {
         }
         // Compare
         std::vector<float> result(output->elementsSize());
-        cGPU->copyOut(result.data(), output->bytesSize());
+        cGPU->copyToHost(result.data(), output->bytesSize());
         for (auto i : range0_(c.size())) {
             EXPECT_FLOAT_EQ(c[i], result[i]);
         }
@@ -67,11 +70,11 @@ TEST(kernel, GatherCuda) {
         std::vector<float> a{1.0, 1.2, 1.9, 2.3, 3.4, 3.9, 4.5, 5.7, 5.9};
         std::vector<int> b{0, 2};
         std::vector<float> c(output->elementsSize());
-        auto aGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), data->bytesSize());
-        auto bGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), indices->bytesSize());
-        auto cGPU = hardware::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), output->bytesSize());
-        aGPU->copyIn(a.data(), data->bytesSize());
-        bGPU->copyIn(b.data(), indices->bytesSize());
+        auto aGPU = device->malloc(data->bytesSize()),
+             bGPU = device->malloc(indices->bytesSize()),
+             cGPU = device->malloc(output->bytesSize());
+        aGPU->copyFromHost(a.data(), data->bytesSize());
+        bGPU->copyFromHost(b.data(), indices->bytesSize());
         // Compute
         {
             void const *inputs[]{*aGPU, *bGPU};
@@ -85,7 +88,7 @@ TEST(kernel, GatherCuda) {
         }
         // Compare
         std::vector<float> result(output->elementsSize());
-        cGPU->copyOut(result.data(), output->bytesSize());
+        cGPU->copyToHost(result.data(), output->bytesSize());
         for (auto i : range0_(c.size())) {
             EXPECT_FLOAT_EQ(c[i], result[i]);
         }

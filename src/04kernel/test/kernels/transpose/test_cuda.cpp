@@ -2,11 +2,13 @@
 
 #include "../../../src/kernels/transpose/cpu_kernel.hh"
 #include "../../../src/kernels/transpose/cuda_kernel.hh"
+#include "hardware/devices/nvidia.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, TransposeCuda) {
     // build routine
@@ -19,16 +21,17 @@ TEST(kernel, TransposeCuda) {
     auto rCpu = kCpu->lower(res).routine;
     auto routine = kernel->lower(res).routine;
     // malloc
-    auto memManager = Target(Target::NvidiaGpu).memManager();
+    Device::register_<Nvidia>("nvidia");
+    auto device = Device::init("nvidia", 0, "");
     auto bytes = dataTensor->bytesSize();
-    auto gpuIn = hardware::ForeignBlob::share(memManager, bytes),
-         gpuOut = hardware::ForeignBlob::share(memManager, bytes);
+    auto gpuIn = device->malloc(bytes),
+         gpuOut = device->malloc(bytes);
     // put input data
     std::vector<float>
         cpuIn(dataTensor->elementsSize()),
         cpuOut(cpuIn.size());
     std::iota(cpuIn.begin(), cpuIn.end(), 0);
-    gpuIn->copyIn(cpuIn.data(), bytes);
+    gpuIn->copyFromHost(cpuIn.data(), bytes);
     // inference
     {
         void const *inputs[]{cpuIn.data()};
@@ -42,7 +45,7 @@ TEST(kernel, TransposeCuda) {
     }
     // take output data
     std::vector<float> result(dataTensor->elementsSize());
-    gpuOut->copyOut(result.data(), dataTensor->bytesSize());
+    gpuOut->copyToHost(result.data(), bytes);
     // check
     for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(cpuOut[i], result[i]);
