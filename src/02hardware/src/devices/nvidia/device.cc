@@ -1,6 +1,7 @@
 ﻿#include "hardware/devices/nvidia.h"
 #include "hardware/mem_pool.h"
 #ifdef USE_CUDA
+#include "functions.cuh"
 #include "memory.cuh"
 #endif
 
@@ -21,6 +22,12 @@ namespace refactor::hardware {
                  nullptr
 #endif
           ) {
+    }
+
+    void Nvidia::setContext() const noexcept {
+#ifdef USE_CUDA
+        setDevice(cardId());
+#endif
     }
 
     Arc<Device> Nvidia::build(

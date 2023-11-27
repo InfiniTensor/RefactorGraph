@@ -41,6 +41,7 @@ namespace refactor::hardware {
         friend class Blob;
 
         virtual ~Device() = default;
+        virtual void setContext() const noexcept;
 
         constexpr int32_t typeId() const noexcept { return _typeId; }
         constexpr int32_t cardId() const noexcept { return _cardId; }

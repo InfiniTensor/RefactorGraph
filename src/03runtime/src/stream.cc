@@ -94,6 +94,7 @@ namespace refactor::runtime {
         for (auto const [nodeIdx, i, o] : _internal.topology) {
             auto [inputs, outputs] = collectAddress(stack, _internal.edges, buffer, i, o);
             auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
+            _device->setContext();
             routine(_resources, stack + workspaceOffset, inputs, outputs);
         }
     }
@@ -106,6 +107,7 @@ namespace refactor::runtime {
             auto [inputs, outputs] = collectAddress(stack, _internal.edges, buffer, i, o);
             auto t0 = std::chrono::high_resolution_clock::now();
             auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
+            _device->setContext();
             routine(_resources, stack + workspaceOffset, inputs, outputs);
             if (sync) { sync(); }
             auto t1 = std::chrono::high_resolution_clock::now();
@@ -120,6 +122,7 @@ namespace refactor::runtime {
         for (auto const [nodeIdx, i, o] : _internal.topology) {
             auto [inputs, outputs] = collectAddress(stack, _internal.edges, buffer, i, o);
             auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
+            _device->setContext();
             routine(_resources, stack + workspaceOffset, inputs, outputs);
             record(nodeIdx, inputs, outputs);
         }

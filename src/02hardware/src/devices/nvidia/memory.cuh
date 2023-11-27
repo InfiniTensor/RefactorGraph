@@ -1,5 +1,5 @@
-﻿#ifndef HARDWARE_DEVICES_NVIDIA_MEMORY_HH
-#define HARDWARE_DEVICES_NVIDIA_MEMORY_HH
+﻿#ifndef HARDWARE_DEVICES_NVIDIA_MEMORY_CUH
+#define HARDWARE_DEVICES_NVIDIA_MEMORY_CUH
 
 #include "hardware/memory.h"
 
@@ -15,4 +15,4 @@ namespace refactor::hardware {
 
 }// namespace refactor::hardware
 
-#endif// HARDWARE_DEVICES_NVIDIA_MEMORY_HH
+#endif// HARDWARE_DEVICES_NVIDIA_MEMORY_CUH

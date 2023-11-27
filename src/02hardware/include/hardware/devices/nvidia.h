@@ -11,6 +11,8 @@ namespace refactor::hardware {
                int32_t cardId);
 
     public:
+        void setContext() const noexcept final;
+
         static Arc<Device> build(
             std::string_view deviceTypeName,
             int32_t typeId,
