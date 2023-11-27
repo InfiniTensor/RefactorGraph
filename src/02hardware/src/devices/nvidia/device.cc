@@ -1,5 +1,8 @@
 ﻿#include "hardware/devices/nvidia.h"
 #include "hardware/mem_pool.h"
+#ifdef USE_CUDA
+#include "memory.cuh"
+#endif
 
 namespace refactor::hardware {
 
@@ -9,7 +12,13 @@ namespace refactor::hardware {
         : Device(deviceTypeName,
                  typeId,
                  cardId,
-                 nullptr) {}
+#ifdef USE_CUDA
+                 std::make_shared<NvidiaMemory>()
+#else
+                 nullptr
+#endif
+          ) {
+    }
 
     Arc<Device> Nvidia::build(
         std::string_view deviceTypeName,

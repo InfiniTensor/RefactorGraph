@@ -9,7 +9,7 @@ namespace refactor::hardware {
     class Device {
         std::string_view _deviceTypeName;
         int32_t _typeId, _cardId;
-        std::unique_ptr<Memory> _mem;
+        Arc<Memory> _mem;
 
     protected:
         Device(decltype(_deviceTypeName),

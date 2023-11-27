@@ -9,7 +9,7 @@ CMAKE_EXTRA =
 
 build:
 	mkdir -p build
-	cmake -DCMAKE_BUILD_TYPE=$(TYPE) -DUSE_CUDA=$(CUDA) -DUSE_KUNLUN=$(KUNLUN) $(CMAKE_EXTRA) -Bbuild
+	cmake -Bbuild -DCMAKE_BUILD_TYPE=$(TYPE) -DUSE_CUDA=$(CUDA) -DUSE_KUNLUN=$(KUNLUN) $(CMAKE_EXTRA)
 	make -j -C build
 
 install-python: build

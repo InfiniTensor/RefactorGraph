@@ -1,5 +1,6 @@
 ﻿#include "hardware/devices/cpu.h"
 #include "hardware/mem_pool.h"
+#include "memory.hh"
 
 namespace refactor::hardware {
 
@@ -9,7 +10,7 @@ namespace refactor::hardware {
         : Device(deviceTypeName,
                  typeId,
                  cardId,
-                 nullptr) {}
+                 std::make_shared<CpuMemory>()) {}
 
     Arc<Device> Cpu::build(
         std::string_view deviceTypeName,

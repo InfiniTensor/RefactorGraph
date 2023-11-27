@@ -1,6 +1,8 @@
 ﻿#ifndef HARDWARE_MEMORY_H
 #define HARDWARE_MEMORY_H
 
+#include <cstddef>
+
 namespace refactor::hardware {
 
     class Memory {

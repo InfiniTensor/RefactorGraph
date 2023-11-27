@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(hardware)
 
+if(USE_CUDA)
+    file(GLOB_RECURSE HARDWARE_CUDA_SRC src/*.cu)
+endif()
+
 file(GLOB_RECURSE HARDWARE_SRC src/*.cc src/*.cpp)
-add_library(hardware STATIC ${HARDWARE_SRC})
+add_library(hardware STATIC ${HARDWARE_SRC} ${HARDWARE_CUDA_SRC})
 target_link_libraries(hardware PUBLIC common)
 target_include_directories(hardware PUBLIC include)
 
