@@ -2,7 +2,7 @@
 
 #include "../../../src/kernels/transpose/cpu_kernel.hh"
 #include "../../../src/kernels/transpose/cuda_kernel.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -21,11 +21,10 @@ TEST(kernel, TransposeCuda) {
     auto rCpu = kCpu->lower(res).routine;
     auto routine = kernel->lower(res).routine;
     // malloc
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
     auto bytes = dataTensor->bytesSize();
-    auto gpuIn = device->malloc(bytes),
-         gpuOut = device->malloc(bytes);
+    auto gpuIn = dev.malloc(bytes),
+         gpuOut = dev.malloc(bytes);
     // put input data
     std::vector<float>
         cpuIn(dataTensor->elementsSize()),

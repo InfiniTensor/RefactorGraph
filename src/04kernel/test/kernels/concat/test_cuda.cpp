@@ -2,7 +2,7 @@
 
 #include "../../../src/kernels/concat/cpu_kernel.hh"
 #include "../../../src/kernels/concat/cuda_kernel.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -32,16 +32,15 @@ TEST(kernel, ConcatCuda) {
     auto rCpu = kCpu->lower(res).routine;
     auto routine = kernel->lower(res).routine;
     // malloc
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
     Arc<Device::Blob>
         gpuIns[]{
-            device->malloc(inputTensors[0]->bytesSize()),
-            device->malloc(inputTensors[1]->bytesSize()),
-            device->malloc(inputTensors[2]->bytesSize()),
-            device->malloc(inputTensors[3]->bytesSize()),
+            dev.malloc(inputTensors[0]->bytesSize()),
+            dev.malloc(inputTensors[1]->bytesSize()),
+            dev.malloc(inputTensors[2]->bytesSize()),
+            dev.malloc(inputTensors[3]->bytesSize()),
         },
-        gpuOut = device->malloc(result->bytesSize());
+        gpuOut = dev.malloc(result->bytesSize());
     // put input data
     std::vector<float>
         cpuIns[]{

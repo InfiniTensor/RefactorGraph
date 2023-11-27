@@ -7,15 +7,16 @@
 namespace refactor::hardware {
 
     class Device {
-        std::string_view _deviceTypeName;
-        int32_t _typeId, _cardId;
-        Arc<Memory> _mem;
+    public:
+        enum class Type : int32_t {
+            Cpu,
+            Nvidia,
+        };
 
     protected:
-        Device(decltype(_deviceTypeName),
-               decltype(_typeId),
-               decltype(_cardId),
-               decltype(_mem));
+        int32_t _card;
+        Arc<Memory> _mem;
+        Device(decltype(_card), decltype(_mem));
 
     public:
         class Blob {
@@ -43,22 +44,7 @@ namespace refactor::hardware {
         virtual ~Device() = default;
         virtual void setContext() const noexcept;
 
-        constexpr int32_t typeId() const noexcept { return _typeId; }
-        constexpr int32_t cardId() const noexcept { return _cardId; }
-        constexpr std::string_view deviceTypeName() const noexcept { return _deviceTypeName; }
-
         Arc<Blob> malloc(size_t);
-
-        using Builder = Arc<Device> (*)(decltype(_deviceTypeName),
-                                        decltype(_typeId),
-                                        decltype(_cardId),
-                                        std::string_view);
-        static void register_(std::string, Builder);
-        template<class T> static void register_(std::string deviceName) {
-            register_(std::move(deviceName), T::build);
-        }
-
-        static Arc<Device> init(std::string const &deviceTypeName, decltype(_cardId), std::string_view);
     };
 
 }// namespace refactor::hardware

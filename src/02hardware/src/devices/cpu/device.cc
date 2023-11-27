@@ -4,20 +4,6 @@
 
 namespace refactor::hardware {
 
-    Cpu::Cpu(std::string_view deviceTypeName,
-             int32_t typeId,
-             int32_t cardId)
-        : Device(deviceTypeName,
-                 typeId,
-                 cardId,
-                 std::make_shared<CpuMemory>()) {}
-
-    Arc<Device> Cpu::build(
-        std::string_view deviceTypeName,
-        int32_t typeId,
-        int32_t cardId,
-        std::string_view args) {
-        return Arc<Device>(new Cpu(deviceTypeName, typeId, cardId));
-    }
+    Cpu::Cpu() : Device(0, std::make_shared<CpuMemory>()) {}
 
 }// namespace refactor::hardware

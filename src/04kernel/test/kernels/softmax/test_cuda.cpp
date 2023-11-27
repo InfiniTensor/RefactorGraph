@@ -2,7 +2,7 @@
 
 #include "../../../src/kernels/softmax/cpu_kernel.hh"
 #include "../../../src/kernels/softmax/cuda_kernel.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -21,10 +21,9 @@ TEST(kernel, SoftmaxCuda) {
     auto rCpu = kCpu->lower(res).routine;
     auto rCuda = kCuda->lower(res).routine;
     // malloc
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
-    auto gpuIn = device->malloc(xTensor->bytesSize()),
-         gpuOut = device->malloc(outTensor->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto gpuIn = dev.malloc(xTensor->bytesSize()),
+         gpuOut = dev.malloc(outTensor->bytesSize());
     // put input data
     std::vector<float>
         data(xTensor->elementsSize(), 0),

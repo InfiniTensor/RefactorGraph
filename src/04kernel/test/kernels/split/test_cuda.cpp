@@ -2,7 +2,7 @@
 
 #include "../../../src/kernels/split/cpu_kernel.hh"
 #include "../../../src/kernels/split/cuda_kernel.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -32,15 +32,14 @@ TEST(kernel, SplitCuda) {
     auto rCpu = kCpu->lower(res).routine;
     auto routine = kernel->lower(res).routine;
     // malloc
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
     Arc<Device::Blob>
-        gpuIn = device->malloc(dataTensor->bytesSize()),
+        gpuIn = dev.malloc(dataTensor->bytesSize()),
         gpuOuts[]{
-            device->malloc(outputTensors[0]->bytesSize()),
-            device->malloc(outputTensors[1]->bytesSize()),
-            device->malloc(outputTensors[2]->bytesSize()),
-            device->malloc(outputTensors[3]->bytesSize()),
+            dev.malloc(outputTensors[0]->bytesSize()),
+            dev.malloc(outputTensors[1]->bytesSize()),
+            dev.malloc(outputTensors[2]->bytesSize()),
+            dev.malloc(outputTensors[3]->bytesSize()),
         };
     // put input data
     std::vector<float>

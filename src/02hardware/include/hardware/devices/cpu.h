@@ -6,16 +6,8 @@
 namespace refactor::hardware {
 
     class Cpu final : public Device {
-        Cpu(std::string_view deviceTypeName,
-            int32_t typeId,
-            int32_t cardId);
-
     public:
-        static Arc<Device> build(
-            std::string_view deviceTypeName,
-            int32_t typeId,
-            int32_t cardId,
-            std::string_view args);
+        Cpu();
     };
 
 }// namespace refactor::hardware

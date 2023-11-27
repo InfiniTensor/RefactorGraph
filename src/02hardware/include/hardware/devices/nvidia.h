@@ -6,18 +6,9 @@
 namespace refactor::hardware {
 
     class Nvidia final : public Device {
-        Nvidia(std::string_view deviceTypeName,
-               int32_t typeId,
-               int32_t cardId);
-
     public:
+        explicit Nvidia(int32_t card);
         void setContext() const noexcept final;
-
-        static Arc<Device> build(
-            std::string_view deviceTypeName,
-            int32_t typeId,
-            int32_t cardId,
-            std::string_view args);
     };
 
 }// namespace refactor::hardware

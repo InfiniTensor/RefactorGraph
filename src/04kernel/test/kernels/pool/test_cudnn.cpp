@@ -1,7 +1,7 @@
 #ifdef USE_CUDA
 
 #include "../../../src/kernels/pool/cudnn_kernel.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -21,9 +21,8 @@ void testPoolCudnn(PoolType poolType, int rank, const int64_t *pads, const int64
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
     // cuda malloc
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
-    auto gpuMem = device->malloc(dataTensor->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto gpuMem = dev.malloc(dataTensor->bytesSize());
     // put input data
     std::vector<float> data(dataTensor->elementsSize());
     for (auto i : range0_(data.size())) { data[i] = i * 0.1f; }

@@ -2,7 +2,7 @@
 
 #include "../src/kernels/mat_mul/cpu_kernel.hh"
 #include "../src/kernels/mat_mul/cublas_kernel.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -10,7 +10,6 @@ using namespace kernel;
 using namespace hardware;
 
 TEST(kernel, MatMulCublas_OnlyBias) {
-
     // build routine
     auto A = Tensor::share(DataType::F32, Shape{2, 2, 2});
     auto B = Tensor::share(DataType::F32, Shape{2, 2});
@@ -24,12 +23,11 @@ TEST(kernel, MatMulCublas_OnlyBias) {
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
     // malloc
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
-    auto ma = device->malloc(A->bytesSize()),
-         mb = device->malloc(B->bytesSize()),
-         mc = device->malloc(C->bytesSize()),
-         my = device->malloc(Y->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto ma = dev.malloc(A->bytesSize()),
+         mb = dev.malloc(B->bytesSize()),
+         mc = dev.malloc(C->bytesSize()),
+         my = dev.malloc(Y->bytesSize());
     // put input data
     std::vector<float> dataA{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     std::vector<float> dataB{0.0, 0.0, 0.0, 0.0};
@@ -71,12 +69,11 @@ TEST(kernel, MatMulCublas_Broadcast) {
                              1.0, 0.0, 0.0, 1.0};
     std::vector<float> dataC{1.0, 0.0};
     std::vector<float> cpuOut(Y->elementsSize());
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
-    auto ma = device->malloc(A->bytesSize()),
-         mb = device->malloc(B->bytesSize()),
-         mc = device->malloc(C->bytesSize()),
-         my = device->malloc(Y->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto ma = dev.malloc(A->bytesSize()),
+         mb = dev.malloc(B->bytesSize()),
+         mc = dev.malloc(C->bytesSize()),
+         my = dev.malloc(Y->bytesSize());
     ma->copyFromHost(dataA.data(), A->bytesSize());
     mb->copyFromHost(dataB.data(), B->bytesSize());
     mc->copyFromHost(dataC.data(), C->bytesSize());
@@ -119,11 +116,10 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     std::vector<float> dataB{1.0, 2.0, 0.0, 0.5,
                              1.0, 0.0, 0.0, 1.0};
     std::vector<float> cpuOut(Y->elementsSize());
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
-    auto ma = device->malloc(A->bytesSize()),
-         mb = device->malloc(B->bytesSize()),
-         my = device->malloc(Y->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto ma = dev.malloc(A->bytesSize()),
+         mb = dev.malloc(B->bytesSize()),
+         my = dev.malloc(Y->bytesSize());
     ma->copyFromHost(dataA.data(), A->bytesSize());
     mb->copyFromHost(dataB.data(), B->bytesSize());
     // inference
@@ -173,11 +169,11 @@ TEST(kernel, MatMulCublas_Large) {
         dataC[i] = 1.0 * (i % 4) - 2.0;
     }
     std::vector<float> cpuOut(Y->elementsSize());
-    auto device = Device::init("nvidia", 0, "");
-    auto ma = device->malloc(A->bytesSize()),
-         mb = device->malloc(B->bytesSize()),
-         mc = device->malloc(C->bytesSize()),
-         my = device->malloc(Y->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto ma = dev.malloc(A->bytesSize()),
+         mb = dev.malloc(B->bytesSize()),
+         mc = dev.malloc(C->bytesSize()),
+         my = dev.malloc(Y->bytesSize());
     ma->copyFromHost(dataA.data(), A->bytesSize());
     mb->copyFromHost(dataB.data(), B->bytesSize());
     mc->copyFromHost(dataC.data(), C->bytesSize());

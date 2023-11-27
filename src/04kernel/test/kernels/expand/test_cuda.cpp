@@ -2,7 +2,7 @@
 
 #include "../../../src/kernels/expand/cpu_kernel.hh"
 #include "../../../src/kernels/expand/cuda_kernel.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -22,10 +22,9 @@ TEST(kernel, ExpandCuda) {
     auto routine = kernel->lower(res).routine;
     auto rCpu = kCpu->lower(res).routine;
     // malloc
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
-    auto gpuIn = device->malloc(input->bytesSize()),
-         gpuOut = device->malloc(output->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto gpuIn = dev.malloc(input->bytesSize()),
+         gpuOut = dev.malloc(output->bytesSize());
     // put input data
     std::vector<float>
         data(input->elementsSize()),

@@ -4,7 +4,7 @@
 #include "../src/kernels/simple_binary/basic_cuda.hh"
 #include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
 #include "../src/kernels/simple_binary/no_broadcast_cuda.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -33,11 +33,10 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     std::vector<T_> a(aTensor->elementsSize(), 3.0f);
     std::vector<T_> b(bTensor->elementsSize(), 2.0f);
     std::vector<T_> c(cTensor->elementsSize());
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
-    auto aGPU = device->malloc(aTensor->bytesSize()),
-         bGPU = device->malloc(bTensor->bytesSize()),
-         cGPU = device->malloc(cTensor->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto aGPU = dev.malloc(aTensor->bytesSize()),
+         bGPU = dev.malloc(bTensor->bytesSize()),
+         cGPU = dev.malloc(cTensor->bytesSize());
     aGPU->copyFromHost(a.data(), aTensor->bytesSize());
     bGPU->copyFromHost(b.data(), bTensor->bytesSize());
     // Compute

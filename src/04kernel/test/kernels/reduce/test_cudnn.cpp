@@ -1,7 +1,7 @@
 #ifdef USE_CUDA
 
 #include "../../../src/kernels/reduce/cudnn_kernel.hh"
-#include "hardware/devices/nvidia.h"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -17,11 +17,10 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     auto res = runtime::Resources();
     auto [routine, workspaceSize] = kernel->lower(res);
     // cuda malloc
-    Device::register_<Nvidia>("nvidia");
-    auto device = Device::init("nvidia", 0, "");
-    auto workspace = device->malloc(workspaceSize),
-         gpuMemIn = device->malloc(dataTensor->bytesSize()),
-         gpuMemOut = device->malloc(dataTensor->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto workspace = dev.malloc(workspaceSize),
+         gpuMemIn = dev.malloc(dataTensor->bytesSize()),
+         gpuMemOut = dev.malloc(dataTensor->bytesSize());
     // put input output data
     gpuMemIn->copyFromHost(data.data(), dataTensor->bytesSize());
     // inference
