@@ -2,7 +2,6 @@
 #define KERNEL_SIMPLE_UNARY_H
 
 #include "../collector.h"
-#include "../target.h"
 
 namespace refactor::kernel {
 
@@ -30,10 +29,9 @@ namespace refactor::kernel {
 
     struct SimpleUnaryCollector final : public InfoCollector {
         SimpleUnaryType type;
-        Target target;
 
-        constexpr explicit SimpleUnaryCollector(SimpleUnaryType type_, Target target_) noexcept
-            : InfoCollector(), type(type_), target(target_) {}
+        constexpr explicit SimpleUnaryCollector(decltype(_target) target, SimpleUnaryType type_) noexcept
+            : InfoCollector(target), type(type_) {}
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

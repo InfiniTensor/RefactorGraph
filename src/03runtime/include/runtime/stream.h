@@ -41,16 +41,15 @@ namespace refactor::runtime {
         using _G = graph_topo::Graph<_N, _E>;
 
         Resources _resources;
-        Arc<hardware::Device> _device;
         size_t _stackSize;
         std::vector<size_t> _outputsSize;
         _G _internal;
 
+        Arc<hardware::Device> _device;
         Arc<hardware::Device::Blob> _stack;
 
     public:
         Stream(decltype(_resources),
-               decltype(_device),
                decltype(_stackSize),
                decltype(_outputsSize),
                graph_topo::GraphTopo,

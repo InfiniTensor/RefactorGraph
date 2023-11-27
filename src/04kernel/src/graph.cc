@@ -2,12 +2,10 @@
 
 namespace refactor::kernel {
 
-    Graph::Graph(Target target,
-                 graph_topo::GraphTopo topology,
+    Graph::Graph(graph_topo::GraphTopo topology,
                  std::vector<_N> nodes,
                  std::vector<_E> edges) noexcept
-        : _target(target),
-          _internal(graph_topo::Graph<_N, _E>{
+        : _internal(graph_topo::Graph<_N, _E>{
               std::move(topology),
               std::move(nodes),
               std::move(edges),
@@ -44,7 +42,6 @@ namespace refactor::kernel {
 
         return runtime::Stream(
             std::move(res),
-            _target.device(),
             stack,
             std::move(outputs_),
             _internal.topology,

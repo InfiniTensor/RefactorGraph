@@ -1,6 +1,6 @@
 #include "../src/kernels/mat_mul/cpu_kernel.hh"
-#include "kernel/target.h"
 #include <gtest/gtest.h>
+
 using namespace refactor;
 using namespace kernel;
 

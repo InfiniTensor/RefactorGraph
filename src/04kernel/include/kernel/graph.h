@@ -1,9 +1,7 @@
 ﻿#ifndef KERNEL_GRAPH_H
 #define KERNEL_GRAPH_H
 
-#include "graph_topo.h"
 #include "kernel.h"
-#include "target.h"
 #include <span>
 
 namespace refactor::kernel {
@@ -36,11 +34,10 @@ namespace refactor::kernel {
         using _E = Edge;
         using _G = graph_topo::Graph<_N, _E>;
 
-        Target _target;
         _G _internal;
 
     public:
-        Graph(Target, graph_topo::GraphTopo, std::vector<_N>, std::vector<_E>) noexcept;
+        Graph(graph_topo::GraphTopo, std::vector<_N>, std::vector<_E>) noexcept;
         runtime::Stream lower(Allocator) const;
     };
 

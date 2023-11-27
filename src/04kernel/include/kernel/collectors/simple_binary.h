@@ -2,7 +2,6 @@
 #define KERNEL_SIMPLE_BINARY_H
 
 #include "../collector.h"
-#include "../target.h"
 
 namespace refactor::kernel {
 
@@ -19,10 +18,9 @@ namespace refactor::kernel {
 
     struct SimpleBinaryCollector final : public InfoCollector {
         SimpleBinaryType type;
-        Target target;
 
-        constexpr SimpleBinaryCollector(Target target_, SimpleBinaryType type_) noexcept
-            : InfoCollector(), target(target_), type(type_) {}
+        constexpr SimpleBinaryCollector(decltype(_target) target, SimpleBinaryType type_) noexcept
+            : InfoCollector(target), type(type_) {}
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

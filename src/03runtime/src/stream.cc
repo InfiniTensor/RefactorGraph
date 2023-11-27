@@ -26,14 +26,12 @@ namespace refactor::runtime {
     }
 
     Stream::Stream(decltype(_resources) resources,
-                   decltype(_device) device,
                    decltype(_stackSize) stack,
                    decltype(_outputsSize) outputs,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
                    std::vector<_E> offsets)
         : _resources(std::move(resources)),
-          _device(std::move(device)),
           _stackSize(stack),
           _outputsSize(std::move(outputs)),
           _internal(_G{
@@ -41,6 +39,7 @@ namespace refactor::runtime {
               std::move(routines),
               std::move(offsets),
           }),
+          _device(nullptr),
           _stack(nullptr) {}
 
     void Stream::setData(count_t i, void const *data, size_t size) {

@@ -13,11 +13,11 @@ namespace refactor::kernel {
     BatchNormalizationCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 REGISTER(BatchNormalization)
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 REGISTER(BatchNormalizationCudnn)
                 break;
             default:

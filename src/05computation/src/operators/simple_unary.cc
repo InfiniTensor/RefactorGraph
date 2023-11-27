@@ -127,7 +127,7 @@ namespace refactor::computation {
     }
 
     kernel::CollectorBox SimpleUnary::candidateKernels(Target target) const noexcept {
-        return std::make_unique<kernel::SimpleUnaryCollector>(type, target);
+        return std::make_unique<kernel::SimpleUnaryCollector>(target, type);
     }
 
 }// namespace refactor::computation

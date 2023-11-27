@@ -2,7 +2,6 @@
 #define KERNEL_REDUCE_H
 
 #include "../collector.h"
-#include "../target.h"
 
 namespace refactor::kernel {
 
@@ -22,11 +21,10 @@ namespace refactor::kernel {
     };
 
     struct ReduceCollector final : public InfoCollector {
-        Target target;
         ReduceType reduceType;
         Axes axes;
 
-        ReduceCollector(Target, ReduceType, Axes) noexcept;
+        ReduceCollector(decltype(_target), ReduceType, Axes) noexcept;
 
         std::vector<KernelBox> filter(TensorRefs inputs, TensorRefs outputs) const final;
     };

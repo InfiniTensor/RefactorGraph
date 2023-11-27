@@ -8,6 +8,10 @@ namespace refactor::hardware {
     class Cpu final : public Device {
     public:
         Cpu();
+
+        constexpr Type type() const noexcept final {
+            return Type::Cpu;
+        }
     };
 
 }// namespace refactor::hardware

@@ -4,6 +4,11 @@
 
 namespace refactor::hardware {
 
-    Cpu::Cpu() : Device(0, std::make_shared<CpuMemory>()) {}
+    static Arc<Memory> cpuMemory() {
+        static auto instance = std::make_shared<CpuMemory>();
+        return instance;
+    }
+
+    Cpu::Cpu() : Device(0, cpuMemory()) {}
 
 }// namespace refactor::hardware

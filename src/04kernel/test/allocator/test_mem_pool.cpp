@@ -1,5 +1,4 @@
 #include "hardware/mem_pool.h"
-#include "kernel/target.h"
 #include "kernel/tensor.h"
 #include <gtest/gtest.h>
 
@@ -11,7 +10,7 @@ TEST(MemPool, testMallocFreeCpu) {
     auto b = Tensor::share(DataType::F32, Shape{10, 40, 20, 30});
     auto c = Tensor::share(DataType::F32, Shape{10, 40, 20, 30});
     auto d = Tensor::share(DataType::F32, Shape{10, 20, 20, 30});
-    Target target = Target::Cpu;
+    // Target target = Target::Cpu;
     //     auto memPool = target.memManager();
     //     // allocate a->b->c->d
     //     auto aPtr = memPool->malloc(a->bytesSize());
@@ -40,7 +39,7 @@ TEST(MemPool, testMallocFreeGpu) {
     auto b = Tensor::share(DataType::F32, Shape{10, 40, 20, 30});
     auto c = Tensor::share(DataType::F32, Shape{10, 40, 20, 30});
     auto d = Tensor::share(DataType::F32, Shape{10, 20, 20, 30});
-    Target target = Target::NvidiaGpu;
+    // Target target = Target::NvidiaGpu;
     //     auto memPool = target.memManager();
     //     // allocate a->b->c->d
     //     auto aPtr = memPool->malloc(a->bytesSize());

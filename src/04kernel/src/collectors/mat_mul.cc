@@ -20,11 +20,11 @@ namespace refactor::kernel {
                         : MatMulInfo(a, b, std::nullopt, transA, transB, alpha, beta);
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 REGISTER(MatMulCPU)
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 REGISTER(MatMulCublas)
                 break;
             default:

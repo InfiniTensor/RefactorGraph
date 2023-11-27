@@ -5,10 +5,9 @@
 namespace refactor::kernel {
 
     SliceCollector::SliceCollector(
-        Target target_,
+        decltype(_target) target,
         Dimensions dims) noexcept
-        : InfoCollector(),
-          target(target_),
+        : InfoCollector(target),
           dimentions(std::move(dims)) {}
 
     std::vector<KernelBox>
@@ -16,13 +15,13 @@ namespace refactor::kernel {
         SliceInfo info(dimentions, inputs[0]);
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 if (auto ptr = SliceCpu::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 if (auto ptr = SliceCuda::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }

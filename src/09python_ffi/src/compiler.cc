@@ -59,11 +59,11 @@ namespace refactor::python_ffi {
             computation.layoutPermute();
         }
 
-        kernel::Target target_ = kernel::Target::Cpu;
+        hardware::Device::Type target_;
         if (target == "cpu") {
-            target_ = kernel::Target::Cpu;
+            target_ = decltype(target_)::Cpu;
         } else if (target == "cuda") {
-            target_ = kernel::Target::NvidiaGpu;
+            target_ = decltype(target_)::Nvidia;
         } else {
             UNREACHABLE();
         }

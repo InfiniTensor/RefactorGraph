@@ -4,13 +4,12 @@
 namespace refactor::kernel {
 
     PoolCollector::PoolCollector(
-        Target target_,
+        decltype(_target) target,
         PoolType type_,
         bool ceil_,
         KernelShape kernelShape_,
         PoolAttributes attrs) noexcept
-        : InfoCollector(),
-          target(target_),
+        : InfoCollector(target),
           type(type_),
           ceil(ceil_),
           kernelShape(std::move(kernelShape_)),
@@ -22,10 +21,10 @@ namespace refactor::kernel {
         auto const &y = outputs[0].get();
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 if (auto ptr = PoolCudnn::build(type, ceil, kernelShape, attributes, x, y); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }

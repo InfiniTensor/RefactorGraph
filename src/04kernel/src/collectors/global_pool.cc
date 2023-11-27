@@ -4,11 +4,8 @@
 namespace refactor::kernel {
 
     GlobalPoolCollector::GlobalPoolCollector(
-        Target target_,
-        PoolType type_) noexcept
-        : InfoCollector(),
-          target(target_),
-          type(type_) {}
+        decltype(_target) target, PoolType type_) noexcept
+        : InfoCollector(target), type(type_) {}
 
     std::vector<KernelBox>
     GlobalPoolCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
@@ -23,10 +20,10 @@ namespace refactor::kernel {
         PoolAttributes attributes(rank, nullptr, nullptr, nullptr);
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 if (auto ptr = PoolCudnn::build(type, false, kernelShape, attributes, x, y); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }

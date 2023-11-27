@@ -42,6 +42,7 @@ namespace refactor::hardware {
         friend class Blob;
 
         virtual ~Device() = default;
+        virtual Type type() const noexcept = 0;
         virtual void setContext() const noexcept;
 
         Arc<Blob> malloc(size_t);

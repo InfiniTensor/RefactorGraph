@@ -4,11 +4,8 @@
 namespace refactor::kernel {
 
     ConvCollector::ConvCollector(
-        Target target_,
-        PoolAttributes attrs) noexcept
-        : InfoCollector(),
-          target(target_),
-          poolAttrs(std::move(attrs)) {}
+        decltype(_target) target, PoolAttributes attrs) noexcept
+        : InfoCollector(target), poolAttrs(std::move(attrs)) {}
 
     std::vector<KernelBox>
     ConvCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
@@ -18,10 +15,10 @@ namespace refactor::kernel {
         auto const &y = outputs[0].get();
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 if (auto ptr = ConvCudnn::build(poolAttrs, x, w, b, y); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
