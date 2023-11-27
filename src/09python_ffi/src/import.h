@@ -2,14 +2,17 @@
 #define PYTHON_FFI_IMPORT_H
 
 #include "compiler.h"
+#include "hardware/device.h"
 
 namespace refactor::python_ffi {
+    using SharedDevice = Arc<hardware::Device>;
     using SharedTensor = Arc<frontend::Tensor>;
     using SharedOp = Arc<frontend::OpBox>;
     using Name = std::string;
     using NameVec = std::vector<Name>;
     using AttributeMap = std::unordered_map<Name, decltype(frontend::Attribute::value)>;
 
+    SharedDevice findDevice(std::string type, int card);
     SharedTensor makeTensor(int dataType, DimVec dims);
     SharedTensor makeTensorWithData(pybind11::array);
     SharedTensor makeTensorWithExternalData(

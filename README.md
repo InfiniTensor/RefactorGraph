@@ -26,7 +26,7 @@
 import sys
 import numpy as np
 from onnx import load
-from refactor_graph.onnx import make_compiler
+from refactor_graph.onnx import make_compiler, find_device
 from onnxruntime import InferenceSession
 
 model = load(sys.argv[1])  # ------------------------------------ 加载模型
@@ -35,6 +35,7 @@ input = np.random.random((10, 3, 224, 224)).astype(np.float32)  # 加载测试�
 compiler = make_compiler(model)  # ------------------------------ 模型导入到编译器
 compiler.substitute("N", 10)  # --------------------------------- 代换输入中的变量
 executor = compiler.compile("cuda", "default", [])  # ----------- 编译模型（选择平台、分配器和优化选项）
+executor.dispatch(find_device("nvidia", 0))  # ------------------ 将执行器调度到指定计算设备
 executor.set_input(0, input)  # --------------------------------- 设置输入
 executor.prepare()  # ------------------------------------------- 准备推理（分配输出空间）
 executor.run()  # ----------------------------------------------- 推理

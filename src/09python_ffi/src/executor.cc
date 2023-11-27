@@ -33,6 +33,10 @@ namespace refactor::python_ffi {
         return ans;
     }
 
+    void Executor::dispatch(Arc<hardware::Device> device) {
+        _stream.dispatch(std::move(device));
+    }
+
     auto Executor::prepare() -> std::vector<count_t> {
         return _stream.prepare();
     }

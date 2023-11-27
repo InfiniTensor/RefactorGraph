@@ -5,6 +5,7 @@ from typing import Any
 from python_ffi import (
     Compiler,
     Tensor,
+    find_device,
     _make_data,
     _make_data_ex,
     _make_tensor,

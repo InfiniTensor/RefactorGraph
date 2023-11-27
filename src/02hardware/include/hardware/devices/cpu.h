@@ -9,7 +9,7 @@ namespace refactor::hardware {
     public:
         Cpu();
 
-        constexpr Type type() const noexcept final {
+        Type type() const noexcept final {
             return Type::Cpu;
         }
     };

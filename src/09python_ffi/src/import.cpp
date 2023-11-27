@@ -1,9 +1,25 @@
 ﻿#include "import.h"
+#include "hardware/device_manager.h"
 #include <execution>
 #include <fstream>
 
 namespace refactor::python_ffi {
     using namespace frontend;
+    using namespace hardware;
+
+    SharedDevice
+    findDevice(std::string type, int card) {
+        std::transform(std::execution::unseq,
+                       type.begin(), type.end(),
+                       type.begin(),
+                       ::tolower);
+        // clang-format off
+        auto type_ = type == "cpu"    ? Device::Type::Cpu
+                   : type == "nvidia" ? Device::Type::Nvidia
+                   : UNREACHABLEX(Device::Type, "Unknown device type: \"{}\"", type);
+        // clang-format on
+        return device::init(type_, card, "");
+    }
 
     SharedTensor
     makeTensor(int dataType, DimVec dims) {

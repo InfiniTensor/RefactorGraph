@@ -1,4 +1,5 @@
 ﻿#include "runtime/stream.h"
+#include "hardware/device_manager.h"
 
 namespace refactor::runtime {
     using namespace hardware;
@@ -39,7 +40,7 @@ namespace refactor::runtime {
               std::move(routines),
               std::move(offsets),
           }),
-          _device(nullptr),
+          _device(device::fetch(Device::Type::Cpu, 0)),
           _stack(nullptr) {}
 
     void Stream::setData(count_t i, void const *data, size_t size) {
@@ -52,6 +53,21 @@ namespace refactor::runtime {
     }
     void Stream::getData(count_t i, void *data, size_t size) const {
         _internal.edges[i].blob().copyToHost(data, size);
+    }
+
+    void Stream::dispatch(Arc<hardware::Device> device) {
+        if (_device.get() == device.get()) {
+            return;
+        }
+        _device = std::move(device);
+        _stack = _device->malloc(_stackSize);
+        for (auto &edge : _internal.edges) {
+            if (edge.isOffset()) { continue; }
+            auto blob = std::move(std::get<Arc<Device::Blob>>(edge.value));
+            if (blob) {
+                edge.value = {_device->absorb(std::move(blob))};
+            }
+        }
     }
 
     auto Stream::prepare() -> std::vector<count_t> {

@@ -22,7 +22,7 @@ namespace refactor::hardware {
         class Blob {
             friend class Device;
 
-            Device &_device;
+            Device *_device;
             void *_ptr;
             size_t _size;
 
@@ -52,6 +52,7 @@ namespace refactor::hardware {
         virtual void setContext() const noexcept;
 
         Arc<Blob> malloc(size_t);
+        Arc<Blob> absorb(Arc<Blob> &&);
     };
 
 }// namespace refactor::hardware

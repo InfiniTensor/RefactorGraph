@@ -1,4 +1,5 @@
 ﻿#include "communication/operators.h"
+#include "hardware/device.h"
 #include "import.h"
 #include "onnx/operators.h"
 #include <pybind11/stl.h>// keep this line to convert stl types
@@ -19,8 +20,10 @@ namespace refactor::python_ffi {
 
         py::class_<Tensor      , Arc<Tensor>      >(m, "Tensor"      );
         py::class_<OpBox       , Arc<OpBox>       >(m, "Operator"    );
+        py::class_<Device      , Arc<Device>      >(m, "Device"      );
 
         m   .def("config_log"      , &configLog                  , return_::automatic )
+            .def("find_device"     , &findDevice                 , return_::move      )
             .def("_make_operator"  , &makeOp                     , return_::move      )
             .def("_make_tensor"    , &makeTensor                 , return_::move      )
             .def("_make_data"      , &makeTensorWithData         , return_::move      )
@@ -38,6 +41,7 @@ namespace refactor::python_ffi {
         py::class_<Executor , Arc<Executor>>(m, "Executor" )
             .def("set_input"       , &Executor::setInput         , return_::automatic )
             .def("get_output"      , &Executor::getOutput        , return_::move      )
+            .def("dispatch"        , &Executor::dispatch         , return_::automatic )
             .def("prepare"         , &Executor::prepare          , return_::move      )
             .def("run"             , &Executor::run              , return_::automatic )
             .def("bench"           , &Executor::bench            , return_::automatic )

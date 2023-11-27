@@ -9,7 +9,7 @@ namespace refactor::hardware {
     public:
         explicit Nvidia(int32_t card);
         void setContext() const noexcept final;
-        constexpr Type type() const noexcept final {
+        Type type() const noexcept final {
             return Type::Nvidia;
         }
     };
