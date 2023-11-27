@@ -13,7 +13,10 @@ namespace refactor::hardware {
                  typeId,
                  cardId,
 #ifdef USE_CUDA
-                 std::make_shared<NvidiaMemory>()
+                 std::make_shared<MemPool>(
+                     std::make_shared<NvidiaMemory>(),
+                     5ul << 30,
+                     256ul)
 #else
                  nullptr
 #endif

@@ -1,6 +1,5 @@
 #include "cpu_kernel.hh"
 #include "kernel/attributes/transpose_info.h"
-#include "runtime/mem_manager.hh"
 #include <numeric>
 #include <unordered_set>
 

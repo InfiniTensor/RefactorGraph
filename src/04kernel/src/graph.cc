@@ -1,5 +1,4 @@
 ﻿#include "kernel/graph.h"
-#include "runtime/mem_manager.hh"
 
 namespace refactor::kernel {
 

@@ -6,7 +6,7 @@ namespace refactor::kernel {
     Tensor::Tensor(DataType dataType_,
                    Shape shape_,
                    LayoutType layout_,
-                   Arc<hardware::Blob> data_) noexcept
+                   Arc<Blob> data_) noexcept
         : dataType(dataType_),
           shape(std::move(shape_)),
           layout(layout_),
@@ -15,7 +15,7 @@ namespace refactor::kernel {
     Arc<Tensor> Tensor::share(DataType dataType,
                               Shape shape,
                               LayoutType layout,
-                              Arc<hardware::Blob> data) noexcept {
+                              Arc<Blob> data) noexcept {
         return std::make_shared<Tensor>(dataType, std::move(shape), layout, std::move(data));
     }
 
@@ -34,7 +34,7 @@ namespace refactor::kernel {
     }
 
     void *Tensor::malloc() {
-        auto [data_, ptr] = hardware::Blob::share(bytesSize());
+        auto [data_, ptr] = Blob::share(bytesSize());
         data = std::move(data_);
         return ptr;
     }

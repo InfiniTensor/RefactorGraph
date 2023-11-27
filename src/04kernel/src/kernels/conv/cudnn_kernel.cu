@@ -1,7 +1,6 @@
 ﻿#include "../../utilities/cuda/cudnn_context.hh"
 #include "../../utilities/cuda/cudnn_functions.h"
 #include "cudnn_kernel.hh"
-#include "runtime/mem_manager.hh"
 
 namespace refactor::kernel {
     using namespace cudnn;

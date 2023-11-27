@@ -1,10 +1,10 @@
 ﻿#include "common.h"
 #include "memory.cuh"
 
-#define CUDA_ASSERT(STATUS)                                                 \
-    if (auto status = (STATUS); status != cudaSuccess) {                    \
-        RUNTIME_ERROR(fmt::format("cuda failed on \"" #STATUS "\" with {}", \
-                                  cudaGetErrorString(status)));             \
+#define CUDA_ASSERT(STATUS)                                                          \
+    if (auto status = (STATUS); status != cudaSuccess) {                             \
+        RUNTIME_ERROR(fmt::format("cuda failed on \"" #STATUS "\" with \"{}\" ({})", \
+                                  cudaGetErrorString(status), (int) status));        \
     }
 
 namespace refactor::hardware {
@@ -16,7 +16,10 @@ namespace refactor::hardware {
         return ptr;
     }
     void M::free(void *ptr) noexcept {
-        CUDA_ASSERT(cudaFree(ptr));
+        if (auto status = cudaFree(ptr); status != cudaSuccess && status != cudaErrorCudartUnloading) {
+            RUNTIME_ERROR(fmt::format("cudaFree failed with \"{}\" ({})",
+                                      cudaGetErrorString(status), (int) status));
+        }
     }
     void *M::copyHD(void *dst, void const *src, size_t bytes) const noexcept {
         CUDA_ASSERT(cudaMemcpy(dst, src, bytes, cudaMemcpyHostToDevice));

@@ -1,14 +1,15 @@
 #include "hardware/mem_pool.h"
 
 namespace refactor::hardware {
-    MemPool::MemPool(size_t memPoolSize, size_t alignment, Arc<MemManager> f)
-        : _memPoolSize(memPoolSize),
+
+    MemPool::MemPool(decltype(_parent) parent, decltype(_memPoolSize) size, size_t alignment)
+        : _parent(std::move(parent)),
+          _memPoolSize(size),
           _calculator(OffsetCalculator(alignment)),
-          _ptr(f->malloc(memPoolSize)),
-          _f(std::move(f)) {
-    }
+          _ptr(_parent->malloc(size)),
+          _ptrToBlobsize{} {}
     MemPool::~MemPool() {
-        _f->free(_ptr);
+        _parent->free(_ptr);
     }
     void *MemPool::malloc(size_t const bytes) noexcept {
         if (bytes == 0) { return nullptr; }
@@ -27,15 +28,13 @@ namespace refactor::hardware {
         _ptrToBlobsize.erase(it);
     }
     void *MemPool::copyHD(void *dst, void const *src, size_t bytes) const noexcept {
-        _f->copyHD(dst, src, bytes);
-        return dst;
+        return _parent->copyHD(dst, src, bytes);
     }
     void *MemPool::copyDH(void *dst, void const *src, size_t bytes) const noexcept {
-        _f->copyDH(dst, src, bytes);
-        return dst;
+        return _parent->copyDH(dst, src, bytes);
     }
     void *MemPool::copyDD(void *dst, void const *src, size_t bytes) const noexcept {
-        _f->copyDD(dst, src, bytes);
-        return dst;
+        return _parent->copyDD(dst, src, bytes);
     }
+
 }// namespace refactor::hardware

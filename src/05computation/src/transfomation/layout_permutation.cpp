@@ -5,7 +5,7 @@
 
 namespace refactor::computation {
 
-    std::shared_ptr<Tensor> transposeNHWC(const Tensor &tensor) {
+    Arc<Tensor> transposeNHWC(const Tensor &tensor) {
         auto N = tensor.shape[0];
         auto C = tensor.shape[1];
         auto H = tensor.shape[2];
@@ -16,7 +16,7 @@ namespace refactor::computation {
         if (tensor.data) {
             size_t num = N * C * H * W;
             size_t size = num * tensor.dataType.size();
-            auto [data_, dst] = refactor::hardware::Blob::share(size);
+            auto [data_, dst] = kernel::Blob::share(size);
             const void *src = *(tensor.data);
             std::for_each_n(std::execution::unseq, natural_t(0), num,
                             [&dst, eleSize = tensor.dataType.size(), H, W, C, &src](auto const i) {
@@ -35,7 +35,7 @@ namespace refactor::computation {
         return ans;
     }
 
-    std::shared_ptr<Tensor> transposeNCHW(const Tensor &tensor) {
+    Arc<Tensor> transposeNCHW(const Tensor &tensor) {
         auto N = tensor.shape[0];
         auto C = tensor.shape[3];
         auto H = tensor.shape[1];
