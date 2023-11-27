@@ -17,7 +17,6 @@ namespace refactor::kernel {
     runtime::Stream Graph::lower(Allocator allocator) const {
 
         runtime::Resources res;
-        res.fetchOrStore<runtime::MemManager>(_target.memManager());
 
         auto nodeCount = _internal.nodes.size();
         std::vector<size_t> workspace(nodeCount, 0);
@@ -46,6 +45,7 @@ namespace refactor::kernel {
 
         return runtime::Stream(
             std::move(res),
+            _target.device(),
             stack,
             std::move(outputs_),
             _internal.topology,

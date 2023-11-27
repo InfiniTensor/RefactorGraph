@@ -2,9 +2,8 @@
 #define RUNTIME_STREAM_H
 
 #include "graph_topo.h"
-#include "hardware/foreign_blob.hh"
+#include "hardware/device.h"
 #include "resource.h"
-#include <absl/container/inlined_vector.h>
 #include <chrono>
 #include <functional>
 #include <variant>
@@ -15,14 +14,14 @@ namespace refactor::runtime {
     void emptyRoutine(runtime::Resources &, void *, void const *const *, void *const *);
 
     struct Address {
-        std::variant<size_t, hardware::SharedForeignBlob> value;
+        std::variant<size_t, Arc<hardware::Device::Blob>> value;
 
         void *operator()(void *stack) const;
 
         bool isBlob() const noexcept;
         bool isOffset() const noexcept;
 
-        auto blob() const noexcept -> hardware::SharedForeignBlob const &;
+        auto blob() const noexcept -> hardware::Device::Blob const &;
         auto offset() const noexcept -> size_t;
     };
 
@@ -42,19 +41,21 @@ namespace refactor::runtime {
         using _G = graph_topo::Graph<_N, _E>;
 
         Resources _resources;
-        hardware::SharedForeignBlob _stack;
+        Arc<hardware::Device> _device;
+        Arc<hardware::Device::Blob> _stack;
         std::vector<size_t> _outputsSize;
         _G _internal;
 
     public:
-        Stream(Resources,
+        Stream(decltype(_resources),
+               decltype(_device),
                size_t stack,
-               std::vector<size_t> outputs,
+               decltype(_outputsSize),
                graph_topo::GraphTopo,
                std::vector<_N>,
                std::vector<_E>);
         void setData(count_t, void const *, size_t);
-        void setData(count_t, hardware::SharedForeignBlob);
+        void setData(count_t, Arc<hardware::Device::Blob>);
         void getData(count_t, void *, size_t) const;
         auto prepare() -> std::vector<count_t>;
         void run();

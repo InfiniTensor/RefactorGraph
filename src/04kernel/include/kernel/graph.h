@@ -3,12 +3,10 @@
 
 #include "graph_topo.h"
 #include "kernel.h"
-#include "hardware/foreign_blob.hh"
 #include "target.h"
 #include <span>
 
 namespace refactor::kernel {
-    using hardware::SharedForeignBlob;
     using runtime::Address;
 
     struct Node {
@@ -17,7 +15,7 @@ namespace refactor::kernel {
     };
 
     struct Edge {
-        hardware::SharedForeignBlob data;
+        Arc<hardware::Device::Blob> data;
         size_t size;
         std::string name;
     };

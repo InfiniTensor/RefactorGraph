@@ -47,6 +47,7 @@ namespace refactor::computation {
             nodes[nodeIdx].kernel = std::move(candidates.front());
         }
 
+        auto device = target.device();
         for (auto i : range0_(edges.size())) {
             auto const &[tensor, name] = graph.edges[i];
             if (!tensor || identities.contains(i)) {
@@ -55,8 +56,8 @@ namespace refactor::computation {
                 edges[i] = {nullptr, tensor->bytesSize(), name};
             } else {
                 auto bytes = tensor->bytesSize();
-                auto blob = hardware::ForeignBlob::share(target.memManager(), bytes);
-                blob->copyIn(*(tensor->data), bytes);
+                auto blob = device->malloc(bytes);
+                blob->copyFromHost(*(tensor->data), bytes);
                 edges[i] = {std::move(blob), bytes, name};
             }
         }

@@ -1,39 +1,40 @@
 ﻿#include "runtime/stream.h"
-#include "runtime/mem_manager.hh"
 
 namespace refactor::runtime {
-    using hardware::ForeignBlob;
+    using namespace hardware;
 
     void emptyRoutine(runtime::Resources &, void *, void const *const *, void *const *) {}
 
     void *Address::operator()(void *stack) const {
         if (isBlob()) {
-            auto blob = std::get<hardware::SharedForeignBlob>(value);
-            return blob ? (void *) *blob : nullptr;
+            auto blob = std::get<Arc<Device::Blob>>(value);
+            return blob ? blob->get() : nullptr;
         }
         return reinterpret_cast<uint8_t *>(stack) + std::get<size_t>(value);
     }
     bool Address::isBlob() const noexcept {
-        return std::holds_alternative<hardware::SharedForeignBlob>(value);
+        return std::holds_alternative<Arc<Device::Blob>>(value);
     }
     bool Address::isOffset() const noexcept {
         return std::holds_alternative<size_t>(value);
     }
-    auto Address::blob() const noexcept -> hardware::SharedForeignBlob const & {
-        return std::get<hardware::SharedForeignBlob>(value);
+    auto Address::blob() const noexcept -> Device::Blob const & {
+        return *std::get<Arc<Device::Blob>>(value);
     }
     auto Address::offset() const noexcept -> size_t {
         return std::get<size_t>(value);
     }
 
-    Stream::Stream(Resources resources,
+    Stream::Stream(decltype(_resources) resources,
+                   decltype(_device) device,
                    size_t stack,
-                   std::vector<size_t> outputs,
+                   decltype(_outputsSize) outputs,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
                    std::vector<_E> offsets)
         : _resources(std::move(resources)),
-          _stack(ForeignBlob::share(_resources.fetch<MemManager>()->manager, stack)),
+          _device(std::move(device)),
+          _stack(_device->malloc(stack)),
           _outputsSize(std::move(outputs)),
           _internal(_G{
               std::move(topology),
@@ -43,16 +44,15 @@ namespace refactor::runtime {
     }
 
     void Stream::setData(count_t i, void const *data, size_t size) {
-        auto allocator = _resources.fetch<MemManager>()->manager;
-        auto blob = ForeignBlob::share(std::move(allocator), size);
-        blob->copyIn(data, size);
+        auto blob = _device->malloc(size);
+        blob->copyFromHost(data, size);
         _internal.edges[i].value = {std::move(blob)};
     }
-    void Stream::setData(count_t i, hardware::SharedForeignBlob blob) {
+    void Stream::setData(count_t i, Arc<Device::Blob> blob) {
         _internal.edges[i].value = {std::move(blob)};
     }
     void Stream::getData(count_t i, void *data, size_t size) const {
-        _internal.edges[i].blob()->copyOut(data, size);
+        _internal.edges[i].blob().copyToHost(data, size);
     }
 
     auto Stream::prepare() -> std::vector<count_t> {
@@ -64,10 +64,9 @@ namespace refactor::runtime {
             }
         }
         if (unknownInputs.empty()) {
-            auto allocator = _resources.fetch<MemManager>()->manager;
             auto outputs = _internal.topology.globalOutputs();
             for (auto i : range0_(outputs.size())) {
-                _internal.edges[outputs[i]].value = {ForeignBlob::share(allocator, _outputsSize[i])};
+                _internal.edges[outputs[i]].value = {_device->malloc(_outputsSize[i])};
             }
         }
         return unknownInputs;

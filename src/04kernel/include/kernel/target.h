@@ -1,11 +1,9 @@
 ﻿#ifndef KRENEL_TARGET_H
 #define KRENEL_TARGET_H
 
-#include "common.h"
-#include "hardware/mem_manager.hh"
+#include "hardware/device.h"
 
 namespace refactor::kernel {
-    using hardware::MemManager;
 
     struct Target {
         enum : uint8_t {
@@ -20,7 +18,7 @@ namespace refactor::kernel {
             return internal;
         }
 
-        Arc<MemManager> memManager() const;
+        Arc<hardware::Device> device() const;
     };
 
 }// namespace refactor::kernel
