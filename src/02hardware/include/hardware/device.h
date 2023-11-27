@@ -34,6 +34,7 @@ namespace refactor::hardware {
             void copyTo(Blob const &, size_t) const;
 
             constexpr void *get() const noexcept { return _ptr; }
+            template<class T> constexpr T *get() const noexcept { return static_cast<T *>(_ptr); }
             constexpr operator void *() const noexcept { return get(); }
             constexpr operator bool() const noexcept { return get(); }
         };

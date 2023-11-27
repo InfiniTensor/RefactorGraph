@@ -27,21 +27,21 @@ namespace refactor::runtime {
 
     Stream::Stream(decltype(_resources) resources,
                    decltype(_device) device,
-                   size_t stack,
+                   decltype(_stackSize) stack,
                    decltype(_outputsSize) outputs,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
                    std::vector<_E> offsets)
         : _resources(std::move(resources)),
           _device(std::move(device)),
-          _stack(_device->malloc(stack)),
+          _stackSize(stack),
           _outputsSize(std::move(outputs)),
           _internal(_G{
               std::move(topology),
               std::move(routines),
               std::move(offsets),
-          }) {
-    }
+          }),
+          _stack(nullptr) {}
 
     void Stream::setData(count_t i, void const *data, size_t size) {
         auto blob = _device->malloc(size);
@@ -68,6 +68,9 @@ namespace refactor::runtime {
             for (auto i : range0_(outputs.size())) {
                 _internal.edges[outputs[i]].value = {_device->malloc(_outputsSize[i])};
             }
+            if (!_stack) {
+                _stack = _device->malloc(_stackSize);
+            }
         }
         return unknownInputs;
     }
@@ -87,9 +90,9 @@ namespace refactor::runtime {
 
     void Stream::run() {
         std::vector<void *> buffer(16);
-        auto stack = reinterpret_cast<uint8_t *>(static_cast<void *>(*_stack));
+        auto stack = _stack->get<uint8_t>();
         for (auto const [nodeIdx, i, o] : _internal.topology) {
-            auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
+            auto [inputs, outputs] = collectAddress(stack, _internal.edges, buffer, i, o);
             auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
             routine(_resources, stack + workspaceOffset, inputs, outputs);
         }
@@ -98,9 +101,9 @@ namespace refactor::runtime {
     auto Stream::bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds> {
         std::vector<void *> buffer(16);
         std::vector<std::chrono::nanoseconds> ans(_internal.nodes.size());
-        auto stack = reinterpret_cast<uint8_t *>(static_cast<void *>(*_stack));
+        auto stack = _stack->get<uint8_t>();
         for (auto const [nodeIdx, i, o] : _internal.topology) {
-            auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
+            auto [inputs, outputs] = collectAddress(stack, _internal.edges, buffer, i, o);
             auto t0 = std::chrono::high_resolution_clock::now();
             auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
             routine(_resources, stack + workspaceOffset, inputs, outputs);
@@ -113,9 +116,9 @@ namespace refactor::runtime {
 
     void Stream::trace(std::function<void(count_t, void const *const *, void const *const *)> record) {
         std::vector<void *> buffer(16);
-        auto stack = reinterpret_cast<uint8_t *>(static_cast<void *>(*_stack));
+        auto stack = _stack->get<uint8_t>();
         for (auto const [nodeIdx, i, o] : _internal.topology) {
-            auto [inputs, outputs] = collectAddress(*_stack, _internal.edges, buffer, i, o);
+            auto [inputs, outputs] = collectAddress(stack, _internal.edges, buffer, i, o);
             auto const &[routine, workspaceOffset] = _internal.nodes[nodeIdx];
             routine(_resources, stack + workspaceOffset, inputs, outputs);
             record(nodeIdx, inputs, outputs);
