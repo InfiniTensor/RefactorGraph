@@ -24,16 +24,22 @@ namespace refactor::hardware {
 
             Device &_device;
             void *_ptr;
+            size_t _size;
 
             Blob(decltype(_device) device, size_t);
 
         public:
             ~Blob();
+            // clang-format off
+            void copyFromHost(void const *        ) const;
             void copyFromHost(void const *, size_t) const;
-            void copyToHost(void *, size_t) const;
-            void copyFrom(Blob const &, size_t) const;
-            void copyTo(Blob const &, size_t) const;
-
+            void copyToHost  (void       *        ) const;
+            void copyToHost  (void       *, size_t) const;
+            void copyFrom    (Blob const &        ) const;
+            void copyFrom    (Blob const &, size_t) const;
+            void copyTo      (Blob const &        ) const;
+            void copyTo      (Blob const &, size_t) const;
+            // clang-format on
             constexpr void *get() const noexcept { return _ptr; }
             template<class T> constexpr T *get() const noexcept { return static_cast<T *>(_ptr); }
             constexpr operator void *() const noexcept { return get(); }
