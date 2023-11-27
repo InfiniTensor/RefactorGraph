@@ -10,32 +10,23 @@ TEST(kernel, MatMulCPU_WithBias) {
     auto B = Tensor::share(DataType::F32, Shape{2, 2});
     auto C = Tensor::share(DataType::F32, Shape{});
     auto Y = Tensor::share(DataType::F32, Shape{2, 2});
-    MatMulInfo info(*A, *B, *C, false, false, 1, 1);
-    auto kernel = MatMulCPU::build(info);
+    auto kernel = MatMulCPU::build(MatMulInfo(*A, *B, *C, false, false, 1, 1));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
-    // malloc
-    auto mfn = Target(Target::Cpu).memManager();
-    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     // put input data
-    std::vector<float> dataA{1.0, 2.0, 0.0, 0.5};
-    std::vector<float> dataB{1.0, 2.0, 0.0, 0.5};
-    std::vector<float> dataC{1.0};
-    std::vector<float> ans{2, 4, 1, 1.25};
-    ma->copyIn(dataA.data(), A->bytesSize());
-    mb->copyIn(dataB.data(), B->bytesSize());
-    mc->copyIn(dataC.data(), C->bytesSize());
+    std::vector<float>
+        dataA{1.0, 2.0, 0.0, 0.5},
+        dataB{1.0, 2.0, 0.0, 0.5},
+        dataC{1.0},
+        result(Y->elementsSize()),
+        ans{2, 4, 1, 1.25};
     // inference
-    void const *inputs[]{*ma, *mb, *mc};
-    void *outputs[]{*my};
-    routine(res, nullptr, inputs, outputs);
-    // take output data
-    std::vector<float> result(Y->elementsSize());
-    my->copyOut(result.data(), Y->bytesSize());
+    {
+        void const *inputs[]{dataA.data(), dataB.data(), dataC.data()};
+        void *outputs[]{result.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
     // check
     for (auto i = 0; i < result.size(); i++) {
         EXPECT_FLOAT_EQ(result[i], ans[i]);
@@ -47,30 +38,22 @@ TEST(kernel, MatMulCPU_UINT16NoBias) {
     auto A = Tensor::share(DataType::U16, Shape{2, 2});
     auto B = Tensor::share(DataType::U16, Shape{2, 2});
     auto Y = Tensor::share(DataType::U16, Shape{2, 2});
-    MatMulInfo info(*A, *B, std::nullopt, false, false, 1, 1);
-    auto kernel = MatMulCPU::build(info);
+    auto kernel = MatMulCPU::build(MatMulInfo(*A, *B, std::nullopt, false, false, 1, 1));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
-    // malloc
-    auto mfn = Target(Target::Cpu).memManager();
-    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     // put input data
-    std::vector<uint16_t> dataA{3, 2, 0, 1};
-    std::vector<uint16_t> dataB{1, 0, 2, 3};
-    std::vector<uint16_t> ans{7, 6, 2, 3};
-    ma->copyIn(dataA.data(), A->bytesSize());
-    mb->copyIn(dataB.data(), B->bytesSize());
-
+    std::vector<uint16_t>
+        dataA{3, 2, 0, 1},
+        dataB{1, 0, 2, 3},
+        result(Y->elementsSize()),
+        ans{7, 6, 2, 3};
     // inference
-    void const *inputs[]{*ma, *mb};
-    void *outputs[]{*my};
-    routine(res, nullptr, inputs, outputs);
-    // take output data
-    std::vector<uint16_t> result(Y->elementsSize());
-    my->copyOut(result.data(), Y->bytesSize());
+    {
+        void const *inputs[]{dataA.data(), dataB.data()};
+        void *outputs[]{result.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
     // check
     for (auto i = 0; i < result.size(); i++) {
         EXPECT_EQ(result[i], ans[i]);
@@ -83,37 +66,28 @@ TEST(kernel, MatMulCPU_Broadcast) {
     auto B = Tensor::share(DataType::F32, Shape{1, 2, 2, 2});
     auto C = Tensor::share(DataType::F32, Shape{2, 1});
     auto Y = Tensor::share(DataType::F32, Shape{2, 2, 2, 2});
-    MatMulInfo info(*A, *B, *C, false, false, 1, 1);
-    auto kernel = MatMulCPU::build(info);
+    auto kernel = MatMulCPU::build(MatMulInfo(*A, *B, *C, false, false, 1, 1));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
-    // malloc
-    auto mfn = Target(Target::Cpu).memManager();
-    auto ma = hardware::ForeignBlob::share(mfn, A->bytesSize());
-    auto mb = hardware::ForeignBlob::share(mfn, B->bytesSize());
-    auto mc = hardware::ForeignBlob::share(mfn, C->bytesSize());
-    auto my = hardware::ForeignBlob::share(mfn, Y->bytesSize());
     // put input data
-    std::vector<float> dataA{1.0, 2.0, 0.0, 0.5,
-                             1.0, 0.0, 0.0, 1.0};
-    std::vector<float> dataB{1.0, 2.0, 0.0, 0.5,
-                             1.0, 0.0, 0.0, 1.0};
-    std::vector<float> dataC{1.0, 0.0};
-    std::vector<float> ans{2.0, 4.0, 0.0, 0.25,
-                           2.0, 3.0, 0.0, 0.5,
-                           2.0, 3.0, 0.0, 0.5,
-                           2.0, 1.0, 0.0, 1.0};
-    ma->copyIn(dataA.data(), A->bytesSize());
-    mb->copyIn(dataB.data(), B->bytesSize());
-    mc->copyIn(dataC.data(), C->bytesSize());
+    std::vector<float>
+        dataA{1.0, 2.0, 0.0, 0.5,
+              1.0, 0.0, 0.0, 1.0},
+        dataB{1.0, 2.0, 0.0, 0.5,
+              1.0, 0.0, 0.0, 1.0},
+        dataC{1.0, 0.0},
+        result(Y->elementsSize()),
+        ans{2.0, 4.0, 0.0, 0.25,
+            2.0, 3.0, 0.0, 0.5,
+            2.0, 3.0, 0.0, 0.5,
+            2.0, 1.0, 0.0, 1.0};
     // inference
-    void const *inputs[]{*ma, *mb, *mc};
-    void *outputs[]{*my};
-    routine(res, nullptr, inputs, outputs);
-    // take output data
-    std::vector<float> result(Y->elementsSize());
-    my->copyOut(result.data(), Y->bytesSize());
+    {
+        void const *inputs[]{dataA.data(), dataB.data(), dataC.data()};
+        void *outputs[]{result.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
     // check
     for (auto i = 0; i < result.size(); i++) {
         EXPECT_FLOAT_EQ(result[i], ans[i]);

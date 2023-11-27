@@ -1,5 +1,6 @@
 #include "kernel/attributes/matmul_info.h"
 #include <numeric>
+
 namespace refactor::kernel {
 
     ExpandInfo buildBias(size_t m, size_t n,
@@ -7,13 +8,15 @@ namespace refactor::kernel {
                          Tensor const &b,
                          Tensor const &c) {
         std::vector<dim_t> output(std::max(a.rank(), b.rank()));
-        for (auto i : range0_(output.size() - 2)) {
-            auto a_ = i < a.rank() ? a.shape[i] : 1;
-            auto b_ = i < b.rank() ? b.shape[i] : 1;
-            output[i] = std::max(a_, b_);
+        auto it = output.rbegin();
+        *it++ = n;
+        *it++ = m;
+        for (auto da = a.rank() - 2, db = b.rank() - 2;
+             auto i : range0_(output.size() - 2)) {
+            auto a_ = i < da ? a.shape[da - i - 1] : 1;
+            auto b_ = i < db ? b.shape[db - i - 1] : 1;
+            *it++ = std::max(a_, b_);
         }
-        output.rbegin()[1] = m;
-        output.rbegin()[0] = n;
 
         return ExpandInfo(
             c.dataType,
