@@ -41,7 +41,6 @@ endif()
 
 add_compile_options(-march=native) # this will cause error in some machine
 add_compile_options(-mtune=native)
-add_compile_options(-Wall)
 
 add_subdirectory(3rd-party/backward-cpp)
 
@@ -59,6 +58,7 @@ add_subdirectory(3rd-party/abseil-cpp)
 
 include_directories(3rd-party/result)
 
+add_compile_options(-Wall)
 enable_testing()
 
 add_subdirectory(src/00common)

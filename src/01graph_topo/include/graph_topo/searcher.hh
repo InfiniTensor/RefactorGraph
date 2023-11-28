@@ -136,6 +136,7 @@ namespace refactor::graph_topo {
         Edge operator[](count_t idx) const noexcept;
         Edge at(count_t) const;
     };
+
 }// namespace refactor::graph_topo
 
 #endif// GRAPH_TOPO_SEARCHER_H
