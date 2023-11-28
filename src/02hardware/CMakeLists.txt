@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
-project(hardware)
+project(hardware VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 if(USE_CUDA)
     file(GLOB_RECURSE HARDWARE_CUDA_SRC src/*.cu)

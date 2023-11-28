@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(refactor_graph VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
-option(USE_CUDA "Build with cuda" OFF)
-option(USE_KUNLUN "Support Kunlun XPU" OFF)
+option(USE_CUDA "Support Nvidia GPU" OFF)
+option(USE_KUNLUN "Support Baidu Kunlunxin" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(USE_CUDA)
     add_compile_definitions(USE_CUDA)
@@ -37,9 +39,8 @@ if(USE_KUNLUN)
     message(STATUS "KUNLUN_HOME: ${KUNLUN_HOME}")
 endif()
 
-# add_compile_options(-march=native) # this will cause error in some machine
+add_compile_options(-march=native) # this will cause error in some machine
 add_compile_options(-mtune=native)
-add_compile_options(-fPIC)
 
 add_subdirectory(3rd-party/backward-cpp)
 

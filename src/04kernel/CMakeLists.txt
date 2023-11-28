@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
-project(kernel)
+project(kernel VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 file(GLOB_RECURSE KERNEL_SRC src/*.cc src/*.cpp)
 if(USE_CUDA)

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
-project(python_ffi)
+project(python_ffi VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 include_directories(pybind11/include)
 add_subdirectory(pybind11)
