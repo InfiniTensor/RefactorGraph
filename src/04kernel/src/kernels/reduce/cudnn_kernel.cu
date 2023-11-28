@@ -8,7 +8,7 @@ namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
 
-    auto ReduceCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
+    auto ReduceCudnn::lower(Resources &res) const -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x;
@@ -20,7 +20,7 @@ namespace refactor::kernel {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&y));
                 CUDNN_ASSERT(cudnnCreateReduceTensorDescriptor(&reduce));
             }
-            ~Descriptors() {
+            ~Descriptors() noexcept(false) {
                 // Destories in CUDA does not require sync.
                 // But cuDNN does not state whether sync is required before destories.
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(x));

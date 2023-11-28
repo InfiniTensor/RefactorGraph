@@ -19,7 +19,7 @@ namespace refactor::kernel::cuda {
     public:
         ThreadsDistributer();
 
-        KernelLaunchParameters operator()(size_t n) const noexcept;
+        KernelLaunchParameters operator()(size_t n) const;
     };
 
 }// namespace refactor::kernel::cuda

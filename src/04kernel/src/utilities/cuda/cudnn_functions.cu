@@ -15,7 +15,7 @@ namespace refactor::kernel::cudnn {
             case DT::BF16: return CUDNN_DATA_BFLOAT16; break;
             case DT::I64 : return CUDNN_DATA_INT64;    break;
             case DT::Bool: return CUDNN_DATA_BOOLEAN;  break;
-            default: UNREACHABLEX(void, "Unsupported data type");
+            default: UNREACHABLE();
                 // clang-format on
         }
     }

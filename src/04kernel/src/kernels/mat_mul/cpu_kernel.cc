@@ -39,11 +39,11 @@ namespace refactor::kernel {
     void matrixMultiply(T const *A, T const *B, T *Y,
                         T const alpha, T const beta,
                         const MatMulCPUMetaData md) {
-#pragma omp parallel for
+        // #pragma omp parallel for
         for (size_t i = 0; i < md.M; i++) {
             for (size_t j = 0; j < md.N; j++) {
                 T sum = 0;
-#pragma omp simd reduction(+ : sum)
+                // #pragma omp simd reduction(+ : sum)
                 for (size_t k = 0; k < md.K; k++) {
                     sum += A[i * md.strideA0 + k * md.strideA1] * B[k * md.strideB0 + j * md.strideB1];
                 }
@@ -96,6 +96,8 @@ namespace refactor::kernel {
             CASE(F64);
             CASE(U32);
             CASE(U64);
+            default:
+                UNREACHABLE();
         }
     };
 

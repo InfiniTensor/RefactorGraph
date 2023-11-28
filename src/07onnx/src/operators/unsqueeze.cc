@@ -47,7 +47,7 @@ namespace refactor::onnx {
             axes_ = std::span(axes__.data->get<int64_t>(), axesSize);
         }
 
-        auto rank = data.rank() + axes_.size();
+        int64_t rank = data.rank() + axes_.size();
         Shape output(rank, DimExpr(-1));
         for (auto axis : axes_) {
             if (axis < 0) {

@@ -44,7 +44,9 @@ namespace refactor {
     };
 
     template<class t = size_t> range_t<t> range0_(t end) {
-        ASSERT(end >= 0, "end must be greater than 0");
+        if constexpr (std::is_signed_v<t>) {
+            ASSERT(end >= 0, "end must be greater than 0");
+        }
         return {0, end};
     }
     template<class t = size_t> range_t<t> range(t begin, t end) {

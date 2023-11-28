@@ -9,11 +9,14 @@ namespace refactor::kernel {
 
     struct ReduceCpu final : public Kernel {
         DataType dataType;
-        Axes axes;
         ReduceType reduceType;
+        Axes axes;
         Shape shape;
 
-        ReduceCpu(decltype(axes), ReduceType, DataType, Shape) noexcept;
+        ReduceCpu(decltype(dataType),
+                  decltype(reduceType),
+                  decltype(axes),
+                  decltype(shape)) noexcept;
 
         static KernelBox build(decltype(axes), ReduceType, TensorRefs) noexcept;
         static size_t typeId() noexcept;

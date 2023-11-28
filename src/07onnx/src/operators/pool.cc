@@ -97,7 +97,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
 
-        if (input.rank() != kernelShape.size() + 2) {
+        if (input.shape.size() != kernelShape.size() + 2) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
         SmallInts<4> input_(input.rank() - 2);

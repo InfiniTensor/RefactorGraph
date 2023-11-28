@@ -66,7 +66,6 @@ namespace refactor::graph_topo {
     template<class TN, class TE>
     class LinkedGraph<TN, TE>::Edge : public RefInplace<LinkedGraph<TN, TE>::Edge> {
         friend class LinkedGraph<TN, TE>;
-        friend class Edge;
 
         TE _info;
         Rc<Node> _source;
@@ -334,9 +333,9 @@ namespace refactor::graph_topo {
           _targets() {}
 
     LINKED_GRAPH_CONSTRUCTOR LinkedGraph(Graph<TN, TE> g)
-        : _inputs(g.topology.globalInputsCount()),
-          _outputs(),
-          _nodes(g.topology.nodeCount()) {
+        : _nodes(g.topology.nodeCount()),
+          _inputs(g.topology.globalInputsCount()),
+          _outputs() {
 
         std::vector<Rc<Edge>> edges(g.edges.size());
         std::transform(g.edges.begin(), g.edges.end(), edges.begin(),

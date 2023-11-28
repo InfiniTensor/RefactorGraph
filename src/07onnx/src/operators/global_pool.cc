@@ -22,7 +22,7 @@ namespace refactor::onnx {
         if (opType == "onnx::GlobalMaxPool") {
             return OpBox(std::make_unique<Op>(Ty::Max));
         }
-        UNREACHABLEX(void, "Unsupported global pool operator: {}", opType);
+        RUNTIME_ERROR(fmt::format("Unsupported global pool operator: {}", opType));
     }
     auto Op::typeId(Ty type) -> size_t {
         switch (type) {

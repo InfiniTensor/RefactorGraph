@@ -11,7 +11,7 @@ namespace refactor::hardware {
     MemPool::~MemPool() {
         _parent->free(_ptr);
     }
-    void *MemPool::malloc(size_t const bytes) noexcept {
+    void *MemPool::malloc(size_t const bytes) {
         if (bytes == 0) { return nullptr; }
         auto offset = _calculator.alloc(bytes);
         ASSERT(_calculator.peak() < _memPoolSize, "out of memory");

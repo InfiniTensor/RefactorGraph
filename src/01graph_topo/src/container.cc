@@ -28,7 +28,7 @@ namespace refactor::graph_topo {
     bool GraphTopo::Iterator::operator<=(Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx <= rhs._idx; }
     bool GraphTopo::Iterator::operator>=(Iterator const &rhs) const noexcept { return &_internal == &rhs._internal && _idx >= rhs._idx; }
 
-    auto GraphTopo::Iterator::operator++() noexcept -> Iterator & {
+    auto GraphTopo::Iterator::operator++() -> Iterator & {
         if (_idx < _internal.nodeCount()) {
             auto const &node = _internal._nodes[_idx++];
             _passConnections += node._inputsCount;
@@ -37,13 +37,13 @@ namespace refactor::graph_topo {
         return *this;
     }
 
-    auto GraphTopo::Iterator::operator++(int) noexcept -> Iterator {
+    auto GraphTopo::Iterator::operator++(int) -> Iterator {
         auto ans = *this;
         operator++();
         return ans;
     }
 
-    auto GraphTopo::Iterator::operator*() const noexcept -> NodeRef {
+    auto GraphTopo::Iterator::operator*() const -> NodeRef {
         if (_idx >= _internal.nodeCount()) {
             OUT_OF_RANGE("Iterator out of range", _idx, _internal.nodeCount());
         }

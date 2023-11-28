@@ -44,7 +44,7 @@ TEST(kernel, MatMulCublas_OnlyBias) {
     std::vector<float> result(Y->elementsSize());
     my->copyToHost(result.data(), Y->bytesSize());
     // check
-    for (auto i = 0; i < result.size(); i++) {
+    for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(result[i], ans[i]);
     }
 }
@@ -92,7 +92,7 @@ TEST(kernel, MatMulCublas_Broadcast) {
     std::vector<float> result(Y->elementsSize());
     my->copyToHost(result.data(), Y->bytesSize());
     // check
-    for (auto i = 0; i < result.size(); i++) {
+    for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
     }
 }
@@ -137,7 +137,7 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     std::vector<float> result(Y->elementsSize());
     my->copyToHost(result.data(), Y->bytesSize());
     // check
-    for (auto i = 0; i < result.size(); i++) {
+    for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
     }
 }
@@ -157,15 +157,15 @@ TEST(kernel, MatMulCublas_Large) {
     auto gpuRoutine = gpuKernel->lower(res).routine;
     // put input data
     std::vector<float> dataA(A->elementsSize());
-    for (auto i = 0; i < dataA.size(); i++) {
+    for (auto i : range0_(dataA.size())) {
         dataA[i] = 1.0 * (i % 4) - 2.0;
     }
     std::vector<float> dataB(B->elementsSize());
-    for (auto i = 0; i < dataB.size(); i++) {
+    for (auto i : range0_(dataB.size())) {
         dataB[i] = 1.0 * (i % 4) - 2.0;
     }
     std::vector<float> dataC(C->elementsSize());
-    for (auto i = 0; i < dataC.size(); i++) {
+    for (auto i : range0_(dataC.size())) {
         dataC[i] = 1.0 * (i % 4) - 2.0;
     }
     std::vector<float> cpuOut(Y->elementsSize());
@@ -192,7 +192,7 @@ TEST(kernel, MatMulCublas_Large) {
     std::vector<float> result(Y->elementsSize());
     my->copyToHost(result.data(), Y->bytesSize());
     // check
-    for (auto i = 0; i < result.size(); i++) {
+    for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
     }
 }

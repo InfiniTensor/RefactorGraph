@@ -42,24 +42,26 @@ void testPoolCudnn(PoolType poolType, int rank, const int64_t *pads, const int64
 
 TEST(kernel, PoolCudnnMax) {
     int rank = 2;
-    int64_t const dilations[] = {1, 1};
-    int64_t const pads[] = {0, 0, 0, 0};
-    int64_t const strides[] = {2, 2};
-    KernelShape kernelShape = {2, 2};
-    Shape xShape = {1, 1, 4, 4};
-    Shape yShape = {1, 1, 2, 2};
+    int64_t const
+        pads[]{0, 0, 0, 0},
+        strides[]{2, 2};
+    KernelShape kernelShape{2, 2};
+    Shape
+        xShape{1, 1, 4, 4},
+        yShape{1, 1, 2, 2};
     const std::vector<float> ExpectData = {0.5, 0.7, 1.3, 1.5};
     testPoolCudnn(PoolType::Max, rank, pads, strides, kernelShape, xShape, yShape, ExpectData);
 }
 
 TEST(kernel, PoolCudnnAvg) {
     int rank = 2;
-    int64_t const dilations[] = {1, 1};
-    int64_t const pads[] = {0, 0, 0, 0};
-    int64_t const strides[] = {2, 2};
-    KernelShape kernelShape = {2, 2};
-    Shape xShape = {1, 1, 4, 4};
-    Shape yShape = {1, 1, 2, 2};
+    int64_t const
+        pads[]{0, 0, 0, 0},
+        strides[]{2, 2};
+    KernelShape kernelShape{2, 2};
+    Shape
+        xShape{1, 1, 4, 4},
+        yShape{1, 1, 2, 2};
     const std::vector<float> ExpectData = {0.25, 0.45, 1.05, 1.25};
     testPoolCudnn(PoolType::Average, rank, pads, strides, kernelShape, xShape, yShape, ExpectData);
 }

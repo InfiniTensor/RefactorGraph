@@ -36,7 +36,7 @@ namespace refactor {
         }
 
     public:
-        explicit Rc(T *ptr) noexcept
+        explicit Rc(T *ptr)
             : _value(ptr),
               _counter(nullptr) {
             if (!ptr) { return; }

@@ -17,17 +17,17 @@ namespace refactor::kernel {
         dim_t blockCount_,
         dim_t blockSize_,
         dim_t baseOffset_) noexcept
-        : blockCount(blockCount_),
+        : dims(std::move(dims_)),
+          blockCount(blockCount_),
           blockSize(blockSize_),
-          baseOffset(baseOffset_),
-          dims(std::move(dims_)) {}
+          baseOffset(baseOffset_) {}
 
-    SliceInfo::SliceInfo(Dimensions const &dims_, Tensor const &input) noexcept
-        : blockCount(1),
+    SliceInfo::SliceInfo(Dimensions const &dims_, Tensor const &input)
+        : dims(1),
+          blockCount(1),
           blockSize(input.dataType.size()),
-          baseOffset(0),
-          dims(1) {
-        ASSERT(dims_.size() == input.rank(), "Unreachable");
+          baseOffset(0) {
+        ASSERT(dims_.size() == static_cast<size_t>(input.rank()), "Unreachable");
 
         auto continuous = true;
         auto stride = blockSize;

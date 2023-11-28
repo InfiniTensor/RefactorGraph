@@ -1,24 +1,20 @@
-﻿#include "common.h"
-#include "cudnn_context.hh"
+﻿#include "cudnn_context.hh"
+#include "cudnn_functions.h"
 
 namespace refactor::kernel::cudnn {
 
-    CudnnContext::CudnnContext() noexcept : runtime::Resource() {
-        if (cudnnCreate(&handle) != CUDNN_STATUS_SUCCESS) {
-            RUNTIME_ERROR("Failed to create cudnn handle");
-        }
+    CudnnContext::CudnnContext() : runtime::Resource() {
+        CUDNN_ASSERT(cudnnCreate(&handle));
     }
-    CudnnContext::~CudnnContext() noexcept {
-        if (cudnnDestroy(handle) != CUDNN_STATUS_SUCCESS) {
-            RUNTIME_ERROR("Failed to destroy cudnn handle");
-        }
+    CudnnContext::~CudnnContext() noexcept(false) {
+        CUDNN_ASSERT(cudnnDestroy(handle));
     }
 
     auto CudnnContext::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
         return reinterpret_cast<size_t>(&ID);
     }
-    auto CudnnContext::build() noexcept -> runtime::ResourceBox {
+    auto CudnnContext::build() -> runtime::ResourceBox {
         return std::make_unique<CudnnContext>();
     }
 

@@ -126,12 +126,12 @@ namespace refactor::kernel {
             if (info.mid > 1024) {
                 blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, info.mid, info.post);
             } else {
-                int blockDimX;
-                for (blockDimX = 32; blockDimX > 4 && info.mid < blockDimX; blockDimX /= 2) {}
+                int blockDimX, mid = static_cast<int>(info.mid);
+                for (blockDimX = 32; blockDimX > 4 && mid < blockDimX; blockDimX /= 2) {}
                 auto blockDimY = 1024 / blockDimX;
                 warpSoftmaxKernel<<<(numBlocks + blockDimY - 1) / blockDimY,
                                     dim3(blockDimX, blockDimY),
-                                    blockDimY * 2 * sizeof(T)>>>(x, y, numBlocks * info.mid, info.mid, info.post);
+                                    blockDimY * 2 * sizeof(T)>>>(x, y, numBlocks * mid, mid, info.post);
             }
         };
     }

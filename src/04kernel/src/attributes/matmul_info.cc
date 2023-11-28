@@ -1,4 +1,5 @@
 #include "kernel/attributes/matmul_info.h"
+#include <cstddef>
 #include <numeric>
 
 namespace refactor::kernel {
@@ -11,7 +12,8 @@ namespace refactor::kernel {
         auto it = output.rbegin();
         *it++ = n;
         *it++ = m;
-        for (auto da = a.rank() - 2, db = b.rank() - 2;
+        for (auto da = static_cast<size_t>(a.rank() - 2),
+                  db = static_cast<size_t>(b.rank() - 2);
              auto i : range0_(output.size() - 2)) {
             auto a_ = i < da ? a.shape[da - i - 1] : 1;
             auto b_ = i < db ? b.shape[db - i - 1] : 1;
@@ -32,8 +34,8 @@ namespace refactor::kernel {
           alpha(alpha_), beta(beta_),
           transA(transA_), transB(transB_),
           m(transA ? a.shape.rbegin()[0] : a.shape.rbegin()[1]),
-          n(transB ? b.shape.rbegin()[1] : b.shape.rbegin()[0]),
           k(transA ? a.shape.rbegin()[1] : a.shape.rbegin()[0]),
+          n(transB ? b.shape.rbegin()[1] : b.shape.rbegin()[0]),
           biasExpand(c ? std::make_optional(buildBias(m, n, a, b, *c)) : std::nullopt),
           broadcaster({
               slice(a.shape.data(), a.shape.size() - 2),

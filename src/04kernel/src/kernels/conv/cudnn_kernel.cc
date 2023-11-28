@@ -12,7 +12,7 @@ namespace refactor::kernel {
                   Tensor const &x,
                   Tensor const &w,
                   std::optional<std::reference_wrapper<Tensor const>> b,
-                  Tensor const &y) noexcept -> KernelBox {
+                  Tensor const &y) -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif

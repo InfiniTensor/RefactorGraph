@@ -28,13 +28,13 @@ namespace refactor::kernel {
                                Tensor const &,
                                Tensor const &,
                                std::optional<std::reference_wrapper<Tensor const>>,
-                               Tensor const &) noexcept;
+                               Tensor const &);
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
 #ifdef USE_CUDA
-        RoutineWorkspace lower(Resources &) const noexcept final;
+        RoutineWorkspace lower(Resources &) const final;
 #endif
     };
 

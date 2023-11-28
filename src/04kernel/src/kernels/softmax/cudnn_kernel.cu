@@ -6,7 +6,7 @@ namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
 
-    auto SoftmaxCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
+    auto SoftmaxCudnn::lower(Resources &res) const -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t t;
@@ -15,7 +15,7 @@ namespace refactor::kernel {
             Descriptors(cudnnSoftmaxAlgorithm_t algo_) : algo(algo_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&t));
             }
-            ~Descriptors() {
+            ~Descriptors() noexcept(false) {
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(t));
             }
             Descriptors(const Descriptors &) = delete;

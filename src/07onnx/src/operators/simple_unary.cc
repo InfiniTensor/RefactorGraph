@@ -236,6 +236,7 @@ namespace refactor::onnx {
                     ans->free();
                     break;
             }
+#undef CASE
         } else if (type == Ty::Log) {
             //-------------------------------------
 #define CASE(T)                                                       \
@@ -254,6 +255,7 @@ namespace refactor::onnx {
                     ans->free();
                     break;
             }
+#undef CASE
         }
         return Ok(Tensors{std::move(ans)});
     }

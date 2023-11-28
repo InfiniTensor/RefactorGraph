@@ -24,9 +24,9 @@ namespace refactor::graph_topo {
         };
 
         GraphTopo const &_graph;
-        std::unordered_set<EdgeIdx> _localEdges;
         std::vector<__Node> _nodes;
         std::vector<__Edge> _edges;
+        std::unordered_set<EdgeIdx> _localEdges;
 
     public:
         class Node;

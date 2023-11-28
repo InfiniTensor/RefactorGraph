@@ -8,7 +8,7 @@ namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
 
-    auto BinaryCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
+    auto BinaryCudnn::lower(Resources &res) const -> RoutineWorkspace {
         struct Descriptors {
             cudnnOpTensorDescriptor_t opDesc;
             cudnnTensorDescriptor_t aDesc, bDesc, cDesc;
@@ -21,7 +21,7 @@ namespace refactor::kernel {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&cDesc));
                 CUDNN_ASSERT(cudnnCreateOpTensorDescriptor(&opDesc));
             }
-            ~Descriptors() {
+            ~Descriptors() noexcept(false) {
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(aDesc));
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(bDesc));
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(cDesc));

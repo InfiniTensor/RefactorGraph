@@ -41,6 +41,7 @@ endif()
 
 add_compile_options(-march=native) # this will cause error in some machine
 add_compile_options(-mtune=native)
+add_compile_options(-Wall)
 
 add_subdirectory(3rd-party/backward-cpp)
 
@@ -53,12 +54,8 @@ add_subdirectory(3rd-party/googletest)
 include_directories(3rd-party/fmtlog)
 add_definitions(-D FMTLOG_HEADER_ONLY)
 
-# disable warning in 3rd-party/abseil-cpp
-# see <https://github.com/abseil/abseil-cpp/pull/1287>
-add_compile_options(-w)
 include_directories(3rd-party/abseil-cpp)
 add_subdirectory(3rd-party/abseil-cpp)
-add_compile_options(-Wall)
 
 include_directories(3rd-party/result)
 

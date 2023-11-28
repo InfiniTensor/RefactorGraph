@@ -18,8 +18,8 @@ namespace refactor::kernel {
         std::vector<Dim> strides;
         dim_t blockCount, blockSize;
 
-        ExpandInfo(DataType, slice_t<dim_t> input, slice_t<dim_t> output) noexcept;
-        ExpandInfo(Tensor const &input, Tensor const &output) noexcept;
+        ExpandInfo(DataType, slice_t<dim_t> input, slice_t<dim_t> output);
+        ExpandInfo(Tensor const &input, Tensor const &output);
         ExpandInfo reform(dim_t maxblockSize) const noexcept;
         void reformAssign(dim_t maxblockSize) noexcept;
     };

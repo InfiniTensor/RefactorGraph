@@ -8,7 +8,7 @@ namespace refactor::kernel {
     using namespace runtime;
     using DT = DataType;
 
-    auto BatchNormalizationCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
+    auto BatchNormalizationCudnn::lower(Resources &res) const -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, p;
@@ -18,7 +18,7 @@ namespace refactor::kernel {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&p));
             }
-            ~Descriptors() {
+            ~Descriptors() noexcept(false) {
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(x));
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(p));
             }

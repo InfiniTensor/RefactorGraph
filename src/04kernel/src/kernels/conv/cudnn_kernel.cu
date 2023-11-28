@@ -6,7 +6,7 @@ namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
 
-    auto ConvCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
+    auto ConvCudnn::lower(Resources &res) const -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, y;
@@ -21,7 +21,7 @@ namespace refactor::kernel {
                 CUDNN_ASSERT(cudnnCreateFilterDescriptor(&w));
                 CUDNN_ASSERT(cudnnCreateConvolutionDescriptor(&conv));
             }
-            ~Descriptors() {
+            ~Descriptors() noexcept(false) {
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(x));
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(y));
                 CUDNN_ASSERT(cudnnDestroyFilterDescriptor(w));

@@ -3,12 +3,12 @@
 
 namespace refactor::kernel {
 
-    SplitInfo::SplitInfo(dim_t axis, TensorRefs const &outputs) noexcept
-        : segments(outputs.size()),
-          blockCount(0),
+    SplitInfo::SplitInfo(dim_t axis, TensorRefs const &outputs)
+        : blockCount(0),
           sum(std::accumulate(
               outputs.begin(), outputs.end(), 0,
-              [=](auto acc, auto const &ref) { return acc + ref.get().shape[axis]; })) {
+              [=](auto acc, auto const &ref) { return acc + ref.get().shape[axis]; })),
+          segments(outputs.size()) {
         ASSERT(!outputs.empty(), "");
         auto eleSize = outputs[0].get().dataType.size();
         auto const &shape = outputs[0].get().shape;

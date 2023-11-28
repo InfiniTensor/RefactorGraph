@@ -13,7 +13,7 @@ namespace refactor::kernel {
         /// @brief 要拷贝的每个片段的大小，已经考虑了每个数据的大小。
         absl::InlinedVector<dim_t, 4> segments;
 
-        SplitInfo(dim_t axis, TensorRefs const &outputs) noexcept;
+        SplitInfo(dim_t axis, TensorRefs const &outputs);
         dim_t unit(dim_t maxBlockSize) const noexcept;
     };
 

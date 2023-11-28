@@ -27,9 +27,9 @@ TEST(kernel, ExpandCpu) {
     // check
     {
         auto idx = 0;
-        for (auto i : range0_(2)) {
+        for ([[maybe_unused]] auto i : range0_(2)) {
             for (auto j : range0_(12)) {
-                for (auto k : range0_(5)) {
+                for ([[maybe_unused]] auto k : range0_(5)) {
                     for (auto m : range0_(6)) {
                         ASSERT_EQ(result[idx++], j * 6 + m);
                     }

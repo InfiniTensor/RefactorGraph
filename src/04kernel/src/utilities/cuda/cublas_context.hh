@@ -9,8 +9,8 @@ namespace refactor::kernel::cublas {
     struct CublasContext final : public runtime::Resource {
         cublasHandle_t handle;
 
-        CublasContext() noexcept;
-        ~CublasContext() noexcept;
+        CublasContext();
+        ~CublasContext() noexcept(false);
         CublasContext(CublasContext const &) noexcept = delete;
         CublasContext(CublasContext &&) noexcept = delete;
 

@@ -9,13 +9,13 @@ namespace refactor::kernel::cudnn {
     struct CudnnContext final : public runtime::Resource {
         cudnnHandle_t handle;
 
-        CudnnContext() noexcept;
-        ~CudnnContext() noexcept;
+        CudnnContext();
+        ~CudnnContext() noexcept(false);
         CudnnContext(CudnnContext const &) noexcept = delete;
         CudnnContext(CudnnContext &&) noexcept = delete;
 
         static size_t typeId() noexcept;
-        static runtime::ResourceBox build() noexcept;
+        static runtime::ResourceBox build();
 
         size_t resourceTypeId() const noexcept final;
         std::string_view description() const noexcept final;

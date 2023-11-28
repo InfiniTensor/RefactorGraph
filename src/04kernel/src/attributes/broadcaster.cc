@@ -14,7 +14,7 @@ namespace refactor::kernel {
     ///
     /// 为了实现这些优化，广播器维护和比较两个布尔向量，记录当前维度的广播状态是否变化。
     /// 所有输入在某个维度的步长会在这个维度确定下来时计算和保存。
-    Broadcaster::Broadcaster(std::vector<slice_t<dim_t>> inputs) noexcept
+    Broadcaster::Broadcaster(std::vector<slice_t<dim_t>> inputs)
         : strides{}, outputsCount(1), inputsCount(inputs.size()) {
         ASSERT(inputsCount > 0, "Broadcaster: no inputs");
 
@@ -69,7 +69,7 @@ namespace refactor::kernel {
         std::reverse(strides.begin(), strides.end());
     }
 
-    Broadcaster::Broadcaster(TensorRefs const &inputs) noexcept
+    Broadcaster::Broadcaster(TensorRefs const &inputs)
         : Broadcaster([&] {
               std::vector<slice_t<dim_t>> ans(inputs.size());
               std::transform(inputs.begin(), inputs.end(), ans.begin(),

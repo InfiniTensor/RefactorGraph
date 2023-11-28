@@ -3,7 +3,7 @@
 namespace refactor::kernel {
 
     RoutineWorkspace Kernel::lower(Resources &) const {
-        UNREACHABLEX(void, "lower not implemented for {}", description());
+        RUNTIME_ERROR(fmt::format("lower not implemented for {}", description()));
     }
 
 }// namespace refactor::kernel

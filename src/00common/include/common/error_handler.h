@@ -25,7 +25,9 @@ namespace refactor {
     [&]() -> T {                                                                                     \
         throw refactor::UnreachableError(ERROR_MSG(fmt::format("Unreachable: " #F, ##__VA_ARGS__))); \
     }()
-#define UNREACHABLE() UNREACHABLEX(void, "no message")
+#define UNREACHABLE()                 \
+    UNREACHABLEX(void, "no message"); \
+    std::abort()
 
 #ifndef DISABLE_ASSERT
 #define ASSERT(CONDITION, F, ...)                                                      \

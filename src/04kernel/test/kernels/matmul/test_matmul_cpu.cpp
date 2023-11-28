@@ -28,7 +28,7 @@ TEST(kernel, MatMulCPU_WithBias) {
         routine(res, nullptr, inputs, outputs);
     }
     // check
-    for (auto i = 0; i < result.size(); i++) {
+    for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(result[i], ans[i]);
     }
 }
@@ -55,7 +55,7 @@ TEST(kernel, MatMulCPU_UINT16NoBias) {
         routine(res, nullptr, inputs, outputs);
     }
     // check
-    for (auto i = 0; i < result.size(); i++) {
+    for (auto i : range0_(result.size())) {
         EXPECT_EQ(result[i], ans[i]);
     }
 }
@@ -89,7 +89,7 @@ TEST(kernel, MatMulCPU_Broadcast) {
         routine(res, nullptr, inputs, outputs);
     }
     // check
-    for (auto i = 0; i < result.size(); i++) {
+    for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(result[i], ans[i]);
     }
 }

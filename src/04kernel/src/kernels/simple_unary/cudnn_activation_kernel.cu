@@ -8,7 +8,7 @@ namespace refactor::kernel {
     using namespace runtime;
     using Ty = SimpleUnaryType;
 
-    auto ActivationCudnn::lower(Resources &res) const noexcept -> RoutineWorkspace {
+    auto ActivationCudnn::lower(Resources &res) const -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
             cudnnActivationDescriptor_t activation;
@@ -18,7 +18,7 @@ namespace refactor::kernel {
                 CUDNN_ASSERT(cudnnCreateActivationDescriptor(&activation));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&tensor));
             }
-            ~Descriptors() {
+            ~Descriptors() noexcept(false) {
                 CUDNN_ASSERT(cudnnDestroyActivationDescriptor(activation));
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(tensor));
             }

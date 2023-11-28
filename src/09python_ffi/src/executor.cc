@@ -1,4 +1,5 @@
 ﻿#include "executor.h"
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 
@@ -18,7 +19,7 @@ namespace refactor::python_ffi {
         i = globalInputs[i];
 
         auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
-        ASSERT(tensor.bytesSize() == data.nbytes(), "input size mismatch");
+        ASSERT(tensor.bytesSize() == static_cast<size_t>(data.nbytes()), "input size mismatch");
         _stream.setData(i, data.data(), data.nbytes());
     }
 
@@ -95,7 +96,7 @@ namespace refactor::python_ffi {
         auto aligned = (dictionary.size() + 11 + ALIGN - 1) & ~(ALIGN - 1);
 
         auto header = std::vector<char>(aligned, ' ');
-        constexpr static char MAGIC[]{0x93, 'N', 'U', 'M', 'P', 'Y', 1, 0};
+        constexpr static char MAGIC[]{static_cast<char>(0x93), 'N', 'U', 'M', 'P', 'Y', 1, 0};
         std::memcpy(header.data(), MAGIC, sizeof(MAGIC));
         auto headerLen = aligned - 10;
         header[8] = static_cast<char>(headerLen);

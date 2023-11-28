@@ -23,8 +23,8 @@ namespace refactor::onnx {
     auto Op::valueDependentInputs() const -> InputVec { return {1, 2, 3, 4}; }
 
     Result<Dimensions, InferError> buildDims(
-        size_t rank,
-        size_t size,
+        int64_t rank,
+        int64_t size,
         Shape const &data,
         int64_t const *const starts,
         int64_t const *const ends,

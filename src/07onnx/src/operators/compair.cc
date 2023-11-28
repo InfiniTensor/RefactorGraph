@@ -27,7 +27,7 @@ namespace refactor::onnx {
         if (opType == "onnx::LessOrEqual") {
             return OpBox(std::make_unique<Op>(Ty::LE));
         }
-        UNREACHABLEX(void, "Unsupported compair operator: {}", opType);
+        RUNTIME_ERROR(fmt::format("Unsupported compair operator: {}", opType));
     }
 
     auto Op::typeId(CompairType type) -> size_t {

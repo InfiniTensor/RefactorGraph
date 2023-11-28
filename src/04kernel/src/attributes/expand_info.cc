@@ -13,7 +13,7 @@ namespace refactor::kernel {
     ExpandInfo::ExpandInfo(
         DataType dataType,
         slice_t<dim_t> input,
-        slice_t<dim_t> output) noexcept
+        slice_t<dim_t> output)
         : strides{{1, 1}},
           blockCount(1),
           blockSize(dataType.size()) {
@@ -57,7 +57,7 @@ namespace refactor::kernel {
 
     ExpandInfo::ExpandInfo(
         Tensor const &input,
-        Tensor const &output) noexcept
+        Tensor const &output)
         : ExpandInfo(input.dataType,
                      slice(input.shape.data(), input.rank()),
                      slice(output.shape.data(), output.rank())) {}
