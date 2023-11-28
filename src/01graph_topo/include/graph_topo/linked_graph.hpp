@@ -1,11 +1,7 @@
 ﻿#ifndef GRAPH_TOPO_LINKED_GRAPH_H
 #define GRAPH_TOPO_LINKED_GRAPH_H
 
-#include "common.h"
 #include "container.h"
-#include <algorithm>
-#include <sstream>
-#include <unordered_map>
 #include <unordered_set>
 
 namespace refactor::graph_topo {

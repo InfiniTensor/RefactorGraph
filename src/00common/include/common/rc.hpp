@@ -1,9 +1,7 @@
 ﻿#ifndef RC_HPP
 #define RC_HPP
 
-#include <cstddef>
 #include <functional>
-#include <utility>
 
 namespace refactor {
 

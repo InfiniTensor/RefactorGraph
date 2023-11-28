@@ -2,8 +2,6 @@
 #define GRAPH_TOPO_CONTAINER_H
 
 #include "common.h"
-#include <cstddef>
-#include <vector>
 
 namespace refactor::graph_topo {
 

@@ -1,7 +1,5 @@
 ﻿#include "graph_topo/container.h"
-#include <algorithm>
 #include <numeric>
-#include <sstream>
 
 namespace refactor::graph_topo {
 

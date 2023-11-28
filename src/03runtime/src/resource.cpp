@@ -1,5 +1,4 @@
 ﻿#include "runtime/resource.h"
-#include "common.h"
 
 namespace refactor::runtime {
 

@@ -4,7 +4,6 @@
 #include "common.h"
 #include "mem_offset_calculator.h"
 #include "memory.h"
-#include <unordered_map>
 
 namespace refactor::hardware {
 

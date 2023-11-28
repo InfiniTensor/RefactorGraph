@@ -2,7 +2,6 @@
 #define KERNEL_EXPAND_INFO_H
 
 #include "../tensor.h"
-#include <vector>
 
 namespace refactor::kernel {
 

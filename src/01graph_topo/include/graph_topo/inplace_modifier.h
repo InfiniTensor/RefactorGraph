@@ -2,7 +2,6 @@
 #define GRAPH_TOPO_INPLACE_MODIFIER_H
 
 #include "container.h"
-#include <unordered_map>
 
 namespace refactor::graph_topo {
     /// @brief 描述连接节点的边。

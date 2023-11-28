@@ -1,5 +1,4 @@
 ﻿#include "runtime/stream.h"
-#include "hardware/device_manager.h"
 
 namespace refactor::runtime {
     using namespace hardware;

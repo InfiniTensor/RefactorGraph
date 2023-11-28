@@ -5,8 +5,6 @@
 #include "hardware/device.h"
 #include "resource.h"
 #include <chrono>
-#include <functional>
-#include <variant>
 
 namespace refactor::runtime {
     using Routine = std::function<void(runtime::Resources &, void *, void const *const *, void *const *)>;

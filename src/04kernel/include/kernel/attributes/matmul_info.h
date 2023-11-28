@@ -3,7 +3,6 @@
 
 #include "kernel/attributes/broadcaster.h"
 #include "kernel/attributes/expand_info.h"
-#include <optional>
 
 namespace refactor::kernel {
 

@@ -1,7 +1,6 @@
 ﻿#include "hardware/device_manager.h"
 #include "hardware/devices/cpu.h"
 #include "hardware/devices/nvidia.h"
-#include <unordered_map>
 
 namespace refactor::hardware::device {
 

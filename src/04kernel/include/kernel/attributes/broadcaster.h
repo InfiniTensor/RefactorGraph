@@ -2,7 +2,6 @@
 #define KERNEL_BROADCASTER_H
 
 #include "../tensor.h"
-#include <vector>
 
 namespace refactor::kernel {
 

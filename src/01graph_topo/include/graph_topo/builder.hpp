@@ -2,8 +2,6 @@
 #define GRAPH_TOPO_BUILDER_HPP
 
 #include "container.h"
-#include <algorithm>
-#include <unordered_map>
 #include <unordered_set>
 
 namespace refactor::graph_topo {

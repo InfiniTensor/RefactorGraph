@@ -1,5 +1,4 @@
 ﻿#include "hardware/device.h"
-#include <unordered_map>
 
 namespace refactor::hardware {
 
