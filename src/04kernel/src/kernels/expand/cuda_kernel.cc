@@ -4,7 +4,7 @@ namespace refactor::kernel {
     using K = ExpandCuda;
 
     K::ExpandCuda(ExpandInfo info_) noexcept
-        : Kernel(), info(info_.reform(32)) {}
+        : Kernel(), info(info_.reform(16)) {}
 
     auto K::build(ExpandInfo info) noexcept -> KernelBox {
 #ifndef USE_CUDA
