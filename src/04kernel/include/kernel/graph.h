@@ -34,10 +34,14 @@ namespace refactor::kernel {
         using _E = Edge;
         using _G = graph_topo::Graph<_N, _E>;
 
+        Arc<hardware::Device> _device;
         _G _internal;
 
     public:
-        Graph(graph_topo::GraphTopo, std::vector<_N>, std::vector<_E>) noexcept;
+        Graph(decltype(_device),
+              graph_topo::GraphTopo,
+              std::vector<_N>,
+              std::vector<_E>) noexcept;
         runtime::Stream lower(Allocator) const;
     };
 

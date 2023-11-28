@@ -27,7 +27,7 @@ namespace refactor::computation {
 
         void layoutPermute();
 
-        kernel::Graph lower(Target) const;
+        kernel::Graph lower(Arc<hardware::Device>) const;
         auto internal() const -> decltype(_internal) const &;
     };
 

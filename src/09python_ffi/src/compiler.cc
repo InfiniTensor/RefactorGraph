@@ -1,5 +1,5 @@
 ﻿#include "compiler.h"
-#include "common.h"
+#include "hardware/device_manager.h"
 #include "kernel/allocators.h"
 #include <execution>
 
@@ -68,7 +68,7 @@ namespace refactor::python_ffi {
             UNREACHABLE();
         }
 
-        auto kernel = computation.lower(target_);
+        auto kernel = computation.lower(hardware::device::fetch(target_));
         auto stream = kernel.lower(allocator == "flat"
                                        ? kernel::flatAllocate
                                        : kernel::reusableAllocate);

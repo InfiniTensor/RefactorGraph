@@ -31,7 +31,8 @@ namespace refactor::runtime {
                    decltype(_outputsSize) outputs,
                    graph_topo::GraphTopo topology,
                    std::vector<_N> routines,
-                   std::vector<_E> offsets)
+                   std::vector<_E> offsets,
+                   decltype(_device) device)
         : _resources(std::move(resources)),
           _stackSize(stack),
           _outputsSize(std::move(outputs)),
@@ -40,7 +41,7 @@ namespace refactor::runtime {
               std::move(routines),
               std::move(offsets),
           }),
-          _device(device::fetch(Device::Type::Cpu, 0)),
+          _device(std::move(device)),
           _stack(nullptr) {}
 
     void Stream::setData(count_t i, void const *data, size_t size) {
@@ -56,6 +57,7 @@ namespace refactor::runtime {
     }
 
     void Stream::dispatch(Arc<hardware::Device> device) {
+        ASSERT(device->type() == _device->type(), "Dispatching to heterogeneous device is not supported");
         if (_device.get() == device.get()) {
             return;
         }

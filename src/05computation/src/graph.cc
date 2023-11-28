@@ -1,5 +1,4 @@
 ﻿#include "computation/graph.h"
-#include "hardware/device_manager.h"
 
 namespace refactor::computation {
 
@@ -14,7 +13,8 @@ namespace refactor::computation {
               std::move(edges),
           }) {}
 
-    kernel::Graph Graph::lower(Target target) const {
+    kernel::Graph Graph::lower(Arc<hardware::Device> device) const {
+        auto target = device->type();
         auto const &graph = _internal.contiguous();
 
         std::vector<kernel::Node> nodes(graph.nodes.size());
@@ -48,7 +48,6 @@ namespace refactor::computation {
             nodes[nodeIdx].kernel = std::move(candidates.front());
         }
 
-        auto device = hardware::device::fetch(hardware::Device::Type::Cpu, 0);
         for (auto i : range0_(edges.size())) {
             auto const &[tensor, name] = graph.edges[i];
             if (!tensor || identities.contains(i)) {
@@ -65,7 +64,7 @@ namespace refactor::computation {
 
         auto modifier = graph_topo::InplaceModifier(graph.topology);
         modifier.reconnect(identities);
-        return kernel::Graph(modifier.take(), std::move(nodes), std::move(edges));
+        return kernel::Graph(std::move(device), modifier.take(), std::move(nodes), std::move(edges));
     }
 
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }

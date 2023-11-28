@@ -54,7 +54,8 @@ namespace refactor::runtime {
                decltype(_outputsSize),
                graph_topo::GraphTopo,
                std::vector<_N>,
-               std::vector<_E>);
+               std::vector<_E>,
+               decltype(_device));
         void setData(count_t, void const *, size_t);
         void setData(count_t, Arc<hardware::Device::Blob>);
         void getData(count_t, void *, size_t) const;

@@ -5,41 +5,43 @@
 
 namespace refactor::hardware::device {
 
-    static std::unordered_map<int64_t, Arc<Device>> DEVICES;
-    union DeviceKey {
-        struct {
-            Device::Type type;
-            int32_t card;
-        };
-        int64_t i64;
-    };
-    constexpr static DeviceKey CPU_KEY{{Device::Type::Cpu, 0}};
+    static Arc<Device> cpu() {
+        static auto cpu = std::make_shared<Cpu>();
+        return cpu;
+    }
+    static std::unordered_map<int32_t, std::unordered_map<int32_t, Arc<Device>>> DEVICES;
+    constexpr static auto CPU_KEY = static_cast<int32_t>(Device::Type::Cpu);
 
-    Arc<Device> fetch(Device::Type type, int32_t card) {
-        if (type == decltype(type)::Cpu) {
-            auto it = DEVICES.find(CPU_KEY.i64);
-            return it != DEVICES.end()
-                       ? it->second
-                       : DEVICES.emplace(CPU_KEY.i64, std::make_shared<Cpu>()).first->second;
+    Arc<Device> fetch(Device::Type type) {
+        auto type_ = static_cast<int32_t>(type);
+        if (type_ == CPU_KEY) { return cpu(); }
+        if (auto kind = DEVICES.find(type_); kind != DEVICES.end()) {
+            if (auto it = kind->second.begin(); it != kind->second.end()) {
+                return it->second;
+            }
         }
-        auto it = DEVICES.find(DeviceKey{{type, card}}.i64);
-        return it != DEVICES.end() ? it->second : nullptr;
+        return init(type, 0, "");
+    }
+    Arc<Device> fetch(Device::Type type, int32_t card) {
+        auto type_ = static_cast<int32_t>(type);
+        if (type_ == CPU_KEY) { return cpu(); }
+        if (auto kind = DEVICES.find(type_); kind != DEVICES.end()) {
+            if (auto it = kind->second.find(card); it != kind->second.end()) {
+                return it->second;
+            }
+        }
+        return nullptr;
     }
     Arc<Device> init(Device::Type type, int32_t card, std::string_view args) {
-        if (type == decltype(type)::Cpu) {
-            auto it = DEVICES.find(CPU_KEY.i64);
-            return it != DEVICES.end()
-                       ? it->second
-                       : DEVICES.emplace(CPU_KEY.i64, std::make_shared<Cpu>()).first->second;
-        }
-        auto key = DeviceKey{{type, card}}.i64;
-        if (auto it = DEVICES.find(key); it != DEVICES.end()) {
-            return it->second;
-        }
-        auto device =
-            type == Device::Type::Nvidia ? std::make_shared<Nvidia>(card)
-                                         : UNREACHABLEX(Arc<Device>, "");
-        return DEVICES.emplace(key, std::move(device)).first->second;
+        if (auto device = fetch(type, card); device) { return device; }
+
+        using T = Device::Type;
+        // clang-format off
+        auto device = type == T::Nvidia ? std::make_shared<Nvidia>(card)
+                    : UNREACHABLEX(Arc<Device>, "");
+        // clang-format on
+        auto [kind, ok] = DEVICES.try_emplace(static_cast<int32_t>(type));
+        return kind->second.emplace(card, std::move(device)).first->second;
     }
 
 }// namespace refactor::hardware::device

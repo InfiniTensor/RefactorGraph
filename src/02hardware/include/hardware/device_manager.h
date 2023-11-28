@@ -5,6 +5,7 @@
 
 namespace refactor::hardware::device {
 
+    Arc<Device> fetch(Device::Type);
     Arc<Device> fetch(Device::Type, int32_t card);
     Arc<Device> init(Device::Type, int32_t card, std::string_view args);
 
