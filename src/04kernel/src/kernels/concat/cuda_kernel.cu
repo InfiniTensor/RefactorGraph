@@ -42,6 +42,17 @@ namespace refactor::kernel {
     using namespace runtime;
 
     auto ConcatCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
+        if (info.blockCount == 1) {
+            return [info = this->info](Resources &, void *, void const *const *inputs, void *const *outputs) {
+                auto dst = reinterpret_cast<uint8_t *>(outputs[0]);
+                for (auto i : range0_(info.segments.size())) {
+                    auto size = info.segments[i];
+                    cudaMemcpyAsync(dst, inputs[i], size, cudaMemcpyDeviceToDevice);
+                    dst += size;
+                }
+            };
+        }
+
         auto unit = info.unit(16);
         auto params = cuda::ThreadsDistributer()(info.blockCount * info.sum / unit);
         auto inputCount = info.segments.size();

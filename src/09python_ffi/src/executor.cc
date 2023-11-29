@@ -129,18 +129,19 @@ namespace refactor::python_ffi {
         auto const npy = format == "npy";
         size_t dataIdx = 0;
 
-        auto it = _graph.internal().contiguous().topology.begin();
+        auto const &graph = _graph.internal().contiguous();
+        auto it = graph.topology.begin();
         _stream.trace([&](count_t nodeIdx, void const *const *inputs, void const *const *outputs) {
             auto [nodeIdx_, i_, o_] = *it++;
             ASSERT(nodeIdx_ == nodeIdx, "node index mismatch");
 
             std::stringstream meta;
             std::vector<char> buffer;
-            auto const &edges = _graph.internal().contiguous().edges;
             auto fn = [&](char dir, count_t idx, count_t edgeIdx, void const *const *addresses)
                 -> std::string {
                 if (!addresses[idx]) { return ""; }
-                auto const &edge = edges[edgeIdx];
+                auto const &edge = graph.edges[edgeIdx];
+                if (!edge.tensor) { return ""; }
 
                 auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);
                 fs::remove(file);
@@ -162,17 +163,17 @@ namespace refactor::python_ffi {
             };
 
             meta << "node\t" << nodeIdx << '\t'
-                 << _graph.internal().contiguous().nodes[nodeIdx].name << std::endl;
+                 << graph.nodes[nodeIdx].name << std::endl;
             for (auto i : range0_(i_.size())) {
                 auto edgeIdx = i_[i];
                 meta << "input\t" << i << '\t'
-                     << edges[edgeIdx].name << '\t'
+                     << graph.edges[edgeIdx].name << '\t'
                      << fn('i', i, edgeIdx, inputs) << std::endl;
             }
             for (auto i : range0_(o_.size())) {
                 auto edgeIdx = o_[i];
                 meta << "output\t" << i << '\t'
-                     << edges[edgeIdx].name << '\t'
+                     << graph.edges[edgeIdx].name << '\t'
                      << fn('o', i, edgeIdx, outputs) << std::endl;
             }
             std::ofstream(path / fmt::format("node{:06}.meta", nodeIdx)) << meta.str();
