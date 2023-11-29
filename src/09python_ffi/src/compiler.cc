@@ -68,8 +68,9 @@ namespace refactor::python_ffi {
             UNREACHABLE();
         }
 
-        auto kernel = computation.lower(hardware::device::fetch(target_));
-        auto stream = kernel.lower(allocator == "flat"
+        auto kernel = computation.lower(target_);
+        auto stream = kernel.lower(hardware::device::fetch(target_),
+                                   allocator == "flat"
                                        ? kernel::flatAllocate
                                        : kernel::reusableAllocate);
 

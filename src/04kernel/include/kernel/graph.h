@@ -1,8 +1,8 @@
 ﻿#ifndef KERNEL_GRAPH_H
 #define KERNEL_GRAPH_H
 
+#include "blob.hh"
 #include "kernel.h"
-#include <span>
 
 namespace refactor::kernel {
 
@@ -12,7 +12,7 @@ namespace refactor::kernel {
     };
 
     struct Edge {
-        Arc<hardware::Device::Blob> data;
+        Arc<Blob> data;
         size_t size;
         std::string name;
     };
@@ -34,15 +34,13 @@ namespace refactor::kernel {
         using _E = Edge;
         using _G = graph_topo::Graph<_N, _E>;
 
-        Arc<hardware::Device> _device;
         _G _internal;
 
     public:
-        Graph(decltype(_device),
-              graph_topo::GraphTopo,
+        Graph(graph_topo::GraphTopo,
               std::vector<_N>,
               std::vector<_E>) noexcept;
-        runtime::Stream lower(Allocator) const;
+        runtime::Stream lower(Arc<hardware::Device>, Allocator) const;
     };
 
 }// namespace refactor::kernel

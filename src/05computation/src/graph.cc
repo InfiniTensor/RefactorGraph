@@ -13,8 +13,7 @@ namespace refactor::computation {
               std::move(edges),
           }) {}
 
-    kernel::Graph Graph::lower(Arc<hardware::Device> device) const {
-        auto target = device->type();
+    kernel::Graph Graph::lower(Target target) const {
         auto const &graph = _internal.contiguous();
 
         std::vector<kernel::Node> nodes(graph.nodes.size());
@@ -52,19 +51,14 @@ namespace refactor::computation {
             auto const &[tensor, name] = graph.edges[i];
             if (!tensor || identities.contains(i)) {
                 edges[i] = {nullptr, 0, name};
-            } else if (!tensor->data) {
-                edges[i] = {nullptr, tensor->bytesSize(), name};
             } else {
-                auto bytes = tensor->bytesSize();
-                auto blob = device->malloc(bytes);
-                blob->copyFromHost(*(tensor->data), bytes);
-                edges[i] = {std::move(blob), bytes, name};
+                edges[i] = {tensor->data, tensor->bytesSize(), name};
             }
         }
 
         auto modifier = graph_topo::InplaceModifier(graph.topology);
         modifier.reconnect(identities);
-        return kernel::Graph(std::move(device), modifier.take(), std::move(nodes), std::move(edges));
+        return kernel::Graph(modifier.take(), std::move(nodes), std::move(edges));
     }
 
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }

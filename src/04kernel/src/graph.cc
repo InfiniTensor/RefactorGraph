@@ -2,18 +2,16 @@
 
 namespace refactor::kernel {
 
-    Graph::Graph(decltype(_device) device,
-                 graph_topo::GraphTopo topology,
+    Graph::Graph(graph_topo::GraphTopo topology,
                  std::vector<_N> nodes,
                  std::vector<_E> edges) noexcept
-        : _device(std::move(device)),
-          _internal(graph_topo::Graph<_N, _E>{
+        : _internal(graph_topo::Graph<_N, _E>{
               std::move(topology),
               std::move(nodes),
               std::move(edges),
           }) {}
 
-    runtime::Stream Graph::lower(Allocator allocator) const {
+    runtime::Stream Graph::lower(Arc<hardware::Device> device, Allocator allocator) const {
 
         runtime::Resources res;
 
@@ -38,12 +36,13 @@ namespace refactor::kernel {
         for (auto i : range0_(edges_.size())) {
             auto const &edge = _internal.edges[i];
             if (edge.data) {
-                edges_[i].blob = edge.data;
+                auto blob = device->malloc(edge.size);
+                blob->copyFromHost(edge.data->get<void>());
+                edges_[i].blob = std::move(blob);
             } else if (edges_[i].stackOffset == SIZE_MAX - 1) {
-                edges_[i].blob = _device->malloc(_internal.edges[i].size);
+                edges_[i].blob = device->malloc(edge.size);
             }
         }
-
 
         return runtime::Stream(
             std::move(res),
@@ -51,7 +50,7 @@ namespace refactor::kernel {
             _internal.topology,
             std::move(nodes_),
             std::move(edges_),
-            _device);
+            std::move(device));
     }
 
 }// namespace refactor::kernel
