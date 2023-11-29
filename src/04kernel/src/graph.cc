@@ -12,14 +12,12 @@ namespace refactor::kernel {
           }) {}
 
     runtime::Stream Graph::lower(Arc<hardware::Device> device, Allocator allocator) const {
-
+        device->setContext();
         runtime::Resources res;
 
-        auto nodeCount = _internal.nodes.size();
-        std::vector<size_t> workspace(nodeCount, 0);
         std::vector<runtime::Node> nodes;
-        nodes.reserve(nodeCount);
-        for (auto i : range0_(nodeCount)) {
+        nodes.reserve(_internal.nodes.size());
+        for (auto i : range0_(_internal.nodes.size())) {
             if (auto const &node = _internal.nodes[i]; node.kernel) {
                 nodes.emplace_back(node.kernel->lower(res));
             } else {
