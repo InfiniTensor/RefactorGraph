@@ -9,13 +9,13 @@ namespace refactor::kernel {
         GatherInfo info(axis, inputs[0].get(), inputs[1].get());
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 if (auto ptr = GatherCpu::build(info); ptr != nullptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 if (auto ptr = GatherCuda::build(info); ptr != nullptr) {
                     ans.emplace_back(std::move(ptr));
                 }

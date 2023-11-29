@@ -16,11 +16,11 @@ namespace refactor::kernel {
         auto const &a = inputs[0].get();
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 REGISTER(SimpleUnaryCpu)
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 REGISTER(ActivationCudnn)
                 REGISTER(SimpleUnaryCuda)
                 break;

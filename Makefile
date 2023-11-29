@@ -1,13 +1,15 @@
 ﻿.PHONY : build install-python reconfig clean clean-log format test
 
-TYPE ?= debug
+TYPE ?= Debug
 CUDA ?= OFF
+KUNLUN ?= OFF
 
-FORMAT_ORIGIN ?=
+CMAKE_EXTRA =
+# CMAKE_EXTRA += -DCMAKE_CXX_COMPILER=
 
 build:
 	mkdir -p build
-	cmake -DCMAKE_BUILD_TYPE=$(TYPE) -DUSE_CUDA=$(CUDA) -Bbuild
+	cmake -Bbuild -DCMAKE_BUILD_TYPE=$(TYPE) -DUSE_CUDA=$(CUDA) -DUSE_KUNLUN=$(KUNLUN) $(CMAKE_EXTRA)
 	make -j -C build
 
 install-python: build
@@ -27,6 +29,3 @@ clean-log:
 
 test:
 	make test -j -Cbuild
-
-format:
-	@python3 scripts/format.py $(FORMAT_ORIGIN)

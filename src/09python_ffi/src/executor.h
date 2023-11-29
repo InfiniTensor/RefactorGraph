@@ -13,11 +13,12 @@ namespace refactor::python_ffi {
 
     public:
         Executor(computation::Graph, runtime::Stream);
+        void dispatch(Arc<hardware::Device>, std::string allocator);
         void setInput(count_t, pybind11::array);
         auto getOutput(count_t) -> pybind11::array;
-        auto prepare() -> std::vector<count_t>;
         void run();
         void bench(bool sync);
+        void trace(std::string path, std::string format);
         void debugInfo() const noexcept;
     };
 

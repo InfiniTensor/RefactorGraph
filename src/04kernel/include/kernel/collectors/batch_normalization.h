@@ -2,16 +2,14 @@
 #define KERNEL_BATCH_NORMALIZATION_H
 
 #include "../collector.h"
-#include "../target.h"
 
 namespace refactor::kernel {
 
     struct BatchNormalizationCollector final : public InfoCollector {
-        Target target;
         float epsilon;
 
-        constexpr BatchNormalizationCollector(Target target_, float epsilon_) noexcept
-            : InfoCollector(), target(target_), epsilon(epsilon_) {}
+        constexpr BatchNormalizationCollector(decltype(_target) target, float epsilon_) noexcept
+            : InfoCollector(target), epsilon(epsilon_) {}
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

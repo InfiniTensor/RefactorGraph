@@ -1,5 +1,4 @@
 ﻿#include "runtime/resource.h"
-#include "common.h"
 
 namespace refactor::runtime {
 
@@ -15,7 +14,7 @@ namespace refactor::runtime {
         auto [it, ok] = _internal.try_emplace(resource->resourceTypeId(), std::move(resource));
         return it->second.get();
     }
-    auto Resources::fetchOrStore(size_t id, std::function<ResourceBox()> fn) noexcept -> Resource * {
+    auto Resources::fetchOrStore(size_t id, std::function<ResourceBox()> fn) -> Resource * {
         auto it = _internal.find(id);
         if (it == _internal.end()) {
             std::tie(it, std::ignore) = _internal.insert({id, fn()});

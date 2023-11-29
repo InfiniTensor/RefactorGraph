@@ -18,9 +18,9 @@ namespace refactor {
         constexpr static uint16_t MASK_SIGN16 = 0b1'00000'00000'00000;
 
     public:
-        constexpr bf16_t() noexcept : code(converter{0.0}.u16[1]) {}
         constexpr bf16_t(uint16_t code) noexcept : code(code) {}
-        constexpr bf16_t(float value) noexcept : code(converter{value}.u16[1]) {}
+        constexpr bf16_t(float value) noexcept : bf16_t(converter{value}.u16[1]) {}
+        constexpr bf16_t() noexcept : bf16_t(0.f) {}
         constexpr bf16_t(bf16_t const &) noexcept = default;
         constexpr bf16_t(bf16_t &&) noexcept = default;
 

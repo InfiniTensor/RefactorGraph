@@ -8,42 +8,33 @@ namespace refactor::kernel {
     using namespace runtime;
     using DT = DataType;
 
-    auto BatchNormalizationCudnn::lower(Resources &res) const noexcept -> Routine {
+    auto BatchNormalizationCudnn::lower(Resources &res) const -> RoutineWorkspace {
         // RAII for closure
         struct Descriptors {
-            cudnnTensorDescriptor_t x, param;
+            cudnnTensorDescriptor_t x, p;
+            bool f64;
 
-            Descriptors() : x(nullptr), param(nullptr) {
+            Descriptors(bool f64_) : x(nullptr), p(nullptr), f64(f64_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
-                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&param));
+                CUDNN_ASSERT(cudnnCreateTensorDescriptor(&p));
             }
-            ~Descriptors() {
+            ~Descriptors() noexcept(false) {
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(x));
-                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(param));
+                CUDNN_ASSERT(cudnnDestroyTensorDescriptor(p));
             }
 
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
-        auto d = std::make_shared<Descriptors>();
-
-        int strideAx[4]{0, 0, 0, 1},            // to calculate
-            dimAp[4]{1, info.dimAx[1], 1, 1},   // 1xCx1x1
-            strideAp[4]{info.dimAx[1], 1, 1, 1};// Cx1x1x1
-        // TODO: calculate real stride based on layout type
-        for (auto i = 3; i > 0; --i) {
-            strideAx[i - 1] = strideAx[i] * info.dimAx[i];
-        }
-
-        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->x, cudnnDataTypeConvert(info.dtX), 4, info.dimAx, strideAx));
-        CUDNN_ASSERT(cudnnSetTensorNdDescriptor(d->param, cudnnDataTypeConvert(info.dtParam), 4, dimAp, strideAp));
+        auto d = std::make_shared<Descriptors>(info.dtP == DT::F64);
+        int dimParam[]{1, info.dimAx[1], 1, 1};
+        setCudnnTensor(d->x, info.dtX, slice(info.dimAx, 4));
+        setCudnnTensor(d->p, info.dtP, slice(dimParam, 4));
 
         res.fetchOrStore<CudnnContext>();
-
         // nvcc at c++11 doesn't support real move capture
         return [d = std::move(d),
-                param32 = info.dtParam == DT::F32,
-                epsilon = info.epsilon](Resources &res, void const **inputs, void **outputs) {
+                epsilon = info.epsilon](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             // name inputs and outputs
@@ -59,23 +50,22 @@ namespace refactor::kernel {
                 double f64[2];
             };
             void *alpha, *beta;
-            if (param32) {
-                f32[0] = 1;
-                f32[1] = 0;
-                alpha = f32;
-                beta = f32 + 1;
-            } else {
+            if (d->f64) {
                 f64[0] = 1;
                 f64[1] = 0;
                 alpha = f64;
                 beta = f64 + 1;
+            } else {
+                f32[0] = 1;
+                f32[1] = 0;
+                alpha = f32;
+                beta = f32 + 1;
             }
             CUDNN_ASSERT(cudnnBatchNormalizationForwardInference(
                 handle, CUDNN_BATCHNORM_SPATIAL, alpha, beta,
                 d->x, x,
-                d->x, y, // desc(x) === desc(y) for onnx
-                d->param,// scale, bias, mean, var
-                scale, bias, mean, var,
+                d->x, y,// desc(x) === desc(y) for onnx
+                d->p, scale, bias, mean, var,
                 epsilon));
         };
     }

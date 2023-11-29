@@ -1,4 +1,5 @@
 ﻿#include "computation/operators/reduce.h"
+#include <numeric>
 
 namespace refactor::computation {
     using Op = Reduce;
@@ -11,7 +12,12 @@ namespace refactor::computation {
           type(type_),
           axes(std::move(axes_)),
           rank(rank_),
-          keepDims(keepDims_) {}
+          keepDims(keepDims_) {
+        if (axes.empty()) {
+            axes.resize(rank);
+            std::iota(axes.begin(), axes.end(), 0);
+        }
+    }
 
     auto Op::typeId(ReduceType type) noexcept -> size_t {
         switch (type) {

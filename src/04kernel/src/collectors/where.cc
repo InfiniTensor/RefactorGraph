@@ -7,13 +7,13 @@ namespace refactor::kernel {
     std::vector<KernelBox>
     WhereCollector::filter(TensorRefs inputs, TensorRefs) const {
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 if (auto ptr = WhereCpu::build(inputs); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 if (auto ptr = WhereCuda::build(inputs); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }

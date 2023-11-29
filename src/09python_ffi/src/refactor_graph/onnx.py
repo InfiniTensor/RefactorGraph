@@ -5,6 +5,7 @@ from typing import Any
 from python_ffi import (
     Compiler,
     Tensor,
+    find_device,
     _make_data,
     _make_data_ex,
     _make_tensor,
@@ -44,17 +45,20 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
     names = {}
     for node in model.graph.node:
         if node.name == "":
-            node.name = "missing_name"
+            node.name = "missing_name(" + node.op_type + ")"
         if node.name in names:
             names[node.name] += 1
             node.name += "_" + str(names[node.name])
         else:
             names[node.name] = 0
     data = set(i.name for i in model.graph.initializer)
+    context = {
+        "opset_version": next(s.version for s in model.opset_import if s.domain == "")
+    }
     return _make_compiler(
         {node.name: (node.input, node.output) for node in model.graph.node},
         {
-            node.name: _make_operator(node.op_type, _parse_attribute(node))
+            node.name: _make_operator(context, node.op_type, _parse_attribute(node))
             for node in model.graph.node
         },
         edges,

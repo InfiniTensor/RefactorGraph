@@ -10,7 +10,7 @@ namespace refactor::onnx {
     Op::Select(Ty type_)
         : Operator(), type(type_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Select operator should not have attributes");
 
         auto type = opType == "onnx::Max"   ? Ty::Max
@@ -72,7 +72,7 @@ namespace refactor::onnx {
         //-------------------------------------
 #define CASE(T)                                                                                                              \
     case DataType::T: {                                                                                                      \
-        using t = primitive<DataType::T>::type;                                                                            \
+        using t = primitive<DataType::T>::type;                                                                              \
         std::vector<t> src(inputs.size());                                                                                   \
         for (auto i : range0_(ans->elementsSize())) {                                                                        \
             auto indices = locateN(ans->shape, i);                                                                           \

@@ -1,47 +1,54 @@
 ﻿#include "kernel/graph.h"
-#include "runtime/mem_manager.hh"
 
 namespace refactor::kernel {
 
-    Graph::Graph(Target target,
-                 graph_topo::GraphTopo topology,
+    Graph::Graph(graph_topo::GraphTopo topology,
                  std::vector<_N> nodes,
                  std::vector<_E> edges) noexcept
-        : _target(target),
-          _internal(graph_topo::Graph<_N, _E>{
+        : _internal(graph_topo::Graph<_N, _E>{
               std::move(topology),
               std::move(nodes),
               std::move(edges),
           }) {}
 
-    runtime::Stream Graph::lower(Allocator allocator) const {
-
+    runtime::Stream Graph::lower(Arc<hardware::Device> device, Allocator allocator) const {
+        device->setContext();
         runtime::Resources res;
-        res.fetchOrStore<runtime::MemManager>(_target.memManager());
 
-        std::vector<Routine> routines;
-        routines.reserve(_internal.nodes.size());
-        std::transform(_internal.nodes.begin(), _internal.nodes.end(),
-                       std::back_inserter(routines),
-                       [&](auto const &node) {
-                           return node.kernel
-                                      ? node.kernel->lower(res)
-                                      : refactor::runtime::emptyRoutine;
-                       });
-        auto [stack, offsets] = allocator(_internal, sizeof(uint64_t));
-        auto outputs = _internal.topology.globalOutputs();
-        std::vector<size_t> outputs_(outputs.size());
-        std::transform(outputs.begin(), outputs.end(),
-                       outputs_.begin(),
-                       [this](auto const &edge) { return _internal.edges[edge].size; });
+        std::vector<runtime::Node> nodes;
+        nodes.reserve(_internal.nodes.size());
+        for (auto i : range0_(_internal.nodes.size())) {
+            if (auto const &node = _internal.nodes[i]; node.kernel) {
+                nodes.emplace_back(node.kernel->lower(res));
+            } else {
+                nodes.emplace_back(runtime::emptyRoutine);
+            }
+        }
+
+        auto [stack, nodes_, edges_] = allocator(
+            _internal.topology,
+            std::move(nodes),
+            _internal.edges,
+            32);
+
+        for (auto i : range0_(edges_.size())) {
+            auto const &edge = _internal.edges[i];
+            if (edge.data) {
+                auto blob = device->malloc(edge.size);
+                blob->copyFromHost(edge.data->get<void>());
+                edges_[i].blob = std::move(blob);
+            } else if (edges_[i].stackOffset == SIZE_MAX - 1) {
+                edges_[i].blob = device->malloc(edge.size);
+            }
+        }
 
         return runtime::Stream(
             std::move(res),
             stack,
-            std::move(outputs_),
             _internal.topology,
-            std::move(routines),
-            std::move(offsets));
+            std::move(nodes_),
+            std::move(edges_),
+            std::move(device));
     }
 
 }// namespace refactor::kernel

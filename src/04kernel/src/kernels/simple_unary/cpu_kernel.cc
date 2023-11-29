@@ -19,13 +19,9 @@ namespace refactor::kernel {
             Op::Tanh,
             Op::Neg,
         };
-        if (supportedOp.find(op) == supportedOp.end()) {
-            return nullptr;
-        }
-        if (!a.dataType.isCpuNumberic()) {
-            return nullptr;
-        }
-        return std::make_unique<K>(op, a.dataType, a.elementsSize());
+        return supportedOp.contains(op) && a.dataType.isCpuNumberic()
+                   ? std::make_unique<K>(op, a.dataType, a.elementsSize())
+                   : nullptr;
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -53,23 +49,23 @@ namespace refactor::kernel {
         return static_cast<T>(std::tanh(static_cast<M>(x)));
     }
     auto copyForUnsigned(size_t n) noexcept -> Routine {
-        return [n](runtime::Resources &, void const **inputs, void **outputs) {
+        return [n](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             std::memcpy(outputs[0], inputs[0], n);
         };
     }
 
-#define CASE(OP, T)                                                                          \
-    case DT::T:                                                                              \
-        return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
-            using T_ = primitive<DT::T>::type;                                               \
-            auto x = reinterpret_cast<T_ const *>(inputs[0]);                                \
-            auto y = reinterpret_cast<T_ *>(outputs[0]);                                     \
-            std::for_each_n(std::execution::par_unseq,                                       \
-                            natural_t(0), n,                                                 \
-                            [y, x](auto i) { y[i] = OP(x[i]); });                            \
+#define CASE(OP, T)                                                                                                       \
+    case DT::T:                                                                                                           \
+        return [n = this->size](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
+            using T_ = primitive<DT::T>::type;                                                                            \
+            auto x = reinterpret_cast<T_ const *>(inputs[0]);                                                             \
+            auto y = reinterpret_cast<T_ *>(outputs[0]);                                                                  \
+            std::for_each_n(std::execution::par_unseq,                                                                    \
+                            natural_t(0), n,                                                                              \
+                            [y, x](auto i) { y[i] = OP(x[i]); });                                                         \
         }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         switch (opType) {
             case Op::Abs:
                 switch (dataType) {

@@ -2,7 +2,7 @@
 
 namespace refactor::kernel {
 
-    TransposeInfo::TransposeInfo(Shape const &shape, Permutation const &perm) noexcept
+    TransposeInfo::TransposeInfo(Shape const &shape, Permutation const &perm)
         : dims(), size(0) {
         auto rank = shape.size();
         ASSERT(perm.size() == rank, "");

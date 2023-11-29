@@ -14,7 +14,6 @@ namespace refactor::computation {
 
     bool AxisRankOperator::isLayoutDependent() const { return rank != 4; }
     void AxisRankOperator::transposeTo(LayoutType target) {
-        using Layout = LayoutType;
         Operator::transposeTo(target);
         switch (target) {
             case LayoutType::NCHW:

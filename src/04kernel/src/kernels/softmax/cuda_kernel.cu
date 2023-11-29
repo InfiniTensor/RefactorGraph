@@ -2,198 +2,150 @@
 #include <cub/cub.cuh>
 
 namespace refactor::kernel {
-    using K = SoftmaxCuda;
-    using DT = DataType;
     using namespace runtime;
 
+    template<class T>
+    __device__ __forceinline__ T max_(T a, T b) { return a > b ? a : b; }
 
-    template<typename T>
-    struct MD {  // update the global max and sum, store the output at
-                 // maxTmp and sumTmp
-        T maxTmp;// store max
-        T sumTmp;// store sum
-    };
-    template<typename T>
-    __device__ __forceinline__ MD<T> reduce_md_op(MD<T> a, MD<T> b) {
-        bool compair = (a.maxTmp > b.maxTmp);
-        auto bigger = compair ? a : b;
-        auto smaller = compair ? b : a;
-        return {bigger.maxTmp, bigger.sumTmp + smaller.sumTmp * __expf(smaller.maxTmp - bigger.maxTmp)};
-    }
+    template<class T>
+    __device__ __forceinline__ T exp_(T x);
+    template<> __device__ __forceinline__ float exp_<float>(float x) { return expf(x); }
+    template<> __device__ __forceinline__ double exp_<double>(double x) { return exp(x); }
+    template<> __device__ __forceinline__ half exp_<half>(half x) { return hexp(x); }
 
-    template<int BLOCK_DIM, typename T>
-    __launch_bounds__(BLOCK_DIM) __global__ void _blockSoftmaxKernel(
-        T const *__restrict input, T *__restrict output, int size, int dimsize,
-        int stride) {// if set axis = 1, inputShape=[I,J,K,S]
-                     // tid = i(JKS) + j(KS) + k(S) + s
+    template<class T> __device__ __forceinline__ T reciprocal(T x);
+    template<> __device__ __forceinline__ float reciprocal<float>(float x) { return fdividef(1, x); }
+    template<> __device__ __forceinline__ double reciprocal<double>(double x) { return 1 / x; }
+    template<> __device__ __forceinline__ half reciprocal<half>(half x) { return hrcp(x); }
 
-        // blockDim.x = size/dimsize = IKS
-        // blockIdx.x = i(KS) + k(S) + s,blockIdx.x%stride = k(S) + s
+    // blockDim.x === BLOCK_DIM
+    template<int BLOCK_DIM, class T>
+    __launch_bounds__(BLOCK_DIM) __global__ void blockSoftmaxKernel(
+        T const *__restrict x,
+        T *__restrict y,
+        int mid,
+        int stride) {
+        int id = (blockIdx.x - blockIdx.x % stride) * mid + blockIdx.x % stride;
 
-        // now, tid = i(JKS) + k(S) + s;
-        int tid = blockIdx.x % stride + (blockIdx.x - blockIdx.x % stride) * dimsize;
+        struct MaxSum {
+            T max, sum;
 
-        MD<T> mdPartial;
-        mdPartial.maxTmp = -__FLT_MAX__;
-        mdPartial.sumTmp = 0.0f;
-        MD<T> mdInput;
-        for (int ph = 0; threadIdx.x + ph * BLOCK_DIM < dimsize; ph++) {
-
-            mdInput.maxTmp = input[tid + (threadIdx.x + ph * BLOCK_DIM) * stride];
-
-            mdInput.sumTmp = 1.0f;
-            mdPartial = reduce_md_op(mdPartial, mdInput);// reduce the data to one block
+            static __device__ __forceinline__ MaxSum reduce(MaxSum a, MaxSum b) {
+                if (a.max > b.max) {
+                    return {a.max, a.sum + b.sum * exp_(b.max - a.max)};
+                } else {
+                    return {b.max, b.sum + a.sum * exp_(a.max - b.max)};
+                }
+            }
+        } maxSumThread{x[id], 1};
+        for (int i = threadIdx.x + blockDim.x; i < mid; i += blockDim.x) {
+            maxSumThread = MaxSum::reduce(maxSumThread, {x[id + i * stride], 1});// reduce the data to one block
         }
-        typedef cub::BlockReduce<MD<T>, BLOCK_DIM> BlockReduce;
+        using BlockReduce = cub::BlockReduce<MaxSum, BLOCK_DIM>;
         __shared__ typename BlockReduce::TempStorage tempStorage;
-        __shared__ MD<T> mdTotal;
-        MD<T> mdBlock = BlockReduce(tempStorage).Reduce(mdPartial, reduce_md_op<T>);
+        __shared__ MaxSum maxSumTotal;
+        auto maxSumBlock = BlockReduce(tempStorage).Reduce(maxSumThread, MaxSum::reduce);
         if (threadIdx.x == 0) {
-            // must set threadIdx.x = 0 write the output to memory
-            mdTotal = mdBlock;
+            maxSumTotal = maxSumBlock;// must set threadIdx.x = 0 write the output to memory
         }
         __syncthreads();
 
-        for (int ph = 0; threadIdx.x + ph * BLOCK_DIM < dimsize; ph++) {
-            output[tid + (threadIdx.x + ph * BLOCK_DIM) * stride] =
-                __expf(input[tid + (threadIdx.x + ph * BLOCK_DIM) * stride] -
-                       mdTotal.maxTmp) *
-                __fdividef(1.0F, mdTotal.sumTmp);
+        for (int i = threadIdx.x; i < mid; i += blockDim.x) {
+            auto j = id + i * stride;
+            y[j] = exp_(x[j] - maxSumTotal.max) * reciprocal(maxSumTotal.sum);
         }
     }
 
-    template<typename T> struct SumOp {
-        __device__ __forceinline__ T operator()(const T &a, const T &b) const {
+    template<class T> struct SumOp {
+        __device__ __forceinline__ T operator()(T const &a, T const &b) const {
             return a + b;
         }
     };
-
-    template<typename T> struct MaxOp {
-        __device__ __forceinline__ T operator()(const T &a, const T &b) const {
-            return max(a, b);
+    template<class T> struct MaxOp {
+        __device__ __forceinline__ T operator()(T const &a, T const &b) const {
+            return max_(a, b);
         }
     };
-    template<template<typename> class ReductionOp, typename T,
-             int threadGroupWidth>
-    __inline__ __device__ T WarpAllReduce(T val) {
-        for (int mask = threadGroupWidth / 2; mask > 0; mask /= 2) {
-            val = ReductionOp<T>()(val, __shfl_xor_sync(0xffffffff, val, mask));
+    template<class T, class ReductionOp>
+    __device__ __forceinline__ T WarpAllReduce(T val, ReductionOp op) {
+        for (int mask = blockDim.x >> 1; mask > 0; mask >>= 1) {
+            val = op(val, __shfl_xor_sync(0xffffffff, val, mask));
         }
         return val;
     }
-#define max_function(a, b) ((a) > (b) ? (a) : (b))
-    template<int BLOCK_DIM_X, int BLOCK_DIM_Y, typename T>
-    __global__ void _warpSoftmaxKernel(T const *__restrict input,
-                                       T *__restrict output, int size,
-                                       int dimsize, int stride) {
+
+    template<class T>
+    __global__ void warpSoftmaxKernel(
+        T const *__restrict input,
+        T *__restrict output,
+        int size, int dimsize, int stride) {
+
         int otherIdx = blockIdx.x * blockDim.y + threadIdx.y;
-        int otherSize = size / dimsize;
         int tid = otherIdx % stride + (otherIdx - otherIdx % stride) * dimsize;
 
-        if (otherIdx < otherSize) {
+        extern __shared__ char shared[];
+        if (otherIdx < size / dimsize) {
+            auto maxTotal = reinterpret_cast<T *>(shared),
+                 sumTotal = maxTotal + blockDim.y;
 
-            __shared__ float maxTotal[BLOCK_DIM_Y];
-            __shared__ float sumTotal[BLOCK_DIM_Y];
             T maxData = -__FLT_MAX__;
-
-            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_X < dimsize; ph++) {
-                maxData = max_function(
-                    maxData,
-                    input[tid + (threadIdx.x + ph * BLOCK_DIM_X) * stride]);
+            for (int i = threadIdx.x; i < dimsize; i += blockDim.x) {
+                maxData = max_(maxData, input[tid + i * stride]);
             }
-
-            maxData = WarpAllReduce<MaxOp, T, BLOCK_DIM_X>(maxData);
-
-            if (threadIdx.x == 0)
+            maxData = WarpAllReduce(maxData, MaxOp<T>{});
+            if (threadIdx.x == 0) {
                 maxTotal[threadIdx.y] = maxData;
-
-            //--------------------------------------------
-            T sumData = 0.0f;
-
-            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_X < dimsize; ph++) {
-                sumData +=
-                    __expf(input[tid + (threadIdx.x + ph * BLOCK_DIM_X) * stride] -
-                           maxTotal[threadIdx.y]);
             }
 
-            sumData = WarpAllReduce<SumOp, T, BLOCK_DIM_X>(sumData);
-
-            if (threadIdx.x == 0)
+            //--------------------------------------------
+            T sumData = 0;
+            for (int i = threadIdx.x; i < dimsize; i += blockDim.x) {
+                sumData += exp_(input[tid + i * stride] - maxTotal[threadIdx.y]);
+            }
+            sumData = WarpAllReduce(sumData, SumOp<T>{});
+            if (threadIdx.x == 0) {
                 sumTotal[threadIdx.y] = sumData;
+            }
 
             //--------------------------------------------
-
-            for (int ph = 0; threadIdx.x + ph * BLOCK_DIM_X < dimsize; ph++) {
-                output[tid + (threadIdx.x + ph * BLOCK_DIM_X) * stride] =
-                    __expf(input[tid + (threadIdx.x + ph * BLOCK_DIM_X) * stride] -
-                           maxTotal[threadIdx.y]) *
-                    __fdividef(1.0F, sumTotal[threadIdx.y]);
+            for (int i = threadIdx.x; i < dimsize; i += blockDim.x) {
+                auto j = tid + i * stride;
+                output[j] = exp_(input[j] - maxTotal[threadIdx.y]) * reciprocal(sumTotal[threadIdx.y]);
             }
         }
     }
 
-    template<decltype(DataType::internal) T>
+    template<class T>
     Routine lowerTypedCuda(SoftmaxInfo info) {
         using namespace runtime;
-        using dt = typename primitive<T>::type;
 
-        return [info](Resources &, void const **inputs, void **outputs) {
-            auto x = reinterpret_cast<dt const *>(inputs[0]);
-            auto y = reinterpret_cast<dt *>(outputs[0]);
+        return [info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
+            auto x = reinterpret_cast<T const *>(inputs[0]);
+            auto y = reinterpret_cast<T *>(outputs[0]);
             int numBlocks = info.pre * info.post;
-            int dimsize = info.mid;
-            int size = numBlocks * dimsize;
-            int stride = info.post;
-            if (dimsize > 1024) {
-                _blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, size, dimsize, stride);
-            } else if (dimsize > 31) {
-                int BLOCK_DIM_X = 32;
-                int BLOCK_DIM_Y = 32;
-                int NUM_BLOCK_X = (numBlocks + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y;
-                dim3 block_dim(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
-                dim3 grid_dim(NUM_BLOCK_X, 1, 1);
-                _warpSoftmaxKernel<32, 32>
-                    <<<grid_dim, block_dim>>>(x, y, size, dimsize, stride);
-            } else if (dimsize > 15) {
-                int BLOCK_DIM_X = 16;
-                int BLOCK_DIM_Y = 64;
-                int NUM_BLOCK_X = (numBlocks + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y;
-                dim3 block_dim(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
-                dim3 grid_dim(NUM_BLOCK_X, 1, 1);
-
-                _warpSoftmaxKernel<16, 64>
-                    <<<grid_dim, block_dim>>>(x, y, size, dimsize, stride);
-            } else if (dimsize > 7) {
-                int BLOCK_DIM_X = 8;
-                int BLOCK_DIM_Y = 128;
-                int NUM_BLOCK_X = (numBlocks + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y;
-                dim3 block_dim(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
-                dim3 grid_dim(NUM_BLOCK_X, 1, 1);
-
-                _warpSoftmaxKernel<8, 128>
-                    <<<grid_dim, block_dim>>>(x, y, size, dimsize, stride);
+            if (info.mid > 1024) {
+                blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, info.mid, info.post);
             } else {
-                int BLOCK_DIM_X = 4;
-                int BLOCK_DIM_Y = 256;
-                int NUM_BLOCK_X = (numBlocks + BLOCK_DIM_Y - 1) / BLOCK_DIM_Y;
-                dim3 block_dim(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
-                dim3 grid_dim(NUM_BLOCK_X, 1, 1);
-
-                _warpSoftmaxKernel<4, 256>
-                    <<<grid_dim, block_dim>>>(x, y, size, dimsize, stride);
+                int blockDimX, mid = static_cast<int>(info.mid);
+                for (blockDimX = 32; blockDimX > 4 && mid < blockDimX; blockDimX /= 2) {}
+                auto blockDimY = 1024 / blockDimX;
+                warpSoftmaxKernel<<<(numBlocks + blockDimY - 1) / blockDimY,
+                                    dim3(blockDimX, blockDimY),
+                                    blockDimY * 2 * sizeof(T)>>>(x, y, numBlocks * mid, mid, info.post);
             }
         };
     }
 
-    auto K::lower(Resources &res) const noexcept -> Routine {
-#define CASE(T) \
-    case DT::T: \
-        return lowerTypedCuda<DT::T>(info);
+    auto SoftmaxCuda::lower(Resources &res) const noexcept -> RoutineWorkspace {
         switch (info.type.internal) {
-            CASE(F32)
-            CASE(F64)
-            //CASE(FP16)
-            //CASE(BF16)
+            case DataType::F32:
+                return lowerTypedCuda<float>(info);
+            case DataType::F64:
+                return lowerTypedCuda<double>(info);
+            case DataType::FP16:
+                return lowerTypedCuda<half>(info);
+            default:
+                UNREACHABLE();
         }
     }
 

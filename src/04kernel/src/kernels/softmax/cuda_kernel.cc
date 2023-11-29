@@ -7,6 +7,10 @@ namespace refactor::kernel {
         : Kernel(), info(std::move(info_)) {}
 
     auto K::build(SoftmaxInfo info) noexcept -> KernelBox {
+#ifndef USE_CUDA
+        return nullptr;
+#endif
+
         return std::make_unique<K>(std::move(info));
     }
 

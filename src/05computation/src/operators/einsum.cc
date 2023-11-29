@@ -77,7 +77,7 @@ namespace refactor::computation {
         }
         // 标记哑指标
         for (auto &c : _indices) {
-            if (noSum.find(c) != noSum.end()) {
+            if (noSum.contains(c)) {
                 c <<= 1;
             } else {
                 c <<= 1;

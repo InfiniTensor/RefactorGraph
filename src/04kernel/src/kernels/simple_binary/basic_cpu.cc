@@ -29,19 +29,19 @@ namespace refactor::kernel {
         return "Performing binary operation of 2 tensors on generic cpu";
     }
 
-#define CASE_DT(OP, T)                                                                                        \
-    case DT::T:                                                                                               \
-        return [broadcaster = this->broadcaster](runtime::Resources &, void const **inputs, void **outputs) { \
-            using T_ = primitive<DT::T>::type;                                                                \
-            auto aa = reinterpret_cast<T_ const *>(inputs[0]);                                                \
-            auto bb = reinterpret_cast<T_ const *>(inputs[1]);                                                \
-            auto cc = reinterpret_cast<T_ *>(outputs[0]);                                                     \
-            dim_t ii[2];                                                                                   \
-            for (auto i : range0_(broadcaster.outputsCount)) {                                                \
-                broadcaster.locate(i, ii);                                                                    \
-                auto a = aa[ii[0]], b = bb[ii[1]];                                                            \
-                cc[i] = (OP);                                                                                 \
-            }                                                                                                 \
+#define CASE_DT(OP, T)                                                                                                                     \
+    case DT::T:                                                                                                                            \
+        return [broadcaster = this->broadcaster](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
+            using T_ = primitive<DT::T>::type;                                                                                             \
+            auto aa = reinterpret_cast<T_ const *>(inputs[0]);                                                                             \
+            auto bb = reinterpret_cast<T_ const *>(inputs[1]);                                                                             \
+            auto cc = reinterpret_cast<T_ *>(outputs[0]);                                                                                  \
+            dim_t ii[2];                                                                                                                   \
+            for (auto i : range0_(broadcaster.outputsCount)) {                                                                             \
+                broadcaster.locate(i, ii);                                                                                                 \
+                auto a = aa[ii[0]], b = bb[ii[1]];                                                                                         \
+                cc[i] = (OP);                                                                                                              \
+            }                                                                                                                              \
         }
 
 #define CASE_OP(NAME, LAMBDA)        \
@@ -61,7 +61,7 @@ namespace refactor::kernel {
                 UNREACHABLE();       \
         }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
 
         switch (opType) {

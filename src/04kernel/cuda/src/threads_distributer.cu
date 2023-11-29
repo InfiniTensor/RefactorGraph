@@ -25,7 +25,7 @@ namespace refactor::kernel::cuda {
         _maxGridSize = mpc * tps * MaxWaves / BlockSize;
     }
 
-    auto ThreadsDistributer::operator()(size_t n) const noexcept -> KernelLaunchParameters {
+    auto ThreadsDistributer::operator()(size_t n) const -> KernelLaunchParameters {
         auto gridSize = (n + BlockSize - 1) / BlockSize;
         ASSERT(gridSize <= std::numeric_limits<int>::max(), "");
         return {std::clamp(static_cast<int>(gridSize), 1, _maxGridSize), BlockSize, n};

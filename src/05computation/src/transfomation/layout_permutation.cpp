@@ -1,48 +1,36 @@
 ﻿#include "computation/graph.h"
 #include "computation/operators/conv.h"
 #include "computation/operators/transpose.h"
+#include "kernel/collectors/transpose.h"
+#include "runtime/resource.h"
 #include <execution>
 
 namespace refactor::computation {
 
-    std::shared_ptr<Tensor> transposeNHWC(const Tensor &tensor) {
-        auto N = tensor.shape[0];
-        auto C = tensor.shape[1];
-        auto H = tensor.shape[2];
-        auto W = tensor.shape[3];
-        Shape shape{N, H, W, C};
-        auto ans = Tensor::share(tensor.dataType, shape, LayoutType::NHWC);
-
+    Arc<Tensor> transposeNHWC(const Tensor &tensor) {
+        auto N = tensor.shape[0],
+             C = tensor.shape[1],
+             H = tensor.shape[2],
+             W = tensor.shape[3];
+        auto ans = Tensor::share(tensor.dataType, {N, H, W, C}, LayoutType::NHWC);
         if (tensor.data) {
-            size_t num = N * C * H * W;
-            size_t size = num * tensor.dataType.size();
-            auto [data_, dst] = refactor::mem_manager::Blob::share(size);
-            const void *src = *(tensor.data);
-            std::for_each_n(std::execution::unseq, natural_t(0), num,
-                            [&dst, eleSize = tensor.dataType.size(), H, W, C, &src](auto const i) {
-                                int newIndex = i;
-                                int n = newIndex / (H * W * C);
-                                newIndex %= (H * W * C);
-                                int h = newIndex / (W * C);
-                                newIndex %= (W * C);
-                                int w = newIndex / C;
-                                int c = newIndex % C;
-                                int oldIndex = n * C * H * W + c * H * W + h * W + w;
-                                std::memcpy(dst + i * eleSize, src + oldIndex * eleSize, eleSize);
-                            });
-            ans->data = std::move(data_);
+            static const auto collector = kernel::TransposeCollector(Target::Cpu, {0, 2, 3, 1});
+
+            runtime::Resources res;
+            auto routine = std::move(collector.filter({tensor}, {*ans})[0])->lower(res).routine;
+            void const *inputs[]{*tensor.data};
+            void *outputs[]{ans->malloc()};
+            routine(res, nullptr, inputs, outputs);
         }
         return ans;
     }
 
-    std::shared_ptr<Tensor> transposeNCHW(const Tensor &tensor) {
-        auto N = tensor.shape[0];
-        auto C = tensor.shape[3];
-        auto H = tensor.shape[1];
-        auto W = tensor.shape[2];
-        Shape shape{N, C, H, W};
-        auto ans = Tensor::share(tensor.dataType, shape, LayoutType::NCHW);
-        return ans;
+    Arc<Tensor> transposeNCHW(const Tensor &tensor) {
+        auto N = tensor.shape[0],
+             C = tensor.shape[3],
+             H = tensor.shape[1],
+             W = tensor.shape[2];
+        return Tensor::share(tensor.dataType, {N, C, H, W}, LayoutType::NCHW);
     }
 
     void Graph::layoutPermute() {
@@ -225,7 +213,7 @@ namespace refactor::computation {
                                 {g_.shareEdge({transposeNCHW(t), name + "_out"})});
                             newNode->connect(0, g_.nodes()[nodeIdx]->outputs()[i]);
                             auto it = std::find(node->inputs().begin(), node->inputs().end(), outputs_[i]);
-                            node->connect(it - node->inputs().begin(), newNode->outputs()[0]);
+                            node->connect(std::distance(node->inputs().begin(), it), newNode->outputs()[0]);
                             tensorMap.insert({outputs_[i].get(), newNode->outputs()[0]});
                         }
                     }

@@ -3,14 +3,15 @@
 
 namespace refactor::kernel::cublas {
 
-    CublasContext::CublasContext() noexcept : runtime::Resource() {
+    CublasContext::CublasContext() : runtime::Resource() {
         if (cublasCreate(&handle) != CUBLAS_STATUS_SUCCESS) {
             RUNTIME_ERROR("Failed to create cublas handle");
         }
     }
-    CublasContext::~CublasContext() noexcept {
+    CublasContext::~CublasContext() {
         if (cublasDestroy(handle) != CUBLAS_STATUS_SUCCESS) {
-            RUNTIME_ERROR("Failed to destroy cublas handle");
+            fmt::println("Failed to destroy cublas handle");
+            abort();
         }
     }
 

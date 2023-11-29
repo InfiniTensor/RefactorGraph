@@ -10,22 +10,21 @@ namespace refactor::kernel {
     }
 
     ReduceCollector::ReduceCollector(
-        Target targets_,
+        decltype(_target) target,
         ReduceType type_,
         Axes axes_) noexcept
-        : InfoCollector(),
-          target(targets_),
+        : InfoCollector(target),
           reduceType(type_),
           axes(std::move(axes_)) {}
 
     std::vector<KernelBox>
     ReduceCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 REGISTER(ReduceCpu)
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 REGISTER(ReduceCudnn)
                 break;
             default:

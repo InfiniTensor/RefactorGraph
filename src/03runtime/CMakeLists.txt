@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.10)
-project(runtime)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(runtime VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 file(GLOB_RECURSE RUNTIME_SRC src/*.cc src/*.cpp)
 add_library(runtime STATIC ${RUNTIME_SRC})
-target_link_libraries(runtime PUBLIC graph_topo mem_manager)
+target_link_libraries(runtime PUBLIC graph_topo hardware)
 target_include_directories(runtime PUBLIC include)
 
 file(GLOB_RECURSE RUNTIME_TEST test/*.cpp)

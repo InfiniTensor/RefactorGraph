@@ -8,7 +8,7 @@ namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
 
-    Routine BinaryCudnn::lower(Resources &res) const noexcept {
+    auto BinaryCudnn::lower(Resources &res) const -> RoutineWorkspace {
         struct Descriptors {
             cudnnOpTensorDescriptor_t opDesc;
             cudnnTensorDescriptor_t aDesc, bDesc, cDesc;
@@ -21,7 +21,7 @@ namespace refactor::kernel {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&cDesc));
                 CUDNN_ASSERT(cudnnCreateOpTensorDescriptor(&opDesc));
             }
-            ~Descriptors() {
+            ~Descriptors() noexcept(false) {
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(aDesc));
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(bDesc));
                 CUDNN_ASSERT(cudnnDestroyTensorDescriptor(cDesc));
@@ -39,15 +39,15 @@ namespace refactor::kernel {
             cudnnOP = CUDNN_OP_TENSOR_MUL;
         }
 
-        setCudnnTensor(d->aDesc, dataType, aDims.data(), aDims.size());
-        setCudnnTensor(d->bDesc, dataType, bDims.data(), bDims.size());
-        setCudnnTensor(d->cDesc, dataType, cDims.data(), cDims.size());
+        setCudnnTensor(d->aDesc, dataType, slice(aDims.data(), aDims.size()));
+        setCudnnTensor(d->bDesc, dataType, slice(bDims.data(), bDims.size()));
+        setCudnnTensor(d->cDesc, dataType, slice(cDims.data(), cDims.size()));
         CUDNN_ASSERT(cudnnSetOpTensorDescriptor(
             d->opDesc, cudnnOP, cudnnDataTypeConvert(dataType), CUDNN_NOT_PROPAGATE_NAN));
 
         res.fetchOrStore<CudnnContext>();
         return [swap = aDims != cDims,
-                d_ = std::move(d)](Resources &res, void const **inputs, void **outputs) {
+                d_ = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             auto const &d = *d_;
             // name inputs and outputs

@@ -1,8 +1,8 @@
 ﻿#ifndef ONNX_INFER_H
 #define ONNX_INFER_H
 
-#include "frontend/operator.h"
 #include "common.h"
+#include "frontend/operator.h"
 #include <optional>
 
 namespace refactor::onnx {
@@ -12,6 +12,8 @@ namespace refactor::onnx {
     using ShapeRefs = std::vector<std::reference_wrapper<Shape const>>;
     using OptionalInts = std::optional<Ints>;
     using OptionalIntsRef = std::optional<std::reference_wrapper<Ints const>>;
+
+    constexpr Int StandardOpsetVersion = 18;
 
     /// @brief 多方向形状广播。
     /// @param inputs 所有输入的形状。

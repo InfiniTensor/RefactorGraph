@@ -8,7 +8,7 @@ namespace refactor::onnx {
     Op::Reshape(bool allowzero_)
         : Operator(), allowzero(allowzero_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto allowzero = defaultOr(attributes, "allowzero", {0}).int_() != 0;
         return OpBox(std::make_unique<Op>(allowzero));
     }

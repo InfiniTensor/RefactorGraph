@@ -1,7 +1,6 @@
 ﻿#ifndef COMPUTATION_GRAPH_H
 #define COMPUTATION_GRAPH_H
 
-#include "graph_topo.h"
 #include "kernel/graph.h"
 #include "operator.h"
 

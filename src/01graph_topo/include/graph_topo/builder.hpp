@@ -2,8 +2,6 @@
 #define GRAPH_TOPO_BUILDER_HPP
 
 #include "container.h"
-#include <algorithm>
-#include <unordered_map>
 #include <unordered_set>
 
 namespace refactor::graph_topo {
@@ -53,18 +51,16 @@ namespace refactor::graph_topo {
             while (mappedNodes.size() < this->topology.size()) {
                 for (auto const &[kn, n__] : this->topology) {
                     // node mapped ?
-                    if (mappedNodes.find(kn) != mappedNodes.end()) {
-                        continue;
-                    }
+                    if (mappedNodes.contains(kn)) { continue; }
                     // all inputs mapped ?
                     auto const &[inputs, outputs] = n__;
                     auto ok = true;
                     std::unordered_set<EdgeKey> newLocal;
                     for (auto const &edge : inputs) {
-                        if (keyToIdx.find(edge) != keyToIdx.end()) {
+                        if (keyToIdx.contains(edge)) {
                             continue;
                         }
-                        if (notLocal.find(edge) != notLocal.end()) {
+                        if (notLocal.contains(edge)) {
                             ok = false;
                             break;
                         }

@@ -17,7 +17,7 @@ namespace refactor::kernel {
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
-        Routine lower(Resources &) const noexcept final;
+        RoutineWorkspace lower(Resources &) const noexcept final;
     };
 
 }// namespace refactor::kernel

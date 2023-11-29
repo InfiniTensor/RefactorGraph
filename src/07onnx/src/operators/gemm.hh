@@ -12,7 +12,7 @@ namespace refactor::onnx {
 
         Gemm(Float, Float, bool, bool);
 
-        static OpBox build(std::string_view, Attributes);
+        static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();
 
         size_t opTypeId() const final;

@@ -3,15 +3,13 @@
 
 #include "../attributes/pool_attributes.h"
 #include "../collector.h"
-#include "../target.h"
 
 namespace refactor::kernel {
 
     struct GlobalPoolCollector final : public InfoCollector {
-        Target target;
         PoolType type;
 
-        GlobalPoolCollector(Target, PoolType) noexcept;
+        GlobalPoolCollector(decltype(_target), PoolType) noexcept;
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

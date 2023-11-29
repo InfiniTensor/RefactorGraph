@@ -2,11 +2,10 @@
 #define COMPUTATION_OPERATOR_H
 
 #include "kernel/collector.h"
-#include "kernel/target.h"
 
 namespace refactor::computation {
     using kernel::LayoutType;
-    using kernel::Target;
+    using Target = hardware::Device::Type;
 
     class Operator {
     public:

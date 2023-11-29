@@ -1,5 +1,6 @@
 ﻿#include "constant.hh"
 #include "common.h"
+#include <execution>
 
 namespace refactor::onnx {
     using Op = Constant;
@@ -7,7 +8,7 @@ namespace refactor::onnx {
     Op::Constant(Attribute value_)
         : Operator(), value(std::move(value_)) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         Attribute value;
         if (auto it = attributes.find("value"); it != attributes.end()) {
             value = std::move(it->second);
@@ -51,7 +52,9 @@ namespace refactor::onnx {
         if (value.isFloats()) {
             auto const &x = value.floats();
             auto ans = Tensor::share(DataType::F32, {DimExpr(x.size())}, {});
-            std::copy(x.begin(), x.end(), reinterpret_cast<float *>(ans->malloc()));
+            std::copy(std::execution::par_unseq,
+                      x.begin(), x.end(),
+                      reinterpret_cast<float *>(ans->malloc()));
             return Ok(Tensors{std::move(ans)});
         }
         if (value.isInt()) {
@@ -62,7 +65,9 @@ namespace refactor::onnx {
         if (value.isInts()) {
             auto const &x = value.ints();
             auto ans = Tensor::share(DataType::I64, {DimExpr(x.size())}, {});
-            std::copy(x.begin(), x.end(), reinterpret_cast<int64_t *>(ans->malloc()));
+            std::copy(std::execution::par_unseq,
+                      x.begin(), x.end(),
+                      reinterpret_cast<int64_t *>(ans->malloc()));
             return Ok(Tensors{std::move(ans)});
         }
         return Err(InferError(ERROR_MSG("Constant value not support")));

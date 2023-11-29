@@ -1,7 +1,6 @@
 ﻿#ifndef GRAPH_TOPO_POLYMORPH_GRAPH_H
 #define GRAPH_TOPO_POLYMORPH_GRAPH_H
 
-#include "container.h"
 #include "linked_graph.hpp"
 #include <variant>
 

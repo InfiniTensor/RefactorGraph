@@ -25,16 +25,16 @@ namespace refactor::kernel {
     KERNEL(Xor,     a[tid] ^  b[tid])
     // clang-format on
 
-#define CASE_DT(NAME, T)                                                                     \
-    case DT::T:                                                                              \
-        return [n = this->size](runtime::Resources &, void const **inputs, void **outputs) { \
-            using T_ = primitive<DT::T>::type;                                             \
-            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                \
-            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                \
-            auto c = reinterpret_cast<T_ *>(outputs[0]);                                     \
-            size_t blocksize = 1024;                                                         \
-            size_t gridsize = (n + blocksize - 1) / blocksize;                               \
-            __binary11_kernel_##NAME<<<gridsize, blocksize>>>(a, b, c, n);                   \
+#define CASE_DT(NAME, T)                                                                                                  \
+    case DT::T:                                                                                                           \
+        return [n = this->size](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
+            using T_ = primitive<DT::T>::type;                                                                            \
+            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                                             \
+            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                                             \
+            auto c = reinterpret_cast<T_ *>(outputs[0]);                                                                  \
+            size_t blocksize = 1024;                                                                                      \
+            size_t gridsize = (n + blocksize - 1) / blocksize;                                                            \
+            __binary11_kernel_##NAME<<<gridsize, blocksize>>>(a, b, c, n);                                                \
         }
 
 #define CASE_OP(NAME)                \
@@ -54,7 +54,7 @@ namespace refactor::kernel {
                 UNREACHABLE();       \
         }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         switch (opType) {
             CASE_OP(Add)
             CASE_OP(Sub)

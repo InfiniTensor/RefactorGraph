@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
-project(kernel)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(kernel VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 file(GLOB_RECURSE KERNEL_SRC src/*.cc src/*.cpp)
 if(USE_CUDA)
@@ -22,6 +23,12 @@ endif()
 
 if(USE_CUDA)
     target_link_libraries(kernel PUBLIC cublas cudnn kernel_cuda)
+endif()
+if(USE_KUNLUN)
+    include_directories(${KUNLUN_HOME}/XTDK/include/)
+    find_library(KUNLUN_RT libxpurt.so ${KUNLUN_HOME}/lib64)
+    find_library(KUNLUN_DNN libxpuapi.so ${KUNLUN_HOME}/XTDK/shlib)
+    target_link_libraries(kernel PUBLIC ${KUNLUN_RT} ${KUNLUN_DNN})
 endif()
 
 file(GLOB_RECURSE KERNEL_TEST test/*.cpp)

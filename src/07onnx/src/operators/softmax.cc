@@ -8,7 +8,7 @@ namespace refactor::onnx {
     Op::Softmax(Int axis_)
         : Operator(), axis(axis_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto axis = defaultOr(attributes, "axis", {-1}).int_();
         return OpBox(std::make_unique<Op>(axis));
     }

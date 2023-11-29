@@ -2,13 +2,13 @@
 
 #include "../../../src/kernels/concat/cpu_kernel.hh"
 #include "../../../src/kernels/concat/cuda_kernel.hh"
-#include "kernel/target.h"
-#include "runtime/mem_manager.hh"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 TEST(kernel, ConcatCuda) {
     // build routine
@@ -29,19 +29,18 @@ TEST(kernel, ConcatCuda) {
     auto kernel = ConcatCuda::build(info);
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
-    auto rCpu = kCpu->lower(res);
-    auto routine = kernel->lower(res);
+    auto rCpu = kCpu->lower(res).routine;
+    auto routine = kernel->lower(res).routine;
     // malloc
-    res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
-    auto memManager = res.fetch<runtime::MemManager>()->manager;
-    Arc<mem_manager::ForeignBlob>
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    Arc<Device::Blob>
         gpuIns[]{
-            mem_manager::ForeignBlob::share(memManager, inputTensors[0]->bytesSize()),
-            mem_manager::ForeignBlob::share(memManager, inputTensors[1]->bytesSize()),
-            mem_manager::ForeignBlob::share(memManager, inputTensors[2]->bytesSize()),
-            mem_manager::ForeignBlob::share(memManager, inputTensors[3]->bytesSize()),
+            dev.malloc(inputTensors[0]->bytesSize()),
+            dev.malloc(inputTensors[1]->bytesSize()),
+            dev.malloc(inputTensors[2]->bytesSize()),
+            dev.malloc(inputTensors[3]->bytesSize()),
         },
-        gpuOut = mem_manager::ForeignBlob::share(memManager, result->bytesSize());
+        gpuOut = dev.malloc(result->bytesSize());
     // put input data
     std::vector<float>
         cpuIns[]{
@@ -56,23 +55,23 @@ TEST(kernel, ConcatCuda) {
     std::iota(cpuIns[1].begin(), cpuIns[1].end(), 0);
     std::iota(cpuIns[2].begin(), cpuIns[2].end(), 0);
     std::iota(cpuIns[3].begin(), cpuIns[3].end(), 0);
-    gpuIns[0]->copyIn(cpuIns[0].data(), inputTensors[0]->bytesSize());
-    gpuIns[1]->copyIn(cpuIns[1].data(), inputTensors[1]->bytesSize());
-    gpuIns[2]->copyIn(cpuIns[2].data(), inputTensors[2]->bytesSize());
-    gpuIns[3]->copyIn(cpuIns[3].data(), inputTensors[3]->bytesSize());
+    gpuIns[0]->copyFromHost(cpuIns[0].data(), inputTensors[0]->bytesSize());
+    gpuIns[1]->copyFromHost(cpuIns[1].data(), inputTensors[1]->bytesSize());
+    gpuIns[2]->copyFromHost(cpuIns[2].data(), inputTensors[2]->bytesSize());
+    gpuIns[3]->copyFromHost(cpuIns[3].data(), inputTensors[3]->bytesSize());
     // inference
     {
         void const *inputs[]{*gpuIns[0], *gpuIns[1], *gpuIns[2], *gpuIns[3]};
         void *outputs[]{*gpuOut};
-        routine(res, inputs, outputs);
+        routine(res, nullptr, inputs, outputs);
     }
     {
         void const *inputs[]{cpuIns[0].data(), cpuIns[1].data(), cpuIns[2].data(), cpuIns[3].data()};
         void *outputs[]{cpuOut.data()};
-        rCpu(res, inputs, outputs);
+        rCpu(res, nullptr, inputs, outputs);
     }
     // check
-    gpuOut->copyOut(out.data(), result->bytesSize());
+    gpuOut->copyToHost(out.data(), result->bytesSize());
     EXPECT_EQ(out, cpuOut);
 }
 

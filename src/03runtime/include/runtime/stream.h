@@ -2,53 +2,49 @@
 #define RUNTIME_STREAM_H
 
 #include "graph_topo.h"
-#include "mem_manager/foreign_blob.hh"
+#include "hardware/device.h"
 #include "resource.h"
-#include <absl/container/inlined_vector.h>
 #include <chrono>
-#include <functional>
-#include <variant>
 
 namespace refactor::runtime {
-    using Routine = std::function<void(runtime::Resources &, void const **, void **)>;
+    using Routine = std::function<void(runtime::Resources &, void *, void const *const *, void *const *)>;
 
-    void emptyRoutine(runtime::Resources &, void const **, void **);
+    void emptyRoutine(runtime::Resources &, void *, void const *const *, void *const *);
 
-    struct Address {
-        std::variant<size_t, mem_manager::SharedForeignBlob> value;
+    struct Node {
+        Routine routine;
+        size_t workspaceOffset;
 
-        void *operator()(void *stack);
+        template<class T>
+        Node(T &&r, size_t wso = 0) noexcept
+            : routine(std::forward<T>(r)),
+              workspaceOffset(wso) {}
+    };
 
-        bool isBlob() const noexcept;
-        bool isOffset() const noexcept;
-
-        auto blob() const noexcept -> mem_manager::SharedForeignBlob const &;
-        auto offset() const noexcept -> size_t;
+    struct Edge {
+        Arc<hardware::Device::Blob> blob;
+        size_t stackOffset;
     };
 
     class Stream {
-        using _N = Routine;
-        using _E = Address;
-        using _G = graph_topo::Graph<_N, _E>;
-
+        Arc<hardware::Device> _device;
+        Arc<hardware::Device::Blob> _stack;
         Resources _resources;
-        mem_manager::SharedForeignBlob _stack;
-        std::vector<size_t> _outputsSize;
-        _G _internal;
+        graph_topo::Graph<Node, Edge> _graph;
 
     public:
-        Stream(Resources,
-               size_t stack,
-               std::vector<size_t> outputs,
+        Stream(decltype(_resources),
+               size_t,
                graph_topo::GraphTopo,
-               std::vector<_N>,
-               std::vector<_E>);
-        void setInput(count_t, void const *, size_t);
-        void setInput(count_t, mem_manager::SharedForeignBlob);
-        void getOutput(count_t, void *, size_t) const;
-        auto prepare() -> std::vector<count_t>;
+               std::vector<Node>,
+               std::vector<Edge>,
+               decltype(_device));
+        void setData(count_t, void const *, size_t);
+        void setData(count_t, Arc<hardware::Device::Blob>);
+        bool getData(count_t, void *, size_t) const;
         void run();
         auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;
+        void trace(std::function<void(count_t, void const *const *, void const *const *)>);
     };
 
 }// namespace refactor::runtime

@@ -1,28 +1,29 @@
 #include "kernel/attributes/matmul_info.h"
+#include <cstddef>
 #include <numeric>
+
 namespace refactor::kernel {
 
-    BiasType buildBiasType(size_t m, size_t n, Tensor const &c) {
-        switch (c.rank()) {
-            case 0:
-                return BiasType::Scalar;
-            case 1:
-                return c.shape[0] == n
-                           ? BiasType::RowVector
-                           : BiasType::Scalar;
-            case 2:
-                if (c.shape[0] == m) {
-                    return c.shape[1] == n
-                               ? BiasType::Matrix
-                               : BiasType::ColVector;
-                } else {
-                    return c.shape[1] == n
-                               ? BiasType::RowVector
-                               : BiasType::Scalar;
-                }
-            default:
-                UNREACHABLE();
+    ExpandInfo buildBias(size_t m, size_t n,
+                         Tensor const &a,
+                         Tensor const &b,
+                         Tensor const &c) {
+        std::vector<dim_t> output(std::max(a.rank(), b.rank()));
+        auto it = output.rbegin();
+        *it++ = n;
+        *it++ = m;
+        for (auto da = static_cast<size_t>(a.rank() - 2),
+                  db = static_cast<size_t>(b.rank() - 2);
+             auto i : range0_(output.size() - 2)) {
+            auto a_ = i < da ? a.shape[da - i - 1] : 1;
+            auto b_ = i < db ? b.shape[db - i - 1] : 1;
+            *it++ = std::max(a_, b_);
         }
+
+        return ExpandInfo(
+            c.dataType,
+            slice(c.shape.data(), c.rank()),
+            slice(output.data(), output.size()));
     }
 
     MatMulInfo::MatMulInfo(
@@ -33,25 +34,15 @@ namespace refactor::kernel {
           alpha(alpha_), beta(beta_),
           transA(transA_), transB(transB_),
           m(transA ? a.shape.rbegin()[0] : a.shape.rbegin()[1]),
-          n(transB ? b.shape.rbegin()[1] : b.shape.rbegin()[0]),
           k(transA ? a.shape.rbegin()[1] : a.shape.rbegin()[0]),
-          biasType(c ? buildBiasType(m, n, *c) : BiasType::NoBias),
+          n(transB ? b.shape.rbegin()[1] : b.shape.rbegin()[0]),
+          biasExpand(c ? std::make_optional(buildBias(m, n, a, b, *c)) : std::nullopt),
           broadcaster({
               slice(a.shape.data(), a.shape.size() - 2),
               slice(b.shape.data(), b.shape.size() - 2),
           }) {
         auto kB = transB ? b.shape.rbegin()[0] : b.shape.rbegin()[1];
         ASSERT(k == kB, "MatMul: input shape not matched.");
-    }
-
-    MatMulInfo::MatMulInfo(Tensor const &A, Tensor const &B, bool tA, bool tB, float alpha)
-        : MatMulInfo(A, B, {}, tA, tB, alpha, 0.f) {}
-
-    MatMulInfo::MatMulInfo(Tensor const &A, Tensor const &B, Tensor const &C, bool tA, bool tB, float alpha, float beta)
-        : MatMulInfo(A, B, std::make_optional(C), tA, tB, alpha, beta) {}
-
-    size_t MatMulInfo::batch() const noexcept {
-        return broadcaster.outputsCount;
     }
 
 }// namespace refactor::kernel

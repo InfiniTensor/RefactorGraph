@@ -11,7 +11,7 @@ namespace refactor::onnx {
     Op::SimpleUnary(Ty type_)
         : Operator(), type(type_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Simple binary operator should not have attributes");
 
         // clang-format off
@@ -191,23 +191,23 @@ namespace refactor::onnx {
             {Ty::Tanh, Ty::Sqrt, Ty::Sigmoid, Ty::Log},
             {Ty::Neg},
             {Ty::Identity}};
-        if (SET[0].find(type) != SET[0].end()) {
+        if (SET[0].contains(type)) {
             if (!dataType.isNumberic()) {
                 return Err(InferError(ERROR_MSG("Data type not support")));
             }
-        } else if (SET[1].find(type) != SET[1].end()) {
+        } else if (SET[1].contains(type)) {
             if (!dataType.isIeee754()) {
                 return Err(InferError(ERROR_MSG("Data type not support")));
             }
-        } else if (SET[2].find(type) != SET[2].end()) {
+        } else if (SET[2].contains(type)) {
             if (!dataType.isFloat()) {
                 return Err(InferError(ERROR_MSG("Data type not support")));
             }
-        } else if (SET[3].find(type) != SET[3].end()) {
+        } else if (SET[3].contains(type)) {
             if (!dataType.isSigned()) {
                 return Err(InferError(ERROR_MSG("Data type not support")));
             }
-        } else if (SET[4].find(type) != SET[4].end()) {
+        } else if (SET[4].contains(type)) {
             // nothing to do
         } else {
             return Err(InferError(ERROR_MSG(fmt::format("{} not support in unary inference", opTypeName()))));
@@ -236,6 +236,7 @@ namespace refactor::onnx {
                     ans->free();
                     break;
             }
+#undef CASE
         } else if (type == Ty::Log) {
             //-------------------------------------
 #define CASE(T)                                                       \
@@ -254,6 +255,7 @@ namespace refactor::onnx {
                     ans->free();
                     break;
             }
+#undef CASE
         }
         return Ok(Tensors{std::move(ans)});
     }

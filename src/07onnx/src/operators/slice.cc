@@ -9,7 +9,7 @@ namespace refactor::onnx {
 
     Op::Slice() : Operator() {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Slice operator should not have attributes");
         return OpBox(std::make_unique<Op>());
     }
@@ -23,8 +23,8 @@ namespace refactor::onnx {
     auto Op::valueDependentInputs() const -> InputVec { return {1, 2, 3, 4}; }
 
     Result<Dimensions, InferError> buildDims(
-        size_t rank,
-        size_t size,
+        int64_t rank,
+        int64_t size,
         Shape const &data,
         int64_t const *const starts,
         int64_t const *const ends,

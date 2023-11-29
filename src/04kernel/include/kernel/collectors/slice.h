@@ -3,15 +3,13 @@
 
 #include "../attributes/slice_info.h"
 #include "../collector.h"
-#include "../target.h"
 
 namespace refactor::kernel {
 
     struct SliceCollector final : public InfoCollector {
-        Target target;
         Dimensions dimentions;
 
-        SliceCollector(Target, Dimensions) noexcept;
+        SliceCollector(decltype(_target), Dimensions) noexcept;
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

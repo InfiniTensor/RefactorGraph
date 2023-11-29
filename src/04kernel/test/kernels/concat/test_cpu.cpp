@@ -22,7 +22,7 @@ TEST(kernel, ConcatCpu) {
     auto kernel = ConcatCpu::build(SplitInfo(3, inputs_));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // put input data
     std::vector<float>
         ins[]{
@@ -39,7 +39,7 @@ TEST(kernel, ConcatCpu) {
     // inference
     void const *inputs[]{ins[0].data(), ins[1].data(), ins[2].data(), ins[3].data()};
     void *outputs[]{out.data()};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // check
     constexpr static size_t
         loops[]{

@@ -1,6 +1,5 @@
 #include "cpu_kernel.hh"
 #include "kernel/attributes/transpose_info.h"
-#include "runtime/mem_manager.hh"
 #include <numeric>
 #include <unordered_set>
 
@@ -8,17 +7,21 @@ namespace refactor::kernel {
     using K = ReduceCpu;
     using DT = DataType;
 
-    K::ReduceCpu(decltype(axes) axes_, ReduceType reduceType_, DataType dataType_, Shape shape_) noexcept
+    K::ReduceCpu(
+        decltype(dataType) dataType_,
+        decltype(reduceType) reduceType_,
+        decltype(axes) axes_,
+        decltype(shape) shape_) noexcept
         : Kernel(),
-          axes(axes_),
-          reduceType(reduceType_),
           dataType(dataType_),
-          shape(shape_) {}
+          reduceType(reduceType_),
+          axes(std::move(axes_)),
+          shape(std::move(shape_)) {}
 
     auto K::build(decltype(axes) axes_, ReduceType reduceType_, TensorRefs inputs_) noexcept -> KernelBox {
         auto const &x = inputs_[0].get();
         return x.dataType.isCpuNumberic()
-                   ? std::make_unique<K>(axes_, reduceType_, x.dataType, x.shape)
+                   ? std::make_unique<K>(x.dataType, reduceType_, std::move(axes_), x.shape)
                    : nullptr;
     }
     auto K::typeId() noexcept -> size_t {
@@ -42,7 +45,7 @@ namespace refactor::kernel {
         size_t outsideSize = 1;
         size_t onAxesSize = 1;
         for (auto i : range0_(shape.size())) {
-            if (axesSet.find(i) == axesSet.end()) {
+            if (!axesSet.contains(i)) {
                 perm.push_back(i);
                 outsideSize *= shape[i];
             }
@@ -80,7 +83,7 @@ namespace refactor::kernel {
             default:
                 UNREACHABLE();
         }
-        return [info, outsideSize, onAxesSize, accumulate, tailInvoke](Resources &res, void const **inputs, void **outputs) {
+        return [info, outsideSize, onAxesSize, accumulate, tailInvoke](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto input = reinterpret_cast<dt const *>(inputs[0]);
             auto output = reinterpret_cast<dt *>(outputs[0]);
             for (auto i : range0_(outsideSize)) {
@@ -94,7 +97,7 @@ namespace refactor::kernel {
         };
     }
 
-    auto K::lower(Resources &res) const noexcept -> Routine {
+    auto K::lower(Resources &res) const noexcept -> RoutineWorkspace {
 
 #define CASE(T) \
     case T:     \

@@ -1,4 +1,5 @@
 ﻿#include "kernel/cuda/where.cuh"
+#include "macro.cuh"
 #include <cstdint>
 
 namespace refactor::kernel::cuda {
@@ -12,24 +13,30 @@ namespace refactor::kernel::cuda {
         uint8_t *output,
         unsigned int rank,
         unsigned int eleSize) {
+        extern __shared__ unsigned int shared[];
+        for (auto i = threadIdx.x; i < rank * 4; i += blockDim.x) {
+            shared[i] = strides[i];
+        }
+        __syncthreads();
         for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
                   step = blockDim.x * gridDim.x;
              tid < n;
              tid += step) {
             auto ic = 0u, ix = 0u, iy = 0u, rem = tid;
             for (auto j = 0u; j < rank; ++j) {
-                auto dim = strides + 4 * j;
+                auto dim = shared + 4 * j;
                 auto quot = rem / dim[3];
                 rem %= dim[3];
                 ic += quot * dim[0];
                 ix += quot * dim[1];
                 iy += quot * dim[2];
             }
-            memcpy(output + tid * eleSize,
-                   c[ic]
-                       ? x + ix * eleSize
-                       : y + iy * eleSize,
-                   eleSize);
+
+            optimizedMemcpy(output + tid * eleSize,
+                            c[ic]
+                                ? x + ix * eleSize
+                                : y + iy * eleSize,
+                            eleSize);
         }
     }
 
@@ -45,7 +52,7 @@ namespace refactor::kernel::cuda {
         whereKernel<<<
             params.gridSize,
             params.blockSize,
-            params.dynamicSharedBytes,
+            rank * sizeof(unsigned int) * 4,
             reinterpret_cast<cudaStream_t>(params.stream)>>>(
             params.n,
             strides,

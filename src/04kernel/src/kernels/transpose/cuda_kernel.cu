@@ -5,14 +5,15 @@
 
 namespace refactor::kernel {
 
-    auto TransposeCuda::lower(Resources &) const noexcept -> Routine {
-        thrust::host_vector<cuda::DimStride> strides(info.dims.size());
+    auto TransposeCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
+        using cuda::transpose::DimStride;
+        thrust::host_vector<DimStride> strides(info.dims.size());
         std::transform(info.dims.begin(), info.dims.end(),
                        strides.begin(),
-                       [](auto const &dim) { return cuda::DimStride{dim.strideI, dim.strideO}; });
-        return [strides = thrust::device_vector<cuda::DimStride>(strides),
+                       [](auto const &dim) { return DimStride{dim.strideI, dim.strideO}; });
+        return [strides = thrust::device_vector<DimStride>(strides),
                 params = cuda::ThreadsDistributer()(info.size),
-                eleSize = dataType.size()](Resources &, void const **inputs, void **outputs) {
+                eleSize = dataType.size()](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             cuda::launchTranspose(
                 params,
                 inputs[0],

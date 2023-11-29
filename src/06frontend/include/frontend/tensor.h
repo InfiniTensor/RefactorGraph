@@ -1,9 +1,9 @@
 ﻿#ifndef FRONTEND_TENSOR_H
 #define FRONTEND_TENSOR_H
 
-#include "absl/container/inlined_vector.h"
 #include "graph_topo.h"
-#include "mem_manager/blob.hh"
+#include "kernel/blob.hh"
+#include <span>
 #include <unordered_set>
 #include <variant>
 
@@ -49,7 +49,7 @@ namespace refactor::frontend {
     struct TensorSnapshot {
         DataType dataType;
         ShapeSnapshot shape;
-        std::weak_ptr<mem_manager::Blob> dataPtr;
+        std::weak_ptr<kernel::Blob> dataPtr;
 
         bool operator==(TensorSnapshot const &) const;
         bool operator!=(TensorSnapshot const &) const;
@@ -61,20 +61,20 @@ namespace refactor::frontend {
     struct Tensor {
         DataType dataType;
         Shape shape;
-        Arc<mem_manager::Blob> data;
+        Arc<kernel::Blob> data;
 
         std::unordered_set<DimVariable> depVariables;
 
         Tensor(DataType,
                Shape,
-               Arc<mem_manager::Blob>,
+               Arc<kernel::Blob>,
                std::unordered_set<DimVariable>);
         static Arc<Tensor> share(Tensor const &);
         static Arc<Tensor> share(
             DataType,
             Shape,
             std::unordered_set<DimVariable>,
-            Arc<mem_manager::Blob> = nullptr);
+            Arc<kernel::Blob> = nullptr);
 
         int64_t rank() const;
         size_t elementsSize() const;
@@ -95,7 +95,7 @@ namespace refactor::frontend {
 
     class TensorRefs {
         std::vector<Edge> const &_edges;
-        slice_t<count_t> _slice;
+        std::span<count_t const> _slice;
 
     public:
         TensorRefs(decltype(_edges) const &, decltype(_slice));

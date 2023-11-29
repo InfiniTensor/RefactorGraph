@@ -4,12 +4,16 @@
 namespace refactor::kernel {
     using K = ReduceCudnn;
 
-    K::ReduceCudnn(decltype(axes) axes_, ReduceType reduceType_, DataType dataType_, Shape shape_) noexcept
+    K::ReduceCudnn(
+        decltype(dataType) dataType_,
+        decltype(reduceType) reduceType_,
+        decltype(axes) axes_,
+        decltype(shape) shape_) noexcept
         : Kernel(),
-          axes(axes_),
-          reduceType(reduceType_),
           dataType(dataType_),
-          shape(shape_) {}
+          reduceType(reduceType_),
+          axes(std::move(axes_)),
+          shape(std::move(shape_)) {}
 
     auto K::build(decltype(axes) axes_, ReduceType reduceType_, TensorRefs inputs_) noexcept -> KernelBox {
 #ifndef USE_CUDA
@@ -18,7 +22,7 @@ namespace refactor::kernel {
 
         auto const &x = inputs_[0].get();
         return x.dataType.isCpuNumberic()
-                   ? std::make_unique<K>(axes_, reduceType_, x.dataType, x.shape)
+                   ? std::make_unique<K>(x.dataType, reduceType_, std::move(axes_), x.shape)
                    : nullptr;
     }
 

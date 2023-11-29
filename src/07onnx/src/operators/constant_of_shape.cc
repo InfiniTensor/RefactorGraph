@@ -1,6 +1,7 @@
 ﻿#include "constant_of_shape.hh"
 #include "common.h"
 #include <execution>
+#include <span>
 
 namespace refactor::onnx {
     using Op = ConstantOfShape;
@@ -8,7 +9,7 @@ namespace refactor::onnx {
     Op::ConstantOfShape(Tensor_ value_)
         : Operator(), value(std::move(value_)) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto it = attributes.find("value");
         auto value = it != attributes.end() ? std::move(it->second.tensor()) : nullptr;
         return OpBox(std::make_unique<Op>(std::move(value)));
@@ -33,8 +34,7 @@ namespace refactor::onnx {
 
         EXPECT_VAL(input.shape[0], shapeSize)
         Shape output(shapeSize, DimExpr(1));
-        auto shape = input.data->get<int64_t>();
-        auto slice = slice_t<int64_t>{shape, shape + shapeSize};
+        std::span slice(input.data->get<int64_t>(), shapeSize);
         std::transform(std::execution::unseq,
                        slice.begin(), slice.end(), output.begin(),
                        [](auto const d) { return DimExpr(d); });

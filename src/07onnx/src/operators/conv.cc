@@ -1,6 +1,7 @@
 ﻿#include "computation/operators/conv.h"
-#include "conv.hh"
 #include "common.h"
+#include "conv.hh"
+#include <execution>
 #include <numeric>
 
 namespace refactor::onnx {
@@ -14,7 +15,7 @@ namespace refactor::onnx {
           pads(std::move(pads_)),
           strides(std::move(strides_)) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         OptionalInts
             dilations = std::nullopt,
             pads = std::nullopt,
@@ -95,7 +96,9 @@ namespace refactor::onnx {
         Shape output(input.rank(), DimExpr(0));
         output[0] = input.shape[0];
         output[1] = kernel.shape[0];
-        std::copy(output_.begin(), output_.end(), output.begin() + 2);
+        std::copy(std::execution::par_unseq,
+                  output_.begin(), output_.end(),
+                  output.begin() + 2);
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 

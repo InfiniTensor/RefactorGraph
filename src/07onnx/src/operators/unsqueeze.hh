@@ -2,15 +2,17 @@
 #define ONNX_UNSQUEEZE_HH
 
 #include "frontend/operator.h"
+#include <optional>
 
 namespace refactor::onnx {
     using namespace frontend;
 
     struct Unsqueeze final : public Operator {
+        std::optional<Ints> axes;
 
-        Unsqueeze();
+        explicit Unsqueeze(decltype(axes));
 
-        static OpBox build(std::string_view, Attributes);
+        static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();
 
         size_t opTypeId() const final;

@@ -12,7 +12,7 @@
 	url = git@github.com:MengRao/fmtlog.git
 [submodule "3rd-party/result"]
 	path = 3rd-party/result
-	url = git@github.com:oktal/result.git
+	url = git@github.com:willowell/result.git
 [submodule "3rd-party/abseil-cpp"]
 	path = 3rd-party/abseil-cpp
 	url = git@github.com:abseil/abseil-cpp.git

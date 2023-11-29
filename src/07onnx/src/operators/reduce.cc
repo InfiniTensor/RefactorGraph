@@ -7,17 +7,26 @@ namespace refactor::onnx {
     using Op = Reduce;
     using Ty = ReduceType;
 
-    Op::Reduce(Ty type_, Ints axes_, bool keepdims_, bool noopWithEmptyAxes_)
+    Op::Reduce(Ty type_, decltype(axes) axes_, bool keepdims_, bool noopWithEmptyAxes_)
         : Operator(),
           type(type_),
           axes(std::move(axes_)),
           keepdims(keepdims_),
           noopWithEmptyAxes(noopWithEmptyAxes_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
-        auto keepDims = defaultOr(attributes, "keepdims", {1}).int_() != 0;
-        auto noopWithEmptyAxes = defaultOr(attributes, "noop_with_empty_axes", {0}).int_() != 0;
-        auto axes = defaultOr(attributes, "axes", {{}}).ints();
+    auto Op::build(ModelContext const &ctx, std::string_view opType, Attributes attributes) -> OpBox {
+        auto iter = ctx.find("opset_version");
+        auto opsetVer = iter != ctx.end() ? iter->second.int_() : StandardOpsetVersion;
+
+        auto noopWithEmptyAxes = false;
+        decltype(Op::axes) axes = std::nullopt;
+        if (opsetVer >= 18) {
+            noopWithEmptyAxes = defaultOr(attributes, "noop_with_empty_axes", {0}).int_() != 0;
+        } else {
+            axes.emplace(defaultOr(attributes, "axes", {{}}).ints());
+        }
+
+        auto keepDims = defaultOr(attributes, "keepdims", {1}).int_();
         Ty ty;
         if (opType == "onnx::ReduceMean") {
             ty = Ty::Mean;
@@ -131,34 +140,37 @@ namespace refactor::onnx {
         if (!data.dataType.isNumberic()) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
-        if (inputs.size() == 1 && axes.empty()) {
-            if (noopWithEmptyAxes) {
-                return Ok(Tensors{Tensor::share(data)});
-            } else if (keepdims) {
-                return Ok(Tensors{Tensor::share(data.dataType,
-                                                Shape(data.rank(), DimExpr(1)),
-                                                extractDependency(inputs))});
-            } else {
-                return Ok(Tensors{Tensor::share(data.dataType,
-                                                Shape{},
-                                                extractDependency(inputs))});
-            }
+        if (!axes && inputs.size() == 1) {
+            return Ok(Tensors{
+                noopWithEmptyAxes ? Tensor::share(data)
+                : keepdims        ? Tensor::share(data.dataType, Shape(data.rank(), DimExpr(1)), extractDependency(inputs))
+                                  : Tensor::share(data.dataType, Shape{}, extractDependency(inputs))});
         }
-        // auto const &axes = inputs[1];
-        // if (axes.dataType != DataType::I64 || axes.rank() != 1 || !axes.data) {
-        //     return Err(InferError(ERROR_MSG("Axes not support")));
-        // }
-        auto axes_ = axes.data();
+        int64_t const *axes_;
+        size_t axesSize;
+        if (axes) {
+            axes_ = axes->data();
+            axesSize = axes->size();
+        } else {
+            auto const &axes__ = inputs[1];
+            if (axes__.dataType != DataType::I64 ||
+                axes__.rank() != 1 ||
+                !axes__.data) {
+                return Err(InferError(ERROR_MSG("Axes not support")));
+            }
+            axes_ = axes__.data->get<int64_t>();
+            EXPECT_VAL(axes__.shape[0], axesSize_)
+            axesSize = axesSize_;
+        }
         auto const &shape = data.shape;
-        // EXPECT_VAL(axes.shape[0], axesSize)
         std::unordered_set<int64_t> axes__;
-        for (auto i : range0_(axes.size())) {
+        for (auto i : range0_(axesSize)) {
             auto axis = axes_[i];
             axes__.insert(axis < 0 ? axis + shape.size() : axis);
         }
         Shape output;
         for (auto i : range0_(shape.size())) {
-            if (axes__.find(i) == axes__.end()) {
+            if (!axes__.contains(i)) {
                 output.emplace_back(shape[i]);
             } else if (keepdims) {
                 output.emplace_back(1);
@@ -210,23 +222,27 @@ namespace refactor::onnx {
         }
 
         auto rank = inputs[0].rank();
-        if (inputs.size() == 1 && axes.empty()) {
+        if (!axes && inputs.size() == 1) {
             if (noopWithEmptyAxes) {
                 return std::make_unique<computation::Identity>();
             } else {
                 return std::make_unique<Op_>(type_, decltype(Op_::axes){}, rank, keepdims);
             }
         }
-        // auto const &axes = inputs[1];
-        // auto axes_ = axes.data->get<int64_t>();
-        // auto axesSize = axes.shape[0].value();
-
-        decltype(Op_::axes) axes__(axes.size());
+        int64_t const *axes_;
+        size_t axesSize;
+        if (axes) {
+            axes_ = axes->data();
+            axesSize = axes->size();
+        } else {
+            axes_ = inputs[1].data->get<int64_t>();
+            axesSize = inputs[1].shape[0].value();
+        }
+        decltype(Op_::axes) axes__(axesSize);
         std::transform(std::execution::unseq,
-                       axes.begin(), axes.end(), axes__.begin(), [rank](auto axis) {
+                       axes_, axes_ + axesSize, axes__.begin(), [rank](auto axis) {
                            return axis < 0 ? axis + rank : axis;
                        });
-
         return std::make_unique<Op_>(type_, std::move(axes__), rank, keepdims);
     }
 }// namespace refactor::onnx

@@ -3,15 +3,13 @@
 
 #include "../attributes/pool_attributes.h"
 #include "../collector.h"
-#include "../target.h"
 
 namespace refactor::kernel {
 
     struct ConvCollector final : public InfoCollector {
-        Target target;
         PoolAttributes poolAttrs;
 
-        ConvCollector(Target, PoolAttributes) noexcept;
+        ConvCollector(decltype(_target), PoolAttributes) noexcept;
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

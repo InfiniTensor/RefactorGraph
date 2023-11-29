@@ -1,12 +1,15 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(refactor_graph VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
-option(USE_CUDA "Build with cuda" OFF)
+option(USE_CUDA "Support Nvidia GPU" OFF)
+option(USE_KUNLUN "Support Baidu Kunlunxin" OFF)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(USE_CUDA)
     add_compile_definitions(USE_CUDA)
@@ -24,9 +27,21 @@ if(USE_CUDA)
     message(STATUS "CMAKE_CUDA_ARCHITECTURES set to " ${CMAKE_CUDA_ARCHITECTURES})
 endif()
 
-# add_compile_options(-march=native) # this will cause error in some machine
+if(USE_KUNLUN)
+    add_compile_definitions(USE_KUNLUN)
+    if (DEFINED KUNLUN_HOME)
+        set(KUNLUN_HOME ${KUNLUN_HOME} CACHE STRING "KUNLUN_HOME directory for Kunlun development")
+    elseif(DEFINED ENV{KUNLUN_HOME})
+        set(KUNLUN_HOME $ENV{KUNLUN_HOME} CACHE STRING "KUNLUN_HOME directory for Kunlun development")
+    else()
+        message(FATAL_ERROR "KUNLUN_HOME is not defined from cmake or env")
+    endif()
+    message(STATUS "KUNLUN_HOME: ${KUNLUN_HOME}")
+endif()
+
+add_compile_options(-march=native) # this will cause error in some machine
 add_compile_options(-mtune=native)
-add_compile_options(-fPIC)
+add_compile_options(-Wall)
 
 add_subdirectory(3rd-party/backward-cpp)
 
@@ -39,12 +54,8 @@ add_subdirectory(3rd-party/googletest)
 include_directories(3rd-party/fmtlog)
 add_definitions(-D FMTLOG_HEADER_ONLY)
 
-# disable warning in 3rd-party/abseil-cpp
-# see <https://github.com/abseil/abseil-cpp/pull/1287>
-add_compile_options(-w)
 include_directories(3rd-party/abseil-cpp)
 add_subdirectory(3rd-party/abseil-cpp)
-add_compile_options(-Wall)
 
 include_directories(3rd-party/result)
 
@@ -52,7 +63,7 @@ enable_testing()
 
 add_subdirectory(src/00common)
 add_subdirectory(src/01graph_topo)
-add_subdirectory(src/02mem_manager)
+add_subdirectory(src/02hardware)
 add_subdirectory(src/03runtime)
 add_subdirectory(src/04kernel)
 add_subdirectory(src/05computation)

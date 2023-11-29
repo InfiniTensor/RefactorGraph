@@ -2,15 +2,12 @@
 #define KERNEL_WHERE_H
 
 #include "../collector.h"
-#include "../target.h"
 
 namespace refactor::kernel {
 
     struct WhereCollector final : public InfoCollector {
-        Target target;
-
-        constexpr WhereCollector(Target target_) noexcept
-            : InfoCollector(), target(target_) {}
+        constexpr WhereCollector(decltype(_target) target) noexcept
+            : InfoCollector(target) {}
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

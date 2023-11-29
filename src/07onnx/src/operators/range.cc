@@ -6,7 +6,7 @@ namespace refactor::onnx {
 
     Op::Range() : Operator() {}
 
-    auto Op::build(std::string_view, Attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes) -> OpBox {
         return OpBox(std::make_unique<Op>());
     }
     auto Op::typeId() -> size_t {
@@ -62,12 +62,12 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input data not support")));
         }
         //-------------------------------------
-#define CASE(T)                                           \
-    case DataType::T:                                     \
+#define CASE(T)                                         \
+    case DataType::T:                                   \
         return calculate<primitive<DataType::T>::type>( \
-            start.data->get<void>(),                      \
-            limit.data->get<void>(),                      \
-            delta.data->get<void>(),                      \
+            start.data->get<void>(),                    \
+            limit.data->get<void>(),                    \
+            delta.data->get<void>(),                    \
             extractDependency(inputs))
         //-------------------------------------
         switch (dataType.internal) {

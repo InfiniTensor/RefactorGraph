@@ -9,10 +9,22 @@ namespace refactor::kernel {
     auto K::build(PoolAttributes const &poolAttributes,
                   Tensor const &x,
                   Tensor const &w,
-                  Tensor const &y) noexcept -> KernelBox {
+                  std::optional<std::reference_wrapper<Tensor const>> b,
+                  Tensor const &y) -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
+
+        std::optional<ExpandInfo> biasExpand = std::nullopt;
+        if (b) {
+            ASSERT(b->get().shape[0] == y.shape[1], "");
+            std::vector<dim_t> input(y.rank(), 1);
+            input[1] = y.shape[1];
+            biasExpand.emplace(ExpandInfo(
+                b->get().dataType,
+                slice(input.data(), input.size()),
+                slice(y.shape.data(), y.rank())));
+        }
 
         // group is not supported
         if (w.rank() != 4 || x.shape[1] != w.shape[1]) {
@@ -49,7 +61,9 @@ namespace refactor::kernel {
             },
             {d[0], d[1]},
             {p[0], p[1]},
-            {s[0], s[1]}});
+            {s[0], s[1]},
+            std::move(biasExpand),
+        });
     }
 
     auto K::typeId() noexcept -> size_t {

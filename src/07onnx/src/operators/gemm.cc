@@ -13,7 +13,7 @@ namespace refactor::onnx {
           transA(transA_),
           transB(transB_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto alpha = defaultOr(attributes, "alpha", {1.0f}).float_();
         auto beta = defaultOr(attributes, "beta", {1.0f}).float_();
         auto transA = defaultOr(attributes, "transA", {0}).int_() != 0;

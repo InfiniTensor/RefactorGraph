@@ -1,6 +1,7 @@
 ﻿#include "computation/operators/einsum.h"
 #include "common.h"
 #include "einsum.hh"
+#include <algorithm>
 #include <variant>
 
 namespace refactor::onnx {
@@ -9,7 +10,7 @@ namespace refactor::onnx {
     Op::Einsum(std::string equation_)
         : Operator(), equation(std::move(equation_)) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         return OpBox(std::make_unique<Op>(std::move(attributes.at("equation").string())));
     }
     auto Op::typeId() -> size_t {
@@ -33,23 +34,23 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input size error")));
         }
         std::vector<DimExpr> size(26, DimExpr(1));
-        for (auto i = 0; i < inputs.size(); ++i) {
+        for (auto i : range0_(inputs.size())) {
             if (inputs[i].dataType != dataType) {
                 return Err(InferError(ERROR_MSG("Data type error")));
             }
             auto indices = notation.indices(i);
-            if (inputs[i].rank() != indices.size()) {
+            if (inputs[i].shape.size() != indices.size()) {
                 return Err(InferError(ERROR_MSG("Input shape error")));
             }
-            for (auto j = 0; j < indices.size(); ++j) {
+            for (auto j : range0_(indices.size())) {
                 size[indices[j] - 'a'] = inputs[i].shape[j];
             }
         }
         auto output_ = notation.outputIndices();
         auto output = Shape(output_.size(), DimExpr(1));
-        for (auto i = 0; i < output_.size(); ++i) {
-            output[i] = size[output_[i] - 'a'];
-        }
+        std::transform(output_.begin(), output_.end(),
+                       output.begin(),
+                       [&](auto c) { return size[c - 'a']; });
         return Ok(Tensors{Tensor::share(dataType, std::move(output), extractDependency(inputs))});
     }
 

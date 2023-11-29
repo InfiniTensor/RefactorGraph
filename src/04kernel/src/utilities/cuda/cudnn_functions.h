@@ -4,10 +4,11 @@
 #include "common.h"
 #include <cudnn.h>
 
-#define CUDNN_ASSERT(STATUS)                                                 \
-    if (auto status = (STATUS); status != CUDNN_STATUS_SUCCESS) {            \
-        RUNTIME_ERROR(fmt::format("cudnn failed on \"" #STATUS "\" with {}", \
-                                  cudnnGetErrorString(status)));             \
+#define CUDNN_ASSERT(STATUS)                                      \
+    if (auto status = (STATUS); status != CUDNN_STATUS_SUCCESS) { \
+        fmt::println("cudnn failed on \"" #STATUS "\" with {}",   \
+                     cudnnGetErrorString(status));                \
+        abort();                                                  \
     }
 
 namespace refactor::kernel::cudnn {
@@ -15,7 +16,7 @@ namespace refactor::kernel::cudnn {
     cudnnDataType_t cudnnDataTypeConvert(DataType);
 
     // A helper function that set CuDNN tensor descriptor given tensor shape and type
-    void setCudnnTensor(cudnnTensorDescriptor_t aDesc, DataType dt, int const *dims, size_t rank);
+    void setCudnnTensor(cudnnTensorDescriptor_t, DataType, slice_t<int>);
 
 }// namespace refactor::kernel::cudnn
 

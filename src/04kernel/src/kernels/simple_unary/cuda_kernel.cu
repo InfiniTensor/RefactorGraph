@@ -40,29 +40,20 @@ namespace refactor::kernel {
     auto lowerTyped(size_t n) noexcept {
         using namespace runtime;
 
-        return [n](Resources &, void const **inputs, void **outputs) {
+        return [n](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto const *x = static_cast<T const *>(inputs[0]);
             auto *y = static_cast<T *>(outputs[0]);
             thrust::transform(thrust::device, x, x + n, y, UnaryFuntor{});
-        };
-    }
-    template<class T>
-    auto copyTyped(size_t n) noexcept {
-        using namespace runtime;
-
-        return [n](Resources &, void const **inputs, void **outputs) {
-            auto const *x = static_cast<T const *>(inputs[0]);
-            auto *y = static_cast<T *>(outputs[0]);
-            thrust::copy_n(thrust::device, x, n, y);
         };
     }
 
 #define CASE(FUNC, TYPE) \
     case DT::TYPE:       \
         return lowerTyped<primitive<DT::TYPE>::type, FUNC##Functor<primitive<DT::TYPE>::type>>(size)
-#define COPY(TYPE) \
-    case DT::TYPE: \
-        return copyTyped<primitive<DT::TYPE>::type>(size)
+#define COPY                                                                                                                \
+    return [size = size * dataType.size()](Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
+        cudaMemcpyAsync(outputs[0], inputs[0], size, cudaMemcpyDeviceToDevice);                                             \
+    }
 #define GROUP_F(FUNC) \
     CASE(FUNC, F32);  \
     CASE(FUNC, F64)
@@ -77,17 +68,17 @@ namespace refactor::kernel {
     CASE(FUNC, U32);  \
     CASE(FUNC, U64)
 
-
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         switch (opType) {
             case Op::Abs:
                 switch (dataType) {
                     GROUP_F(Abs);
                     GROUP_I(Abs);
-                    COPY(U8);
-                    COPY(U16);
-                    COPY(U32);
-                    COPY(U64);
+                    case DT::U8:
+                    case DT::U16:
+                    case DT::U32:
+                    case DT::U64:
+                        COPY;
                     default:
                         UNREACHABLE();
                 }
@@ -95,10 +86,11 @@ namespace refactor::kernel {
                 switch (dataType) {
                     GROUP_F(Relu);
                     GROUP_I(Relu);
-                    COPY(U8);
-                    COPY(U16);
-                    COPY(U32);
-                    COPY(U64);
+                    case DT::U8:
+                    case DT::U16:
+                    case DT::U32:
+                    case DT::U64:
+                        COPY;
                     default:
                         UNREACHABLE();
                 }

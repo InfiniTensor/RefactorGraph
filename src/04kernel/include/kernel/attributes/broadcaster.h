@@ -2,7 +2,6 @@
 #define KERNEL_BROADCASTER_H
 
 #include "../tensor.h"
-#include <vector>
 
 namespace refactor::kernel {
 
@@ -13,8 +12,8 @@ namespace refactor::kernel {
         /// @brief 输出的总大小和输入的数量。
         dim_t outputsCount, inputsCount;
 
-        explicit Broadcaster(std::vector<slice_t<dim_t>>) noexcept;
-        explicit Broadcaster(TensorRefs const &inputs) noexcept;
+        explicit Broadcaster(std::vector<slice_t<dim_t>>);
+        explicit Broadcaster(TensorRefs const &inputs);
         void locate(dim_t k, dim_t ans[]) const noexcept;
     };
 

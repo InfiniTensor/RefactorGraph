@@ -25,11 +25,11 @@ namespace refactor::kernel {
         return "Performing where operation on generic cpu";
     }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
 
         return [broadcaster = this->broadcaster,
-                eleSize = dataType.size()](runtime::Resources &, void const **inputs, void **outputs) {
+                eleSize = dataType.size()](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto c = reinterpret_cast<bool const *>(inputs[0]);
             auto x = reinterpret_cast<uint8_t const *>(inputs[1]);
             auto y = reinterpret_cast<uint8_t const *>(inputs[2]);

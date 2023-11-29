@@ -1,6 +1,7 @@
 ﻿#include "computation/operators/pool.h"
 #include "common.h"
 #include "pool.hh"
+#include <execution>
 
 namespace refactor::onnx {
     using Op = Pool;
@@ -18,7 +19,7 @@ namespace refactor::onnx {
           pads(std::move(pads_)),
           strides(std::move(strides_)) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         auto kernelShape = std::move(attributes.at("kernel_shape").ints());
         OptionalInts
             dilations = std::nullopt,
@@ -96,7 +97,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
 
-        if (input.rank() != kernelShape.size() + 2) {
+        if (input.shape.size() != kernelShape.size() + 2) {
             return Err(InferError(ERROR_MSG("Input shape not support")));
         }
         SmallInts<4> input_(input.rank() - 2);
@@ -113,7 +114,9 @@ namespace refactor::onnx {
         Shape output(input.rank(), DimExpr(0));
         output[0] = input.shape[0];
         output[1] = input.shape[1];
-        std::copy(output_.begin(), output_.end(), output.begin() + 2);
+        std::copy(std::execution::par_unseq,
+                  output_.begin(), output_.end(),
+                  output.begin() + 2);
         return Ok(Tensors{Tensor::share(input.dataType, std::move(output), extractDependency(inputs))});
     }
 

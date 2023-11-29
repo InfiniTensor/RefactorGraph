@@ -2,10 +2,6 @@
 #define GRAPH_TOPO_LINKED_GRAPH_H
 
 #include "container.h"
-#include "common.h"
-#include <algorithm>
-#include <sstream>
-#include <unordered_map>
 #include <unordered_set>
 
 namespace refactor::graph_topo {
@@ -70,7 +66,6 @@ namespace refactor::graph_topo {
     template<class TN, class TE>
     class LinkedGraph<TN, TE>::Edge : public RefInplace<LinkedGraph<TN, TE>::Edge> {
         friend class LinkedGraph<TN, TE>;
-        friend class Edge;
 
         TE _info;
         Rc<Node> _source;
@@ -186,14 +181,14 @@ namespace refactor::graph_topo {
     }
 
     LINKED_GRAPH_FN cleanup(bool useless(TE const &))->size_t {
-        std::unordered_set<void *> outputs;
+        std::unordered_set<Edge *> outputs;
         outputs.reserve(_outputs.size());
         std::transform(_outputs.begin(), _outputs.end(), std::inserter(outputs, outputs.end()), [](auto const &e) { return e.get(); });
         auto useful = [&](Rc<Edge> const &e) {
-            return !e->_targets.empty() ||                  // 还有节点连接到这个边
-                   outputs.find(e.get()) != outputs.end() ||// 这个边是全图输出
-                   !useless ||                              // 不需要其他判断
-                   !useless(e->_info);                      // 这个边其他原因有用
+            return !e->_targets.empty() ||     // 还有节点连接到这个边
+                   outputs.contains(e.get()) ||// 这个边是全图输出
+                   !useless ||                 // 不需要其他判断
+                   !useless(e->_info);         // 这个边其他原因有用
         };
 
         auto before = _nodes.size();
@@ -216,14 +211,14 @@ namespace refactor::graph_topo {
     LINKED_GRAPH_FN sort()->bool {
         std::vector<Rc<Node>> ans;
         ans.reserve(_nodes.size());
-        std::unordered_set<void *> mapped;
+        std::unordered_set<Node *> mapped;
         while (mapped.size() < _nodes.size()) {
             auto before = mapped.size();
             for (auto const &n : _nodes) {
-                if (mapped.find(n.get()) == mapped.end() &&
+                if (!mapped.contains(n.get()) &&
                     // ∀e ∈ n.inputs, e.source ∈ mapped
                     std::all_of(n->_inputs.begin(), n->_inputs.end(),
-                                [&mapped](auto const &e) { return !e || !e->_source || mapped.find(e->_source.get()) != mapped.end(); })) {
+                                [&mapped](auto const &e) { return !e || !e->_source || mapped.contains(e->_source.get()); })) {
                     mapped.insert(n.get());
                     ans.push_back(n);// 拷贝 n，因为如果排序失败，不能改变 _nodes
                 }
@@ -338,9 +333,9 @@ namespace refactor::graph_topo {
           _targets() {}
 
     LINKED_GRAPH_CONSTRUCTOR LinkedGraph(Graph<TN, TE> g)
-        : _inputs(g.topology.globalInputsCount()),
-          _outputs(),
-          _nodes(g.topology.nodeCount()) {
+        : _nodes(g.topology.nodeCount()),
+          _inputs(g.topology.globalInputsCount()),
+          _outputs() {
 
         std::vector<Rc<Edge>> edges(g.edges.size());
         std::transform(g.edges.begin(), g.edges.end(), edges.begin(),
@@ -376,7 +371,7 @@ namespace refactor::graph_topo {
         nodes.reserve(_nodes.size());
         edges.reserve(_inputs.size());
 
-        std::unordered_set<void *> mappedNodes;
+        std::unordered_set<Node *> mappedNodes;
         std::unordered_map<void *, GraphTopo::OutputEdge> edgeIndices;
         for (auto &e : _inputs) {
             auto [it, ok] = edgeIndices.try_emplace(e.get(), edgeIndices.size());
@@ -386,14 +381,12 @@ namespace refactor::graph_topo {
         while (mappedNodes.size() < _nodes.size()) {
             auto before = mappedNodes.size();
             for (auto &n : _nodes) {
-                if (mappedNodes.find(n.get()) != mappedNodes.end()) {
-                    continue;
-                }
+                if (mappedNodes.contains(n.get())) { continue; }
                 // ∃e ∈ n.inputs, e.source ∉ mapped
                 if (std::any_of(n->_inputs.begin(), n->_inputs.end(),
                                 [&mappedNodes](auto const &e) {
                                     ASSERT(e, "Input edge is not connected");
-                                    return e->_source && mappedNodes.find(e->_source.get()) == mappedNodes.end();
+                                    return e->_source && !mappedNodes.contains(e->_source.get());
                                 })) {
                     continue;
                 }

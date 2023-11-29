@@ -3,10 +3,12 @@
 #include "../src/kernels/simple_binary/basic_cpu.hh"
 #include "../src/kernels/simple_binary/binary_cudnn.hh"
 #include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 void testBinaryCudnn(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape dimC) {
     // Create Tensor and build kernels
@@ -19,28 +21,33 @@ void testBinaryCudnn(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape d
                     : BinaryBasicCpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res),
-         rCpu = kCpu->lower(res);
+    auto routine = kernel->lower(res).routine,
+         rCpu = kCpu->lower(res).routine;
     // Init inputs and outputs
     std::vector<float>
         a(aTensor->elementsSize(), 3.0f),
         b(bTensor->elementsSize(), 2.0f),
         c(cTensor->elementsSize());
-    auto aGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), aTensor->bytesSize()),
-         bGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), bTensor->bytesSize()),
-         cGPU = mem_manager::ForeignBlob::share(Target(Target::NvidiaGpu).memManager(), cTensor->bytesSize());
-    aGPU->copyIn(a.data(), aTensor->bytesSize());
-    bGPU->copyIn(b.data(), bTensor->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto aGPU = dev.malloc(aTensor->bytesSize()),
+         bGPU = dev.malloc(bTensor->bytesSize()),
+         cGPU = dev.malloc(cTensor->bytesSize());
+    aGPU->copyFromHost(a.data(), aTensor->bytesSize());
+    bGPU->copyFromHost(b.data(), bTensor->bytesSize());
     // Compute
-    void const *inputsGPU[]{*aGPU, *bGPU};
-    void *outputsGPU[]{*cGPU};
-    routine(res, inputsGPU, outputsGPU);
-    void const *inputsCPU[]{a.data(), b.data()};
-    void *outputsCPU[]{c.data()};
-    rCpu(res, inputsCPU, outputsCPU);
+    {
+        void const *inputs[]{*aGPU, *bGPU};
+        void *outputs[]{*cGPU};
+        routine(res, nullptr, inputs, outputs);
+    }
+    {
+        void const *inputs[]{a.data(), b.data()};
+        void *outputs[]{c.data()};
+        rCpu(res, nullptr, inputs, outputs);
+    }
     // Compare
     std::vector<float> result(cTensor->elementsSize());
-    cGPU->copyOut(result.data(), cTensor->bytesSize());
+    cGPU->copyToHost(result.data(), cTensor->bytesSize());
     for (auto i : range0_(result.size())) {
         EXPECT_FLOAT_EQ(c[i], result[i]);
     }

@@ -22,9 +22,9 @@ namespace refactor::kernel {
         return "Performing concat operation on generic cpu";
     }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
-        return [info = this->info](Resources &, void const **inputs, void **outputs) {
+        return [info = this->info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto dst = reinterpret_cast<uint8_t *>(outputs[0]);
             std::for_each_n(std::execution::par_unseq,
                             natural_t(0), info.blockCount,

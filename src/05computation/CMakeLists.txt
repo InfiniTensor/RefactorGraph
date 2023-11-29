@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
-project(computation)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(computation VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 file(GLOB_RECURSE COMPUTATION_SRC src/*.cc src/*.cpp)
 add_library(computation STATIC ${COMPUTATION_SRC})

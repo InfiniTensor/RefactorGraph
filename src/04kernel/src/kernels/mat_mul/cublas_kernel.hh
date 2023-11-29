@@ -3,7 +3,6 @@
 
 #include "kernel/attributes/matmul_info.h"
 #include "kernel/kernel.h"
-#include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
@@ -12,13 +11,13 @@ namespace refactor::kernel {
 
         explicit MatMulCublas(MatMulInfo) noexcept;
 
-        static KernelBox build(Tensor const &, Tensor const &, Tensor const &, MatMulInfo) noexcept;
+        static KernelBox build(MatMulInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
 #ifdef USE_CUDA
-        Routine lower(Resources &) const noexcept final;
+        RoutineWorkspace lower(Resources &) const noexcept final;
 #endif
     };
 

@@ -13,15 +13,15 @@ void testBinaryCPU(SimpleBinaryType binaryOPT, std::function<float(float, float)
     auto cpuKernel = Binary11Cpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel);
     auto res = runtime::Resources();
-    auto cpuRoutine = cpuKernel->lower(res);
+    auto cpuRoutine = cpuKernel->lower(res).routine;
     // Init inputs and outputs
     std::vector<float> a(aTensor->elementsSize(), 3.0f);
     std::vector<float> b(bTensor->elementsSize(), 2.0f);
     std::vector<float> c(cTensor->elementsSize());
     // Compute
-    void const *inputsCPU[]{a.data(), b.data()};
-    void *outputsCPU[]{c.data()};
-    cpuRoutine(res, inputsCPU, outputsCPU);
+    void const *inputs[]{a.data(), b.data()};
+    void *outputs[]{c.data()};
+    cpuRoutine(res, nullptr, inputs, outputs);
     // Compare
     for (auto i : range0_(c.size())) {
         EXPECT_FLOAT_EQ(c[i], operation(a[i], b[i]));
@@ -43,28 +43,22 @@ TEST(kernel, BinaryCpuBroadcast) {
     auto kernel = BinaryBasicCpu::build(SimpleBinaryType::Add, *a, *b);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
-    // malloc
-    auto mfn = Target(Target::Cpu).memManager();
-    auto ma = mem_manager::ForeignBlob::share(mfn, a->bytesSize());
-    auto mb = mem_manager::ForeignBlob::share(mfn, b->bytesSize());
-    auto mc = mem_manager::ForeignBlob::share(mfn, c->bytesSize());
+    auto routine = kernel->lower(res).routine;
     // put input data
-    std::vector<float> data(a->elementsSize());
-    for (auto i : range0_(data.size())) { data[i] = 11; }
-    ma->copyIn(data.data(), a->bytesSize());
-    data.resize(b->elementsSize());
-    for (auto i : range0_(data.size())) { data[i] = 7; }
-    mb->copyIn(data.data(), b->bytesSize());
+    std::vector<float>
+        dataA(a->elementsSize()),
+        dataB(b->elementsSize()),
+        dataC(c->elementsSize());
+    for (auto i : range0_(dataA.size())) { dataA[i] = 11; }
+    for (auto i : range0_(dataB.size())) { dataB[i] = 7; }
     // inference
-    void const *inputs[]{*ma, *mb};
-    void *outputs[]{*mc};
-    routine(res, inputs, outputs);
-    // take output data
-    std::vector<float> result(c->elementsSize());
-    mc->copyOut(result.data(), c->bytesSize());
+    {
+        void const *inputs[]{dataA.data(), dataB.data()};
+        void *outputs[]{dataC.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
     // check
-    for (auto x : result) {
+    for (auto x : dataC) {
         EXPECT_FLOAT_EQ(18, x);
     }
 }

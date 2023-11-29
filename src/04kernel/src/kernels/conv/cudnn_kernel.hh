@@ -1,9 +1,10 @@
 ﻿#ifndef KERNEL_CONV_CUDNN_KERNEL_HH
 #define KERNEL_CONV_CUDNN_KERNEL_HH
 
+#include "kernel/attributes/expand_info.h"
 #include "kernel/attributes/pool_attributes.h"
 #include "kernel/kernel.h"
-#include "kernel/tensor.h"
+#include <optional>
 
 namespace refactor::kernel {
 
@@ -18,6 +19,7 @@ namespace refactor::kernel {
                 dilation[2],
                 pad[2],
                 stride[2];
+            std::optional<ExpandInfo> biasExpand;
         } info;
 
         explicit ConvCudnn(decltype(info)) noexcept;
@@ -25,13 +27,14 @@ namespace refactor::kernel {
         static KernelBox build(PoolAttributes const &,
                                Tensor const &,
                                Tensor const &,
-                               Tensor const &) noexcept;
+                               std::optional<std::reference_wrapper<Tensor const>>,
+                               Tensor const &);
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
 #ifdef USE_CUDA
-        Routine lower(Resources &) const noexcept final;
+        RoutineWorkspace lower(Resources &) const final;
 #endif
     };
 

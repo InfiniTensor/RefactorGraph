@@ -12,14 +12,14 @@ namespace refactor::kernel {
 
         std::vector<KernelBox>
             ans;
-        switch (target) {
-            case Target::Cpu: {
+        switch (_target) {
+            case decltype(_target)::Cpu: {
                 if (auto ptr = SoftmaxCpu::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
             }
-            case Target::NvidiaGpu: {
+            case decltype(_target)::Nvidia: {
                 if (auto ptr = SoftmaxCudnn::build(cudnn::SoftmaxAlgo::ACCURATE, info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }

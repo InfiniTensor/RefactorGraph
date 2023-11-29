@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
-project(onnx)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(onnx VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 file(GLOB_RECURSE ONNX_SRC src/*.cc src/*.cpp)
 add_library(onnx STATIC ${ONNX_SRC})

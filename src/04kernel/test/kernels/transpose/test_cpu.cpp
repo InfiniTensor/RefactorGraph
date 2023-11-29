@@ -11,7 +11,7 @@ TEST(kernel, TransposeCpu) {
     auto kernel = TransposeCpu::build(dataTensor->dataType, TransposeInfo(dataTensor->shape, Permutation{2, 3, 0, 1}));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res);
+    auto routine = kernel->lower(res).routine;
     // put input data
     std::vector<float>
         data(dataTensor->elementsSize()),
@@ -20,7 +20,7 @@ TEST(kernel, TransposeCpu) {
     // inference
     void const *inputs[]{data.data()};
     void *outputs[]{out.data()};
-    routine(res, inputs, outputs);
+    routine(res, nullptr, inputs, outputs);
     // check
     fmt::println("{}", vec2str(data));
     fmt::println("{}", vec2str(out));

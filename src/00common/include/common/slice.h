@@ -1,6 +1,8 @@
 ﻿#ifndef SLICE_H
 #define SLICE_H
 
+#include <cstddef>
+
 namespace refactor {
     template<class t>
     struct slice_t {

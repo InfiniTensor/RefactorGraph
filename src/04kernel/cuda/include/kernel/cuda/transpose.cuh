@@ -5,13 +5,15 @@
 
 namespace refactor::kernel::cuda {
 
-    struct DimStride {
-        unsigned int i, o;
-    };
+    namespace transpose {
+        struct DimStride {
+            unsigned int i, o;
+        };
+    }// namespace transpose
 
     void launchTranspose(
         KernelLaunchParameters const &,
-        void const *data, DimStride const *strides, void *output,
+        void const *data, transpose::DimStride const *strides, void *output,
         unsigned int rank,
         unsigned int eleSize);
 

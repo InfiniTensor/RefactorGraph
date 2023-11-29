@@ -9,7 +9,7 @@ namespace refactor::onnx {
     Op::Transpose(Ints perm_)
         : Operator(), perm(perm_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto perm = defaultOr(attributes, "perm", {}).ints();
         return OpBox(std::make_unique<Op>(std::move(perm)));
     }

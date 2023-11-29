@@ -9,7 +9,7 @@ namespace refactor::onnx {
     Op::Compair(CompairType type_)
         : Operator(), type(type_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Compair operator should not have attributes");
 
         if (opType == "onnx::Equal") {
@@ -27,7 +27,7 @@ namespace refactor::onnx {
         if (opType == "onnx::LessOrEqual") {
             return OpBox(std::make_unique<Op>(Ty::LE));
         }
-        UNREACHABLEX(void, "Unsupported compair operator: {}", opType);
+        RUNTIME_ERROR(fmt::format("Unsupported compair operator: {}", opType));
     }
 
     auto Op::typeId(CompairType type) -> size_t {

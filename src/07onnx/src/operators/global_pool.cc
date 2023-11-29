@@ -10,7 +10,7 @@ namespace refactor::onnx {
     Op::GlobalPool(Ty type_)
         : Operator(), type(type_) {}
 
-    auto Op::build(std::string_view opType, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Global pool operator should not have attributes");
 
         if (opType == "onnx::GlobalAveragePool") {
@@ -22,7 +22,7 @@ namespace refactor::onnx {
         if (opType == "onnx::GlobalMaxPool") {
             return OpBox(std::make_unique<Op>(Ty::Max));
         }
-        UNREACHABLEX(void, "Unsupported global pool operator: {}", opType);
+        RUNTIME_ERROR(fmt::format("Unsupported global pool operator: {}", opType));
     }
     auto Op::typeId(Ty type) -> size_t {
         switch (type) {

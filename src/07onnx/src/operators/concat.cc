@@ -9,7 +9,7 @@ namespace refactor::onnx {
     Op::Concat(int64_t axis_)
         : Operator(), axis(axis_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto axis = attributes.at("axis").int_();
         return OpBox(std::make_unique<Op>(axis));
     }

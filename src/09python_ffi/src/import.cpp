@@ -1,9 +1,25 @@
 ﻿#include "import.h"
+#include "hardware/device_manager.h"
 #include <execution>
 #include <fstream>
 
 namespace refactor::python_ffi {
     using namespace frontend;
+    using namespace hardware;
+
+    SharedDevice
+    findDevice(std::string type, int card) {
+        std::transform(std::execution::unseq,
+                       type.begin(), type.end(),
+                       type.begin(),
+                       ::tolower);
+        // clang-format off
+        auto type_ = type == "cpu"    ? Device::Type::Cpu
+                   : type == "nvidia" ? Device::Type::Nvidia
+                   : UNREACHABLEX(Device::Type, "Unknown device type: \"{}\"", type);
+        // clang-format on
+        return device::init(type_, card, "");
+    }
 
     SharedTensor
     makeTensor(int dataType, DimVec dims) {
@@ -32,18 +48,24 @@ namespace refactor::python_ffi {
                        [](auto d) { return DimExpr(d); });
         auto ans = Tensor::share(*DataType::parse(dataType), std::move(shape_), {});
         std::ifstream stream(file, std::ios::binary);
+        ASSERT(stream.is_open(), "No such file: \"{}\"", file);
         stream.seekg(offset);
         stream.read(static_cast<char *>(ans->malloc()), ans->bytesSize());
         return ans;
     }
 
     SharedOp
-    makeOp(Name opType, AttributeMap attrs) {
+    makeOp(AttributeMap ctx, Name opType, AttributeMap attrs) {
         std::unordered_map<Name, Attribute> attrs_;
         for (auto &[name, value] : attrs) {
             attrs_.insert({std::move(name), {std::move(value)}});
         }
-        return std::make_shared<OpBox>(Operator::build(fmt::format("onnx::{}", opType), std::move(attrs_)));
+        std::unordered_map<Name, Attribute> ctx_;
+        for (auto &[name, value] : ctx) {
+            ctx_.insert({std::move(name), {std::move(value)}});
+        }
+        return std::make_shared<OpBox>(Operator::build(
+            ctx_, fmt::format("onnx::{}", opType), std::move(attrs_)));
     }
 
     Arc<Compiler>
@@ -77,8 +99,7 @@ namespace refactor::python_ffi {
         for (auto &[name, tensor] : edges) {
             auto edge = Edge{std::move(tensor), name};
             auto it = builder.edges.find(name);
-            ASSERT(it != builder.edges.end(),
-                   fmt::format("edge {} not connected", name));
+            ASSERT(it != builder.edges.end(), "edge {} not connected", name);
             it->second.tensor = std::move(edge.tensor);
         }
         return std::make_shared<Compiler>(Graph(builder.build()));

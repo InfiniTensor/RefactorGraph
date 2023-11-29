@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
-project(graph_topo)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(graph_topo VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 file(GLOB_RECURSE GRAPH_TOPO_SRC src/*.cc src/*.cpp)
 add_library(graph_topo STATIC ${GRAPH_TOPO_SRC})

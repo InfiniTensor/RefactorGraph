@@ -12,7 +12,7 @@ namespace refactor::onnx {
           exclusive(exclusive_),
           reverse(reverse_) {}
 
-    auto Op::build(std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         auto exclusive = defaultOr(attributes, "exclusive", {0}).int_() != 0;
         auto reverse = defaultOr(attributes, "reverse", {0}).int_() != 0;
         return OpBox(std::make_unique<Op>(exclusive, reverse));

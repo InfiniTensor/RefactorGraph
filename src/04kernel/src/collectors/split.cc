@@ -9,13 +9,13 @@ namespace refactor::kernel {
         SplitInfo info(axis, outputs);
 
         std::vector<KernelBox> ans;
-        switch (target) {
-            case Target::Cpu:
+        switch (_target) {
+            case decltype(_target)::Cpu:
                 if (auto ptr = SplitCpu::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
-            case Target::NvidiaGpu:
+            case decltype(_target)::Nvidia:
                 if (auto ptr = SplitCuda::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }

@@ -7,20 +7,15 @@ namespace refactor::kernel {
     K::MatMulCublas(decltype(info) info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(Tensor const &a, Tensor const &b, Tensor const &y, MatMulInfo info) noexcept -> KernelBox {
+    auto K::build(MatMulInfo info) noexcept -> KernelBox {
         static const std::unordered_set<decltype(DT::internal)> TYPE{DT::F32, DT::F64, DT::FP16};
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        auto dataType = info.dataType;
-        if (dataType != a.dataType ||
-            dataType != b.dataType ||
-            dataType != y.dataType ||
-            TYPE.find(dataType) == TYPE.end()) {
-            return nullptr;
-        }
 
-        return std::make_unique<K>(std::move(info));
+        return TYPE.contains(info.dataType)
+                   ? std::make_unique<K>(std::move(info))
+                   : nullptr;
     }
 
     auto K::typeId() noexcept -> size_t {

@@ -10,12 +10,12 @@ namespace refactor::kernel {
     template<typename T>                                    \
     __global__ void __binary_basic_kernel_##NAME(           \
         T const *a, T const *b, T *c,                       \
-        dim_t const *strides, dim_t rank,             \
+        dim_t const *strides, dim_t rank,                   \
         size_t size) {                                      \
                                                             \
         size_t tid = threadIdx.x + blockIdx.x * blockDim.x; \
         if (tid >= size) { return; }                        \
-        dim_t ia = 0, ib = 0;                            \
+        dim_t ia = 0, ib = 0;                               \
         auto rem = tid;                                     \
         for (auto i = 0; i < rank; ++i) {                   \
             auto dim = strides + 3 * i;                     \
@@ -38,18 +38,18 @@ namespace refactor::kernel {
     KERNEL(Xor,     a[ia] ^  b[ib])
     // clang-format on
 
-#define CASE_DT(NAME, T)                                                                                           \
-    case DT::T:                                                                                                    \
-        return [strides = thrust::device_vector<dim_t>(broadcaster.strides.begin(), broadcaster.strides.end()), \
-                rank = broadcaster.inputsCount,                                                                    \
-                n = broadcaster.outputsCount](runtime::Resources &, void const **inputs, void **outputs) {         \
-            using T_ = primitive<DT::T>::type;                                                                     \
-            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                                      \
-            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                                      \
-            auto c = reinterpret_cast<T_ *>(outputs[0]);                                                           \
-            size_t blocksize = 1024;                                                                               \
-            size_t gridsize = (n + blocksize - 1) / blocksize;                                                     \
-            __binary_basic_kernel_##NAME<<<gridsize, blocksize>>>(a, b, c, strides.data().get(), rank, n);         \
+#define CASE_DT(NAME, T)                                                                                                                \
+    case DT::T:                                                                                                                         \
+        return [strides = thrust::device_vector<dim_t>(broadcaster.strides.begin(), broadcaster.strides.end()),                         \
+                rank = broadcaster.inputsCount,                                                                                         \
+                n = broadcaster.outputsCount](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
+            using T_ = primitive<DT::T>::type;                                                                                          \
+            auto a = reinterpret_cast<T_ const *>(inputs[0]);                                                                           \
+            auto b = reinterpret_cast<T_ const *>(inputs[1]);                                                                           \
+            auto c = reinterpret_cast<T_ *>(outputs[0]);                                                                                \
+            size_t blocksize = 1024;                                                                                                    \
+            size_t gridsize = (n + blocksize - 1) / blocksize;                                                                          \
+            __binary_basic_kernel_##NAME<<<gridsize, blocksize>>>(a, b, c, strides.data().get(), rank, n);                              \
         }
 
 #define CASE_OP(NAME)                \
@@ -69,7 +69,7 @@ namespace refactor::kernel {
                 UNREACHABLE();       \
         }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         switch (opType) {
             CASE_OP(Add)
             CASE_OP(Sub)

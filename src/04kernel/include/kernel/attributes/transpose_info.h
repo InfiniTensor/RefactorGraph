@@ -2,7 +2,6 @@
 #define KERNEL_TRANPOSE_INFO_H
 
 #include "common.h"
-#include <absl/container/inlined_vector.h>
 
 namespace refactor::kernel {
 
@@ -22,7 +21,7 @@ namespace refactor::kernel {
         absl::InlinedVector<Dimension, 4> dims;
         dim_t size;
 
-        TransposeInfo(Shape const &, Permutation const &) noexcept;
+        TransposeInfo(Shape const &, Permutation const &);
         dim_t locate(dim_t) const noexcept;
     };
 

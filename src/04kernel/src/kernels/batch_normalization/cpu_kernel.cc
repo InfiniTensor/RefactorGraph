@@ -46,10 +46,10 @@ namespace refactor::kernel {
 
         auto n = shape[0],
              c = shape[1],
-             dims = std::accumulate(shape.begin() + 2, shape.end(), 1u, std::multiplies<>()),
+             dims = std::accumulate(shape.begin() + 2, shape.end(), 1u, std::multiplies()),
              sn = c * dims,
              sc = dims;
-        return [n, c, sn, sc, epsilon](Resources &, void const **inputs, void **outputs) {
+        return [n, c, sn, sc, epsilon](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto x = inputs[0],
                  scale = inputs[1],
                  bias = inputs[2],
@@ -85,7 +85,7 @@ namespace refactor::kernel {
         };
     }
 
-    auto K::lower(Resources &) const noexcept -> Routine {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         // clang-format off
         static_assert(sizeof(decltype(DT::internal)) == 1);
         #define MERGE(DT0, DT1, DT2)                      \

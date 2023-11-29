@@ -23,10 +23,10 @@ namespace refactor::kernel {
         return "Performing transpose operation on generic cpu";
     }
 
-    Routine K::lower(Resources &) const noexcept {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
         return [eleSize = this->dataType.size(),
-                info = this->info](Resources &, void const **inputs, void **outputs) {
+                info = this->info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto data = reinterpret_cast<uint8_t const *>(inputs[0]);
             auto transposed = reinterpret_cast<uint8_t *>(outputs[0]);
             std::for_each_n(std::execution::par_unseq,

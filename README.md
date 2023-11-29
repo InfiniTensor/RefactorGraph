@@ -8,6 +8,7 @@
 
 - [安装](#安装)
 - [使用前端](#使用前端)
+  - [调试功能](#调试功能)
 - [项目结构](#项目结构)
   - [构建系统](#构建系统)
   - [子项目简介](#子项目简介)
@@ -25,7 +26,7 @@
 import sys
 import numpy as np
 from onnx import load
-from refactor_graph.onnx import make_compiler
+from refactor_graph.onnx import make_compiler, find_device
 from onnxruntime import InferenceSession
 
 model = load(sys.argv[1])  # ------------------------------------ 加载模型
@@ -33,9 +34,10 @@ input = np.random.random((10, 3, 224, 224)).astype(np.float32)  # 加载测试�
 
 compiler = make_compiler(model)  # ------------------------------ 模型导入到编译器
 compiler.substitute("N", 10)  # --------------------------------- 代换输入中的变量
+find_device("nvidia", 0)  # ------------------------------------- 初始化指定加速硬件
 executor = compiler.compile("cuda", "default", [])  # ----------- 编译模型（选择平台、分配器和优化选项）
 executor.set_input(0, input)  # --------------------------------- 设置输入
-executor.prepare()  # ------------------------------------------- 准备推理（分配输出空间）
+executor.dispatch(find_device("nvidia", 1), "default")  # ------- 执行器可以随时调度到另一个硬件
 executor.run()  # ----------------------------------------------- 推理
 
 session = InferenceSession(model.SerializeToString())  # -------- 与 onnxruntime 对比结果以验证推理
@@ -58,6 +60,46 @@ executor = compiler.compile("cuda", "default", [])  # -------- 编译模型
 
 # 下同
 ```
+
+### 调试功能
+
+项目现已依托前端提供多种调试功能。
+
+1. 列出算子信息
+
+   ```python
+   executor.dbg()
+   ```
+
+2. 保存运行中间结果
+
+   ```python
+   executor.trace("path_to_store_files", "data_file_format")
+   ```
+
+   调用这个方法将启动一次模型推理，并在每个算子推理完成后将算子的所有输入输出张量保存到 `path_to_store_files` 参数指示的目录中。
+   如果目录不存在，将创建此目录。每个张量保存到一个文件，已存在的同名文件将被删除。
+   同时，为每个算子创建一个元信息文本文件，命名为 `node<N>.meta`，其内容具有下述格式：
+
+   ```plaintext
+   <NodeName>\t<N>
+   <input/output>\t<K>\t<EdgeName>\t[FileName]
+   ```
+
+   - `NodeName`: 节点的名字；
+   - `N`: 节点序号；
+   - `input/output`: 张量是节点的输入/输出；
+   - `K`: 输入/输出的序号；
+   - `EdgeName`: 张量的名字；
+   - `FileName`: (optional) 数据文件名。如果张量无效，不会保存数据文件，则文件名为空；
+
+3. 逐算子计时
+
+   ```python
+   executor.bench(<sync>)
+   ```
+
+   对每次推理计时。`sync` 是一个指示是否在每次推理后插入同步的布尔参数，若设置为 `False`，则计时可能是推理异步启动的时间。
 
 ## 项目结构
 
@@ -122,8 +164,8 @@ executor = compiler.compile("cuda", "default", [])  # -------- 编译模型
 - [fmtlog v2.2.1](https://github.com/MengRao/fmtlog/releases/tag/v2.2.1)
 - [googletest v1.14.0](https://github.com/google/googletest/releases/tag/v1.14.0)
 - [backward-cpp v1.6](https://github.com/bombela/backward-cpp/releases/tag/v1.6)
-- [result master](https://github.com/oktal/result)
-- [abseil-cpp 20230802.0](https://github.com/abseil/abseil-cpp/releases/tag/20230802.0)
+- [result master](https://github.com/willowell/result)
+- [abseil-cpp 20230802.1](https://github.com/abseil/abseil-cpp/releases/tag/20230802.1)
 
 ## 技术要点
 

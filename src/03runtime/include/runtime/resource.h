@@ -4,7 +4,6 @@
 #include <functional>
 #include <memory>
 #include <string_view>
-#include <unordered_map>
 
 namespace refactor::runtime {
 
@@ -24,7 +23,7 @@ namespace refactor::runtime {
     public:
         Resource *fetch(size_t) noexcept;
         Resource *fetchOrStore(ResourceBox) noexcept;
-        Resource *fetchOrStore(size_t, std::function<ResourceBox()>) noexcept;
+        Resource *fetchOrStore(size_t, std::function<ResourceBox()>);
 
         template<class T> T *fetch() noexcept {
             return dynamic_cast<T *>(fetch(T::typeId()));
@@ -35,13 +34,13 @@ namespace refactor::runtime {
         template<class T> T *fetchOrStore(ResourceBox r) noexcept {
             return dynamic_cast<T *>(fetchOrStore(std::move(r)));
         }
-        template<class T> T *fetchOrStore(size_t id, ResourceBox f()) noexcept {
+        template<class T> T *fetchOrStore(size_t id, ResourceBox f()) {
             return dynamic_cast<T *>(fetchOrStore(id, f));
         }
-        template<class T, class... Args> T *fetchOrStore(Args &&...args) noexcept {
+        template<class T, class... Args> T *fetchOrStore(Args &&...args) {
             return dynamic_cast<T *>(fetchOrStore(
                 T::typeId(),
-                [&] -> ResourceBox { return T::build(std::forward<Args>(args)...); }));
+                [&]() -> ResourceBox { return T::build(std::forward<Args>(args)...); }));
         }
     };
 

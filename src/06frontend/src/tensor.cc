@@ -3,7 +3,7 @@
 #include <numeric>
 
 namespace refactor::frontend {
-    using namespace mem_manager;
+    using namespace kernel;
 
     DimVariableInternal::DimVariableInternal(std::string name_, std::optional<int64_t> value_)
         : name(std::move(name_)), value(value_) {}
@@ -135,7 +135,7 @@ namespace refactor::frontend {
 
     TensorRefs::TensorRefs(
         std::vector<Edge> const &edges,
-        slice_t<count_t> slice)
+        decltype(_slice) slice)
         : _edges(edges), _slice(slice) {}
     Tensor const &TensorRefs::operator[](size_t i) const {
         return *_edges[_slice[i]].tensor;

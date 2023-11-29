@@ -1,5 +1,5 @@
-﻿#include "graph_topo/searcher.h"
-#include <algorithm>
+﻿#include "graph_topo/searcher.hh"
+#include <span>
 
 namespace refactor::graph_topo {
     constexpr static count_t EXTERNAL = std::numeric_limits<count_t>::max();
@@ -89,7 +89,7 @@ namespace refactor::graph_topo {
         auto const &connections = _internal._graph._connections.data();
         std::vector<Edge> ans;
         ans.reserve(nodeIn._inputsCount);
-        for (auto edgeIdx : slice(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
+        for (auto edgeIdx : std::span(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
             ans.emplace_back(_internal, edgeIdx);
         }
         return ans;
@@ -113,7 +113,7 @@ namespace refactor::graph_topo {
             auto const &nodeIn = _internal._graph._nodes[_idx];
             auto const &nodeEx = _internal._nodes[_idx];
             auto const &connections = _internal._graph._connections.data();
-            for (auto edgeIdx : slice(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
+            for (auto edgeIdx : std::span(connections + nodeEx._passConnections, nodeIn._inputsCount)) {
                 auto nodeIdx = _internal._edges[edgeIdx]._source;
                 if (nodeIdx != EXTERNAL) {
                     if (auto [it, ok] = predecessors.insert(nodeIdx); ok) {
@@ -168,8 +168,8 @@ namespace refactor::graph_topo {
     Searcher::Edges::Edges(Searcher const &internal) noexcept : _internal(internal) {}
     auto Searcher::Nodes::begin() const noexcept -> Iterator { return {_internal, 0}; }
     auto Searcher::Edges::begin() const noexcept -> Iterator { return {_internal, 0}; }
-    auto Searcher::Nodes::end() const noexcept -> Iterator { return {_internal, size()}; }
-    auto Searcher::Edges::end() const noexcept -> Iterator { return {_internal, size()}; }
+    auto Searcher::Nodes::end() const noexcept -> Iterator { return {_internal, static_cast<count_t>(size())}; }
+    auto Searcher::Edges::end() const noexcept -> Iterator { return {_internal, static_cast<count_t>(size())}; }
     auto Searcher::Nodes::size() const noexcept -> size_t { return _internal._nodes.size(); }
     auto Searcher::Edges::size() const noexcept -> size_t { return _internal._edges.size(); }
     auto Searcher::Nodes::operator[](count_t idx) const noexcept -> Node { return {_internal, idx}; }

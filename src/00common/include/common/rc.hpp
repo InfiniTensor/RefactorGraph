@@ -1,9 +1,7 @@
 ﻿#ifndef RC_HPP
 #define RC_HPP
 
-#include <cstddef>
 #include <functional>
-#include <utility>
 
 namespace refactor {
 
@@ -20,7 +18,7 @@ namespace refactor {
         T *_value;
         struct Counter {
             size_t strong, weak;
-        } *_counter;
+        } * _counter;
 
         Rc(T *ptr, Counter *counter) noexcept
             : _value(ptr), _counter(counter) { inc(); }
@@ -38,7 +36,7 @@ namespace refactor {
         }
 
     public:
-        explicit Rc(T *ptr) noexcept
+        explicit Rc(T *ptr)
             : _value(ptr),
               _counter(nullptr) {
             if (!ptr) { return; }

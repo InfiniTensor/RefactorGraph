@@ -8,9 +8,9 @@ namespace refactor::python_ffi {
 
     DataType parseNumpyDType(py::dtype const &dt) {
 
-#define CASE(T)                                                   \
+#define CASE(T)                                                 \
     if (dt.is(py::dtype::of<primitive<DataType::T>::type>())) { \
-        return DataType::T;                                       \
+        return DataType::T;                                     \
     }
 
         CASE(F32);

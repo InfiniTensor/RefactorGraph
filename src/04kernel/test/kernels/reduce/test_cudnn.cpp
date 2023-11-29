@@ -1,11 +1,12 @@
 #ifdef USE_CUDA
-#include "../../../include/kernel/target.h"
+
 #include "../../../src/kernels/reduce/cudnn_kernel.hh"
-#include "runtime/mem_manager.hh"
+#include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
+using namespace hardware;
 
 static void testReducemean(const Shape &shape, const std::vector<float> &data,
                            Axes axes, const std::vector<float> ExpectData) {
@@ -14,32 +15,31 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     auto kernel = ReduceCudnn::build(axes, ReduceType::Mean, {*dataTensor});
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    res.fetchOrStore<runtime::MemManager>(Target(Target::NvidiaGpu).memManager());
-    auto routine = kernel->lower(res);
+    auto [routine, workspaceSize] = kernel->lower(res);
     // cuda malloc
-    auto gpuMemIn = mem_manager::ForeignBlob::share(
-        Target(Target::NvidiaGpu).memManager(),
-        dataTensor->bytesSize());
-    auto gpuMemOut = mem_manager::ForeignBlob::share(
-        Target(Target::NvidiaGpu).memManager(),
-        dataTensor->bytesSize());
+    auto &dev = *device::init(Device::Type::Nvidia, 0, "");
+    auto workspace = dev.malloc(workspaceSize),
+         gpuMemIn = dev.malloc(dataTensor->bytesSize()),
+         gpuMemOut = dev.malloc(dataTensor->bytesSize());
     // put input output data
-    gpuMemIn->copyIn(data.data(), dataTensor->bytesSize());
-    void const *inputs[]{*gpuMemIn};
-    void *outputs[]{*gpuMemOut};
+    gpuMemIn->copyFromHost(data.data(), dataTensor->bytesSize());
     // inference
-    routine(res, inputs, outputs);
+    {
+        void const *inputs[]{*gpuMemIn};
+        void *outputs[]{*gpuMemOut};
+        routine(res, *workspace, inputs, outputs);
+    }
     // take output data
     Shape outDimArray;
     std::unordered_set axesSet(axes.begin(), axes.end());
     for (size_t i = 0; i < shape.size(); ++i) {
-        if (axesSet.find(i) != axesSet.end()) {
+        if (axesSet.contains(i)) {
             outDimArray.push_back(shape[i]);
         }
     }
     auto outputTensor = Tensor::share(DataType::F32, outDimArray);
     std::vector<float> result(outDimArray.size());
-    gpuMemOut->copyOut(result.data(), outputTensor->bytesSize());
+    gpuMemOut->copyToHost(result.data(), outputTensor->bytesSize());
     // check
     for (auto i : range0_(ExpectData.size())) {
         EXPECT_FLOAT_EQ(ExpectData[i], result[i]);

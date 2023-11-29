@@ -2,8 +2,6 @@
 #define GRAPH_TOPO_CONTAINER_H
 
 #include "common.h"
-#include <cstddef>
-#include <vector>
 
 namespace refactor::graph_topo {
 
@@ -50,9 +48,9 @@ namespace refactor::graph_topo {
             bool operator>(Iterator const &) const noexcept;
             bool operator<=(Iterator const &) const noexcept;
             bool operator>=(Iterator const &) const noexcept;
-            Iterator &operator++() noexcept;
-            Iterator operator++(int) noexcept;
-            NodeRef operator*() const noexcept;
+            Iterator &operator++();
+            Iterator operator++(int);
+            NodeRef operator*() const;
             range_t<count_t> globalInputs() const noexcept;
             slice_t<count_t> globalOutputs() const noexcept;
         };
