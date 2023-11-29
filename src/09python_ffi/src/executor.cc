@@ -1,5 +1,5 @@
 ﻿#include "executor.h"
-#include <cstddef>
+#include "kernel/allocators.h"
 #include <filesystem>
 #include <fstream>
 
@@ -12,6 +12,25 @@ namespace refactor::python_ffi {
     Executor::Executor(computation::Graph graph, runtime::Stream stream)
         : _graph(std::move(graph)),
           _stream(std::move(stream)) {}
+
+    void Executor::dispatch(Arc<hardware::Device> device, std::string allocator) {
+        auto stream = _graph
+                          .lower(device->type())
+                          .lower(std::move(device),
+                                 allocator == "flat"
+                                     ? kernel::flatAllocate
+                                     : kernel::reusableAllocate);
+        std::swap(_stream, stream);
+        std::vector<uint8_t> buffer;
+        auto const &graph = _graph.internal().contiguous();
+        for (auto i : graph.topology.globalInputs()) {
+            auto size = graph.edges[i].tensor->bytesSize();
+            buffer.resize(size);
+            if (stream.getData(i, buffer.data(), size)) {
+                _stream.setData(i, buffer.data(), size);
+            }
+        }
+    }
 
     void Executor::setInput(count_t i, pybind11::array data) {
         auto globalInputs = _graph.internal().contiguous().topology.globalInputs();

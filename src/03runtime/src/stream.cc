@@ -26,8 +26,10 @@ namespace refactor::runtime {
     void Stream::setData(count_t i, Arc<hardware::Device::Blob> blob) {
         _graph.edges[i].blob = std::move(blob);
     }
-    void Stream::getData(count_t i, void *data, size_t size) const {
+    bool Stream::getData(count_t i, void *data, size_t size) const {
+        if (!_graph.edges[i].blob) { return false; }
         _graph.edges[i].blob->copyToHost(data, size);
+        return true;
     }
 
     template<class I, class O>
