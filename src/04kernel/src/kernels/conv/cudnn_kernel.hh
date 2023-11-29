@@ -19,10 +19,10 @@ namespace refactor::kernel {
                 dilation[2],
                 pad[2],
                 stride[2];
+            std::optional<ExpandInfo> biasExpand;
         } info;
-        std::optional<ExpandInfo> biasExpand;
 
-        explicit ConvCudnn(decltype(info), decltype(biasExpand)) noexcept;
+        explicit ConvCudnn(decltype(info)) noexcept;
 
         static KernelBox build(PoolAttributes const &,
                                Tensor const &,

@@ -1,5 +1,6 @@
 ﻿#include "../../utilities/cuda/cudnn_context.hh"
 #include "../../utilities/cuda/cudnn_functions.h"
+#include "../expand/cuda_kernel.hh"
 #include "cudnn_kernel.hh"
 
 namespace refactor::kernel {
@@ -13,9 +14,10 @@ namespace refactor::kernel {
             cudnnFilterDescriptor_t w;
             cudnnConvolutionDescriptor_t conv;
             cudnnConvolutionFwdAlgo_t algo;
+            std::optional<Routine> biasExpand;
             bool f64;
 
-            Descriptors(bool f64_) : f64(f64_) {
+            Descriptors(bool f64_) : biasExpand(std::nullopt), f64(f64_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&y));
                 CUDNN_ASSERT(cudnnCreateFilterDescriptor(&w));
@@ -32,6 +34,9 @@ namespace refactor::kernel {
             Descriptors(Descriptors &&) = delete;
         };
         auto d = std::make_shared<Descriptors>(info.dt == DataType::F64);
+        if (info.biasExpand) {
+            d->biasExpand = ExpandCuda(*info.biasExpand).lower(res).routine;
+        }
 
         auto cudnnDataType = cudnnDataTypeConvert(info.dt);
         setCudnnTensor(d->x, info.dt, slice(info.xShape, 4));
@@ -54,7 +59,7 @@ namespace refactor::kernel {
             ASSERT(returnedAlgoCount == 1, "returnedAlgoCount != 1");
             d->algo = perfResults.algo;
             // for high accuracy, use this algo only
-            // d->algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+            d->algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
         }
         size_t workspaceSize;
         {
@@ -68,6 +73,7 @@ namespace refactor::kernel {
         auto routine = [d_ = std::move(d),
                         workspaceSize](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto const &d = *d_;
+            if (d.biasExpand) { (*(d.biasExpand))(res, workspace, inputs + 2, outputs); }
             // fetch cudnn handle from resources
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
             // build alpha/beta for double
@@ -78,12 +84,12 @@ namespace refactor::kernel {
             void *alpha, *beta;
             if (d.f64) {
                 f64[0] = 1;
-                f64[1] = 0;
+                f64[1] = d.biasExpand ? 1 : 0;
                 alpha = f64;
                 beta = f64 + 1;
             } else {
                 f32[0] = 1;
-                f32[1] = 0;
+                f32[1] = d.biasExpand ? 1 : 0;
                 alpha = f32;
                 beta = f32 + 1;
             }

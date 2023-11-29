@@ -3,10 +3,8 @@
 namespace refactor::kernel {
     using K = ConvCudnn;
 
-    K::ConvCudnn(decltype(info) info_, decltype(biasExpand) biasExpand_) noexcept
-        : Kernel(),
-          info(std::move(info_)),
-          biasExpand(std::move(biasExpand_)) {}
+    K::ConvCudnn(decltype(info) info_) noexcept
+        : Kernel(), info(std::move(info_)) {}
 
     auto K::build(PoolAttributes const &poolAttributes,
                   Tensor const &x,
@@ -42,30 +40,31 @@ namespace refactor::kernel {
              p = poolAttributes.pads(),
              s = poolAttributes.strides();
         return std::make_unique<K>(decltype(info){
-                                       x.dataType,
-                                       {
-                                           static_cast<int>(x.shape[0]),
-                                           static_cast<int>(x.shape[1]),
-                                           static_cast<int>(x.shape[2]),
-                                           static_cast<int>(x.shape[3]),
-                                       },
-                                       {
-                                           static_cast<int>(w.shape[0]),
-                                           static_cast<int>(w.shape[1]),
-                                           static_cast<int>(w.shape[2]),
-                                           static_cast<int>(w.shape[3]),
-                                       },
-                                       {
-                                           static_cast<int>(y.shape[0]),
-                                           static_cast<int>(y.shape[1]),
-                                           static_cast<int>(y.shape[2]),
-                                           static_cast<int>(y.shape[3]),
-                                       },
-                                       {d[0], d[1]},
-                                       {p[0], p[1]},
-                                       {s[0], s[1]}},
-                                   std::move(biasExpand));
-    }// namespace refactor::kernel
+            x.dataType,
+            {
+                static_cast<int>(x.shape[0]),
+                static_cast<int>(x.shape[1]),
+                static_cast<int>(x.shape[2]),
+                static_cast<int>(x.shape[3]),
+            },
+            {
+                static_cast<int>(w.shape[0]),
+                static_cast<int>(w.shape[1]),
+                static_cast<int>(w.shape[2]),
+                static_cast<int>(w.shape[3]),
+            },
+            {
+                static_cast<int>(y.shape[0]),
+                static_cast<int>(y.shape[1]),
+                static_cast<int>(y.shape[2]),
+                static_cast<int>(y.shape[3]),
+            },
+            {d[0], d[1]},
+            {p[0], p[1]},
+            {s[0], s[1]},
+            std::move(biasExpand),
+        });
+    }
 
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
