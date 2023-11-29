@@ -8,9 +8,10 @@ namespace refactor::kernel::cublas {
             RUNTIME_ERROR("Failed to create cublas handle");
         }
     }
-    CublasContext::~CublasContext() noexcept(false) {
+    CublasContext::~CublasContext() {
         if (cublasDestroy(handle) != CUBLAS_STATUS_SUCCESS) {
-            RUNTIME_ERROR("Failed to destroy cublas handle");
+            fmt::println("Failed to destroy cublas handle");
+            abort();
         }
     }
 

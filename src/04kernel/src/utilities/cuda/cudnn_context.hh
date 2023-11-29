@@ -10,7 +10,7 @@ namespace refactor::kernel::cudnn {
         cudnnHandle_t handle;
 
         CudnnContext();
-        ~CudnnContext() noexcept(false);
+        ~CudnnContext();
         CudnnContext(CudnnContext const &) noexcept = delete;
         CudnnContext(CudnnContext &&) noexcept = delete;
 

@@ -6,7 +6,7 @@ namespace refactor::kernel::cudnn {
     CudnnContext::CudnnContext() : runtime::Resource() {
         CUDNN_ASSERT(cudnnCreate(&handle));
     }
-    CudnnContext::~CudnnContext() noexcept(false) {
+    CudnnContext::~CudnnContext() {
         CUDNN_ASSERT(cudnnDestroy(handle));
     }
 

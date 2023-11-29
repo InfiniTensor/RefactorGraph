@@ -10,7 +10,7 @@ namespace refactor::kernel::cublas {
         cublasHandle_t handle;
 
         CublasContext();
-        ~CublasContext() noexcept(false);
+        ~CublasContext();
         CublasContext(CublasContext const &) noexcept = delete;
         CublasContext(CublasContext &&) noexcept = delete;
 

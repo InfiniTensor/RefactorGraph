@@ -7,18 +7,19 @@
 
 namespace refactor::hardware {
 
-    Nvidia::Nvidia(int32_t card)
-        : Device(card,
+    static Arc<Memory> cudaMemory(int32_t card) {
 #ifdef USE_CUDA
-                 std::make_shared<MemPool>(
-                     std::make_shared<NvidiaMemory>(),
-                     5ul << 30,
-                     256ul)
+        setDevice(card);
+        return std::make_shared<MemPool>(
+            std::make_shared<NvidiaMemory>(),
+            5ul << 30,
+            256ul);
 #else
-                 nullptr
+        return nullptr;
 #endif
-          ) {
     }
+
+    Nvidia::Nvidia(int32_t card) : Device(card, cudaMemory(card)) {}
 
     void Nvidia::setContext() const noexcept {
 #ifdef USE_CUDA
