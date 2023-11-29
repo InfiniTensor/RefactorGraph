@@ -11,18 +11,6 @@ namespace refactor::runtime {
 
     void emptyRoutine(runtime::Resources &, void *, void const *const *, void *const *);
 
-    struct Address {
-        std::variant<size_t, Arc<hardware::Device::Blob>> value;
-
-        void *operator()(void *stack) const;
-
-        bool isBlob() const noexcept;
-        bool isOffset() const noexcept;
-
-        auto blob() const noexcept -> hardware::Device::Blob const &;
-        auto offset() const noexcept -> size_t;
-    };
-
     struct Node {
         Routine routine;
         size_t workspaceOffset;
@@ -33,32 +21,27 @@ namespace refactor::runtime {
               workspaceOffset(wso) {}
     };
 
+    struct Edge {
+        Arc<hardware::Device::Blob> blob;
+        size_t stackOffset;
+    };
+
     class Stream {
-        using _N = Node;
-        using _E = Address;
-        using _G = graph_topo::Graph<_N, _E>;
-
-        Resources _resources;
-        size_t _stackSize;
-        std::vector<size_t> _outputsSize;
-        _G _internal;
-
         Arc<hardware::Device> _device;
         Arc<hardware::Device::Blob> _stack;
+        Resources _resources;
+        graph_topo::Graph<Node, Edge> _graph;
 
     public:
         Stream(decltype(_resources),
-               decltype(_stackSize),
-               decltype(_outputsSize),
+               size_t,
                graph_topo::GraphTopo,
-               std::vector<_N>,
-               std::vector<_E>,
+               std::vector<Node>,
+               std::vector<Edge>,
                decltype(_device));
         void setData(count_t, void const *, size_t);
         void setData(count_t, Arc<hardware::Device::Blob>);
         void getData(count_t, void *, size_t) const;
-        void dispatch(Arc<hardware::Device>);
-        auto prepare() -> std::vector<count_t>;
         void run();
         auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;
         void trace(std::function<void(count_t, void const *const *, void const *const *)>);

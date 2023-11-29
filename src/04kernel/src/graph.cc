@@ -23,32 +23,34 @@ namespace refactor::kernel {
         nodes.reserve(nodeCount);
         for (auto i : range0_(nodeCount)) {
             if (auto const &node = _internal.nodes[i]; node.kernel) {
-                auto [routine, workspaceSize] = node.kernel->lower(res);
-                nodes.emplace_back(routine);
-                workspace[i] = workspaceSize;
+                nodes.emplace_back(node.kernel->lower(res));
             } else {
                 nodes.emplace_back(runtime::emptyRoutine);
             }
         }
 
-        auto [stack, edgeOffsets, worksapceOffsets] = allocator(_internal, workspace, 32);
-        for (auto i : range0_(nodeCount)) {
-            nodes[i].workspaceOffset = worksapceOffsets[i];
+        auto [stack, nodes_, edges_] = allocator(
+            _internal.topology,
+            std::move(nodes),
+            _internal.edges,
+            32);
+
+        for (auto i : range0_(edges_.size())) {
+            auto const &edge = _internal.edges[i];
+            if (edge.data) {
+                edges_[i].blob = edge.data;
+            } else if (edges_[i].stackOffset == SIZE_MAX - 1) {
+                edges_[i].blob = _device->malloc(_internal.edges[i].size);
+            }
         }
 
-        auto outputs = _internal.topology.globalOutputs();
-        std::vector<size_t> outputs_(outputs.size());
-        std::transform(outputs.begin(), outputs.end(),
-                       outputs_.begin(),
-                       [this](auto const &edge) { return _internal.edges[edge].size; });
 
         return runtime::Stream(
             std::move(res),
             stack,
-            std::move(outputs_),
             _internal.topology,
-            std::move(nodes),
-            std::move(edgeOffsets),
+            std::move(nodes_),
+            std::move(edges_),
             _device);
     }
 

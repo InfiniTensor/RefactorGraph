@@ -40,6 +40,7 @@ namespace refactor::hardware {
             void copyTo      (Blob const &        ) const;
             void copyTo      (Blob const &, size_t) const;
             // clang-format on
+            constexpr size_t size() const noexcept { return _size; }
             constexpr void *get() const noexcept { return _ptr; }
             template<class T> constexpr T *get() const noexcept { return static_cast<T *>(_ptr); }
             constexpr operator void *() const noexcept { return get(); }

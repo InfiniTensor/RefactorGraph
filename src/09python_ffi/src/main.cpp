@@ -41,8 +41,6 @@ namespace refactor::python_ffi {
         py::class_<Executor , Arc<Executor>>(m, "Executor" )
             .def("set_input"       , &Executor::setInput         , return_::automatic )
             .def("get_output"      , &Executor::getOutput        , return_::move      )
-            .def("dispatch"        , &Executor::dispatch         , return_::automatic )
-            .def("prepare"         , &Executor::prepare          , return_::move      )
             .def("run"             , &Executor::run              , return_::automatic )
             .def("bench"           , &Executor::bench            , return_::automatic )
             .def("trace"           , &Executor::trace            , return_::automatic )

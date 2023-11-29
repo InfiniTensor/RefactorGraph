@@ -5,7 +5,6 @@
 #include <span>
 
 namespace refactor::kernel {
-    using runtime::Address;
 
     struct Node {
         KernelBox kernel;
@@ -19,14 +18,15 @@ namespace refactor::kernel {
     };
 
     struct AllocScheme {
-        size_t size;
-        std::vector<Address> addresses;
-        std::vector<size_t> workspaceOffsets;
+        size_t stack;
+        std::vector<runtime::Node> nodes;
+        std::vector<runtime::Edge> edges;
     };
 
     using Allocator = AllocScheme (*)(
-        graph_topo::Graph<Node, Edge> const &,
-        std::span<size_t const>,
+        graph_topo::GraphTopo const &,
+        std::vector<runtime::Node>,
+        std::vector<Edge> const &,
         size_t);
 
     struct Graph {
