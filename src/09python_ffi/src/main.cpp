@@ -36,7 +36,8 @@ namespace refactor::python_ffi {
             .def("check_variables" , &Compiler::fillEdgeInfo     , return_::move      )
             .def("zero_inputs"     , &Compiler::zeroInputs       , return_::move      )
             .def("get_tensor"      , &Compiler::getTensor        , return_::move      )
-            .def("compile"         , &Compiler::compile          , return_::move      );
+            .def("compile"         , &Compiler::compile          , return_::move      )
+            .def("compile_on"      , &Compiler::compileOn        , return_::move      );
 
         py::class_<Executor , Arc<Executor>>(m, "Executor" )
             .def("dispatch"        , &Executor::dispatch         , return_::automatic )

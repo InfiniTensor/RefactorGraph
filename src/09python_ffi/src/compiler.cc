@@ -27,10 +27,10 @@ namespace refactor::python_ffi {
     std::unordered_set<std::string>
     Compiler::fillEdgeInfo(bool calculate) { return _g.fillEdgeInfo(calculate); }
 
-    Arc<Executor>
-    Compiler::compile(std::string target,
-                      std::string allocator,
-                      std::vector<std::string> passes) {
+    Arc<Executor> Compiler::compileOn(
+        Arc<hardware::Device> device,
+        std::string allocator,
+        std ::vector<std::string> passes) {
         _g.collectVariables();
         std::vector<std::string_view> unknownVariables;
         for (auto const &[_, v] : _g.variables()) {
@@ -59,17 +59,8 @@ namespace refactor::python_ffi {
             computation.layoutPermute();
         }
 
-        hardware::Device::Type target_;
-        if (target == "cpu") {
-            target_ = decltype(target_)::Cpu;
-        } else if (target == "cuda") {
-            target_ = decltype(target_)::Nvidia;
-        } else {
-            UNREACHABLE();
-        }
-
-        auto kernel = computation.lower(target_);
-        auto stream = kernel.lower(hardware::device::fetch(target_),
+        auto kernel = computation.lower(device->type());
+        auto stream = kernel.lower(std::move(device),
                                    allocator == "flat"
                                        ? kernel::flatAllocate
                                        : kernel::reusableAllocate);
@@ -77,6 +68,21 @@ namespace refactor::python_ffi {
         return std::make_shared<Executor>(
             std::move(computation),
             std::move(stream));
+    }
+
+    Arc<Executor>
+    Compiler::compile(std::string target,
+                      std::string allocator,
+                      std::vector<std::string> passes) {
+        using Target = hardware::Device::Type;
+        // clang-format off
+        auto target_ = target == "cpu"  ? Target::Cpu
+                     : target == "cuda" ? Target::Nvidia
+                     : UNREACHABLEX(Target, "Unknown target: {}", target);
+        // clang-format on
+        return compileOn(hardware::device::fetch(target_),
+                         std::move(allocator),
+                         std::move(passes));
     }
 
     std::vector<pybind11::array>
