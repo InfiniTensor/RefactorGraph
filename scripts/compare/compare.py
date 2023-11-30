@@ -23,27 +23,17 @@ def parse_args():
         args.actual,
     )
 
-
-def getDiff(arr1, arr2):
-    if arr1.dtype == np.bool_:
-        arr1 = arr1.astype(int)
-        arr2 = arr2.astype(int)
-    absolute_diff = np.subtract(arr1, arr2)
+def getDiff(base, test):
+    absolute_diff = np.subtract(base, test)
     max_absolute_diff = np.max(np.abs(absolute_diff))
-    if max_absolute_diff == 0.0:
-        max_relative_diff = 0.0
-    else:
-        relative_diff = np.abs(
-            np.divide(
-                absolute_diff,
-                np.maximum(np.abs(arr1), np.abs(arr2)),
-                where=~np.isclose(arr1, 0) & ~np.isclose(arr2, 0),
-            )
-        )
-        max_relative_diff = np.max(relative_diff)
+
+    baseCopy = base.astype(np.float64).ravel()
+    testCopy = test.astype(np.float64).ravel()
+    upValue = np.sum(np.abs(baseCopy - testCopy))
+    downValue = np.sum(np.abs(baseCopy)) + np.float64(1e-9)
+    max_relative_diff = upValue / downValue
 
     return max_absolute_diff, max_relative_diff
-
 
 def compare_npy(actual_path, expect_path, edge, node):
     actual = np.load(actual_path)
@@ -51,10 +41,10 @@ def compare_npy(actual_path, expect_path, edge, node):
     if np.isnan(actual).any():
         print(f"NAN value in node:{node} edge:{edge}")
         return
-
+    
     max_absolute_diff, max_relative_diff = getDiff(expect, actual)
-    if max_absolute_diff != 0.0:  ## No need to print tensor with no diff
-        print(f"{max_absolute_diff}\t{max_relative_diff}\t{node}\t{edge}")
+    if max_absolute_diff != 0.0: ## No need to print tensor with no diff
+        print(f'{max_absolute_diff}\t{max_relative_diff}\t{node}\t{edge}')
 
 
 def main():
