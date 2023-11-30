@@ -12,6 +12,7 @@
 namespace refactor::hardware {
 
     void setDevice(int device);
+    int getDeviceCount();
 
 }// namespace refactor::hardware
 

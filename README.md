@@ -20,6 +20,11 @@
 
 使用 `make install-python` 编译并安装 Python 前端到全局，安装的包名为 `refactor_grpah`。
 
+环境变量：
+
+- 添加 `TYPE=Debug` 或 `TYPE=Release` 以启用指定的优化级别，默认为 `Debug`；
+- 添加 `CUDA=OFF` 或 `CUDA=ON` 以打开或关闭英伟达显卡支持，默认为 `OFF`；
+
 ## 使用前端
 
 ```python
