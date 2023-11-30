@@ -8,7 +8,7 @@ from onnx.shape_inference import infer_shapes
 
 input_dir_name = "inputs/"
 onnx_result_dir_name = "onnx_outputs/"
-size_threshold = 256 * 1024 * 1024
+size_threshold = 1024 * 1024 * 1024
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run with onnx_runtime, export all outputs to file.")
@@ -89,7 +89,7 @@ def get_extra_output_groups(model):
             total_size = 0
     if total_size != 0:
         output_groups.append(group)
-    
+    output_groups.append([out for out in model.graph.output])
     return output_groups
         
 
