@@ -1,5 +1,6 @@
 ﻿#include "clip.hh"
 #include "common.h"
+#include "computation/operators/clip.h"
 
 namespace refactor::onnx {
     using Op = Clip;
@@ -30,6 +31,11 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
         return Ok(Tensors{Tensor::share(input.dataType, input.shape, extractDependency(inputs))});
+    }
+
+    auto Op::lower(TensorRefs) const -> computation::OpBox {
+        using Op_ = computation::Clip;
+        return std::make_unique<Op_>();
     }
 
 }// namespace refactor::onnx
