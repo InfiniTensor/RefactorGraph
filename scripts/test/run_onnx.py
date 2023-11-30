@@ -10,14 +10,15 @@ input_dir_name = "inputs/"
 onnx_result_dir_name = "onnx_outputs/"
 size_threshold = 1024 * 1024 * 1024
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run with onnx_runtime, export all outputs to file.")
+    parser = argparse.ArgumentParser(
+        description="Run with onnx_runtime, export all outputs to file."
+    )
     parser.add_argument(
         "--model", type=str, required=True, help="Path to the ONNX model file."
     )
-    parser.add_argument(
-        "--output", type=str, default="./", help="Working directory."
-    )
+    parser.add_argument("--output", type=str, default="./", help="Working directory.")
     parser.add_argument(
         "--gen_input", action="store_true", help="Generate random input."
     )
@@ -29,6 +30,7 @@ def parse_args():
         args.gen_input,
     )
 
+
 def gen_inputs(model, working_path):
     inputs_info = model.graph.input
     dir_path = create_dir(working_path, input_dir_name)
@@ -36,9 +38,11 @@ def gen_inputs(model, working_path):
     initializers = set(i.name for i in model.graph.initializer)
 
     for i, info in enumerate(inputs_info):
-        
         if info.name not in initializers:
-            shape = [d.dim_value if d.HasField("dim_value") else 1 for d in info.type.tensor_type.shape.dim]
+            shape = [
+                d.dim_value if d.HasField("dim_value") else 1
+                for d in info.type.tensor_type.shape.dim
+            ]
 
             if info.type.tensor_type.elem_type == 6:
                 data = np.random.randint(0, 2, size=shape).astype(np.int32)
@@ -51,6 +55,7 @@ def gen_inputs(model, working_path):
 
     return inputs
 
+
 def load_inputs(model, working_path):
     inputs_info = model.graph.input
     dir_path = os.path.join(working_path, input_dir_name)
@@ -60,6 +65,7 @@ def load_inputs(model, working_path):
         inputs[info.name] = np.load(file_path)
     return inputs
 
+
 def create_dir(working_path, dir_name):
     dir_path = os.path.join(working_path, dir_name)
     if os.path.exists(dir_path):
@@ -67,7 +73,7 @@ def create_dir(working_path, dir_name):
         os.mkdir(dir_path)
     else:
         os.mkdir(dir_path)
-    
+
     return dir_path
 
 
@@ -77,7 +83,10 @@ def get_extra_output_groups(model):
     total_size = 0
     for value_info in model.graph.value_info:
         group.append(value_info)
-        shape = [d.dim_value if d.HasField("dim_value") else 1 for d in value_info.type.tensor_type.shape.dim]
+        shape = [
+            d.dim_value if d.HasField("dim_value") else 1
+            for d in value_info.type.tensor_type.shape.dim
+        ]
         size = 1
         for i in shape:
             size *= i
@@ -91,7 +100,7 @@ def get_extra_output_groups(model):
         output_groups.append(group)
     output_groups.append([out for out in model.graph.output])
     return output_groups
-        
+
 
 def run_with_extra_outputs(model, extra_outputs, inputs, output_path):
     n = len(model.graph.output)
@@ -109,6 +118,7 @@ def run_with_extra_outputs(model, extra_outputs, inputs, output_path):
         print("Save output to " + file_path)
         np.save(file_path, tensor)
 
+
 def main():
     model_path, working_path, gen_input = parse_args()
     create_dir(working_path, onnx_result_dir_name)
@@ -124,7 +134,7 @@ def main():
 
     for extra_outputs in output_groups:
         run_with_extra_outputs(model, extra_outputs, inputs, output_path)
-    
+
 
 if __name__ == "__main__":
     main()

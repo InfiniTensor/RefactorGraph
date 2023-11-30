@@ -9,14 +9,15 @@ import shutil
 input_dir_name = "inputs/"
 result_dir_name = "if_outputs/"
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run with onnx_runtime, export all outputs to file.")
+    parser = argparse.ArgumentParser(
+        description="Run with onnx_runtime, export all outputs to file."
+    )
     parser.add_argument(
         "--model", type=str, required=True, help="Path to the ONNX model file."
     )
-    parser.add_argument(
-        "--output", type=str, default="./", help="Working directory."
-    )
+    parser.add_argument("--output", type=str, default="./", help="Working directory.")
 
     parser.add_argument(
         "--gen_input", action="store_true", help="Generate random input."
@@ -27,8 +28,8 @@ def parse_args():
         args.model,
         args.output,
         args.gen_input,
-
     )
+
 
 def create_dir(working_path, dir_name):
     dir_path = os.path.join(working_path, dir_name)
@@ -37,8 +38,9 @@ def create_dir(working_path, dir_name):
         os.mkdir(dir_path)
     else:
         os.mkdir(dir_path)
-    
+
     return dir_path
+
 
 def main():
     model_path, work_path, gen_input = parse_args()
@@ -55,12 +57,12 @@ def main():
         if gen_input:
             input[...] = np.random.random(input.shape).astype(input.dtype)
             executor.set_input(i, input)
-            np.save(os.path.join(work_path, input_dir_name, f'input_{i}'), input)
+            np.save(os.path.join(work_path, input_dir_name, f"input_{i}"), input)
         else:
-            input = np.load(os.path.join(work_path, input_dir_name, f'input_{i}.npy'))
+            input = np.load(os.path.join(work_path, input_dir_name, f"input_{i}.npy"))
             executor.set_input(i, input)
-    executor.prepare()
     executor.trace(os.path.join(work_path, result_dir_name), "npy")
+
 
 if __name__ == "__main__":
     main()
