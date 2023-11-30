@@ -48,6 +48,10 @@ namespace refactor::kernel {
         auto dd = info.dilation;
         CUDNN_ASSERT(cudnnSetConvolution2dDescriptor(d->conv, pp[0], pp[1], ss[0], ss[1], dd[0], dd[1], CUDNN_CROSS_CORRELATION, cudnnDataType));
 
+        if (auto group = info.xShape[1] / ws[1]; group > 1) {
+            CUDNN_ASSERT(cudnnSetConvolutionGroupCount(d->conv, group));
+        }
+
         auto handle = res.fetchOrStore<CudnnContext>()->handle;
         {
             int returnedAlgoCount;

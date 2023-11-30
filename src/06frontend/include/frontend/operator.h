@@ -64,7 +64,7 @@ namespace refactor::frontend {
         virtual std::string_view opTypeName() const = 0;
         virtual InputVec valueDependentInputs() const { return {}; }
         virtual InferResult infer(TensorRefs, InferOptions const &) const = 0;
-        virtual computation::OpBox lower(TensorRefs) const { UNREACHABLE(); }
+        virtual computation::OpBox lower(TensorRefs) const;
 
         template<class T, class... Args>
         bool is(Args &&...args) const noexcept {
@@ -81,13 +81,13 @@ namespace refactor::frontend {
     };
 
     class OpBox {
-        std::unique_ptr<Operator> op;
+        std::unique_ptr<Operator> _op;
 
     public:
-        explicit OpBox(std::unique_ptr<Operator> ptr) : op(std::move(ptr)) {}
+        explicit OpBox(decltype(_op));
 
-        Operator *operator->() { return op.get(); }
-        Operator const *operator->() const { return op.get(); }
+        Operator *operator->();
+        Operator const *operator->() const;
     };
 
     struct Node {

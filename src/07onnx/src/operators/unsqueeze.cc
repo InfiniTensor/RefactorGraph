@@ -1,7 +1,6 @@
 ﻿#include "unsqueeze.hh"
 #include "common.h"
 #include "computation/operators/reshape.h"
-#include <span>
 
 namespace refactor::onnx {
     using Op = Unsqueeze;

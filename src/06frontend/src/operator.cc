@@ -82,6 +82,10 @@ namespace refactor::frontend {
     CONVERT(Tensors, tensors)
 #undef CONVERT
 
+    computation::OpBox Operator::lower(TensorRefs) const {
+        RUNTIME_ERROR(fmt::format("Lowering not implemented for \"{}\"", opTypeName()));
+    }
+
     static std::unordered_map<std::string, Operator::Builder> OP_BUILDERS;
 
     void Operator::register_(std::string opType, Builder builder) {
@@ -94,5 +98,9 @@ namespace refactor::frontend {
         }
         RUNTIME_ERROR(fmt::format("Unknown operator \"{}\"", opType));
     }
+
+    OpBox::OpBox(decltype(_op) op) : _op(std::move(op)) {}
+    auto OpBox::operator->() -> Operator * { return _op.get(); }
+    auto OpBox::operator->() const -> Operator const * { return _op.get(); }
 
 }// namespace refactor::frontend

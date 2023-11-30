@@ -37,6 +37,8 @@ namespace refactor::kernel {
             d->bAlpha = -1.f;
         } else if (opType == SimpleBinaryType::Mul) {
             cudnnOP = CUDNN_OP_TENSOR_MUL;
+        } else {
+            UNREACHABLE();
         }
 
         setCudnnTensor(d->aDesc, dataType, slice(aDims.data(), aDims.size()));

@@ -18,9 +18,9 @@ namespace refactor::kernel {
         {
             std::string command;
             command = fmt::format("nvcc -Xcompiler \"-fPIC\" {} -c -o {}", src.c_str(), out.c_str());
-            std::system(command.c_str());
+            std::ignore = std::system(command.c_str());
             command = fmt::format("nvcc -shared {} -o {}", out.c_str(), so.c_str());
-            std::system(command.c_str());
+            std::ignore = std::system(command.c_str());
         }
 
         auto handle = dlopen(so.c_str(), RTLD_LAZY);

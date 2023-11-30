@@ -146,11 +146,9 @@ namespace refactor::onnx {
                 : keepdims        ? Tensor::share(data.dataType, Shape(data.rank(), DimExpr(1)), extractDependency(inputs))
                                   : Tensor::share(data.dataType, Shape{}, extractDependency(inputs))});
         }
-        int64_t const *axes_;
-        size_t axesSize;
+        std::span<int64_t const> axes_;
         if (axes) {
-            axes_ = axes->data();
-            axesSize = axes->size();
+            axes_ = *axes;
         } else {
             auto const &axes__ = inputs[1];
             if (axes__.dataType != DataType::I64 ||
@@ -158,14 +156,12 @@ namespace refactor::onnx {
                 !axes__.data) {
                 return Err(InferError(ERROR_MSG("Axes not support")));
             }
-            axes_ = axes__.data->get<int64_t>();
-            EXPECT_VAL(axes__.shape[0], axesSize_)
-            axesSize = axesSize_;
+            EXPECT_VAL(axes__.shape[0], axesSize)
+            axes_ = std::span(axes__.data->get<int64_t>(), axesSize);
         }
         auto const &shape = data.shape;
         std::unordered_set<int64_t> axes__;
-        for (auto i : range0_(axesSize)) {
-            auto axis = axes_[i];
+        for (auto axis : axes_) {
             axes__.insert(axis < 0 ? axis + shape.size() : axis);
         }
         Shape output;
@@ -226,23 +222,22 @@ namespace refactor::onnx {
             if (noopWithEmptyAxes) {
                 return std::make_unique<computation::Identity>();
             } else {
-                return std::make_unique<Op_>(type_, decltype(Op_::axes){}, rank, keepdims);
+                decltype(Op_::axes) axes(rank);
+                std::iota(axes.begin(), axes.end(), 0);
+                return std::make_unique<Op_>(type_, std::move(axes), rank, keepdims);
             }
         }
-        int64_t const *axes_;
-        size_t axesSize;
+        std::span<int64_t const> axes_;
         if (axes) {
-            axes_ = axes->data();
-            axesSize = axes->size();
+            axes_ = *axes;
         } else {
-            axes_ = inputs[1].data->get<int64_t>();
-            axesSize = inputs[1].shape[0].value();
+            axes_ = std::span(inputs[1].data->get<int64_t>(), inputs[1].shape[0].value());
         }
-        decltype(Op_::axes) axes__(axesSize);
+        decltype(Op_::axes) axes__(axes_.size());
         std::transform(std::execution::unseq,
-                       axes_, axes_ + axesSize, axes__.begin(), [rank](auto axis) {
-                           return axis < 0 ? axis + rank : axis;
-                       });
+                       axes_.begin(), axes_.end(),
+                       axes__.begin(),
+                       [rank](auto axis) { return axis < 0 ? axis + rank : axis; });
         return std::make_unique<Op_>(type_, std::move(axes__), rank, keepdims);
     }
 }// namespace refactor::onnx
