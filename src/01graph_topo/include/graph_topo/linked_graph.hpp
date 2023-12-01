@@ -56,8 +56,8 @@ namespace refactor::graph_topo {
         TN const &info() const;
         std::vector<Rc<Edge>> const &inputs() const;
         std::vector<Rc<Edge>> const &outputs() const;
-        std::unordered_set<Rc<Node>> const &predecessors() const;
-        std::unordered_set<Rc<Node>> const &successors() const;
+        std::unordered_set<Rc<Node>> predecessors() const;
+        std::unordered_set<Rc<Node>> successors() const;
         void connect(count_t, Rc<Edge>);
         void disconnect(count_t);
         void reconnect(Rc<Edge>, Rc<Edge>);
@@ -253,7 +253,7 @@ namespace refactor::graph_topo {
         return _outputs;
     }
 
-    LINKED_GRAPH_FN Node::predecessors() const->std::unordered_set<Rc<Node>> const & {
+    LINKED_GRAPH_FN Node::predecessors() const->std::unordered_set<Rc<Node>> {
         std::unordered_set<Rc<Node>> ans;
         for (auto const &e : _inputs) {
             if (e->_source) {
@@ -263,7 +263,7 @@ namespace refactor::graph_topo {
         return ans;
     }
 
-    LINKED_GRAPH_FN Node::successors() const->std::unordered_set<Rc<Node>> const & {
+    LINKED_GRAPH_FN Node::successors() const->std::unordered_set<Rc<Node>> {
         std::unordered_set<Rc<Node>> ans;
         for (auto const &e : _outputs) {
             for (auto const &[n, _] : e->_targets) {

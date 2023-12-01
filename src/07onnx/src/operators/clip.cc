@@ -1,6 +1,7 @@
 ﻿#include "clip.hh"
 #include "common.h"
 #include "computation/operators/clip.h"
+#include "computation/operators/identity.h"
 
 namespace refactor::onnx {
     using Op = Clip;
@@ -33,9 +34,12 @@ namespace refactor::onnx {
         return Ok(Tensors{Tensor::share(input.dataType, input.shape, extractDependency(inputs))});
     }
 
-    auto Op::lower(TensorRefs) const -> computation::OpBox {
-        using Op_ = computation::Clip;
-        return std::make_unique<Op_>();
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
+        if (inputs.size() > 1) {
+            return std::make_unique<computation::Clip>();
+        } else {
+            return std::make_unique<computation::Identity>();
+        }
     }
 
 }// namespace refactor::onnx
