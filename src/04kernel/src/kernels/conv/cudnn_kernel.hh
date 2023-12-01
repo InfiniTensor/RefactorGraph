@@ -17,7 +17,7 @@ namespace refactor::kernel {
                 wShape[4],
                 yShape[4],
                 dilation[2],
-                pad[2],
+                pad[4],
                 stride[2];
             std::optional<ExpandInfo> biasExpand;
         } info;

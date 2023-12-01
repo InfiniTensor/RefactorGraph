@@ -27,13 +27,7 @@ namespace refactor::kernel {
         }
 
         // group is not supported
-        if (w.rank() != 4 || x.shape[1] != w.shape[1]) {
-            return nullptr;
-        }
-        auto padsBegin = poolAttributes.padsBegin(),
-             padsEnd = poolAttributes.padsEnd();
-        if (padsBegin[0] != padsEnd[0] ||
-            padsBegin[1] != padsEnd[1]) {
+        if (w.rank() != 4 || poolAttributes.rank() != 2) {
             return nullptr;
         }
         auto d = poolAttributes.dilations(),
@@ -60,7 +54,7 @@ namespace refactor::kernel {
                 static_cast<int>(y.shape[3]),
             },
             {d[0], d[1]},
-            {p[0], p[1]},
+            {p[0], p[1], p[2], p[3]},
             {s[0], s[1]},
             std::move(biasExpand),
         });
