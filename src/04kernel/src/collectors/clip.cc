@@ -9,10 +9,12 @@ namespace refactor::kernel {
     std::vector<KernelBox>
     ClipCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         auto const &data = inputs[0];
+        auto hasMax = inputs.size() == 3;
+
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
-                if (auto ptr = ClipCpu::build(data, inputs.size() == 3); ptr) {
+                if (auto ptr = ClipCpu::build(data, hasMax); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
