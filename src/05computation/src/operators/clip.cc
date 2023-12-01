@@ -1,4 +1,5 @@
 ﻿#include "computation/operators/clip.h"
+#include "kernel/collectors/clip.h"
 
 namespace refactor::computation {
     using Op = Clip;
@@ -9,5 +10,9 @@ namespace refactor::computation {
     }
     auto Op::opTypeId() const noexcept -> size_t { return typeId(); }
     auto Op::name() const noexcept -> std::string_view { return "Clip"; }
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        using Collector_ = kernel::ClipCollector;
+        return std::make_unique<Collector_>(target);
+    }
 
 }// namespace refactor::computation
