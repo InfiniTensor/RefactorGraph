@@ -6,7 +6,7 @@ namespace refactor::kernel {
 
     std::vector<KernelBox>
     GatherCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-        GatherInfo info(axis, inputs[0].get(), inputs[1].get());
+        GatherInfo info(axis, inputs[0], inputs[1]);
 
         std::vector<KernelBox> ans;
         switch (_target) {

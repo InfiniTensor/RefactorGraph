@@ -37,7 +37,7 @@ namespace refactor::kernel {
     };
 
     template<class T, class UnaryFuntor>
-    auto lowerTyped(size_t n) noexcept {
+    static auto lowerTyped(size_t n) noexcept {
         using namespace runtime;
 
         return [n](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {

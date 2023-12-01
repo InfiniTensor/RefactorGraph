@@ -12,11 +12,11 @@ namespace refactor::kernel {
 
     std::vector<KernelBox>
     MatMulCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-        auto const &a = inputs[0].get();
-        auto const &b = inputs[1].get();
+        auto const &a = inputs[0];
+        auto const &b = inputs[1];
 
         auto info = inputs.size() == 3
-                        ? MatMulInfo(a, b, std::make_optional(inputs[2].get()), transA, transB, alpha, beta)
+                        ? MatMulInfo(a, b, std::make_optional(inputs[2]), transA, transB, alpha, beta)
                         : MatMulInfo(a, b, std::nullopt, transA, transB, alpha, beta);
 
         std::vector<KernelBox> ans;

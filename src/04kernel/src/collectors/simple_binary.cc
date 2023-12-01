@@ -18,9 +18,9 @@ namespace refactor::kernel {
 
     std::vector<KernelBox>
     SimpleBinaryCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-        auto const &a = inputs[0].get();
-        auto const &b = inputs[1].get();
-        auto const &c = outputs[0].get();
+        auto const &a = inputs[0];
+        auto const &b = inputs[1];
+        auto const &c = outputs[0];
 
         std::vector<KernelBox> ans;
         switch (_target) {

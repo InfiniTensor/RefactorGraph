@@ -8,9 +8,9 @@ namespace refactor::kernel {
     using namespace cublas;
 
     template<class T>
-    auto lowerTyped(cudaDataType_t cudaDataType,
-                    MatMulInfo info,
-                    Resources &res) noexcept -> RoutineWorkspace {
+    static auto lowerTyped(cudaDataType_t cudaDataType,
+                           MatMulInfo info,
+                           Resources &res) noexcept -> RoutineWorkspace {
         return [cudaDataType,
                 alpha = static_cast<T>(info.alpha),
                 beta = static_cast<T>(info.biasExpand ? info.beta : 0.0f),

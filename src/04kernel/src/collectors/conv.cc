@@ -9,10 +9,10 @@ namespace refactor::kernel {
 
     std::vector<KernelBox>
     ConvCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-        auto const &x = inputs[0].get();
-        auto const &w = inputs[1].get();
+        auto const &x = inputs[0];
+        auto const &w = inputs[1];
         auto b = inputs.size() == 3 ? std::make_optional(inputs[2]) : std::nullopt;
-        auto const &y = outputs[0].get();
+        auto const &y = outputs[0];
 
         std::vector<KernelBox> ans;
         switch (_target) {

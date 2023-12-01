@@ -10,7 +10,7 @@ namespace refactor::kernel {
     std::vector<KernelBox>
     GlobalPoolCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         auto const &x = inputs[0].get();
-        auto const &y = outputs[0].get();
+        auto const &y = outputs[0];
 
         auto rank = x.rank() - 2;
         KernelShape kernelShape(rank);
