@@ -97,9 +97,15 @@ namespace refactor::kernel {
         if (info.biasExpand) {
             d->biasExpand = ExpandCuda(*info.biasExpand).lower(res).routine;
         }
+        int xs[]{
+            info.xShape[0],
+            info.xShape[1],
+            info.xShape[2] + std::abs(info.pad[0] - info.pad[2]),
+            info.xShape[3] + std::abs(info.pad[1] - info.pad[3]),
+        };
 
         auto cudnnDataType = cudnnDataTypeConvert(info.dt);
-        setCudnnTensor(d->x, info.dt, slice(info.xShape, 4));
+        setCudnnTensor(d->x, info.dt, slice(xs, 4));
         setCudnnTensor(d->y, info.dt, slice(info.yShape, 4));
         auto ws = info.wShape;
         CUDNN_ASSERT(cudnnSetFilter4dDescriptor(d->w, cudnnDataType, CUDNN_TENSOR_NCHW, ws[0], ws[1], ws[2], ws[3]));
@@ -114,7 +120,7 @@ namespace refactor::kernel {
             CUDNN_CROSS_CORRELATION,
             cudnnDataType));
 
-        if (auto group = info.xShape[1] / ws[1]; group > 1) {
+        if (auto group = xs[1] / ws[1]; group > 1) {
             CUDNN_ASSERT(cudnnSetConvolutionGroupCount(d->conv, group));
         }
 
