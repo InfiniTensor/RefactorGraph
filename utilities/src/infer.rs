@@ -1,4 +1,5 @@
-﻿use std::{ffi::OsStr, fs, path::Path, process::Command};
+﻿use crate::proj_dir;
+use std::{ffi::OsStr, fs, path::Path, process::Command};
 
 const SCRIPT: &str = r#"
 import numpy as np
@@ -46,7 +47,7 @@ model_path = Path(\"{}\").resolve()
     )
 }
 
-pub fn infer(proj_dir: impl AsRef<Path>, path: impl AsRef<Path>) {
+pub fn infer(path: impl AsRef<Path>) {
     let path = path.as_ref();
     assert!(
         path.is_file() && path.extension() == Some(OsStr::new("onnx")),
@@ -54,7 +55,7 @@ pub fn infer(proj_dir: impl AsRef<Path>, path: impl AsRef<Path>) {
         path.display(),
     );
     Command::new("python")
-        .current_dir(proj_dir)
+        .current_dir(proj_dir())
         .arg("-c")
         .arg(format!("{}{}", model_path(path), SCRIPT))
         .status()

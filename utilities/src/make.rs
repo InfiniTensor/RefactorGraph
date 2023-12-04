@@ -1,8 +1,9 @@
-﻿use std::{
+﻿use crate::proj_dir;
+use std::{
     collections::HashSet,
     ffi::{OsStr, OsString},
     fs,
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::Command,
 };
 
@@ -13,7 +14,6 @@ enum Target {
 }
 
 pub fn make(
-    proj_dir: impl AsRef<Path>,
     release: bool,
     install_python: bool,
     dev: Option<Vec<OsString>>,
@@ -40,7 +40,8 @@ pub fn make(
         .collect::<HashSet<_>>();
     let dev = |d: Target| if dev.contains(&d) { "ON" } else { "OFF" };
 
-    let build = proj_dir.as_ref().join("build");
+    let proj_dir = proj_dir();
+    let build = proj_dir.join("build");
     fs::create_dir_all(&build).unwrap();
 
     let mut cmd = Command::new("cmake");
@@ -74,7 +75,6 @@ pub fn make(
             .unwrap()
             .path();
         let to = proj_dir
-            .as_ref()
             .join("src/09python_ffi/src/refactor_graph")
             .join(from.file_name().unwrap());
         fs::copy(from, to).unwrap();
@@ -82,7 +82,7 @@ pub fn make(
         Command::new("pip")
             .arg("install")
             .arg("-e")
-            .arg(proj_dir.as_ref().join("src/09python_ffi/"))
+            .arg(proj_dir.join("src/09python_ffi/"))
             .status()
             .unwrap();
     }

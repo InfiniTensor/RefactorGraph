@@ -6,7 +6,7 @@ namespace refactor::communication {
     using namespace frontend;
 
     void register_() {
-// clang-format off
+        // clang-format off
         #define REGISTER(NAME, CLASS) Operator::register_<CLASS>("onnx::" #NAME)
         REGISTER(AllReduceAvg , AllReduce);
         REGISTER(AllReduceSum , AllReduce);

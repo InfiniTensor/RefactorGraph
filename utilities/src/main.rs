@@ -1,3 +1,4 @@
+mod format;
 mod infer;
 mod make;
 
@@ -8,6 +9,7 @@ use std::{
     io::ErrorKind,
     path::{Path, PathBuf},
     process::Command,
+    sync::OnceLock,
 };
 
 /// Refactor Graph utilities
@@ -39,21 +41,27 @@ enum Commands {
     Clean,
     /// run tests
     Test,
+    /// format source files
+    Format,
     /// run model inference
     Infer { path: PathBuf },
 }
 
+pub fn proj_dir() -> &'static Path {
+    static PROJ: OnceLock<&Path> = OnceLock::new();
+    *PROJ.get_or_init(|| Path::new(std::env!("CARGO_MANIFEST_DIR")).parent().unwrap())
+}
+
 fn main() {
-    let proj_dir = Path::new(std::env!("CARGO_MANIFEST_DIR")).parent().unwrap();
     match Cli::parse().command {
         Commands::Make {
             release,
             install_python,
             dev,
             cxx_compiler,
-        } => make::make(proj_dir, release, install_python, dev, cxx_compiler),
+        } => make::make(release, install_python, dev, cxx_compiler),
 
-        Commands::Clean => match fs::remove_dir_all(proj_dir.join("build")) {
+        Commands::Clean => match fs::remove_dir_all(proj_dir().join("build")) {
             Ok(_) => {}
             Err(e) if e.kind() == ErrorKind::NotFound => {}
             Err(e) => panic!("{}", e),
@@ -61,13 +69,15 @@ fn main() {
 
         Commands::Test => {
             Command::new("make")
-                .current_dir(proj_dir.join("build"))
+                .current_dir(proj_dir().join("build"))
                 .arg("test")
                 .arg("-j")
                 .status()
                 .unwrap();
         }
 
-        Commands::Infer { path } => infer::infer(proj_dir, path),
+        Commands::Format => format::format(),
+
+        Commands::Infer { path } => infer::infer(path),
     }
 }
