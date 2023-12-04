@@ -18,16 +18,12 @@ namespace refactor::kernel {
 #endif
 
         // TODO check data type
-        auto pb = poolAttributes.padsBegin(),
-             pe = poolAttributes.padsEnd(),
+        auto p = poolAttributes.pads(),
              d = poolAttributes.dilations(),
              s = poolAttributes.strides();
         if (x.rank() != 4 ||
             poolType == PoolType::Lp ||
-            d[0] != 1 ||
-            d[1] != 1 ||
-            pb[0] != pe[0] ||
-            pb[1] != pe[1]) {
+            d[0] != 1 || d[1] != 1) {
             return nullptr;
         }
         return std::make_unique<K>(decltype(info){
@@ -49,7 +45,7 @@ namespace refactor::kernel {
                 static_cast<int>(kernelShape[0]),
                 static_cast<int>(kernelShape[1]),
             },
-            {pb[0], pb[1]},
+            {p[0], p[1], p[2], p[3]},
             {s[0], s[1]},
         });
     }

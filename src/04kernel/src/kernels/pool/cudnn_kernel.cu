@@ -1,5 +1,6 @@
 ﻿#include "../../utilities/cuda/cudnn_context.hh"
 #include "../../utilities/cuda/cudnn_functions.h"
+#include "../extra_padding/extra_padding.cuh"
 #include "cudnn_kernel.hh"
 
 namespace refactor::kernel {
@@ -12,6 +13,7 @@ namespace refactor::kernel {
         struct Descriptors {
             cudnnTensorDescriptor_t x, y;
             cudnnPoolingDescriptor_t pooling;
+            std::optional<ExtraPadding> extraPadding;
 
             Descriptors() {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
@@ -28,12 +30,17 @@ namespace refactor::kernel {
             Descriptors(Descriptors &&) = delete;
         };
         auto d = std::make_shared<Descriptors>();
-
-        auto cudnnDataType = cudnnDataTypeConvert(info.dt);
-        auto xs = info.xShape;
-        auto ys = info.yShape;
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->x, CUDNN_TENSOR_NCHW, cudnnDataType, xs[0], xs[1], xs[2], xs[3]));
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->y, CUDNN_TENSOR_NCHW, cudnnDataType, ys[0], ys[1], ys[2], ys[3]));
+        d->extraPadding = ExtraPadding::build(info.dt, info.xShape, info.pads);
+        int const
+            xs[]{
+                info.xShape[0],
+                info.xShape[1],
+                info.xShape[2] + std::abs(info.pads[0] - info.pads[2]),
+                info.xShape[3] + std::abs(info.pads[1] - info.pads[3]),
+            },
+            *ys = info.yShape;
+        setCudnnTensor(d->x, info.dt, slice(xs, 4));
+        setCudnnTensor(d->y, info.dt, slice(ys, 4));
 
         // clang-format off
         auto mode = info.poolType == Ty::Average ? CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING
@@ -47,28 +54,27 @@ namespace refactor::kernel {
             d->pooling,
             mode, CUDNN_PROPAGATE_NAN,
             kk[0], kk[1],
-            pp[0], pp[1],
+            std::min(pp[0], pp[2]), std::min(pp[1], pp[3]),
             ss[0], ss[1]));
 
         res.fetchOrStore<CudnnContext>();
         // nvcc at c++11 doesn't support real move capture
-        return [d_ = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            // fetch cudnn handle from resources
-            auto handle = res.fetchOrStore<CudnnContext>()->handle;
-            auto const &d = *d_;
-            // name inputs and outputs
-            auto x = inputs[0];
-            auto y = outputs[0];
+        auto routine = [d](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
+            void const *x = inputs[0];
+            if (auto f = d->extraPadding; f) {
+                x = (*f)(x, workspace);
+            }
             // TODO? build alpha/beta for double
             float alpha = 1, beta = 0;
             CUDNN_ASSERT(cudnnPoolingForward(
-                handle,
-                d.pooling,
+                res.fetchOrStore<CudnnContext>()->handle,
+                d->pooling,
                 &alpha,
-                d.x, x,
+                d->x, x,
                 &beta,
-                d.y, y));
+                d->y, outputs[0]));
         };
+        return {std::move(routine), d->extraPadding ? d->extraPadding->workspace() : 0};
     }
 
 }// namespace refactor::kernel

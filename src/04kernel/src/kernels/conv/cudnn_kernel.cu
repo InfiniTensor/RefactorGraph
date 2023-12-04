@@ -1,67 +1,13 @@
 ﻿#include "../../utilities/cuda/cudnn_context.hh"
 #include "../../utilities/cuda/cudnn_functions.h"
 #include "../expand/cuda_kernel.hh"
+#include "../extra_padding/extra_padding.cuh"
 #include "cudnn_kernel.hh"
 #include "hardware/functions.h"
-#include <thrust/execution_policy.h>
-#include <thrust/tabulate.h>
 
 namespace refactor::kernel {
     using namespace cudnn;
     using namespace runtime;
-
-    struct ExtraPadding {
-        DataType dt;
-        int nc, sohw, sow, h, w, padH, padW;
-
-        static std::optional<ExtraPadding> build(DataType dt, int const *shape, int const *pads) {
-            if (pads[0] == pads[2] && pads[1] == pads[3]) {
-                return std::nullopt;
-            }
-            int padH = pads[0] - pads[2], padW = pads[1] - pads[3];
-            return ExtraPadding{
-                dt,
-                shape[0] * shape[1],
-                (shape[2] + std::abs(padH)) * (shape[3] + std::abs(padW)),
-                shape[3] + std::abs(padW),
-                shape[2],
-                shape[3],
-                padH,
-                padW};
-        }
-
-        size_t workspace() const {
-            return nc * sohw * dt.size();
-        }
-    };
-
-    template<class T>
-    struct ExtraPaddingFunctor {
-        ExtraPadding info;
-        void const *src;
-
-        __device__ T operator()(size_t i) const noexcept {
-            auto h = i / info.sow,
-                 w = i % info.sow;
-            if (0 < info.padH) {
-                if (h < info.padH) {
-                    return 0;
-                }
-                h -= info.padH;
-            } else if (h >= info.h) {
-                return 0;
-            }
-            if (0 < info.padW) {
-                if (w < info.padW) {
-                    return 0;
-                }
-                w -= info.padW;
-            } else if (w >= info.w) {
-                return 0;
-            }
-            return reinterpret_cast<T const *>(src)[i / info.sohw * info.h * info.w + h * info.w + w];
-        }
-    };
 
     auto ConvCudnn::lower(Resources &res) const -> RoutineWorkspace {
         // RAII for closure
@@ -152,14 +98,12 @@ namespace refactor::kernel {
         // nvcc at c++11 doesn't support real move capture
         auto routine = [d, workspaceSize](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             void const *x = inputs[0], *w = inputs[1];
-            if (d->extraPadding) {
-                auto extra = reinterpret_cast<uint8_t *>(workspace) + workspaceSize;
-                thrust::tabulate(thrust::device,
-                                 extra, extra + d->extraPadding->workspace(),
-                                 ExtraPaddingFunctor<float>{*d->extraPadding, x});
-                x = extra;
+            if (auto f = d->extraPadding; f) {
+                x = (*f)(x, reinterpret_cast<uint8_t *>(workspace) + workspaceSize);
             }
-            if (d->biasExpand) { (*(d->biasExpand))(res, workspace, inputs + 2, outputs); }
+            if (auto f = d->biasExpand; f) {
+                (*f)(res, workspace, inputs + 2, outputs);
+            }
             // build alpha/beta for double
             union {
                 float f32[2];
@@ -187,7 +131,10 @@ namespace refactor::kernel {
                 beta,
                 d->y, outputs[0]));
         };
-        return {std::move(routine), d->extraPadding ? workspaceSize + d->extraPadding->workspace() : workspaceSize};
+        return {
+            std::move(routine),
+            workspaceSize + (d->extraPadding ? d->extraPadding->workspace() : 0),
+        };
     }
 
 }// namespace refactor::kernel
