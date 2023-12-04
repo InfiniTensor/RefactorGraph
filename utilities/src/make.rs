@@ -1,11 +1,5 @@
 ﻿use crate::proj_dir;
-use std::{
-    collections::HashSet,
-    ffi::{OsStr, OsString},
-    fs,
-    path::PathBuf,
-    process::Command,
-};
+use std::{collections::HashSet, ffi::OsStr, fs, path::PathBuf, process::Command};
 
 #[derive(PartialEq, Eq, Hash, Debug)]
 enum Target {
@@ -16,7 +10,7 @@ enum Target {
 pub fn make(
     release: bool,
     install_python: bool,
-    dev: Option<Vec<OsString>>,
+    dev: Option<Vec<String>>,
     cxx_compiler: Option<PathBuf>,
 ) {
     let release = if release { "Release" } else { "Debug" };
@@ -24,16 +18,11 @@ pub fn make(
         .unwrap_or_default()
         .into_iter()
         .map(|d| d.to_ascii_lowercase())
-        .filter_map(|d| {
-            if d == OsStr::new("cuda") || d == OsStr::new("nvidia") {
-                Some(Target::Nvidia)
-            } else if d == OsStr::new("kunlun")
-                || d == OsStr::new("kunlunxin")
-                || d == OsStr::new("baidu")
-            {
-                Some(Target::Baidu)
-            } else {
-                eprintln!("warning: unknown device: {:?}", d);
+        .filter_map(|d| match d.as_str() {
+            "cuda" | "nvidia" => Some(Target::Nvidia),
+            "kunlun" | "kunlunxin" | "baidu" => Some(Target::Baidu),
+            _ => {
+                eprintln!("Unknown device: {}", d);
                 None
             }
         })
@@ -44,22 +33,24 @@ pub fn make(
     let build = proj_dir.join("build");
     fs::create_dir_all(&build).unwrap();
 
-    let mut cmd = Command::new("cmake");
-    cmd.current_dir(&proj_dir)
-        .arg("-Bbuild")
-        .arg(format!("-DCMAKE_BUILD_TYPE={release}"))
-        .arg(format!("-DUSE_CUDA={}", dev(Target::Nvidia)))
-        .arg(format!("-DUSE_KUNLUN={}", dev(Target::Baidu)));
-    if let Some(cxx_compiler) = cxx_compiler {
-        cmd.arg(format!("-DCMAKE_CXX_COMPILER={}", cxx_compiler.display()));
+    {
+        let mut cmake = Command::new("cmake");
+        cmake
+            .current_dir(&proj_dir)
+            .arg("-Bbuild")
+            .arg(format!("-DCMAKE_BUILD_TYPE={release}"))
+            .arg(format!("-DUSE_CUDA={}", dev(Target::Nvidia)))
+            .arg(format!("-DUSE_KUNLUN={}", dev(Target::Baidu)));
+        if let Some(cxx_compiler) = cxx_compiler {
+            cmake.arg(format!("-DCMAKE_CXX_COMPILER={}", cxx_compiler.display()));
+        }
+        assert!(cmake.status().unwrap().success());
     }
-    cmd.status().unwrap();
-
-    Command::new("make")
-        .current_dir(&build)
-        .arg("-j")
-        .status()
-        .unwrap();
+    {
+        let mut make = Command::new("make");
+        make.current_dir(&build).arg("-j");
+        assert!(make.status().unwrap().success());
+    }
 
     if install_python {
         let from = fs::read_dir(build.join("src/09python_ffi"))

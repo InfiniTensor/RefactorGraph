@@ -4,7 +4,6 @@ mod make;
 
 use clap::{Parser, Subcommand};
 use std::{
-    ffi::OsString,
     fs,
     io::ErrorKind,
     path::{Path, PathBuf},
@@ -32,7 +31,7 @@ enum Commands {
         install_python: bool,
         /// devices support
         #[clap(long)]
-        dev: Option<Vec<OsString>>,
+        dev: Option<Vec<String>>,
         /// specify c++ compiler
         #[clap(long)]
         cxx_compiler: Option<PathBuf>,
@@ -44,7 +43,11 @@ enum Commands {
     /// format source files
     Format,
     /// run model inference
-    Infer { path: PathBuf },
+    Infer {
+        path: PathBuf,
+        #[clap(long)]
+        log: Option<String>,
+    },
 }
 
 pub fn proj_dir() -> &'static Path {
@@ -78,6 +81,6 @@ fn main() {
 
         Commands::Format => format::format(),
 
-        Commands::Infer { path } => infer::infer(path),
+        Commands::Infer { path, log } => infer::infer(path, log),
     }
 }

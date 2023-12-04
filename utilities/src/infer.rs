@@ -47,17 +47,20 @@ model_path = Path(\"{}\").resolve()
     )
 }
 
-pub fn infer(path: impl AsRef<Path>) {
+pub fn infer(path: impl AsRef<Path>, log: Option<String>) {
     let path = path.as_ref();
     assert!(
         path.is_file() && path.extension() == Some(OsStr::new("onnx")),
         "\"{}\" is not a onnx file",
         path.display(),
     );
-    Command::new("python")
+    let mut python = Command::new("python");
+    python
         .current_dir(proj_dir())
         .arg("-c")
-        .arg(format!("{}{}", model_path(path), SCRIPT))
-        .status()
-        .unwrap();
+        .arg(format!("{}{}", model_path(path), SCRIPT));
+    if let Some(log) = log {
+        python.env("LOG_LEVEL", log.to_uppercase());
+    }
+    python.status().unwrap();
 }

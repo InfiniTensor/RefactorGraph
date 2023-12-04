@@ -1,6 +1,7 @@
 ﻿#include "frontend/graph.h"
 #include "frontend/tensor.h"
 #include <chrono>
+#include <cstdlib>
 #include <execution>
 #include <filesystem>
 #include <fmtlog.h>
@@ -24,6 +25,19 @@ namespace refactor::frontend {
             for (auto &c : name) {
                 if (c == ' ' || c == ':') {
                     c = '_';
+                }
+            }
+            if (auto env = std::getenv("LOG_LEVEL"); env) {
+                if (std::strcmp(env, "DBG") == 0) {
+                    fmtlog::setLogLevel(fmtlog::DBG);
+                } else if (std::strcmp(env, "INF") == 0) {
+                    fmtlog::setLogLevel(fmtlog::INF);
+                } else if (std::strcmp(env, "WRN") == 0) {
+                    fmtlog::setLogLevel(fmtlog::WRN);
+                } else if (std::strcmp(env, "ERR") == 0) {
+                    fmtlog::setLogLevel(fmtlog::ERR);
+                } else if (std::strcmp(env, "OFF") == 0) {
+                    fmtlog::setLogLevel(fmtlog::OFF);
                 }
             }
             fmtlog::setLogFile(dir.append(name).c_str(), false);
@@ -208,65 +222,54 @@ namespace refactor::frontend {
     void Graph::logGraph() const {
         std::unordered_set<std::string_view> frontNodes, dynamicNodes;
         std::unordered_set<size_t> dataEdges;
-        auto it = _internal.topology.begin();
-        auto const end = _internal.topology.end();
-        {
-            logi("compute on device: ");
-            auto i = 0;
-            while (it != end) {
-                auto [nodeIdx, inputs, outputs] = *it++;
-                if (!std::all_of(outputs.begin(), outputs.end(),
-                                 [this](auto i) { return _internal.edges[i].tensor->data; })) {
-                    auto const &node = _internal.nodes[nodeIdx];
-                    logi("{:>8}. {}", i++, node.name);
-                    auto opType = node.op->opTypeName();
-                    dynamicNodes.insert(opType);
-                    auto front = true;
-                    for (auto i : inputs) {
-                        if (_internal.edges[i].tensor->data) {
-                            dataEdges.insert(i);
-                        } else {
-                            front = false;
-                        }
-                    }
-                    if (front) {
-                        frontNodes.insert(opType);
+
+        logi("compute on device: ");
+        for (auto i = 0; auto [nodeIdx, inputs, outputs] : _internal.topology) {
+            if (!std::all_of(outputs.begin(), outputs.end(),
+                             [this](auto i) { return _internal.edges[i].tensor->data; })) {
+                auto const &node = _internal.nodes[nodeIdx];
+                logi("{:>8}. {}", i++, node.name);
+                auto opType = node.op->opTypeName();
+                dynamicNodes.insert(opType);
+                auto front = true;
+                for (auto i : inputs) {
+                    if (_internal.edges[i].tensor->data) {
+                        dataEdges.insert(i);
+                    } else {
+                        front = false;
                     }
                 }
-            }
-        }
-        {
-            logi("types:");
-            auto i = 0;
-            for (auto const &node : dynamicNodes) {
-                if (frontNodes.erase(node)) {
-                    logi("{:>8}.*{}", i++, node);
-                } else {
-                    logi("{:>8}. {}", i++, node);
+                if (front) {
+                    frontNodes.insert(opType);
                 }
             }
         }
-        {
-            logi("edges to copy:");
-            auto i = 0;
-            for (auto edgeIdx : dataEdges) {
-                auto const &edge = _internal.edges[edgeIdx];
-                std::string depVariables = "[ ";
-                for (auto const &var : edge.tensor->depVariables) {
-                    depVariables += var->name;
-                    depVariables += ' ';
-                }
-                depVariables += ']';
-                logi("{:>8}. {} {} ** {}", i++, edge.name, shapeFormat(edge.tensor->shape), depVariables);
+
+        logi("types:");
+        for (auto i = 0; auto const &node : dynamicNodes) {
+            if (frontNodes.erase(node)) {
+                logi("{:>8}.*{}", i++, node);
+            } else {
+                logi("{:>8}. {}", i++, node);
             }
         }
-        {
-            logi("outputs:");
-            auto i = 0;
-            for (auto edgeIdx : it.globalOutputs()) {
-                auto const &edge = _internal.edges[edgeIdx];
-                logi("    outputs[{:>2}] = edge[{:>2}] = {} with {}", i++, edgeIdx, edge.name, shapeFormat(edge.tensor->shape));
+
+        logi("edges to copy:");
+        for (auto i = 0; auto edgeIdx : dataEdges) {
+            auto const &edge = _internal.edges[edgeIdx];
+            std::string depVariables = "[ ";
+            for (auto const &var : edge.tensor->depVariables) {
+                depVariables += var->name;
+                depVariables += ' ';
             }
+            depVariables += ']';
+            logi("{:>8}. {} {} ** {}", i++, edge.name, shapeFormat(edge.tensor->shape), depVariables);
+        }
+
+        logi("outputs:");
+        for (auto i = 0; auto edgeIdx : _internal.topology.globalOutputs()) {
+            auto const &edge = _internal.edges[edgeIdx];
+            logi("    outputs[{:>2}] = edge[{:>2}] = {} with {}", i++, edgeIdx, edge.name, shapeFormat(edge.tensor->shape));
         }
     }
 }// namespace refactor::frontend

@@ -119,7 +119,7 @@ namespace refactor::hardware {
     }
 
     void OffsetCalculator::trace(std::string event) {
-        logi("CALCULATOR {} {} {:>5} {:>5} {:>#10} {:>#6f} {:>5} {:>#10} {:>#10}",
+        logd("CALCULATOR {} {} {:>5} {:>5} {:>#10} {:>#6f} {:>5} {:>#10} {:>#10}",
              reinterpret_cast<void *>(this),
              event,
              _traceInfo->allocTimes, _traceInfo->freeTimes,
