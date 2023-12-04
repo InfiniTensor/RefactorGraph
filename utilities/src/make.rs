@@ -14,19 +14,49 @@ pub fn make(
     cxx_compiler: Option<PathBuf>,
 ) {
     let release = if release { "Release" } else { "Debug" };
-    let dev = dev
-        .unwrap_or_default()
-        .into_iter()
-        .map(|d| d.to_ascii_lowercase())
-        .filter_map(|d| match d.as_str() {
-            "cuda" | "nvidia" => Some(Target::Nvidia),
-            "kunlun" | "kunlunxin" | "baidu" => Some(Target::Baidu),
-            _ => {
-                eprintln!("Unknown device: {}", d);
-                None
-            }
-        })
-        .collect::<HashSet<_>>();
+    let dev = if let Some(dev) = dev {
+        dev.into_iter()
+            .map(|d| d.to_ascii_lowercase())
+            .filter_map(|d| match d.as_str() {
+                "cuda" | "nvidia" => Some(Target::Nvidia),
+                "kunlun" | "kunlunxin" | "baidu" => Some(Target::Baidu),
+                _ => {
+                    eprintln!("Unknown device: {}", d);
+                    None
+                }
+            })
+            .collect::<HashSet<_>>()
+    } else {
+        let mut ans = HashSet::new();
+
+        println!("Checking CUDA support...");
+        println!("------------------------");
+        if Command::new("nvcc")
+            .arg("--version")
+            .status()
+            .unwrap()
+            .success()
+        {
+            ans.insert(Target::Nvidia);
+            println!("------------------------");
+            println!("CUDA support detected.");
+        } else {
+            println!("------------------------");
+            println!("No CUDA support detected.");
+        }
+        println!();
+
+        println!("Checking Kunlunxin support...");
+        if std::env::var("KUNLUN_HOME").is_ok() {
+            ans.insert(Target::Baidu);
+            println!("Kunlunxin support detected.");
+        } else {
+            println!("No Kunlunxin support detected.");
+        }
+        println!();
+
+        ans
+    };
     let dev = |d: Target| if dev.contains(&d) { "ON" } else { "OFF" };
 
     let proj_dir = proj_dir();
