@@ -139,7 +139,9 @@ namespace refactor::python_ffi {
             std::vector<char> buffer;
             auto fn = [&](char dir, count_t idx, count_t edgeIdx, void const *const *addresses)
                 -> std::string {
-                if (!addresses[idx]) { return ""; }
+                if (!addresses[idx] || (reinterpret_cast<size_t>(addresses[idx]) & 1)) {
+                    return "";
+                }
                 auto const &edge = graph.edges[edgeIdx];
                 if (!edge.tensor) { return ""; }
 
