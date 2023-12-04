@@ -52,29 +52,50 @@ namespace refactor::kernel {
         }
     }
 
-#define CASE(T)                                                                                                                           \
-    case DT::T: {                                                                                                                         \
-        using T_ = primitive<DT::T>::type;                                                                                                \
-        return [alpha = static_cast<T_>(info.alpha),                                                                                      \
-                beta = static_cast<T_>(info.biasExpand ? info.beta : 0.0f),                                                               \
-                broadcaster = info.broadcaster,                                                                                           \
-                md,                                                                                                                       \
-                stepY = info.m * info.n,                                                                                                  \
-                stepA = info.m * info.k,                                                                                                  \
-                stepB = info.k * info.n,                                                                                                  \
-                biasEx = info.biasExpand                                                                                                  \
-                             ? std::make_optional(ExpandCpu(*info.biasExpand).lower(res).routine)                                         \
-                             : std::nullopt](runtime::Resources &res, void *workspace, void const *const *inputs, void *const *outputs) { \
-            if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }                                                               \
-            auto A = reinterpret_cast<T_ const *>(inputs[0]);                                                                             \
-            auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                                             \
-            auto Y = reinterpret_cast<T_ *>(outputs[0]);                                                                                  \
-            dim_t offset[2];                                                                                                              \
-            for (size_t i = 0; i < broadcaster.outputsCount; i++) {                                                                       \
-                broadcaster.locate(i, offset);                                                                                            \
-                matrixMultiply(A + stepA * offset[0], B + stepB * offset[1], Y + stepY * i, alpha, beta, md);                             \
-            }                                                                                                                             \
-        };                                                                                                                                \
+#define CASE(T)                                                                                                                               \
+    case DT::T: {                                                                                                                             \
+        using T_ = primitive<DT::T>::type;                                                                                                    \
+        if (std::holds_alternative<Broadcaster>(info.broadcasterOrBatch)) {                                                                   \
+            return [alpha = static_cast<T_>(info.alpha),                                                                                      \
+                    beta = static_cast<T_>(info.biasExpand ? info.beta : 0.0f),                                                               \
+                    broadcaster = std::get<Broadcaster>(info.broadcasterOrBatch),                                                             \
+                    md,                                                                                                                       \
+                    stepY = info.m * info.n,                                                                                                  \
+                    stepA = info.m * info.k,                                                                                                  \
+                    stepB = info.k * info.n,                                                                                                  \
+                    biasEx = info.biasExpand                                                                                                  \
+                                 ? std::make_optional(ExpandCpu(*info.biasExpand).lower(res).routine)                                         \
+                                 : std::nullopt](runtime::Resources &res, void *workspace, void const *const *inputs, void *const *outputs) { \
+                if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }                                                               \
+                auto A = reinterpret_cast<T_ const *>(inputs[0]);                                                                             \
+                auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                                             \
+                auto Y = reinterpret_cast<T_ *>(outputs[0]);                                                                                  \
+                dim_t offset[2];                                                                                                              \
+                for (size_t i = 0; i < broadcaster.outputsCount; i++) {                                                                       \
+                    broadcaster.locate(i, offset);                                                                                            \
+                    matrixMultiply(A + stepA * offset[0], B + stepB * offset[1], Y + stepY * i, alpha, beta, md);                             \
+                }                                                                                                                             \
+            };                                                                                                                                \
+        } else {                                                                                                                              \
+            return [alpha = static_cast<T_>(info.alpha),                                                                                      \
+                    beta = static_cast<T_>(info.biasExpand ? info.beta : 0.0f),                                                               \
+                    batch = std::get<size_t>(info.broadcasterOrBatch),                                                                        \
+                    md,                                                                                                                       \
+                    stepY = info.m * info.n,                                                                                                  \
+                    stepA = info.m * info.k,                                                                                                  \
+                    stepB = info.k * info.n,                                                                                                  \
+                    biasEx = info.biasExpand                                                                                                  \
+                                 ? std::make_optional(ExpandCpu(*info.biasExpand).lower(res).routine)                                         \
+                                 : std::nullopt](runtime::Resources &res, void *workspace, void const *const *inputs, void *const *outputs) { \
+                if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }                                                               \
+                auto A = reinterpret_cast<T_ const *>(inputs[0]);                                                                             \
+                auto B = reinterpret_cast<T_ const *>(inputs[1]);                                                                             \
+                auto Y = reinterpret_cast<T_ *>(outputs[0]);                                                                                  \
+                for (size_t i = 0; i < batch; i++) {                                                                                          \
+                    matrixMultiply(A + stepA * i, B + stepB * i, Y + stepY * i, alpha, beta, md);                                             \
+                }                                                                                                                             \
+            };                                                                                                                                \
+        }                                                                                                                                     \
     }
 
     auto K::lower(Resources &res) const noexcept -> RoutineWorkspace {

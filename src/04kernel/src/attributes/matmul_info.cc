@@ -26,6 +26,13 @@ namespace refactor::kernel {
             slice(output.data(), output.size()));
     }
 
+    std::variant<Broadcaster, size_t> buildBroadcasterOrBatch(slice_t<dim_t> dimA, slice_t<dim_t> dimB) {
+        if (std::equal(dimA.begin(), dimA.end(), dimB.begin(), dimB.end())) {
+            return std::accumulate(dimA.begin(), dimA.end(), (size_t) 1, std::multiplies<size_t>());
+        }
+        return Broadcaster({dimA, dimB});
+    }
+
     MatMulInfo::MatMulInfo(
         Tensor const &a, Tensor const &b,
         std::optional<std::reference_wrapper<Tensor const>> c,
@@ -37,10 +44,7 @@ namespace refactor::kernel {
           k(transA ? a.shape.rbegin()[1] : a.shape.rbegin()[0]),
           n(transB ? b.shape.rbegin()[1] : b.shape.rbegin()[0]),
           biasExpand(c ? std::make_optional(buildBias(m, n, a, b, *c)) : std::nullopt),
-          broadcaster({
-              slice(a.shape.data(), a.shape.size() - 2),
-              slice(b.shape.data(), b.shape.size() - 2),
-          }) {
+          broadcasterOrBatch(buildBroadcasterOrBatch(slice(a.shape.data(), a.shape.size() - 2), slice(b.shape.data(), b.shape.size() - 2))) {
         auto kB = transB ? b.shape.rbegin()[0] : b.shape.rbegin()[1];
         ASSERT(k == kB, "MatMul: input shape not matched.");
     }
