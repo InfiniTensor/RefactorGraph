@@ -33,7 +33,7 @@ namespace refactor::frontend {
         bool isVariable() const;
         bool hasValue() const;
         int64_t value() const;
-        DimVariable variable() const;
+        DimVariable const &variable() const;
     };
 
     using Shape = absl::InlinedVector<DimExpr, 4>;
