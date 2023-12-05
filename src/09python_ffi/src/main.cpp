@@ -45,6 +45,9 @@ namespace refactor::python_ffi {
             .def("get_output"      , &Executor::getOutput        , return_::move      )
             .def("run"             , &Executor::run              , return_::automatic )
             .def("bench"           , &Executor::bench            , return_::automatic )
+            #ifdef USE_CUDA
+            .def("set_cuda_commnication", &Executor::setupCudaCommunication, return_::automatic )
+            #endif
             .def("trace"           , &Executor::trace            , return_::automatic )
             .def("dbg"             , &Executor::debugInfo        , return_::automatic );
 

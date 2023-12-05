@@ -32,6 +32,10 @@ namespace refactor::runtime {
         return true;
     }
 
+    Resources& Stream::getResources() {
+        return _resources;
+    }
+
     template<class I, class O>
     std::pair<void const **, void **> collectAddress(
         void *stack,

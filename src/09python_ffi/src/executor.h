@@ -20,6 +20,7 @@ namespace refactor::python_ffi {
         void bench(bool sync);
         void trace(std::string path, std::string format);
         void debugInfo() const noexcept;
+        void setupCudaCommunication(int worldSize, int rank);
     };
 
 }// namespace refactor::python_ffi

@@ -42,6 +42,7 @@ namespace refactor::runtime {
         void setData(count_t, void const *, size_t);
         void setData(count_t, Arc<hardware::Device::Blob>);
         bool getData(count_t, void *, size_t) const;
+        Resources& getResources();
         void run();
         auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;
         void trace(std::function<void(count_t, void const *const *, void const *const *)>);

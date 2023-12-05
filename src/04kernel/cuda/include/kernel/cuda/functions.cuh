@@ -4,6 +4,7 @@
 namespace refactor::kernel::cuda {
 
     void sync();
+    void setCudaDevice(int);
 
     void copyOut(void *dst, const void *src, size_t size);
 

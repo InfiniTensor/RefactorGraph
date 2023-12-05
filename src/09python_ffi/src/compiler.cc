@@ -1,6 +1,9 @@
 ﻿#include "compiler.h"
 #include "hardware/device_manager.h"
 #include "kernel/allocators.h"
+#ifdef USE_CUDA
+#include "kernel/cuda/functions.cuh"
+#endif
 #include <execution>
 
 namespace refactor::python_ffi {

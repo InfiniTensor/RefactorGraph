@@ -4,6 +4,7 @@
 #include <fstream>
 
 #ifdef USE_CUDA
+#include "../../04kernel/src/utilities/cuda/nccl_communicator.hh"
 #include "kernel/cuda/functions.cuh"
 #endif// USE_CUDA
 
@@ -51,6 +52,15 @@ namespace refactor::python_ffi {
         auto ans = pybind11::array(buildNumpyDType(tensor.dataType), std::move(tensor.shape));
         _stream.getData(i, ans.mutable_data(), ans.nbytes());
         return ans;
+    }
+
+
+    void Executor::setupCudaCommunication(int worldSize, int rank) {
+#ifdef USE_CUDA
+        _stream.getResources().fetchOrStore<refactor::kernel::nccl::NcclCommunicator>(worldSize, rank);
+#else
+        ERROR_MSG("Not compiled with CUDA.");
+#endif
     }
 
     void Executor::run() {
