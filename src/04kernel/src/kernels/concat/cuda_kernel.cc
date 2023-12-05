@@ -2,9 +2,10 @@
 
 #ifdef USE_CUDA
 #include "../../generator/cuda_code_repo.hh"
-#include "cuda_kernel.hh"
 #include "kernel/cuda/threads_distributer.cuh"
+#include <cuda.h>
 #include <cuda_runtime.h>
+#include <nvrtc.h>
 #include <sstream>
 #endif
 
@@ -34,12 +35,26 @@ namespace refactor::kernel {
 
 #ifdef USE_CUDA
 
+#define NVRTC_ASSERT(CALL)                                                 \
+    if (auto status = CALL; status != NVRTC_SUCCESS) {                     \
+        RUNTIME_ERROR(fmt::format("nvrtc failed on \"" #CALL "\" with {}", \
+                                  nvrtcGetErrorString(status)));           \
+    }
+
+#define CUDA_ASSERT(CALL)                                                        \
+    if (auto result = CALL; result != CUDA_SUCCESS) {                            \
+        const char *msg;                                                         \
+        cuGetErrorName(result, &msg);                                            \
+        RUNTIME_ERROR(fmt::format("cuda driver failed on \"" #CALL "\" with {}", \
+                                  msg));                                         \
+    }
+
     constexpr static const char *TEMPLATE = R"~(
 struct Inputs {{
     char const *const addr[{0:}];
 }};
 
-__global__ static void splitKernel(void *output, Inputs inputs) {{
+extern "C" __global__ void splitKernel(void *output, Inputs inputs) {{
     using T = {1:};
 
     constexpr static unsigned int
@@ -56,20 +71,9 @@ __global__ static void splitKernel(void *output, Inputs inputs) {{
         dst[tid] = *reinterpret_cast<T const *>(inputs.addr[j] + (tid / sum) * segments[j] + i);
     }}
 }}
-
-extern "C" {{
-
-void launchKernel(void const *const *inputs, void *output) {{
-    splitKernel<<<{5:}, {6:}>>>(
-        output,
-        {{{7:}
-        }});
-}}
-
-}}
 )~";
 
-    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
+    auto K::lower(Resources &) const -> RoutineWorkspace {
         using namespace runtime;
         if (info.blockCount == 1) {
             return [info = this->info](Resources &, void *, void const *const *inputs, void *const *outputs) {
@@ -104,6 +108,7 @@ void launchKernel(void const *const *inputs, void *output) {{
         for (auto seg : info.segments) {
             ss << ',' << seg;
         }
+        ss << ".cu";
         auto name = ss.str();
         auto code = fmt::format(
             TEMPLATE,
@@ -111,18 +116,66 @@ void launchKernel(void const *const *inputs, void *output) {{
             CudaCodeRepo::memCopyType(unit),// 1
             info.sum / unit,                // 2
             segments,                       // 3
-            params.n,                       // 4
-            params.gridSize,                // 5
-            params.blockSize,               // 6
-            castInputs                      // 7
+            params.n                        // 4
         );
 
-        using Fn = void (*)(void const *const *, void *);
-        auto function = reinterpret_cast<Fn>(CudaCodeRepo::compile_(name.c_str(), code.c_str(), "launchKernel"));
-        return [function](Resources &, void *, void const *const *inputs, void *const *outputs) {
-            function(inputs, outputs[0]);
+        nvrtcProgram prog;
+        NVRTC_ASSERT(nvrtcCreateProgram(&prog, code.c_str(), name.c_str(), 0, nullptr, nullptr));
+        // Compile the program with fmad disabled.
+        // Note: Can specify GPU target architecture explicitly with '-arch' flag.
+        const char *opts[] = {"--fmad=false"};
+        auto compileResult = nvrtcCompileProgram(prog, 1, opts);
+        // Obtain compilation log from the program.
+        {
+            size_t logSize;
+            NVRTC_ASSERT(nvrtcGetProgramLogSize(prog, &logSize));
+            std::vector<char> log(logSize);
+            NVRTC_ASSERT(nvrtcGetProgramLog(prog, log.data()));
+            fmt::println("{}", log.data());
+        }
+        if (compileResult != NVRTC_SUCCESS) {
+            exit(1);
+        }
+        // Obtain PTX from the program.
+        std::string ptx;
+        {
+            size_t ptxSize;
+            NVRTC_ASSERT(nvrtcGetPTXSize(prog, &ptxSize));
+            ptx.resize(ptxSize);
+            NVRTC_ASSERT(nvrtcGetPTX(prog, ptx.data()));
+            // Destroy the program.
+            NVRTC_ASSERT(nvrtcDestroyProgram(&prog));
+        }
+        struct Descriptors {
+            cuda::KernelLaunchParameters params;
+            CUmodule module;
+            CUfunction kernel;
+
+            Descriptors(decltype(params) params_, const char *ptx)
+                : params(params_) {
+                CUDA_ASSERT(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
+                CUDA_ASSERT(cuModuleGetFunction(&kernel, module, "splitKernel"));
+            }
+            ~Descriptors() {
+                cuModuleUnload(module);
+            }
+
+            void operator()(void const *const *inputs, void *output) const {
+                void *args[]{&output, const_cast<void **>(inputs)};
+                CUDA_ASSERT(cuLaunchKernel(
+                    kernel,
+                    params.gridSize, 1, 1,
+                    params.blockSize, 1, 1,
+                    0, nullptr,
+                    args, 0));
+            }
+        };
+        return [d = std::make_shared<Descriptors>(params, ptx.data())](
+                   Resources &, void *, void const *const *inputs, void *const *outputs) {
+            (*d)(inputs, outputs[0]);
         };
     }
+
 #endif
 
 }// namespace refactor::kernel
