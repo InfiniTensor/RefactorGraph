@@ -1,30 +1,24 @@
 ﻿#ifdef USE_CUDA
 
-#include "../../src/generator/cuda_code_repo.hh"
+#include "../../src/generator/nvrtc_repo.h"
+#include <cuda_runtime.h>
 #include <gtest/gtest.h>
 
 using namespace refactor;
 using namespace kernel;
 
 constexpr static const char *code = R"~(
-#include <cstdio>
-
-__global__ void kernel() {
+extern "C" __global__ void kernel() {
     printf("Hello World from GPU!\n");
-}
-
-extern "C" {
-void launchKernel() {
-    kernel<<<1, 1>>>();
-    cudaDeviceSynchronize();
-}
 }
 )~";
 
-TEST(generator, CudaCodeRepo) {
-    CudaCodeRepo repo;
-    auto function = repo.compile("helloWorld", code, "launchKernel");
-    reinterpret_cast<void (*)()>(function)();
+TEST(generator, nvrtc) {
+    auto handler = nvrtc::Handler::compile("helloWorld.cu", code, "kernel");
+    CUDA_ASSERT(cuLaunchKernel(handler->kernel(),
+                               1, 1, 1,
+                               1, 1, 1,
+                               0, nullptr, nullptr, nullptr));
 }
 
 #endif// USE_CUDA

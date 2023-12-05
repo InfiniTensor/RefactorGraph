@@ -1,7 +1,7 @@
 ﻿#include "cuda_kernel.hh"
 
 #ifdef USE_CUDA
-#include "../../generator/cuda_code_repo.hh"
+#include "../../generator/nvrtc_repo.h"
 #include "kernel/cuda/threads_distributer.cuh"
 #include <cuda_runtime.h>
 #include <sstream>
@@ -38,7 +38,7 @@ struct Outputs {{
     char *const addr[{0:}];
 }};
 
-__global__ static void splitKernel(Outputs outputs, void const *input) {{
+extern "C" __global__ void splitKernel(Outputs outputs, void const *input) {{
     using T = {1:};
 
     constexpr static unsigned int
@@ -54,17 +54,6 @@ __global__ static void splitKernel(Outputs outputs, void const *input) {{
         while (i >= segments[j]) i -= segments[j++];
         *reinterpret_cast<T *>(outputs.addr[j] + (tid / sum) * segments[j] + i) = src[tid];
     }}
-}}
-
-extern "C" {{
-
-void launchKernel(void const *input, void *const *outputs) {{
-    splitKernel<<<{5:}, {6:}>>>(
-        {{{7:}
-        }},
-        input);
-}}
-
 }}
 )~";
 
@@ -103,23 +92,25 @@ void launchKernel(void const *input, void *const *outputs) {{
         for (auto seg : info.segments) {
             ss << ',' << seg;
         }
+        ss << ".cu";
         auto name = ss.str();
         auto code = fmt::format(
             TEMPLATE,
-            outputCount,                    // 0
-            CudaCodeRepo::memCopyType(unit),// 1
-            info.sum / unit,                // 2
-            segments,                       // 3
-            params.n,                       // 4
-            params.gridSize,                // 5
-            params.blockSize,               // 6
-            castOutputs                     // 7
+            outputCount,             // 0
+            nvrtc::memCopyType(unit),// 1
+            info.sum / unit,         // 2
+            segments,                // 3
+            params.n                 // 4
         );
 
-        using Fn = void (*)(void const *, void *const *);
-        auto function = reinterpret_cast<Fn>(CudaCodeRepo::compile_(name.c_str(), code.c_str(), "launchKernel"));
-        return [function](Resources &, void *, void const *const *inputs, void *const *outputs) {
-            function(inputs[0], outputs);
+        return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "splitKernel"),
+                params](Resources &, void *, void const *const *inputs, void *const *outputs) {
+            void *args[]{const_cast<void **>(outputs), const_cast<void **>(inputs)};
+            CUDA_ASSERT(cuLaunchKernel(
+                h->kernel(),
+                params.gridSize, 1, 1,
+                params.blockSize, 1, 1,
+                0, nullptr, args, nullptr));
         };
     }
 
