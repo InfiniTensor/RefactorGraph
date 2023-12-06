@@ -8,7 +8,7 @@ namespace refactor::kernel {
 
     std::vector<KernelBox>
     SoftmaxCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-        SoftmaxInfo info(inputs[0].get(), axis);
+        SoftmaxInfo info(inputs[0], axis);
 
         std::vector<KernelBox>
             ans;

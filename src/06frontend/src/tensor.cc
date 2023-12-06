@@ -15,17 +15,11 @@ namespace refactor::frontend {
         : expr(std::move(var)) {}
 
     bool DimExpr::operator==(DimExpr const &rhs) const {
-        if (expr.index() != rhs.expr.index()) {
-            return false;
+        if (hasValue() && rhs.hasValue()) {
+            return value() == rhs.value();
         } else {
-            switch (expr.index()) {
-                case 0:
-                    return std::get<0>(expr) == std::get<0>(rhs.expr);
-                case 1:
-                    return std::get<1>(expr) == std::get<1>(rhs.expr);
-                default:
-                    UNREACHABLE();
-            }
+            return isVariable() && rhs.isVariable() &&
+                   variable()->name == rhs.variable()->name;
         }
     }
     bool DimExpr::operator!=(DimExpr const &rhs) const { return !operator==(rhs); }
@@ -33,7 +27,7 @@ namespace refactor::frontend {
     bool DimExpr::isVariable() const { return std::holds_alternative<DimVariable>(expr); }
     bool DimExpr::hasValue() const { return isValue() || variable()->value; }
     int64_t DimExpr::value() const { return isValue() ? std::get<int64_t>(expr) : variable()->value.value(); }
-    DimVariable DimExpr::variable() const { return std::get<DimVariable>(expr); }
+    DimVariable const &DimExpr::variable() const { return std::get<DimVariable>(expr); }
 
     std::string shapeFormat(Shape const &shape) {
         std::string ans("Shape{ ");

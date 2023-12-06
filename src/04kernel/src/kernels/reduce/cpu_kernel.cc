@@ -37,7 +37,7 @@ namespace refactor::kernel {
     }
 
     template<decltype(DT::internal) T>
-    Routine lowerTyped(Shape shape, Axes axes, ReduceType reduceType) {
+    static Routine lowerTyped(Shape shape, Axes axes, ReduceType reduceType) {
         using namespace runtime;
         using dt = typename primitive<T>::type;
         Shape perm;

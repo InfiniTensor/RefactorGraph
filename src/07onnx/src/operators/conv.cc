@@ -70,11 +70,10 @@ namespace refactor::onnx {
             EXPECT_VAL(input.shape[1], input1)
             EXPECT_VAL(kernel.shape[1], kernel1)
             auto div = std::div(input1, kernel1);
-            fmt::println("input1: {}, kernel1: {}", input1, kernel1);
+            // auto group = div.quot;
             if (div.rem != 0) {
                 return Err(InferError(ERROR_MSG("Input shape not support")));
             }
-            ASSERT(div.quot == 1, "group conv not support");
         }
 
         SmallInts<4> input_(input.rank() - 2);

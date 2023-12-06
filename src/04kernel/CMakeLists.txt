@@ -22,7 +22,12 @@ else()
 endif()
 
 if(USE_CUDA)
-    target_link_libraries(kernel PUBLIC cublas cudnn kernel_cuda)
+    # cuda   for cuda driver
+    # nvrtc  for cuda kernel compile
+    # cublas for matmul
+    # cudnn  for conv and others
+    target_link_libraries(kernel PUBLIC cuda nvrtc cublas cudnn kernel_cuda)
+    target_include_directories(kernel PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 endif()
 if(USE_KUNLUN)
     include_directories(${KUNLUN_HOME}/XTDK/include/)

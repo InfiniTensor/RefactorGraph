@@ -25,7 +25,7 @@ namespace refactor::kernel {
     }
 
     template<class T>
-    Routine lowerTyped(SoftmaxInfo info) {
+    static Routine lowerTyped(SoftmaxInfo info) {
         using namespace runtime;
 
         return [info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {

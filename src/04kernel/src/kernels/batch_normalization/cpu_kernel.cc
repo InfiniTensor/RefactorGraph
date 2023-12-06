@@ -38,7 +38,7 @@ namespace refactor::kernel {
     }
 
     template<decltype(DT::internal) T, decltype(DT::internal) T1, decltype(DT::internal) T2>
-    Routine lowerTyped(Shape const &shape, float epsilon) {
+    static Routine lowerTyped(Shape const &shape, float epsilon) {
         using namespace runtime;
         using dt = typename primitive<T>::type;
         using t1 = typename primitive<T1>::type;

@@ -11,7 +11,13 @@
 
 namespace refactor::hardware {
 
+    struct MemInfo {
+        size_t free, total;
+    };
+
+    int getDeviceCount();
     void setDevice(int device);
+    MemInfo getMemInfo();
 
 }// namespace refactor::hardware
 

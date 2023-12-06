@@ -8,39 +8,70 @@ namespace refactor::kernel {
     using namespace cublas;
 
     template<class T>
-    auto lowerTyped(cudaDataType_t cudaDataType,
-                    MatMulInfo info,
-                    Resources &res) noexcept -> RoutineWorkspace {
-        return [cudaDataType,
-                alpha = static_cast<T>(info.alpha),
-                beta = static_cast<T>(info.biasExpand ? info.beta : 0.0f),
-                tA = info.transA ? CUBLAS_OP_T : CUBLAS_OP_N,
-                tB = info.transB ? CUBLAS_OP_T : CUBLAS_OP_N,
-                m = info.m, n = info.n, k = info.k,
-                strideY = info.m * info.n,
-                strideA = info.m * info.k,
-                strideB = info.k * info.n,
-                lda = info.transA ? info.m : info.k,
-                ldb = info.transB ? info.k : info.n,
-                biasEx = info.biasExpand
-                             ? std::make_optional(ExpandCuda(*info.biasExpand).lower(res).routine)
-                             : std::nullopt,
-                broadcaster = info.broadcaster](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }
+    static auto lowerTyped(cudaDataType_t cudaDataType,
+                           MatMulInfo info,
+                           Resources &res) noexcept -> RoutineWorkspace {
+        if (std::holds_alternative<size_t>(info.broadcasterOrBatch)) {
+            return [cudaDataType,
+                    alpha = static_cast<T>(info.alpha),
+                    beta = static_cast<T>(info.biasExpand ? info.beta : 0.0f),
+                    tA = info.transA ? CUBLAS_OP_T : CUBLAS_OP_N,
+                    tB = info.transB ? CUBLAS_OP_T : CUBLAS_OP_N,
+                    m = info.m, n = info.n, k = info.k,
+                    strideY = info.m * info.n,
+                    strideA = info.m * info.k,
+                    strideB = info.k * info.n,
+                    lda = info.transA ? info.m : info.k,
+                    ldb = info.transB ? info.k : info.n,
+                    biasEx = info.biasExpand
+                                 ? std::make_optional(ExpandCuda(*info.biasExpand).lower(res).routine)
+                                 : std::nullopt,
+                    batch = std::get<size_t>(info.broadcasterOrBatch)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
+                // Call expand kernel to broadcast bias if bias is used
+                if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }
 
-            auto handle = res.fetchOrStore<CublasContext>()->handle;
-            auto a = reinterpret_cast<T const *>(inputs[0]);
-            auto b = reinterpret_cast<T const *>(inputs[1]);
-            auto y = reinterpret_cast<T *>(outputs[0]);
-            uint32_t offset[2];
-            for (auto i : range0_(broadcaster.outputsCount)) {
-                broadcaster.locate(i, offset);
-                auto stat = cublasGemmEx(
-                    handle, tB, tA, n, m, k, &alpha, b + strideB * offset[1],
-                    cudaDataType, ldb, a + strideA * offset[0], cudaDataType, lda, &beta, y + strideY * i,
-                    cudaDataType, n, cudaDataType, CUBLAS_GEMM_DEFAULT);
-            }
-        };
+                auto handle = res.fetchOrStore<CublasContext>()->handle;
+                auto a = reinterpret_cast<T const *>(inputs[0]);
+                auto b = reinterpret_cast<T const *>(inputs[1]);
+                auto y = reinterpret_cast<T *>(outputs[0]);
+                auto stat = cublasGemmStridedBatchedEx(
+                    handle, tB, tA, n, m, k, &alpha, b,
+                    cudaDataType, ldb, strideB, a, cudaDataType, lda, strideA,
+                    &beta, y, cudaDataType, n, m * n, batch, cudaDataType,
+                    CUBLAS_GEMM_DEFAULT);
+            };
+        } else {//  if use boradcaster
+            return [cudaDataType,
+                    alpha = static_cast<T>(info.alpha),
+                    beta = static_cast<T>(info.biasExpand ? info.beta : 0.0f),
+                    tA = info.transA ? CUBLAS_OP_T : CUBLAS_OP_N,
+                    tB = info.transB ? CUBLAS_OP_T : CUBLAS_OP_N,
+                    m = info.m, n = info.n, k = info.k,
+                    strideY = info.m * info.n,
+                    strideA = info.m * info.k,
+                    strideB = info.k * info.n,
+                    lda = info.transA ? info.m : info.k,
+                    ldb = info.transB ? info.k : info.n,
+                    biasEx = info.biasExpand
+                                 ? std::make_optional(ExpandCuda(*info.biasExpand).lower(res).routine)
+                                 : std::nullopt,
+                    broadcaster = std::get<Broadcaster>(info.broadcasterOrBatch)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
+                if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }
+
+                auto handle = res.fetchOrStore<CublasContext>()->handle;
+                auto a = reinterpret_cast<T const *>(inputs[0]);
+                auto b = reinterpret_cast<T const *>(inputs[1]);
+                auto y = reinterpret_cast<T *>(outputs[0]);
+                uint32_t offset[2];
+                for (auto i : range0_(broadcaster.outputsCount)) {
+                    broadcaster.locate(i, offset);
+                    auto stat = cublasGemmEx(
+                        handle, tB, tA, n, m, k, &alpha, b + strideB * offset[1],
+                        cudaDataType, ldb, a + strideA * offset[0], cudaDataType, lda, &beta, y + strideY * i,
+                        cudaDataType, n, cudaDataType, CUBLAS_GEMM_DEFAULT);
+                }
+            };
+        }
     }
 
     auto MatMulCublas::lower(Resources &res) const noexcept -> RoutineWorkspace {

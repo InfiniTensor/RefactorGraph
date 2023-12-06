@@ -1,7 +1,6 @@
 ﻿#include "constant_of_shape.hh"
 #include "common.h"
 #include <execution>
-#include <span>
 
 namespace refactor::onnx {
     using Op = ConstantOfShape;

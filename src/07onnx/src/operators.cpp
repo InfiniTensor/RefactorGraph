@@ -1,6 +1,7 @@
 ﻿#include "onnx/operators.h"
 #include "operators/batch_normalization.hh"
 #include "operators/cast.hh"
+#include "operators/clip.hh"
 #include "operators/compair.hh"
 #include "operators/concat.hh"
 #include "operators/constant.hh"
@@ -34,10 +35,11 @@
 namespace refactor::onnx {
 
     void register_() {
-// clang-format off
+        // clang-format off
         #define REGISTER(NAME, CLASS) Operator::register_<CLASS>("onnx::" #NAME)
         REGISTER(BatchNormalization, BatchNormalization);
         REGISTER(Cast              , Cast              );
+        REGISTER(Clip              , Clip              );
         REGISTER(Equal             , Compair           );
         REGISTER(Greater           , Compair           );
         REGISTER(GreaterOrEqual    , Compair           );

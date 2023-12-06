@@ -17,7 +17,7 @@ namespace refactor::kernel {
             int xShape[4],
                 yShape[4],
                 kernelShape[2],
-                pads[2],
+                pads[4],
                 strides[2];
         } info;
 

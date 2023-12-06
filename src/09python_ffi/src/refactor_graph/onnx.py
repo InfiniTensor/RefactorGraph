@@ -1,4 +1,5 @@
-﻿from onnx import ModelProto, NodeProto, AttributeProto
+﻿from functools import reduce
+from onnx import ModelProto, NodeProto, AttributeProto
 from onnx.numpy_helper import to_array
 from onnx.external_data_helper import ExternalDataInfo
 from typing import Any
@@ -21,14 +22,16 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
             edi = ExternalDataInfo(tensor)
             print(
                 "load {:> 10} bytes from {} for {}".format(
-                    edi.length, edi.location, tensor.name
+                    edi.length if edi.length != None else "all",
+                    edi.location,
+                    tensor.name,
                 )
             )
             edges[tensor.name] = _make_data_ex(
                 tensor.data_type,
                 tensor.dims,
                 external_data_path + "/" + edi.location,
-                edi.offset,
+                edi.offset if edi.offset != None else 0,
             )
         else:
             edges[tensor.name] = _make_data(to_array(tensor))
@@ -58,7 +61,11 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
     return _make_compiler(
         {node.name: (node.input, node.output) for node in model.graph.node},
         {
-            node.name: _make_operator(context, node.op_type, _parse_attribute(node))
+            node.name: _make_operator(
+                context,
+                node.op_type,
+                _parse_attribute(node, external_data_path),
+            )
             for node in model.graph.node
         },
         edges,
@@ -71,7 +78,7 @@ def _raise(attr: AttributeProto) -> None:
     raise NotImplementedError("Unsupported Attribute Type: {}".format(attr.type))
 
 
-def _parse_attribute(node: NodeProto) -> dict[str, Any]:
+def _parse_attribute(node: NodeProto, base_dir: str) -> dict[str, Any]:
     return {
         attr.name: attr.i
         if attr.type == AttributeProto.INT
@@ -85,9 +92,9 @@ def _parse_attribute(node: NodeProto) -> dict[str, Any]:
         if attr.type == AttributeProto.STRING
         else attr.strings
         if attr.type == AttributeProto.STRINGS
-        else _make_data(to_array(attr.t))
+        else _make_data(to_array(attr.t, base_dir))
         if attr.type == AttributeProto.TENSOR
-        else [_make_data(to_array(t)) for t in attr.tensors]
+        else [_make_data(to_array(t, base_dir)) for t in attr.tensors]
         if attr.type == AttributeProto.TENSORS
         else _raise(attr)
         for attr in node.attribute

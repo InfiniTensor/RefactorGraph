@@ -9,13 +9,18 @@ namespace refactor::hardware {
 
     static Arc<Memory> cudaMemory(int32_t card) {
 #ifdef USE_CUDA
+        ASSERT(0 <= card && card < getDeviceCount(), "Invalid card id: {}", card);
         setDevice(card);
+        auto [free, total] = getMemInfo();
+        auto size = std::min(free, std::max(5ul << 30, total * 4 / 5));
+        fmt::println("initializing Nvidia GPU {}, memory {} / {}, alloc {}",
+                     card, free, total, size);
         return std::make_shared<MemPool>(
             std::make_shared<NvidiaMemory>(),
-            5ul << 30,
+            size,
             256ul);
 #else
-        return nullptr;
+        RUNTIME_ERROR("CUDA is not enabled");
 #endif
     }
 

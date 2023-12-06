@@ -13,7 +13,7 @@ namespace refactor::kernel {
 
     std::vector<KernelBox>
     SimpleUnaryCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
-        auto const &a = inputs[0].get();
+        auto const &a = inputs[0];
 
         std::vector<KernelBox> ans;
         switch (_target) {
