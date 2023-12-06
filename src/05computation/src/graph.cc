@@ -60,22 +60,71 @@ namespace refactor::computation {
         auto modifier = graph_topo::InplaceModifier(graph.topology);
         modifier.reconnect(identities);
 
-        auto temp = graph_topo::LinkedGraph(graph_topo::Graph{
+        auto cleaner = graph_topo::LinkedGraph(graph_topo::Graph{
             modifier.take(),
             std::move(nodes),
             std::move(edges),
         });
-        temp.cleanup();
-        auto [topo__, nodes__, edges__] = temp.intoGraph();
+        cleaner.cleanup();
+        auto [topo__, nodes__, edges__] = cleaner.intoGraph();
 
         return kernel::Graph(std::move(topo__), std::move(nodes__), std::move(edges__));
     }
 
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
 
+    class EdgeRecorder {
+        std::unordered_map<Tensor *, count_t> _indices;
+        std::vector<std::string> _edges;
+        std::vector<uint8_t> _data;
+
+    public:
+        friend std::ostream &operator<<(std::ostream &os, EdgeRecorder const &edges);
+
+        count_t operator+=(Edge const &e) {
+            auto const &[tensor, name] = e;
+            ASSERT(tensor, "");
+            auto [it, ok] = _indices.try_emplace(tensor.get(), static_cast<count_t>(_edges.size()));
+            if (ok) {
+                std::string data;
+                if (tensor->data) {
+                    auto ptr = tensor->data->get<uint8_t>();
+                    auto len = tensor->bytesSize();
+                    data = fmt::format("{:>#10x} +{:<#10x}", _data.size(), len);
+                    _data.insert(_data.end(), ptr, ptr + len);
+                } else {
+                    data = fmt::format("{:>#10x} +{:<#10x}", 0, 0);
+                }
+                _edges.push_back(fmt::format(
+                    "{:>5}.\t{:<32}\t{:<12}\t{}\t{}\t{}",
+                    it->second,
+                    name,
+                    tensor->dataType.name(),
+                    tensor->layout == LayoutType::NCHW   ? "NCHW"
+                    : tensor->layout == LayoutType::NHWC ? "NHWC"
+                                                         : "ELSE",
+                    data,
+                    vec2str(tensor->shape)));
+            }
+            return it->second;
+        }
+        count_t operator[](Edge const &e) const {
+            return _indices.at(e.tensor.get());
+        }
+        decltype(_data) takeData() {
+            return std::move(_data);
+        }
+    };
+    std::ostream &operator<<(std::ostream &os, EdgeRecorder const &edges) {
+        for (auto const &edge : edges._edges) {
+            os << edge << std::endl;
+        }
+        return os;
+    }
+
     std::pair<std::string, std::vector<uint8_t>> Graph::serialize() const {
         auto const &graph = _internal.contiguous();
-        graph_topo::LinkedGraph<count_t, count_t> temp;
+        graph_topo::LinkedGraph<count_t, count_t> cleaner;
         {
             std::vector<count_t>
                 nodes(graph.nodes.size()),
@@ -93,13 +142,13 @@ namespace refactor::computation {
             auto modifier = graph_topo::InplaceModifier(graph.topology);
             modifier.reconnect(identities);
 
-            temp = graph_topo::LinkedGraph(graph_topo::Graph{
+            cleaner = graph_topo::LinkedGraph(graph_topo::Graph{
                 modifier.take(),
                 std::move(nodes),
                 std::move(edges),
             });
-            temp.cleanup();
-            for (auto const &node : temp.nodes()) {
+            cleaner.cleanup();
+            for (auto const &node : cleaner.nodes()) {
                 auto const &inputs = node->inputs();
                 for (auto i : range0_(inputs.size()).rev()) {
                     if (!graph.edges[inputs[i]->info()].tensor) {
@@ -111,66 +160,40 @@ namespace refactor::computation {
             }
         }
 
-        std::unordered_map<Tensor *, count_t> edgeFlags;
-        std::vector<std::string> edges;
-
-        auto addEdge = [&](Rc<decltype(temp)::Edge> const &edge) {
-            auto const &[tensor, name] = graph.edges[edge->info()];
-            ASSERT(tensor, "");
-            auto [it, ok] = edgeFlags.try_emplace(tensor.get(), static_cast<count_t>(edges.size()));
-            if (ok) {
-                edges.push_back(fmt::format(
-                    "{:>5}.\t{:<32}\t{:<12}\t{}",
-                    it->second,
-                    name,
-                    tensor->dataType.name(),
-                    vec2str(tensor->shape)));
-            }
-            return it->second;
-        };
-        auto getEdge = [&](Rc<decltype(temp)::Edge> const &edge) {
-            return edgeFlags.at(graph.edges[edge->info()].tensor.get());
-        };
-
-        for (auto const &edge : temp.inputs()) {
-            addEdge(edge);
+        EdgeRecorder edges;
+        for (auto const &edge : cleaner.inputs()) {
+            edges += graph.edges[edge->info()];
         }
-
         std::stringstream ss;
-        for (auto i = 0; auto node : temp.nodes()) {
+        for (auto i = 0; auto node : cleaner.nodes()) {
             auto const &[op, name] = graph.nodes[node->info()];
             if (auto i_ = ++i; op) {
                 ss << fmt::format("{:>5}.\t{:<32}\t{:<16}", i_, name, op->name());
             }
 
-            for (auto const &edge : node->outputs()) {
-                ss << ' ' << addEdge(edge);
+            for (auto const &e : node->outputs()) {
+                ss << ' ' << (edges += graph.edges[e->info()]);
             }
             ss << " <-";
-            for (auto const &edge : node->inputs()) {
-                ss << ' ' << addEdge(edge);
+            for (auto const &e : node->inputs()) {
+                ss << ' ' << (edges += graph.edges[e->info()]);
             }
             ss << std::endl;
         }
-        ss << std::endl;
-        {
-            ss << "graph.";
-            for (auto const &edge : temp.outputs()) {
-                ss << ' ' << getEdge(edge);
-            }
-            ss << " <-";
-            for (auto const &edge : temp.inputs()) {
-                ss << ' ' << getEdge(edge);
-            }
-            ss << std::endl;
+        ss << std::endl
+           << "graph.";
+        for (auto const &e : cleaner.outputs()) {
+            ss << ' ' << edges[graph.edges[e->info()]];
         }
-        ss << std::endl;
-        for (auto const &edge : edges) {
-            ss << edge << std::endl;
+        ss << " <-";
+        for (auto const &e : cleaner.inputs()) {
+            ss << ' ' << edges[graph.edges[e->info()]];
         }
+        ss << std::endl
+           << std::endl
+           << edges;
 
-        std::vector<uint8_t> data;
-        return {ss.str(), std::move(data)};
+        return {ss.str(), edges.takeData()};
     }
 
 }// namespace refactor::computation

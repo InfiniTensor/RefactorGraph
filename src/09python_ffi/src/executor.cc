@@ -145,22 +145,21 @@ namespace refactor::python_ffi {
                 auto const &edge = graph.edges[edgeIdx];
                 if (!edge.tensor) { return ""; }
 
-                auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);
-                fs::remove(file);
-                std::ofstream os(file, std::ios::binary);
-
                 auto size = edge.tensor->bytesSize();
                 buffer.resize(size);
 #ifdef USE_CUDA
                 kernel::cuda::copyOut(buffer.data(), addresses[idx], size);
 #endif
+
+                auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);
+                fs::remove(file);
+                std::ofstream os(file, std::ios::binary);
                 if (npy) {
                     writeNpy(std::move(os), buffer.data(), size,
                              edge.tensor->dataType, edge.tensor->shape);
                 } else {
                     writeBin(std::move(os), buffer.data(), size);
                 }
-
                 return file.string();
             };
 

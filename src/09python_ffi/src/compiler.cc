@@ -148,7 +148,9 @@ namespace refactor::python_ffi {
         ASSERT(fs::is_directory(path), "Failed to create \"{}\"", path.c_str());
 
         auto [text, data] = _g.lower().serialize();
-        std::ofstream(path / "graph.txt") << std::move(text);
+        std::ofstream(path / "graph.info") << std::move(text);
+        std::ofstream(path / "graph.data", std::ios::binary)
+            .write(reinterpret_cast<const char *>(data.data()), data.size());
     }
 
 }// namespace refactor::python_ffi
