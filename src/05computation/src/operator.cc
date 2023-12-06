@@ -9,7 +9,7 @@ namespace refactor::computation {
         TODO(fmt::format("Operator \"{}\" lower to kernel not implemented", name()));
     }
     std::string Operator::serialize() const {
-        return fmt::format("{}(not implement)", name());
+        return fmt::format("{}(...)", name());
     }
 
     bool LayoutDependentOperator::isLayoutDependent() const { return true; }

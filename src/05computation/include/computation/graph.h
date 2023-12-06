@@ -30,7 +30,8 @@ namespace refactor::computation {
         kernel::Graph lower(Target) const;
         auto internal() const -> decltype(_internal) const &;
 
-        std::pair<std::string, std::vector<uint8_t>> serialize() const;
+        auto serialize(bool withData) const
+            -> std::pair<std::string, std::vector<uint8_t>>;
     };
 
 }// namespace refactor::computation

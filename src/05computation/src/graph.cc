@@ -77,9 +77,13 @@ namespace refactor::computation {
         std::unordered_map<Tensor *, count_t> _indices;
         std::vector<std::string> _edges;
         std::vector<uint8_t> _data;
+        bool _extractData;
 
     public:
         friend std::ostream &operator<<(std::ostream &os, EdgeRecorder const &edges);
+
+        explicit EdgeRecorder(bool extractData) noexcept
+            : _extractData(extractData) {}
 
         count_t operator+=(Edge const &e) {
             auto const &[tensor, name] = e;
@@ -87,7 +91,7 @@ namespace refactor::computation {
             auto [it, ok] = _indices.try_emplace(tensor.get(), static_cast<count_t>(_edges.size()));
             if (ok) {
                 std::string data;
-                if (tensor->data) {
+                if (_extractData && tensor->data) {
                     auto ptr = tensor->data->get<uint8_t>();
                     auto len = tensor->bytesSize();
                     data = fmt::format("{:>#10x} +{:<#10x}", _data.size(), len);
@@ -96,8 +100,8 @@ namespace refactor::computation {
                     data = fmt::format("{:>#10x} +{:<#10x}", 0, 0);
                 }
                 _edges.push_back(fmt::format(
-                    "{:>5}.\t{:<32}\t{:<12}\t{}\t{}\t{}",
-                    it->second,
+                    "{:>7}\t{:<32}\t{:<12}\t{}\t{}\t{}",
+                    fmt::format("%{}.", it->second),
                     name,
                     tensor->dataType.name(),
                     tensor->layout == LayoutType::NCHW   ? "NCHW"
@@ -122,7 +126,7 @@ namespace refactor::computation {
         return os;
     }
 
-    std::pair<std::string, std::vector<uint8_t>> Graph::serialize() const {
+    std::pair<std::string, std::vector<uint8_t>> Graph::serialize(bool withData) const {
         auto const &graph = _internal.contiguous();
         graph_topo::LinkedGraph<count_t, count_t> cleaner;
         {
@@ -161,7 +165,7 @@ namespace refactor::computation {
             }
         }
 
-        EdgeRecorder edges;
+        EdgeRecorder edges(withData);
         for (auto const &edge : cleaner.inputs()) {
             edges += graph.edges[edge->info()];
         }
@@ -173,22 +177,22 @@ namespace refactor::computation {
             }
 
             for (auto const &e : n->outputs()) {
-                ss << ' ' << (edges += graph.edges[e->info()]);
+                ss << " %" << (edges += graph.edges[e->info()]);
             }
             ss << " <-";
             for (auto const &e : n->inputs()) {
-                ss << ' ' << (edges += graph.edges[e->info()]);
+                ss << " %" << (edges += graph.edges[e->info()]);
             }
             ss << std::endl;
         }
         ss << std::endl
            << "graph.";
         for (auto const &e : cleaner.outputs()) {
-            ss << ' ' << edges[graph.edges[e->info()]];
+            ss << " %" << edges[graph.edges[e->info()]];
         }
         ss << " <-";
         for (auto const &e : cleaner.inputs()) {
-            ss << ' ' << edges[graph.edges[e->info()]];
+            ss << " %" << edges[graph.edges[e->info()]];
         }
         ss << std::endl
            << std::endl
