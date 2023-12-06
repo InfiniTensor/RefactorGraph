@@ -126,13 +126,7 @@ namespace refactor::computation {
         auto const &graph = _internal.contiguous();
         graph_topo::LinkedGraph<count_t, count_t> cleaner;
         {
-            std::vector<count_t>
-                nodes(graph.nodes.size()),
-                edges(graph.edges.size());
-            std::iota(nodes.begin(), nodes.end(), 0);
-            std::iota(edges.begin(), edges.end(), 0);
             std::unordered_map<count_t, count_t> identities;
-
             for (auto [nodeIdx, inputs, outputs] : graph.topology) {
                 if (auto const &op = graph.nodes[nodeIdx].op; op && op->isIdentity()) {
                     identities.emplace(outputs[0], inputs[0]);
@@ -142,17 +136,24 @@ namespace refactor::computation {
             auto modifier = graph_topo::InplaceModifier(graph.topology);
             modifier.reconnect(identities);
 
+            std::vector<count_t>
+                nodes(graph.nodes.size()),
+                edges(graph.edges.size());
+            std::iota(nodes.begin(), nodes.end(), 0);
+            std::iota(edges.begin(), edges.end(), 0);
+
             cleaner = graph_topo::LinkedGraph(graph_topo::Graph{
                 modifier.take(),
                 std::move(nodes),
                 std::move(edges),
             });
             cleaner.cleanup();
-            for (auto const &node : cleaner.nodes()) {
-                auto const &inputs = node->inputs();
+
+            for (auto const &n : cleaner.nodes()) {
+                auto const &inputs = n->inputs();
                 for (auto i : range0_(inputs.size()).rev()) {
                     if (!graph.edges[inputs[i]->info()].tensor) {
-                        node->disconnect(i);
+                        n->disconnect(i);
                     } else {
                         break;
                     }
@@ -165,17 +166,17 @@ namespace refactor::computation {
             edges += graph.edges[edge->info()];
         }
         std::stringstream ss;
-        for (auto i = 0; auto node : cleaner.nodes()) {
-            auto const &[op, name] = graph.nodes[node->info()];
+        for (auto i = 0; auto n : cleaner.nodes()) {
+            auto const &[op, name] = graph.nodes[n->info()];
             if (auto i_ = ++i; op) {
-                ss << fmt::format("{:>5}.\t{:<32}\t{:<16}", i_, name, op->name());
+                ss << fmt::format("{:>5}.\t{:<32}\t{}", i_, name, op->serialize());
             }
 
-            for (auto const &e : node->outputs()) {
+            for (auto const &e : n->outputs()) {
                 ss << ' ' << (edges += graph.edges[e->info()]);
             }
             ss << " <-";
-            for (auto const &e : node->inputs()) {
+            for (auto const &e : n->inputs()) {
                 ss << ' ' << (edges += graph.edges[e->info()]);
             }
             ss << std::endl;

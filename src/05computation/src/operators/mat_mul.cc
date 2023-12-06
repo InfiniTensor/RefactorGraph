@@ -13,5 +13,18 @@ namespace refactor::computation {
     auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
         return std::make_unique<kernel::MatMulCollector>(target, alpha, beta, transA, transB);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        union code {
+            float f;
+            int32_t i;
+        };
+
+        return fmt::format("{}({:e}={:#010x}, {:e}={:#010x}, A{}, B{})",
+                           name(),
+                           alpha, code{alpha}.i,
+                           beta, code{beta}.i,
+                           transA ? "T" : "",
+                           transB ? "T" : "");
+    }
 
 }// namespace refactor::computation

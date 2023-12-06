@@ -14,5 +14,14 @@ namespace refactor::computation {
         using Collector_ = kernel::BatchNormalizationCollector;
         return std::make_unique<Collector_>(target, epsilon);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        union code {
+            float f;
+            int32_t i;
+        };
+        return fmt::format(("{}({:e}={:#010x})"),
+                           name(), epsilon,
+                           code{epsilon}.i);
+    }
 
 }// namespace refactor::computation

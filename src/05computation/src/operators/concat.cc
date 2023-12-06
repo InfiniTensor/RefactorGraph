@@ -14,4 +14,5 @@ namespace refactor::computation {
         using Collector_ = kernel::ConcatCollector;
         return std::make_unique<Collector_>(target, axis);
     }
+
 }// namespace refactor::computation

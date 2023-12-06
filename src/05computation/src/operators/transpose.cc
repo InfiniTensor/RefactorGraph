@@ -31,5 +31,8 @@ namespace refactor::computation {
         using Collector_ = kernel::TransposeCollector;
         return std::make_unique<Collector_>(target, perm);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        return fmt::format("{}({})", name(), vec2str(perm));
+    }
 
 }// namespace refactor::computation

@@ -18,5 +18,14 @@ namespace refactor::computation {
         using Collector_ = kernel::SliceCollector;
         return std::make_unique<Collector_>(target, dims);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        std::stringstream ss;
+        ss << name() << "([";
+        for (auto const &d : dims) {
+            ss << ' ' << d.start << '+' << d.length << 'x' << d.step;
+        }
+        ss << " ])";
+        return ss.str();
+    }
 
 }// namespace refactor::computation
