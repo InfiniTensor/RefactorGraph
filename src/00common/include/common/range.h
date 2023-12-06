@@ -16,7 +16,7 @@ namespace refactor {
 
         bool empty() const noexcept { return end_ == begin_; }
         size_t size() const noexcept { return end_ - begin_; }
-        t at(size_t i) const noexcept {
+        t at(size_t i) const {
             ASSERT(i < size(), "Index out of range");
             return operator[](i);
         }

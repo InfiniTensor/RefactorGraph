@@ -58,7 +58,16 @@ namespace refactor::computation {
 
         auto modifier = graph_topo::InplaceModifier(graph.topology);
         modifier.reconnect(identities);
-        return kernel::Graph(modifier.take(), std::move(nodes), std::move(edges));
+
+        auto temp = graph_topo::LinkedGraph(graph_topo::Graph{
+            modifier.take(),
+            std::move(nodes),
+            std::move(edges),
+        });
+        temp.cleanup();
+        auto [topo__, nodes__, edges__] = temp.intoGraph();
+
+        return kernel::Graph(std::move(topo__), std::move(nodes__), std::move(edges__));
     }
 
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }

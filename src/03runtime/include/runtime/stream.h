@@ -24,6 +24,7 @@ namespace refactor::runtime {
     struct Edge {
         Arc<hardware::Device::Blob> blob;
         size_t stackOffset;
+        std::string name;
     };
 
     class Stream {
@@ -39,6 +40,8 @@ namespace refactor::runtime {
                std::vector<Node>,
                std::vector<Edge>,
                decltype(_device));
+
+        decltype(_graph) const &graph() const noexcept { return _graph; }
         void setData(count_t, void const *, size_t);
         void setData(count_t, Arc<hardware::Device::Blob>);
         bool getData(count_t, void *, size_t) const;
