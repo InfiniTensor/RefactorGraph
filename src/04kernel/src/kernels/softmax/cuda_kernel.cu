@@ -12,11 +12,13 @@ namespace refactor::kernel {
     template<> __device__ __forceinline__ float exp_<float>(float x) { return expf(x); }
     template<> __device__ __forceinline__ double exp_<double>(double x) { return exp(x); }
     template<> __device__ __forceinline__ half exp_<half>(half x) { return hexp(x); }
+    template<> __device__ __forceinline__ nv_bfloat16 exp_<nv_bfloat16>(nv_bfloat16 x) { return hexp(x); }
 
     template<class T> __device__ __forceinline__ T reciprocal(T x);
     template<> __device__ __forceinline__ float reciprocal<float>(float x) { return fdividef(1, x); }
     template<> __device__ __forceinline__ double reciprocal<double>(double x) { return 1 / x; }
     template<> __device__ __forceinline__ half reciprocal<half>(half x) { return hrcp(x); }
+    template<> __device__ __forceinline__ nv_bfloat16 reciprocal<nv_bfloat16>(nv_bfloat16 x) { return hrcp(x); }
 
     // blockDim.x === BLOCK_DIM
     template<int BLOCK_DIM, class T>
@@ -144,6 +146,8 @@ namespace refactor::kernel {
                 return lowerTypedCuda<double>(info);
             case DataType::FP16:
                 return lowerTypedCuda<half>(info);
+            case DataType::BF16:
+                return lowerTypedCuda<nv_bfloat16>(info);
             default:
                 UNREACHABLE();
         }
