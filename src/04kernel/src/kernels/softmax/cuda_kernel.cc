@@ -7,14 +7,11 @@ namespace refactor::kernel {
         : Kernel(), info(std::move(info_)) {}
 
     auto K::build(SoftmaxInfo info) noexcept -> KernelBox {
-        static const std::unordered_set<decltype(DataType::internal)>
-            TYPES{DataType::F32, DataType::F64, DataType::FP16, DataType::BF16};
-
 #ifndef USE_CUDA
         return nullptr;
 #endif
 
-        return TYPES.contains(info.type)
+        return info.type.isFloat()
                    ? std::make_unique<K>(std::move(info))
                    : nullptr;
     }

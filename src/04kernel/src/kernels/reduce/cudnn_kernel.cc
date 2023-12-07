@@ -26,7 +26,7 @@ namespace refactor::kernel {
 #endif
 
         auto const &x = inputs_[0].get();
-        return x.dataType.isCpuNumberic()
+        return x.dataType.isFloat()
                    ? std::make_unique<K>(x.dataType, reduceType_, std::move(axes_), x.shape)
                    : nullptr;
     }

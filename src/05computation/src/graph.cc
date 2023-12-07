@@ -21,6 +21,7 @@ namespace refactor::computation {
         std::vector<kernel::Edge> edges(graph.edges.size());
 
         std::unordered_map<count_t, count_t> identities;
+        std::vector<std::string> noKernel;
         for (auto [nodeIdx, inputs, outputs] : graph.topology) {
             auto const &[op, name] = graph.nodes[nodeIdx];
             nodes[nodeIdx] = {nullptr, name};
@@ -44,8 +45,19 @@ namespace refactor::computation {
                                return std::cref(*graph.edges[i].tensor);
                            });
             auto candidates = op->candidateKernels(target)->filter(std::move(inputs_), std::move(outputs_));
-            ASSERT(!candidates.empty(), "No kernel selected for \"{}\"", name);
-            nodes[nodeIdx].kernel = std::move(candidates.front());
+            if (!candidates.empty()) {
+                nodes[nodeIdx].kernel = std::move(candidates.front());
+            } else {
+                noKernel.push_back(name);
+            }
+        }
+        if (!noKernel.empty()) {
+            std::stringstream ss;
+            ss << "No kernel selected for ";
+            for (auto x : noKernel) {
+                ss << '"' << x << "\" ";
+            }
+            RUNTIME_ERROR(ss.str());
         }
 
         for (auto i : range0_(edges.size())) {
