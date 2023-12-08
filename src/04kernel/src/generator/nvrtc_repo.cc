@@ -12,14 +12,40 @@
 
 namespace refactor::kernel::nvrtc {
 
-    Handler::Handler(const char *name, const char *code, const char *symbol) {
+    Handler::Handler(std::string_view name,
+                     std::string_view code,
+                     std::string_view symbol) {
+        std::string header;
+        if (code.find("half") != code.npos) {
+            header += "#include <cuda_fp16.h>\n";
+        }
+        if (code.find("nv_bfloat16") != code.npos) {
+            header += "#include <cuda_bf16.h>\n";
+        }
 
         nvrtcProgram prog;
-        NVRTC_ASSERT(nvrtcCreateProgram(&prog, code, name, 0, nullptr, nullptr));
+        if (header.empty()) {
+            NVRTC_ASSERT(nvrtcCreateProgram(
+                &prog, code.data(), name.data(), 0, nullptr, nullptr));
+        } else {
+            header += code.data();
+            NVRTC_ASSERT(nvrtcCreateProgram(
+                &prog, header.data(), name.data(), 0, nullptr, nullptr));
+        }
+
+        NVRTC_ASSERT(nvrtcCreateProgram(
+            &prog, code.data(), name.data(), 0, nullptr, nullptr));
         // Compile the program with fmad disabled.
         // Note: Can specify GPU target architecture explicitly with '-arch' flag.
-        const char *opts[] = {"--fmad=false"};
-        auto compileResult = nvrtcCompileProgram(prog, 1, opts);
+        std::vector<std::string> opts;
+#ifdef CUDA_INCLUDE_PATH
+        opts.emplace_back(fmt::format("-I{}", CUDA_INCLUDE_PATH));
+#endif
+        std::vector<const char *> optsPtr(opts.size());
+        std::transform(opts.begin(), opts.end(), optsPtr.begin(),
+                       [](auto &s) { return s.c_str(); });
+        auto compileResult = nvrtcCompileProgram(
+            prog, optsPtr.size(), optsPtr.data());
         // Obtain compilation log from the program.
         {
             size_t logSize;
@@ -45,17 +71,20 @@ namespace refactor::kernel::nvrtc {
         NVRTC_ASSERT(nvrtcDestroyProgram(&prog));
 
         hardware::device::fetch(hardware::Device::Type::Nvidia);
-        CUDA_ASSERT(cuModuleLoadData(&_module, ptx.c_str()));
-        CUDA_ASSERT(cuModuleGetFunction(&_kernel, _module, symbol));
+        CUDA_ASSERT(cuModuleLoadData(&_module, ptx.data()));
+        CUDA_ASSERT(cuModuleGetFunction(&_kernel, _module, symbol.data()));
     }
 
     Handler::~Handler() {
         cuModuleUnload(_module);
     }
 
-    Arc<Handler> Handler::compile(const char *name, const char *code, const char *symbol) {
+    Arc<Handler> Handler::compile(
+        std::string_view name,
+        std::string_view code,
+        std::string_view symbol) {
         static std::unordered_map<std::string, Arc<Handler>> REPO;
-        auto it = REPO.find(name);
+        auto it = REPO.find(name.data());
         if (it == REPO.end()) {
             std::tie(it, std::ignore) = REPO.emplace(name, Arc<Handler>(new Handler(name, code, symbol)));
         }

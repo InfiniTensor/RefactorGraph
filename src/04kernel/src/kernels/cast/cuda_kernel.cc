@@ -69,16 +69,16 @@ extern "C" __global__ void kernel({1:} *y, {0:} const *x, size_t n) {{
         }
         // clang-format off
         static const std::unordered_map<uint16_t, std::string> OP{
-            {__(DT::FP16, DT::BF16), "float2bfloat16(half2float(x))" },
-            {__(DT::FP16, DT::F32 ), "half2float(x)"                 },
-            {__(DT::FP16, DT::F64 ), "half2float(x)"                 },
-            {__(DT::BF16, DT::FP16), "float2half(bfloat162float(x))" },
-            {__(DT::BF16, DT::F32 ), "bfloat162float(x)"             },
-            {__(DT::BF16, DT::F64 ), "bfloat162float(x)"             },
-            {__(DT::F32 , DT::FP16), "float2half(x)"                 },
-            {__(DT::F32 , DT::BF16), "float2bfloat16(x)"             },
-            {__(DT::F64 , DT::FP16), "float2half(x)"                 },
-            {__(DT::F64 , DT::BF16), "float2bfloat16(x)"             },
+            {__(DT::FP16, DT::BF16), "__float2bfloat16(__half2float(x[tid]))" },
+            {__(DT::FP16, DT::F32 ), "__half2float(x[tid])"                   },
+            {__(DT::FP16, DT::F64 ), "__half2float(x[tid])"                   },
+            {__(DT::BF16, DT::FP16), "__float2half(__bfloat162float(x[tid]))" },
+            {__(DT::BF16, DT::F32 ), "__bfloat162float(x[tid])"               },
+            {__(DT::BF16, DT::F64 ), "__bfloat162float(x[tid])"               },
+            {__(DT::F32 , DT::FP16), "__float2half(x[tid])"                   },
+            {__(DT::F32 , DT::BF16), "__float2bfloat16(x[tid])"               },
+            {__(DT::F64 , DT::FP16), "__float2half(x[tid])"                   },
+            {__(DT::F64 , DT::BF16), "__float2bfloat16(x[tid])"               },
         };
         // clang-format on
         return OP.at(__(from, to));

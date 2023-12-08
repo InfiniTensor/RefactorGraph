@@ -18,12 +18,17 @@ namespace refactor::kernel::nvrtc {
         CUmodule _module;
         CUfunction _kernel;
 
-        Handler(const char *name, const char *code, const char *symbol);
+        Handler(std::string_view name,
+                std::string_view code,
+                std::string_view symbol);
 
     public:
         ~Handler();
 
-        static Arc<Handler> compile(const char *name, const char *code, const char *symbol);
+        static Arc<Handler> compile(
+            std::string_view name,
+            std::string_view code,
+            std::string_view symbol);
         CUfunction kernel() const;
     };
 

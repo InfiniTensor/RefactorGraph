@@ -22,7 +22,7 @@ namespace refactor::kernel {
         return nullptr;
 #endif
 
-        return a.dataType.isCpuNumberic() && a.dataType == b.dataType
+        return a.dataType == b.dataType
                    ? std::make_unique<K>(op, a.dataType, Broadcaster({a, b}))
                    : nullptr;
     }
