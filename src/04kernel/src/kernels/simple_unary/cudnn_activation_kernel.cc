@@ -23,7 +23,7 @@ namespace refactor::kernel {
         return nullptr;
 #endif
 
-        return ARTHIMETIC.contains(op) && a.dataType.isCpuNumberic()
+        return ARTHIMETIC.contains(op)
                    ? std::make_unique<K>(op, a.dataType, static_cast<int>(a.elementsSize()))
                    : nullptr;
     }

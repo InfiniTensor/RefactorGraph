@@ -15,19 +15,16 @@ namespace refactor::kernel {
         : Kernel(), dataType(dataType_), opType(opType_), aDims(aDims_), bDims(bDims_), cDims(cDims_) {}
 
     auto K::build(Op op, Tensor const &a, Tensor const &b, Tensor const &c) noexcept -> KernelBox {
-        static const std::unordered_set<decltype(DT::internal)> TYPE{
-            DT::F32, DT::F64, DT::FP16, DT::I8, DT::I32, DT::U8, DT::BF16,
-            DT::I64};
-        static const std::unordered_set<Op> ARTHIMETIC{
-            Op::Add, Op::Sub, Op::Mul};
+        static const std::unordered_set<Op>
+            ARTHIMETIC{Op::Add, Op::Sub, Op::Mul};
 
 #ifndef USE_CUDA
         return nullptr;
 #endif
 
         if (a.dataType != b.dataType ||
+            !a.dataType.isFloat() ||
             !ARTHIMETIC.contains(op) ||
-            !TYPE.contains(a.dataType) ||
             // At least one of a,b should have the same shape as c
             (a.shape != c.shape && b.shape != c.shape) ||
             // Sub only supports brocasting b

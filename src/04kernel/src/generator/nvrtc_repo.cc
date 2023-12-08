@@ -45,7 +45,7 @@ namespace refactor::kernel::nvrtc {
         NVRTC_ASSERT(nvrtcDestroyProgram(&prog));
 
         hardware::device::fetch(hardware::Device::Type::Nvidia);
-        CUDA_ASSERT(cuModuleLoadDataEx(&_module, ptx.c_str(), 0, 0, 0));
+        CUDA_ASSERT(cuModuleLoadData(&_module, ptx.c_str()));
         CUDA_ASSERT(cuModuleGetFunction(&_kernel, _module, symbol));
     }
 

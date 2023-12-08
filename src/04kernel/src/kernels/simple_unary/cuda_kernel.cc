@@ -23,7 +23,7 @@ namespace refactor::kernel {
         return nullptr;
 #endif
 
-        return supportedOp.contains(op) && a.dataType.isCpuNumberic()
+        return supportedOp.contains(op)
                    ? std::make_unique<K>(op, a.dataType, a.elementsSize())
                    : nullptr;
     }
