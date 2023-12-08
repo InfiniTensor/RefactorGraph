@@ -1,6 +1,7 @@
 ﻿#ifdef USE_CUDA
 
 #include "nvrtc_repo.h"
+#include "hardware/device_manager.h"
 #include <nvrtc.h>
 
 #define NVRTC_ASSERT(CALL)                                                 \
@@ -28,7 +29,9 @@ namespace refactor::kernel::nvrtc {
             fmt::println("{}", log.data());
         }
         if (compileResult != NVRTC_SUCCESS) {
-            exit(1);
+            fmt::println("wrong code:");
+            fmt::println("{}", code);
+            abort();
         }
         // Obtain PTX from the program.
         std::string ptx;
@@ -41,6 +44,7 @@ namespace refactor::kernel::nvrtc {
         // Destroy the program.
         NVRTC_ASSERT(nvrtcDestroyProgram(&prog));
 
+        hardware::device::fetch(hardware::Device::Type::Nvidia);
         CUDA_ASSERT(cuModuleLoadDataEx(&_module, ptx.c_str(), 0, 0, 0));
         CUDA_ASSERT(cuModuleGetFunction(&_kernel, _module, symbol));
     }

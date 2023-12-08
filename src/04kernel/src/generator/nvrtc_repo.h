@@ -4,12 +4,12 @@
 #include "common.h"
 #include <cuda.h>
 
-#define CUDA_ASSERT(CALL)                                                        \
-    if (auto result = CALL; result != CUDA_SUCCESS) {                            \
-        const char *msg;                                                         \
-        cuGetErrorName(result, &msg);                                            \
-        RUNTIME_ERROR(fmt::format("cuda driver failed on \"" #CALL "\" with {}", \
-                                  msg));                                         \
+#define CUDA_ASSERT(CALL)                                                             \
+    if (auto result = CALL; result != CUDA_SUCCESS) {                                 \
+        const char *msg;                                                              \
+        cuGetErrorName(result, &msg);                                                 \
+        RUNTIME_ERROR(fmt::format("cuda driver failed on \"" #CALL "\" with {} ({})", \
+                                  msg, (int) result));                                \
     }
 
 namespace refactor::kernel::nvrtc {

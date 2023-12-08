@@ -1,19 +1,22 @@
 ﻿#include "kernel/cuda/functions.cuh"
+#include "macro.cuh"
 #include <cstdio>
 
 namespace refactor::kernel::cuda {
 
+    int currentDevice() {
+        int device;
+        CUDA_ASSERT(cudaGetDevice(&device));
+        return device;
+    }
+
     void sync() {
-        auto state = cudaDeviceSynchronize();
-        if (state != cudaSuccess) {
-            printf("cudaDeviceSynchronize failed: %s\n", cudaGetErrorString(state));
-            exit(1);
-        }
+        CUDA_ASSERT(cudaDeviceSynchronize());
     }
 
     void copyOut(void *dst, const void *src, size_t size) {
         sync();
-        cudaMemcpy(dst, src, size, cudaMemcpyDeviceToHost);
+        CUDA_ASSERT(cudaMemcpy(dst, src, size, cudaMemcpyDeviceToHost));
     }
 
 }// namespace refactor::kernel::cuda

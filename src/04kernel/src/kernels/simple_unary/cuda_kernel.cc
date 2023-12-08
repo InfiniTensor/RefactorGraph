@@ -56,14 +56,7 @@ extern "C" __global__ void kernel({0:} *y, {0:} const *x, size_t n) {{
 )~";
 
     constexpr static uint16_t __(Op op, DT dt) {
-        union code {
-            struct {
-                Op op;
-                DT dt;
-            } info;
-            uint16_t u16;
-        } c{.info{op, dt}};
-        return c.u16;
+        return (static_cast<uint16_t>(op) << 8) | static_cast<uint16_t>(dt);
     }
 
     auto K::lower(Resources &res) const -> RoutineWorkspace {
