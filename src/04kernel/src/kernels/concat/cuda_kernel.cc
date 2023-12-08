@@ -39,7 +39,7 @@ struct Inputs {{
     char const *const addr[{0:}];
 }};
 
-extern "C" __global__ void concatKernel(void *output, Inputs inputs) {{
+extern "C" __global__ void kernel(void *output, Inputs inputs) {{
     using T = {1:};
 
     constexpr static unsigned int
@@ -104,7 +104,7 @@ extern "C" __global__ void concatKernel(void *output, Inputs inputs) {{
             params.n                 // 4
         );
 
-        return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "concatKernel"),
+        return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
                 params](Resources &, void *, void const *const *inputs, void *const *outputs) {
             void *args[]{const_cast<void **>(outputs), const_cast<void **>(inputs)};
             CUDA_ASSERT(cuLaunchKernel(

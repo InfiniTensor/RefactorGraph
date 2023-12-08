@@ -38,7 +38,7 @@ struct Outputs {{
     char *const addr[{0:}];
 }};
 
-extern "C" __global__ void splitKernel(Outputs outputs, void const *input) {{
+extern "C" __global__ void kernel(Outputs outputs, void const *input) {{
     using T = {1:};
 
     constexpr static unsigned int
@@ -103,7 +103,7 @@ extern "C" __global__ void splitKernel(Outputs outputs, void const *input) {{
             params.n                 // 4
         );
 
-        return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "splitKernel"),
+        return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
                 params](Resources &, void *, void const *const *inputs, void *const *outputs) {
             void *args[]{const_cast<void **>(outputs), const_cast<void **>(inputs)};
             CUDA_ASSERT(cuLaunchKernel(
