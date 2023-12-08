@@ -29,7 +29,7 @@ namespace refactor::kernel {
     template<class T>
     static auto lowerTyped(size_t size, bool hasMax) noexcept -> RoutineWorkspace {
         using namespace runtime;
-        return [=](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
+        return [=](Resources &, void *, void const *const *inputs, void *const *outputs) {
             auto data = reinterpret_cast<T const *>(inputs[0]);
             auto min = *reinterpret_cast<T const *>(inputs[1]),
                  max = hasMax
