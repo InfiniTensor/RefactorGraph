@@ -76,7 +76,7 @@ namespace refactor::kernel::nvrtc {
             { 6, "ushort3"},
             { 8, "double" },
             {12, "uint3"  },
-            {16, "half4"  },
+            {16, "float4" },
             {24, "double3"},
             {32, "double4"},
         };

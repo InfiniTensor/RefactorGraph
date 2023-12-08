@@ -41,7 +41,7 @@ namespace refactor::kernel {
 #define CASE_DT(NAME, T)                                                                                                                \
     case DT::T:                                                                                                                         \
         return [strides = thrust::device_vector<dim_t>(broadcaster.strides.begin(), broadcaster.strides.end()),                         \
-                rank = broadcaster.inputsCount,                                                                                         \
+                rank = broadcaster.strides.size(),                                                                                      \
                 n = broadcaster.outputsCount](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) { \
             using T_ = primitive<DT::T>::type;                                                                                          \
             auto a = reinterpret_cast<T_ const *>(inputs[0]);                                                                           \

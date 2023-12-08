@@ -39,21 +39,18 @@ struct Outputs {{
     char *const addr[{0:}];
 }};
 
-extern "C" __global__ void kernel(Outputs outputs, void const *input) {{
-    using T = {1:};
-
+extern "C" __global__ void kernel(Outputs outputs, {1:} const *input) {{
     constexpr static unsigned int
         sum = {2:},
         segments[]{{{3:}}};
-    auto src = reinterpret_cast<T const *>(input);
 
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < {4:};
          tid += step) {{
-        auto i = tid % sum * static_cast<unsigned int>(sizeof(T)), j = 0u;
+        auto i = tid % sum * static_cast<unsigned int>(sizeof({1:})), j = 0u;
         while (i >= segments[j]) i -= segments[j++];
-        *reinterpret_cast<T *>(outputs.addr[j] + (tid / sum) * segments[j] + i) = src[tid];
+        *reinterpret_cast<{1:} *>(outputs.addr[j] + (tid / sum) * segments[j] + i) = input[tid];
     }}
 }}
 )~";

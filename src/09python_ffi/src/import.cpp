@@ -101,7 +101,7 @@ namespace refactor::python_ffi {
             if (auto it = builder.edges.find(name); it != builder.edges.end()) {
                 it->second.tensor = std::move(tensor);
             } else {
-                fmt::println("\x1b[93mWARNING: edge {} not connected\x1b[0m", name);
+                fmt::println("\x1b[93mWARNING: edge \"{}\" not connected\x1b[0m", name);
             }
         }
         return std::make_shared<Compiler>(Graph(builder.build()));

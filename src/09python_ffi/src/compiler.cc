@@ -13,8 +13,9 @@ namespace refactor::python_ffi {
 
     void
     Compiler::substitute(CStr name, int64_t value) {
-        auto ok = _g.substitute(name, value);
-        ASSERT(ok, "Variable {} not exist", name);
+        if (!_g.substitute(name, value)) {
+            fmt::println("\x1b[93mWARNING: variable \"{}\" not exist\x1b[0m", name);
+        }
     }
 
     void
