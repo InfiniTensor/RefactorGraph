@@ -28,6 +28,7 @@ namespace refactor::kernel::nvrtc {
     };
 
     std::string_view memCopyType(size_t);
+    std::string_view dataType(DataType);
 
 }// namespace refactor::kernel::nvrtc
 

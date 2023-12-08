@@ -1,5 +1,10 @@
 ﻿#include "no_broadcast_cuda.hh"
-#include <execution>
+
+#ifdef USE_CUDA
+#include "../../generator/nvrtc_repo.h"
+#include "kernel/cuda/threads_distributer.cuh"
+#include <cuda_runtime.h>
+#endif
 
 namespace refactor::kernel {
     using K = Binary11Cuda;
@@ -14,7 +19,9 @@ namespace refactor::kernel {
         return nullptr;
 #endif
 
-        return a.dataType.isCpuNumberic() && a.dataType == b.dataType && a.shape == b.shape
+        return (a.dataType.isNumberic() || a.dataType.isBool()) &&
+                       a.dataType == b.dataType &&
+                       a.shape == b.shape
                    ? std::make_unique<K>(op, a.dataType, a.elementsSize())
                    : nullptr;
     }
@@ -29,5 +36,75 @@ namespace refactor::kernel {
     auto K::description() const noexcept -> std::string_view {
         return "Performing binary operation of 2 tensors with same shape on Nvidia GPU";
     }
+
+#ifdef USE_CUDA
+
+    constexpr static const char *TEMPLATE = R"~(
+__device__ __forceinline__ static {0:} fn({0:} a, {0:} b) {{
+    return {1:};
+}}
+
+extern "C" __global__ void kernel({0:} *c, {0:} const *a, {0:} const *b, size_t n) {{
+    for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
+              step = blockDim.x * gridDim.x;
+         tid < n;
+         tid += step)
+        c[tid] = fn(a[tid], b[tid]);
+}}
+)~";
+
+    static std::string_view op(Op op, DT dt) {
+        switch (op) {
+            case Op::Add:
+                return "a + b";
+            case Op::Sub:
+                return "a - b";
+            case Op::Mul:
+                return "a * b";
+            case Op::Div:
+                return "a / b";
+            case Op::And:
+                return "a && b";
+            case Op::Or:
+                return "a || b";
+            case Op::Xor:
+                return "a ^ b";
+            case Op::Pow:
+                switch (dt) {
+                    case DT::F32:
+                        return "powf(a, b)";
+                    case DT::FP16:
+                        return "float2half(powf(half2float(a), half2float(b)))";
+                    case DT::BF16:
+                        return "float2bfloat16(powf(bfloat162float(a), bfloat162float(b)))";
+                    default:
+                        return "pow(a, b)";
+                }
+            default:
+                UNREACHABLE();
+        }
+    }
+
+    auto K::lower(Resources &res) const -> RoutineWorkspace {
+        using namespace runtime;
+        auto name = fmt::format("binary_{}_{}", dataType.name(), opName(opType));
+        auto code = fmt::format(TEMPLATE, nvrtc::dataType(dataType), op(opType, dataType));
+        return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
+                params = cuda::ThreadsDistributer()(size)](
+                   Resources &, void *, void const *const *inputs, void *const *outputs) {
+            auto c = outputs[0];
+            auto a = inputs[0],
+                 b = inputs[1];
+            auto n = params.n;
+            void *args[]{&c, &a, &b, &n};
+            CUDA_ASSERT(cuLaunchKernel(
+                h->kernel(),
+                params.gridSize, 1, 1,
+                params.blockSize, 1, 1,
+                0, nullptr, args, nullptr));
+        };
+    }
+
+#endif
 
 }// namespace refactor::kernel

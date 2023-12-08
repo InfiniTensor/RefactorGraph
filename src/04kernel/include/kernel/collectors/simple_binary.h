@@ -5,7 +5,7 @@
 
 namespace refactor::kernel {
 
-    enum class SimpleBinaryType {
+    enum class SimpleBinaryType : uint8_t {
         Add,
         Sub,
         Mul,
@@ -15,6 +15,8 @@ namespace refactor::kernel {
         Or,
         Xor,
     };
+
+    std::string_view opName(SimpleBinaryType type);
 
     struct SimpleBinaryCollector final : public InfoCollector {
         SimpleBinaryType type;

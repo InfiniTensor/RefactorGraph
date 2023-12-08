@@ -46,18 +46,16 @@ __device__ __forceinline__ static {0:} fn({0:} x) {{
     return {1:};
 }}
 
-extern "C" __global__ void kernel(void *output, void const *input, size_t n) {{
-    auto dst = reinterpret_cast<{0:} *>(output);
-    auto src = reinterpret_cast<{0:} const *>(input);
+extern "C" __global__ void kernel({0:} *y, {0:} const *x, size_t n) {{
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < n;
          tid += step)
-        dst[tid] = fn(src[tid]);
+        y[tid] = fn(x[tid]);
 }}
 )~";
 
-    constexpr uint16_t __(Op op, DT dt) {
+    constexpr static uint16_t __(Op op, DT dt) {
         union code {
             struct {
                 Op op;
@@ -88,20 +86,6 @@ extern "C" __global__ void kernel(void *output, void const *input, size_t n) {{
         }
 
         // clang-format off
-        static const std::unordered_map<uint8_t, std::string_view> dt {
-            {DT::U8  , "unsigned char"     },
-            {DT::U16 , "unsigned short"    },
-            {DT::U32 , "unsigned int"      },
-            {DT::U64 , "unsigned long long"},
-            {DT::I8  , "char"              },
-            {DT::I16 , "short"             },
-            {DT::I32 , "int"               },
-            {DT::I64 , "long long"         },
-            {DT::FP16, "half"              },
-            {DT::BF16, "nv_bfloat16"       },
-            {DT::F32 , "float"             },
-            {DT::F64 , "double"            },
-        };
         // see <https://docs.nvidia.com/cuda/cuda-math-api/index.html>.
         static const std::unordered_map<uint16_t, std::string_view> op {
             {__(Op::Abs, DT::I8  ), "x >= 0 ? x : -x"},
@@ -163,13 +147,14 @@ extern "C" __global__ void kernel(void *output, void const *input, size_t n) {{
         // clang-format on
 
         auto name = fmt::format("unary_{}_{}", dataType.name(), unaryName(opType));
-        auto code = fmt::format(TEMPLATE, dt.at(dataType), op.at(__(opType, dataType)));
-        auto params = cuda::ThreadsDistributer()(size);
-
+        auto code = fmt::format(TEMPLATE, nvrtc::dataType(dataType), op.at(__(opType, dataType)));
         return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
-                params](Resources &, void *, void const *const *inputs, void *const *outputs) {
-            size_t n = params.n;
-            void *args[]{const_cast<void **>(outputs), const_cast<void **>(inputs), &n};
+                params = cuda::ThreadsDistributer()(size)](
+                   Resources &, void *, void const *const *inputs, void *const *outputs) {
+            auto y = outputs[0];
+            auto x = inputs[0];
+            auto n = params.n;
+            void *args[]{&y, &x, &n};
             CUDA_ASSERT(cuLaunchKernel(
                 h->kernel(),
                 params.gridSize, 1, 1,

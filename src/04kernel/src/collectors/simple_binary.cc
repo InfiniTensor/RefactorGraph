@@ -7,6 +7,25 @@
 
 namespace refactor::kernel {
 
+#define CASE(OP)               \
+    case SimpleBinaryType::OP: \
+        return #OP
+
+    std::string_view opName(SimpleBinaryType type) {
+        switch (type) {
+            CASE(Add);
+            CASE(Sub);
+            CASE(Mul);
+            CASE(Div);
+            CASE(Pow);
+            CASE(And);
+            CASE(Or);
+            CASE(Xor);
+            default:
+                UNREACHABLE();
+        }
+    }
+
 #define REGISTER(T)                             \
     if (auto ptr = T::build(type, a, b); ptr) { \
         ans.emplace_back(std::move(ptr));       \

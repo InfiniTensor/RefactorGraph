@@ -63,13 +63,43 @@ namespace refactor::kernel::nvrtc {
     }
 
     std::string_view memCopyType(size_t size) {
-        return size == 1    ? "char"
-               : size == 2  ? "short"
-               : size == 4  ? "float"
-               : size == 8  ? "float2"
-               : size == 16 ? "float4"
-               : size == 32 ? "double4"
-                            : UNREACHABLEX(const char *, "");
+        // clang-format off
+        static const std::unordered_map<size_t, std::string_view> TABLE {
+            { 1, "uchar1" },
+            { 2, "half"   },
+            { 3, "uchar3" },
+            { 4, "float"  },
+            { 6, "ushort3"},
+            { 8, "double" },
+            {12, "uint3"  },
+            {16, "half4"  },
+            {24, "double3"},
+            {32, "double4"},
+        };
+        // clang-format on
+        return TABLE.at(size);
+    }
+
+    std::string_view dataType(DataType dt) {
+        using DT = DataType;
+        // clang-format off
+        static const std::unordered_map<uint8_t, std::string_view> TABLE {
+            {DT::U8  , "unsigned char"     },
+            {DT::U16 , "unsigned short"    },
+            {DT::U32 , "unsigned int"      },
+            {DT::U64 , "unsigned long long"},
+            {DT::I8  , "char"              },
+            {DT::I16 , "short"             },
+            {DT::I32 , "int"               },
+            {DT::I64 , "long long"         },
+            {DT::FP16, "half"              },
+            {DT::BF16, "nv_bfloat16"       },
+            {DT::F32 , "float"             },
+            {DT::F64 , "double"            },
+            {DT::Bool, "bool"              },
+        };
+        // clang-format on
+        return TABLE.at(dt);
     }
 
 }// namespace refactor::kernel::nvrtc
