@@ -45,6 +45,7 @@ namespace refactor {
         bool isFloat() const noexcept;
         bool isSignedLarge() const noexcept;
         bool isSigned() const noexcept;
+        bool isUnsigned() const noexcept;
         bool isNumberic() const noexcept;
         bool isCpuNumberic() const noexcept;
         bool isBool() const noexcept;

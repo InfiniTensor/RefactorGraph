@@ -6,6 +6,36 @@
 
 namespace refactor::kernel {
 
+#define CASE(OP)              \
+    case SimpleUnaryType::OP: \
+        return #OP
+
+    std::string_view unaryName(SimpleUnaryType type) {
+        switch (type) {
+            CASE(Abs);
+            CASE(Acos);
+            CASE(Acosh);
+            CASE(Asin);
+            CASE(Asinh);
+            CASE(Atan);
+            CASE(Atanh);
+            CASE(Cos);
+            CASE(Cosh);
+            CASE(Sin);
+            CASE(Sinh);
+            CASE(Tan);
+            CASE(Tanh);
+            CASE(Relu);
+            CASE(Sqrt);
+            CASE(Sigmoid);
+            CASE(Erf);
+            CASE(Neg);
+            CASE(Not);
+            default:
+                UNREACHABLE();
+        }
+    }
+
 #define REGISTER(T)                          \
     if (auto ptr = T::build(type, a); ptr) { \
         ans.emplace_back(std::move(ptr));    \
