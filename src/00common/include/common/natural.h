@@ -7,7 +7,7 @@ namespace refactor {
 
     template<class t = size_t>
     class natural_t : public std::iterator<std::input_iterator_tag, t> {
-        size_t _i;
+        t _i;
 
     public:
         natural_t(t val) noexcept : _i(val) {}
@@ -33,7 +33,7 @@ namespace refactor {
 
     template<class t = size_t>
     class rev_natural_t : public std::iterator<std::input_iterator_tag, t> {
-        size_t _i;
+        t _i;
 
     public:
         rev_natural_t(t val) noexcept : _i(val - 1) {}
