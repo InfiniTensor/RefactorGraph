@@ -72,13 +72,20 @@ extern "C" __global__ void kernel({1:} *y, {0:} const *x, size_t n) {{
             {__(DT::FP16, DT::BF16), "__float2bfloat16(__half2float(x[tid]))" },
             {__(DT::FP16, DT::F32 ), "__half2float(x[tid])"                   },
             {__(DT::FP16, DT::F64 ), "__half2float(x[tid])"                   },
+            {__(DT::FP16, DT::Bool), "x[tid] == CUDART_ZERO_FP16"             },
+
             {__(DT::BF16, DT::FP16), "__float2half(__bfloat162float(x[tid]))" },
             {__(DT::BF16, DT::F32 ), "__bfloat162float(x[tid])"               },
             {__(DT::BF16, DT::F64 ), "__bfloat162float(x[tid])"               },
-            {__(DT::F32 , DT::FP16), "__float2half(x[tid])"                   },
-            {__(DT::F32 , DT::BF16), "__float2bfloat16(x[tid])"               },
-            {__(DT::F64 , DT::FP16), "__float2half(x[tid])"                   },
-            {__(DT::F64 , DT::BF16), "__float2bfloat16(x[tid])"               },
+            {__(DT::BF16, DT::Bool), "x[tid] == CUDART_ZERO_BF16"             },
+
+            {__(DT::F32 , DT::FP16), "__float2half(x[tid])"     },
+            {__(DT::F32 , DT::BF16), "__float2bfloat16(x[tid])" },
+            {__(DT::F32 , DT::Bool), "x[tid] == .0f"            },
+
+            {__(DT::F64 , DT::FP16), "__float2half(x[tid])"     },
+            {__(DT::F64 , DT::BF16), "__float2bfloat16(x[tid])" },
+            {__(DT::F64 , DT::Bool), "x[tid] == .0"             },
         };
         // clang-format on
         return OP.at(__(from, to));

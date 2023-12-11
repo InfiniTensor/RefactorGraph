@@ -92,11 +92,12 @@ namespace refactor::kernel {
             cudnnConvolutionFwdAlgo_t algo;
             std::optional<ExtraPadding> extraPadding;
             std::optional<Routine> biasExpand;
-            bool f64;
+            bool f32;
 
-            Descriptors(bool f64_) : extraPadding(std::nullopt),
-                                     biasExpand(std::nullopt),
-                                     f64(f64_) {
+            Descriptors(decltype(f32) f32_)
+                : extraPadding(std::nullopt),
+                  biasExpand(std::nullopt),
+                  f32(f32_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&y));
                 CUDNN_ASSERT(cudnnCreateFilterDescriptor(&w));
@@ -112,7 +113,7 @@ namespace refactor::kernel {
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
-        auto d = std::make_shared<Descriptors>(info.dt == DataType::F64);
+        auto d = std::make_shared<Descriptors>(info.dt != DataType::F64);
         d->extraPadding = ExtraPadding::build(info.dt, info.xShape, info.pad);
         if (info.biasExpand) {
             d->biasExpand = ExpandCuda(*info.biasExpand).lower(res).routine;
@@ -124,11 +125,12 @@ namespace refactor::kernel {
             info.xShape[3] + std::abs(info.pad[1] - info.pad[3]),
         };
 
-        auto cudnnDataType = cudnnDataTypeConvert(info.dt);
         setCudnnTensor(d->x, info.dt, slice(xs, 4));
         setCudnnTensor(d->y, info.dt, slice(info.yShape, 4));
         auto ws = info.wShape;
-        CUDNN_ASSERT(cudnnSetFilter4dDescriptor(d->w, cudnnDataType, CUDNN_TENSOR_NCHW, ws[0], ws[1], ws[2], ws[3]));
+        CUDNN_ASSERT(cudnnSetFilter4dDescriptor(
+            d->w, cudnnDataTypeConvert(info.dt), CUDNN_TENSOR_NCHW,
+            ws[0], ws[1], ws[2], ws[3]));
         auto pp = info.pad;
         auto ss = info.stride;
         auto dd = info.dilation;
@@ -138,7 +140,7 @@ namespace refactor::kernel {
             ss[0], ss[1],
             dd[0], dd[1],
             CUDNN_CROSS_CORRELATION,
-            cudnnDataType));
+            cudnnDataTypeConvert(d->f32 ? DataType::F32 : DataType::F64)));
 
         if (auto group = xs[1] / ws[1]; group > 1) {
             CUDNN_ASSERT(cudnnSetConvolutionGroupCount(d->conv, group));
@@ -179,30 +181,19 @@ namespace refactor::kernel {
                 (*f)(res, workspace, inputs + 2, outputs);
             }
             // build alpha/beta for double
-            union {
-                float f32[2];
-                double f64[2];
-            };
-            void *alpha, *beta;
-            if (d->f64) {
-                f64[0] = 1;
-                f64[1] = d->biasExpand ? 1 : 0;
-                alpha = f64;
-                beta = f64 + 1;
-            } else {
-                f32[0] = 1;
-                f32[1] = d->biasExpand ? 1 : 0;
-                alpha = f32;
-                beta = f32 + 1;
-            }
+            // build alpha/beta for double
+            auto a = d->f32 ? factor<fp32_t>(1) : factor<fp64_t>(1),
+                 b = d->f32
+                         ? factor<fp32_t>(d->biasExpand ? 1 : 0)
+                         : factor<fp64_t>(d->biasExpand ? 1 : 0);
             CUDNN_ASSERT(cudnnConvolutionForward(
                 res.fetchOrStore<CudnnContext>()->handle,
-                alpha,
+                &a,
                 d->x, x,
                 d->w, w,
                 d->conv, d->algo,
                 workspace, workspaceSize,
-                beta,
+                &b,
                 d->y, outputs[0]));
         };
         return {

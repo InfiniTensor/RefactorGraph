@@ -71,9 +71,10 @@ namespace refactor::kernel {
         // RAII for closure
         struct Descriptors {
             cudnnTensorDescriptor_t x, p;
-            bool f64;
+            bool f32;
 
-            Descriptors(bool f64_) : x(nullptr), p(nullptr), f64(f64_) {
+            explicit Descriptors(decltype(f32) f32_)
+                : x(nullptr), p(nullptr), f32(f32_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&p));
             }
@@ -85,7 +86,7 @@ namespace refactor::kernel {
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
-        auto d = std::make_shared<Descriptors>(info.dtP == DT::F64);
+        auto d = std::make_shared<Descriptors>(info.dtX != DT::F64);
         int dimParam[]{1, info.dimAx[1], 1, 1};
         setCudnnTensor(d->x, info.dtX, slice(info.dimAx, 4));
         setCudnnTensor(d->p, info.dtP, slice(dimParam, 4));
@@ -104,24 +105,10 @@ namespace refactor::kernel {
                  var = inputs[4];
             auto y = outputs[0];
             // build alpha/beta for double
-            union {
-                float f32[2];
-                double f64[2];
-            };
-            void *alpha, *beta;
-            if (d->f64) {
-                f64[0] = 1;
-                f64[1] = 0;
-                alpha = f64;
-                beta = f64 + 1;
-            } else {
-                f32[0] = 1;
-                f32[1] = 0;
-                alpha = f32;
-                beta = f32 + 1;
-            }
+            auto a = d->f32 ? factor<fp32_t>(1) : factor<fp64_t>(1),
+                 b = d->f32 ? factor<fp32_t>(0) : factor<fp64_t>(0);
             CUDNN_ASSERT(cudnnBatchNormalizationForwardInference(
-                handle, CUDNN_BATCHNORM_SPATIAL, alpha, beta,
+                handle, CUDNN_BATCHNORM_SPATIAL, &a, &b,
                 d->x, x,
                 d->x, y,// desc(x) === desc(y) for onnx
                 d->p, scale, bias, mean, var,

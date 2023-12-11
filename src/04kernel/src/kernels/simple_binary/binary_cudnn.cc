@@ -67,10 +67,9 @@ namespace refactor::kernel {
         struct Descriptors {
             cudnnOpTensorDescriptor_t opDesc;
             cudnnTensorDescriptor_t aDesc, bDesc, cDesc;
-            float aAlpha = 1.f;
-            float bAlpha = 1.f;
-            float beta = 0.f;
-            Descriptors() {
+            bool f32, sub;
+
+            Descriptors(decltype(f32) f32_) : f32(f32_), sub(false) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&aDesc));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&bDesc));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&cDesc));
@@ -83,13 +82,13 @@ namespace refactor::kernel {
                 CUDNN_ASSERT(cudnnDestroyOpTensorDescriptor(opDesc));
             }
         };
-        auto d = std::make_shared<Descriptors>();
+        auto d = std::make_shared<Descriptors>(dataType != DT::F64);
         cudnnOpTensorOp_t cudnnOP;
         if (opType == SimpleBinaryType::Add) {
             cudnnOP = CUDNN_OP_TENSOR_ADD;
         } else if (opType == SimpleBinaryType::Sub) {
             cudnnOP = CUDNN_OP_TENSOR_ADD;
-            d->bAlpha = -1.f;
+            d->sub = true;
         } else if (opType == SimpleBinaryType::Mul) {
             cudnnOP = CUDNN_OP_TENSOR_MUL;
         } else {
@@ -100,25 +99,39 @@ namespace refactor::kernel {
         setCudnnTensor(d->bDesc, dataType, slice(bDims.data(), bDims.size()));
         setCudnnTensor(d->cDesc, dataType, slice(cDims.data(), cDims.size()));
         CUDNN_ASSERT(cudnnSetOpTensorDescriptor(
-            d->opDesc, cudnnOP, cudnnDataTypeConvert(dataType), CUDNN_NOT_PROPAGATE_NAN));
+            d->opDesc, cudnnOP,
+            cudnnDataTypeConvert(d->f32 ? DT::F32 : DT::F64),
+            CUDNN_NOT_PROPAGATE_NAN));
 
         res.fetchOrStore<CudnnContext>();
         return [swap = aDims != cDims,
-                d_ = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
+                d](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto handle = res.fetchOrStore<CudnnContext>()->handle;
-            auto const &d = *d_;
             // name inputs and outputs
             auto a = inputs[0],
                  b = inputs[1];
             auto c = outputs[0];
+            auto alphaA = d->f32
+                              ? factor<fp32_t>(1)
+                              : factor<fp64_t>(1),
+                 alphaB = d->f32
+                              ? factor<fp32_t>(d->sub ? -1 : 1)
+                              : factor<fp64_t>(d->sub ? -1 : 1),
+                 beta = d->f32
+                            ? factor<fp32_t>(0)
+                            : factor<fp64_t>(0);
             if (swap) {
-                CUDNN_ASSERT(cudnnOpTensor(handle, d.opDesc, &(d.aAlpha),
-                                           d.bDesc, b, &(d.bAlpha), d.aDesc, a,
-                                           &(d.beta), d.cDesc, c));
+                CUDNN_ASSERT(cudnnOpTensor(
+                    handle, d->opDesc,
+                    &alphaB, d->bDesc, b,
+                    &alphaA, d->aDesc, a,
+                    &beta, d->cDesc, c));
             } else {
-                CUDNN_ASSERT(cudnnOpTensor(handle, d.opDesc, &(d.aAlpha),
-                                           d.aDesc, a, &(d.bAlpha), d.bDesc, b,
-                                           &(d.beta), d.cDesc, c));
+                CUDNN_ASSERT(cudnnOpTensor(
+                    handle, d->opDesc,
+                    &alphaA, d->aDesc, a,
+                    &alphaB, d->bDesc, b,
+                    &beta, d->cDesc, c));
             }
         };
     }

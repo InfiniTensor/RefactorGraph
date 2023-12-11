@@ -52,8 +52,9 @@ namespace refactor::kernel {
             cudnnTensorDescriptor_t x;
             cudnnTensorDescriptor_t y;
             cudnnReduceTensorDescriptor_t reduce;
+            bool f32;
 
-            Descriptors() {
+            explicit Descriptors(decltype(f32) f32_) : f32(f32_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&y));
                 CUDNN_ASSERT(cudnnCreateReduceTensorDescriptor(&reduce));
@@ -69,7 +70,7 @@ namespace refactor::kernel {
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
-        auto d = std::make_shared<Descriptors>();
+        auto d = std::make_shared<Descriptors>(dataType != DataType::F64);
 
         std::vector<int>
             dimsI(shape.begin(), shape.end()),
@@ -91,7 +92,7 @@ namespace refactor::kernel {
                       : UNREACHABLEX(cudnnReduceTensorOp_t, "");
         // clang-format on
         CUDNN_ASSERT(cudnnSetReduceTensorDescriptor(
-            d->reduce, reduceOp, cudnnDataTypeConvert(dataType),
+            d->reduce, reduceOp, cudnnDataTypeConvert(d->f32 ? DataType::F32 : DataType::F64),
             CUDNN_NOT_PROPAGATE_NAN, CUDNN_REDUCE_TENSOR_NO_INDICES, CUDNN_32BIT_INDICES));
 
         auto handler = res.fetchOrStore<CudnnContext>()->handle;
@@ -104,17 +105,22 @@ namespace refactor::kernel {
         // nvcc at c++11 doesn't support real move capture
         auto routine = [d = std::move(d),
                         idxWorkspaceSize,
-                        workspaceSize](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
+                        workspaceSize](Resources &res,
+                                       void *workspace,
+                                       void const *const *inputs,
+                                       void *const *outputs) {
             void *idxWorkspace = workspace,
                  *dataWorkspace = reinterpret_cast<uint8_t *>(workspace) + idxWorkspaceSize;
-            float alpha = 1, beta = 0;
+            // build alpha/beta for double
+            auto a = d->f32 ? factor<fp32_t>(1) : factor<fp64_t>(1),
+                 b = d->f32 ? factor<fp32_t>(0) : factor<fp64_t>(0);
             CUDNN_ASSERT(cudnnReduceTensor(
                 res.fetchOrStore<CudnnContext>()->handle,
                 d->reduce,
                 idxWorkspace, idxWorkspaceSize,
                 dataWorkspace, workspaceSize,
-                &alpha, d->x, inputs[0],
-                &beta, d->y, outputs[0]));
+                &a, d->x, inputs[0],
+                &b, d->y, outputs[0]));
         };
         return RoutineWorkspace(std::move(routine), idxWorkspaceSize + workspaceSize);
     }
