@@ -19,6 +19,7 @@
 #include "operators/range.hh"
 #include "operators/reduce.hh"
 #include "operators/reshape.hh"
+#include "operators/scatter_nd.hh"
 #include "operators/select.hh"
 #include "operators/shape.hh"
 #include "operators/simple_binary.hh"
@@ -74,6 +75,7 @@ namespace refactor::onnx {
         REGISTER(ReduceSum         , Reduce            );
         REGISTER(ReduceSumSquare   , Reduce            );
         REGISTER(Reshape           , Reshape           );
+        REGISTER(ScatterND         , ScatterND         );
         REGISTER(Max               , Select            );
         REGISTER(Min               , Select            );
         REGISTER(Shape             , Shape             );
