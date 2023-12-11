@@ -1,5 +1,6 @@
 ﻿#include "scatter_nd.hh"
 #include "common.h"
+#include "computation/operators/scatter_nd.h"
 
 namespace refactor::onnx {
     using Op = ScatterND;
@@ -32,10 +33,18 @@ namespace refactor::onnx {
 
         auto const &updates = inputs[2];
         {
-            auto idim = *indices.shape.rbegin();
-            EXPECT_VAL(idim, idim_);
-            if (q != q + r - idim_ - 1) {
+            auto const &k_ = *indices.shape.rbegin();
+            EXPECT_VAL(k_, k);
+            if (updates.rank() != q + r - k - 1) {
                 return Err(InferError(ERROR_MSG("Input `updates` rank mismatch")));
+            }
+            if (!std::equal(indices.shape.begin(), indices.shape.begin() + q - 1,
+                            updates.shape.begin())) {
+                return Err(InferError(ERROR_MSG("Input `updates` shape mismatch")));
+            }
+            if (!std::equal(data.shape.rbegin(), data.shape.rbegin() + r - k,
+                            updates.shape.rbegin())) {
+                return Err(InferError(ERROR_MSG("Input `updates` shape mismatch")));
             }
         }
 
@@ -50,7 +59,8 @@ namespace refactor::onnx {
     }
 
     auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
-        TODO("");
+        using Op_ = computation::ScatterND;
+        return std::make_unique<Op_>();
     }
 
 }// namespace refactor::onnx
