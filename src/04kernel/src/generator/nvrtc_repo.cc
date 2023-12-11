@@ -24,20 +24,15 @@ namespace refactor::kernel::nvrtc {
         }
 
         nvrtcProgram prog;
-        if (header.empty()) {
-            NVRTC_ASSERT(nvrtcCreateProgram(
-                &prog, code.data(), name.data(), 0, nullptr, nullptr));
-        } else {
+        if (!header.empty()) {
             header += code.data();
-            NVRTC_ASSERT(nvrtcCreateProgram(
-                &prog, header.data(), name.data(), 0, nullptr, nullptr));
+            code = header;
         }
 
-        NVRTC_ASSERT(nvrtcCreateProgram(
-            &prog, code.data(), name.data(), 0, nullptr, nullptr));
+        NVRTC_ASSERT(nvrtcCreateProgram(&prog, code.data(), name.data(), 0, nullptr, nullptr));
         // Compile the program with fmad disabled.
         // Note: Can specify GPU target architecture explicitly with '-arch' flag.
-        std::vector<std::string> opts;
+        std::vector<std::string> opts{"--std=c++20"};
 #ifdef CUDA_INCLUDE_PATH
         opts.emplace_back(fmt::format("-I{}", CUDA_INCLUDE_PATH));
 #endif
