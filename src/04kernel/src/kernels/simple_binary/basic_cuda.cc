@@ -2,6 +2,7 @@
 
 #ifdef USE_CUDA
 #include "../../generator/nvrtc_repo.h"
+#include "codegen.cuh"
 #include "kernel/cuda/threads_distributer.cuh"
 #include <cuda_runtime.h>
 #endif
@@ -67,38 +68,6 @@ extern "C" __global__ void kernel({0:} *c, {0:} const *a, {0:} const *b, Strides
     }}
 }}
 )~";
-
-    static std::string_view op(Op op, DT dt) {
-        switch (op) {
-            case Op::Add:
-                return "a + b";
-            case Op::Sub:
-                return "a - b";
-            case Op::Mul:
-                return "a * b";
-            case Op::Div:
-                return "a / b";
-            case Op::And:
-                return "a && b";
-            case Op::Or:
-                return "a || b";
-            case Op::Xor:
-                return "a ^ b";
-            case Op::Pow:
-                switch (dt) {
-                    case DT::F32:
-                        return "powf(a, b)";
-                    case DT::FP16:
-                        return "float2half(powf(half2float(a), half2float(b)))";
-                    case DT::BF16:
-                        return "float2bfloat16(powf(bfloat162float(a), bfloat162float(b)))";
-                    default:
-                        return "pow(a, b)";
-                }
-            default:
-                UNREACHABLE();
-        }
-    }
 
     auto K::lower(Resources &res) const -> RoutineWorkspace {
         using namespace runtime;
