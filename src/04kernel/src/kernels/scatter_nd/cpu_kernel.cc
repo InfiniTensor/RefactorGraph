@@ -24,7 +24,9 @@ namespace refactor::kernel {
 
     auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         return [info = this->info](Resources &, void *, void const *const *inputs, void *const *outputs) {
-            std::memcpy(outputs[0], inputs[0], info.blockCount * info.blockSize);
+            if (outputs[0] != inputs[0]) {
+                std::memcpy(outputs[0], inputs[0], info.blockCount * info.blockSize);
+            }
 
             auto out = static_cast<uint8_t *>(outputs[0]);
             auto in = static_cast<uint8_t const *>(inputs[2]);
