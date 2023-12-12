@@ -7,7 +7,7 @@ namespace refactor::kernel {
 
     /// @brief 优化用于计算的 ScatterND 描述。
     struct ScatterNDInfo {
-        dim_t prefix;
+        dim_t prefix, blockCount;
         std::vector<dim_t> strides;
         size_t blockSize;
 

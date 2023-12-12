@@ -13,6 +13,7 @@ namespace refactor::kernel {
               indices.shape.begin() + indices.shape.size() - 1,
               1,
               std::multiplies())),
+          blockCount(data.shape[0]),
           strides(K, 1),
           blockSize(std::accumulate(
               data.shape.begin() + K,
@@ -22,6 +23,7 @@ namespace refactor::kernel {
         for (auto i : range0_(K - 1).rev()) {
             strides[i] = strides[i + 1] * data.shape[i + 1];
         }
+        blockCount *= strides[0];
     }
 
 }// namespace refactor::kernel

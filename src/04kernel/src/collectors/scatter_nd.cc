@@ -1,5 +1,6 @@
 ﻿#include "kernel/collectors/scatter_nd.h"
-#include "kernel/attributes/scatter_nd_info.h"
+#include "../kernels/scatter_nd/cpu_kernel.hh"
+#include "../kernels/scatter_nd/cuda_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -13,8 +14,14 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
+                if (auto ptr = ScatterNDCpu::build(std::move(info)); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             case decltype(_target)::Nvidia:
+                if (auto ptr = ScatterNDCuda::build(std::move(info)); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");
