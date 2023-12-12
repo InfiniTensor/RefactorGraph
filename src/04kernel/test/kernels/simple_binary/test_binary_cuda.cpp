@@ -1,9 +1,7 @@
 #ifdef USE_CUDA
 
-#include "../src/kernels/simple_binary/basic_cpu.hh"
-#include "../src/kernels/simple_binary/basic_cuda.hh"
-#include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
-#include "../src/kernels/simple_binary/no_broadcast_cuda.hh"
+#include "../src/kernels/simple_binary/cpu_kernel.hh"
+#include "../src/kernels/simple_binary/cuda_kernel.hh"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -18,12 +16,8 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     auto bTensor = Tensor::share(DataType::I8, dimB, LayoutType::NCHW);
     auto cTensor = Tensor::share(DataType::I8, dimC, LayoutType::NCHW);
 
-    auto cpuKernel = dimA == dimB
-                         ? Binary11Cpu::build(binaryOPT, *aTensor, *bTensor)
-                         : BinaryBasicCpu::build(binaryOPT, *aTensor, *bTensor);
-    auto cudaKernel = dimA == dimB
-                          ? Binary11Cuda::build(binaryOPT, *aTensor, *bTensor)
-                          : BinaryBasicCuda::build(binaryOPT, *aTensor, *bTensor);
+    auto cpuKernel = BinaryCpu::build(binaryOPT, *aTensor, *bTensor),
+         cudaKernel = BinaryCuda::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel && cudaKernel);
     auto res = runtime::Resources();
     auto cpuRoutine = cpuKernel->lower(res).routine;

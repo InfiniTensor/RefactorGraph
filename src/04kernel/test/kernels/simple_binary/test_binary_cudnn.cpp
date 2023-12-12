@@ -1,8 +1,7 @@
 #ifdef USE_CUDA
 
-#include "../src/kernels/simple_binary/basic_cpu.hh"
 #include "../src/kernels/simple_binary/binary_cudnn.hh"
-#include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
+#include "../src/kernels/simple_binary/cpu_kernel.hh"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -16,9 +15,7 @@ void testBinaryCudnn(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape d
     auto bTensor = Tensor::share(DataType::F32, dimB, LayoutType::NCHW);
     auto cTensor = Tensor::share(DataType::F32, dimC, LayoutType::NCHW);
     auto kernel = BinaryCudnn::build(binaryOPT, *aTensor, *bTensor, *cTensor);
-    auto kCpu = dimA == dimB
-                    ? Binary11Cpu::build(binaryOPT, *aTensor, *bTensor)
-                    : BinaryBasicCpu::build(binaryOPT, *aTensor, *bTensor);
+    auto kCpu = BinaryCpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine,

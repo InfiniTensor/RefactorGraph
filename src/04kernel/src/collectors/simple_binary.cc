@@ -1,9 +1,7 @@
 ﻿#include "kernel/collectors/simple_binary.h"
-#include "../kernels/simple_binary/basic_cpu.hh"
-#include "../kernels/simple_binary/basic_cuda.hh"
 #include "../kernels/simple_binary/binary_cudnn.hh"
-#include "../kernels/simple_binary/no_broadcast_cpu.hh"
-#include "../kernels/simple_binary/no_broadcast_cuda.hh"
+#include "../kernels/simple_binary/cpu_kernel.hh"
+#include "../kernels/simple_binary/cuda_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -44,13 +42,11 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
-                REGISTER(Binary11Cpu)
-                REGISTER(BinaryBasicCpu)
+                REGISTER(BinaryCpu)
                 break;
             case decltype(_target)::Nvidia:
                 REGISTER_BROCAST(BinaryCudnn)
-                REGISTER(Binary11Cuda)
-                REGISTER(BinaryBasicCuda)
+                REGISTER(BinaryCuda)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

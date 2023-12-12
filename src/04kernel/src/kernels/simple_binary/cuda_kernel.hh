@@ -6,12 +6,12 @@
 
 namespace refactor::kernel {
 
-    struct BinaryBasicCuda final : public Kernel {
+    struct BinaryCuda final : public Kernel {
         DataType dataType;
         SimpleBinaryType opType;
         Broadcaster broadcaster;
 
-        BinaryBasicCuda(SimpleBinaryType, DataType, Broadcaster) noexcept;
+        BinaryCuda(SimpleBinaryType, DataType, Broadcaster) noexcept;
 
         static KernelBox build(SimpleBinaryType,
                                Tensor const &,
