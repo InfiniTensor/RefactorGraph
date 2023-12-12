@@ -3,6 +3,8 @@
 
 namespace refactor::kernel::cuda {
 
+    int currentDevice();
+
     void sync();
 
     void copyOut(void *dst, const void *src, size_t size);

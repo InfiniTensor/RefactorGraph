@@ -14,6 +14,7 @@ namespace refactor::onnx {
              OptionalInts strides_)
         : Operator(),
           type(type_),
+          ceilMode(false),
           kernelShape(std::move(kernelShape_)),
           dilations(std::move(dilations_)),
           pads(std::move(pads_)),

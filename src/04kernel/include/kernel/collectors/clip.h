@@ -7,7 +7,7 @@ namespace refactor::kernel {
 
     struct ClipCollector final : public InfoCollector {
 
-        ClipCollector(decltype(_target)) noexcept;
+        explicit ClipCollector(decltype(_target)) noexcept;
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

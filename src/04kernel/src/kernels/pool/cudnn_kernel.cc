@@ -77,8 +77,9 @@ namespace refactor::kernel {
             cudnnTensorDescriptor_t x, y;
             cudnnPoolingDescriptor_t pooling;
             std::optional<ExtraPadding> extraPadding;
+            bool f32;
 
-            Descriptors() {
+            Descriptors(decltype(f32) f32_) : f32(f32_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&x));
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&y));
                 CUDNN_ASSERT(cudnnCreatePoolingDescriptor(&pooling));
@@ -92,7 +93,7 @@ namespace refactor::kernel {
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
-        auto d = std::make_shared<Descriptors>();
+        auto d = std::make_shared<Descriptors>(info.dt != DataType::F64);
         d->extraPadding = ExtraPadding::build(info.dt, info.xShape, info.pads);
         int const
             xs[]{
@@ -127,15 +128,14 @@ namespace refactor::kernel {
             if (auto f = d->extraPadding; f) {
                 x = (*f)(x, workspace);
             }
-            // TODO? build alpha/beta for double
-            float alpha = 1, beta = 0;
+            // build alpha/beta for double
+            auto a = d->f32 ? factor<fp32_t>(1) : factor<fp64_t>(1),
+                 b = d->f32 ? factor<fp32_t>(0) : factor<fp64_t>(0);
             CUDNN_ASSERT(cudnnPoolingForward(
                 res.fetchOrStore<CudnnContext>()->handle,
                 d->pooling,
-                &alpha,
-                d->x, x,
-                &beta,
-                d->y, outputs[0]));
+                &a, d->x, x,
+                &b, d->y, outputs[0]));
         };
         return {std::move(routine), d->extraPadding ? d->extraPadding->workspace() : 0};
     }

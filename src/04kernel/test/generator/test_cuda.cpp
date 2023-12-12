@@ -1,7 +1,6 @@
 ﻿#ifdef USE_CUDA
 
 #include "../../src/generator/nvrtc_repo.h"
-#include <cuda_runtime.h>
 #include <gtest/gtest.h>
 
 using namespace refactor;

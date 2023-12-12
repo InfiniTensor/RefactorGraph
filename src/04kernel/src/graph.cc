@@ -33,6 +33,7 @@ namespace refactor::kernel {
 
         for (auto i : range0_(edges_.size())) {
             auto const &edge = _internal.edges[i];
+            edges_[i].name = edge.name;
             if (edge.data) {
                 auto blob = device->malloc(edge.size);
                 blob->copyFromHost(edge.data->get<void>());

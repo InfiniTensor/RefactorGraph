@@ -42,8 +42,10 @@ namespace refactor::kernel {
         struct Descriptors {
             cudnnTensorDescriptor_t t;
             cudnnSoftmaxAlgorithm_t algo;
+            bool f32;
 
-            Descriptors(cudnnSoftmaxAlgorithm_t algo_) : algo(algo_) {
+            Descriptors(decltype(algo) algo_, decltype(f32) f32_)
+                : algo(algo_), f32(f32_) {
                 CUDNN_ASSERT(cudnnCreateTensorDescriptor(&t));
             }
             ~Descriptors() noexcept(false) {
@@ -53,18 +55,26 @@ namespace refactor::kernel {
             Descriptors(Descriptors &&) = delete;
         };
 
-        auto d = std::make_shared<Descriptors>(static_cast<cudnnSoftmaxAlgorithm_t>(algo));
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(d->t, CUDNN_TENSOR_NCHW, cudnnDataTypeConvert(dataType), pre, mid, post, 1));
+        auto d = std::make_shared<Descriptors>(
+            static_cast<cudnnSoftmaxAlgorithm_t>(algo),
+            dataType != DataType::F64);
+        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(
+            d->t,
+            CUDNN_TENSOR_NCHW,
+            cudnnDataTypeConvert(dataType),
+            pre, mid, post, 1));
 
         res.fetchOrStore<CudnnContext>();
         return [d = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            float alpha = 1, beta = 0;
+            // build alpha/beta for double
+            auto a = d->f32 ? factor<fp32_t>(1) : factor<fp64_t>(1),
+                 b = d->f32 ? factor<fp32_t>(0) : factor<fp64_t>(0);
             CUDNN_ASSERT(cudnnSoftmaxForward(
                 res.fetchOrStore<CudnnContext>()->handle,
                 d->algo,
                 CUDNN_SOFTMAX_MODE_CHANNEL,
-                &alpha, d->t, inputs[0],
-                &beta, d->t, outputs[0]));
+                &a, d->t, inputs[0],
+                &b, d->t, outputs[0]));
         };
     }
 

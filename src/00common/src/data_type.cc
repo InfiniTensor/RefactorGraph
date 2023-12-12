@@ -82,6 +82,11 @@ namespace refactor {
             DT::I8, DT::I16, DT::I32, DT::I64};
         return set.contains(internal);
     }
+    bool DT::isUnsigned() const noexcept {
+        static const std::unordered_set<Enum> set{
+            DT::U8, DT::U16, DT::U32, DT::U64};
+        return set.contains(internal);
+    }
     bool DT::isNumberic() const noexcept {
         static const std::unordered_set<Enum> set{
             DT::F32, DT::U8, DT::I8, DT::U16, DT::I16,

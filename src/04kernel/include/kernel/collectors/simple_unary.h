@@ -5,7 +5,7 @@
 
 namespace refactor::kernel {
 
-    enum class SimpleUnaryType {
+    enum class SimpleUnaryType : uint8_t {
         Abs,
         Acos,
         Acosh,
@@ -26,6 +26,8 @@ namespace refactor::kernel {
         Neg,
         Not,
     };
+
+    std::string_view unaryName(SimpleUnaryType type);
 
     struct SimpleUnaryCollector final : public InfoCollector {
         SimpleUnaryType type;

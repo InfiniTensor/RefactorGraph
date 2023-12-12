@@ -33,21 +33,21 @@ namespace refactor::python_ffi {
     }
 
     void Executor::setInput(count_t i, pybind11::array data) {
-        auto globalInputs = _graph.internal().contiguous().topology.globalInputs();
-        ASSERT(i < globalInputs.size(), "input index out of range");
-        i = globalInputs[i];
+        i = _stream.graph().topology.globalInputs().at(i);
 
-        auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
+        auto const &name = _stream.graph().edges[i].name;
+        auto const &edges = _graph.internal().contiguous().edges;
+        auto const &tensor = *std::find_if(edges.begin(), edges.end(), [&](auto const &e) { return e.name == name; })->tensor;
         ASSERT(tensor.bytesSize() == static_cast<size_t>(data.nbytes()), "input size mismatch");
         _stream.setData(i, data.data(), data.nbytes());
     }
 
     auto Executor::getOutput(count_t i) -> pybind11::array {
-        auto globalOutputs = _graph.internal().contiguous().topology.globalOutputs();
-        ASSERT(i < globalOutputs.size(), "output index out of range");
-        i = globalOutputs[i];
+        i = _stream.graph().topology.globalOutputs().at(i);
 
-        auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
+        auto const &name = _stream.graph().edges[i].name;
+        auto const &edges = _graph.internal().contiguous().edges;
+        auto const &tensor = *std::find_if(edges.begin(), edges.end(), [&](auto const &e) { return e.name == name; })->tensor;
         auto ans = pybind11::array(buildNumpyDType(tensor.dataType), std::move(tensor.shape));
         _stream.getData(i, ans.mutable_data(), ans.nbytes());
         return ans;
@@ -145,22 +145,21 @@ namespace refactor::python_ffi {
                 auto const &edge = graph.edges[edgeIdx];
                 if (!edge.tensor) { return ""; }
 
-                auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);
-                fs::remove(file);
-                std::ofstream os(file, std::ios::binary);
-
                 auto size = edge.tensor->bytesSize();
                 buffer.resize(size);
 #ifdef USE_CUDA
                 kernel::cuda::copyOut(buffer.data(), addresses[idx], size);
 #endif
+
+                auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);
+                fs::remove(file);
+                std::ofstream os(file, std::ios::binary);
                 if (npy) {
                     writeNpy(std::move(os), buffer.data(), size,
                              edge.tensor->dataType, edge.tensor->shape);
                 } else {
                     writeBin(std::move(os), buffer.data(), size);
                 }
-
                 return file.string();
             };
 

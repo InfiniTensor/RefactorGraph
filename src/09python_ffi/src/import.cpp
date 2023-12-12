@@ -88,19 +88,21 @@ namespace refactor::python_ffi {
             for (auto const &output : outputs) {
                 builder.edges.insert({output, {nullptr, output}});
             }
-            builder.topology.insert(
-                {std::move(node), {std::move(inputs), std::move(outputs)}});
+            builder.topology.insert({
+                std::move(node),
+                {std::move(inputs), std::move(outputs)},
+            });
         }
         builder.nodes.reserve(nodes.size());
         for (auto &[name, operator_] : nodes) {
-            auto node = Node{std::move(*operator_), name};
-            builder.nodes.insert({std::move(name), std::move(node)});
+            builder.nodes.insert({std::move(name), Node{std::move(*operator_), name}});
         }
         for (auto &[name, tensor] : edges) {
-            auto edge = Edge{std::move(tensor), name};
-            auto it = builder.edges.find(name);
-            ASSERT(it != builder.edges.end(), "edge {} not connected", name);
-            it->second.tensor = std::move(edge.tensor);
+            if (auto it = builder.edges.find(name); it != builder.edges.end()) {
+                it->second.tensor = std::move(tensor);
+            } else {
+                fmt::println("\x1b[93mWARNING: edge \"{}\" not connected\x1b[0m", name);
+            }
         }
         return std::make_shared<Compiler>(Graph(builder.build()));
     }

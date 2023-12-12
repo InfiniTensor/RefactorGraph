@@ -6,12 +6,12 @@
 
 namespace refactor::kernel {
 
-    struct BinaryBasicCuda final : public Kernel {
+    struct BinaryCuda final : public Kernel {
         DataType dataType;
         SimpleBinaryType opType;
         Broadcaster broadcaster;
 
-        BinaryBasicCuda(SimpleBinaryType, DataType, Broadcaster) noexcept;
+        BinaryCuda(SimpleBinaryType, DataType, Broadcaster) noexcept;
 
         static KernelBox build(SimpleBinaryType,
                                Tensor const &,
@@ -21,7 +21,7 @@ namespace refactor::kernel {
         size_t kernelTypeId() const noexcept final;
         std::string_view description() const noexcept final;
 #ifdef USE_CUDA
-        RoutineWorkspace lower(Resources &) const noexcept final;
+        RoutineWorkspace lower(Resources &) const final;
 #endif
     };
 

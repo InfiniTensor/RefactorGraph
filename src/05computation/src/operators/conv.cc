@@ -17,5 +17,8 @@ namespace refactor::computation {
         using Collector_ = kernel::ConvCollector;
         return std::make_unique<Collector_>(target, attributes);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        return fmt::format("{}({})", name(), attributes.toString());
+    }
 
 }// namespace refactor::computation

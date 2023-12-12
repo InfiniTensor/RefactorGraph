@@ -24,6 +24,7 @@ namespace refactor::python_ffi {
         CASE(U32);
         CASE(U64);
         CASE(Bool);
+        if (dt.is(py::dtype(23))) { return DataType::FP16; }
 
 #undef CASE
         RUNTIME_ERROR("unsupported data type.");

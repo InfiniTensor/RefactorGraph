@@ -14,5 +14,8 @@ namespace refactor::computation {
         using Collector_ = kernel::ClipCollector;
         return std::make_unique<Collector_>(target);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        return "Clip()";
+    }
 
 }// namespace refactor::computation

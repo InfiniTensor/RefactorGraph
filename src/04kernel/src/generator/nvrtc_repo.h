@@ -4,12 +4,12 @@
 #include "common.h"
 #include <cuda.h>
 
-#define CUDA_ASSERT(CALL)                                                        \
-    if (auto result = CALL; result != CUDA_SUCCESS) {                            \
-        const char *msg;                                                         \
-        cuGetErrorName(result, &msg);                                            \
-        RUNTIME_ERROR(fmt::format("cuda driver failed on \"" #CALL "\" with {}", \
-                                  msg));                                         \
+#define CUDA_ASSERT(CALL)                                                             \
+    if (auto result = CALL; result != CUDA_SUCCESS) {                                 \
+        const char *msg;                                                              \
+        cuGetErrorName(result, &msg);                                                 \
+        RUNTIME_ERROR(fmt::format("cuda driver failed on \"" #CALL "\" with {} ({})", \
+                                  msg, (int) result));                                \
     }
 
 namespace refactor::kernel::nvrtc {
@@ -18,16 +18,22 @@ namespace refactor::kernel::nvrtc {
         CUmodule _module;
         CUfunction _kernel;
 
-        Handler(const char *name, const char *code, const char *symbol);
+        Handler(std::string_view name,
+                std::string_view code,
+                std::string_view symbol);
 
     public:
         ~Handler();
 
-        static Arc<Handler> compile(const char *name, const char *code, const char *symbol);
+        static Arc<Handler> compile(
+            std::string_view name,
+            std::string_view code,
+            std::string_view symbol);
         CUfunction kernel() const;
     };
 
     std::string_view memCopyType(size_t);
+    std::string_view dataType(DataType);
 
 }// namespace refactor::kernel::nvrtc
 

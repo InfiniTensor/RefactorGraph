@@ -1,8 +1,9 @@
 ﻿#include "computation/operators/simple_unary.h"
 
 namespace refactor::computation {
+    using Op = SimpleUnary;
 
-    size_t SimpleUnary::typeId(SimpleUnaryType type) noexcept {
+    size_t Op::typeId(SimpleUnaryType type) noexcept {
         switch (type) {
             case SimpleUnaryType::Abs: {
                 static uint8_t ID = 1;
@@ -80,10 +81,10 @@ namespace refactor::computation {
                 UNREACHABLE();
         }
     }
-    size_t SimpleUnary::opTypeId() const noexcept {
+    size_t Op::opTypeId() const noexcept {
         return typeId(type);
     }
-    std::string_view SimpleUnary::name() const noexcept {
+    std::string_view Op::name() const noexcept {
         switch (type) {
             case SimpleUnaryType::Abs:
                 return "Abs";
@@ -126,8 +127,11 @@ namespace refactor::computation {
         }
     }
 
-    kernel::CollectorBox SimpleUnary::candidateKernels(Target target) const noexcept {
+    auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
         return std::make_unique<kernel::SimpleUnaryCollector>(target, type);
+    }
+    auto Op::serialize() const noexcept -> std::string {
+        return fmt::format("{}()", name());
     }
 
 }// namespace refactor::computation

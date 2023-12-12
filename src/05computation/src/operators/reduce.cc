@@ -115,5 +115,12 @@ namespace refactor::computation {
     auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
         return std::make_unique<kernel::ReduceCollector>(target, type, axes);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        return fmt::format("{}({}/{}, {})",
+                           name(),
+                           vec2str(axes),
+                           rank,
+                           keepDims);
+    }
 
 }// namespace refactor::computation

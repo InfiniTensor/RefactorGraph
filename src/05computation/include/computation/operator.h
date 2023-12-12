@@ -16,6 +16,7 @@ namespace refactor::computation {
         virtual bool isIdentity() const;
         virtual void transposeTo(LayoutType);
         virtual kernel::CollectorBox candidateKernels(Target) const;
+        virtual std::string serialize() const;
 
         template<class T, class... Args>
         bool is(Args &&...args) const noexcept {
@@ -37,6 +38,8 @@ namespace refactor::computation {
             : Operator(), axis(axis_), rank(rank_) {}
         bool isLayoutDependent() const final;
         void transposeTo(LayoutType target) final;
+
+        virtual std::string serialize() const override;
     };
 
     using OpBox = std::unique_ptr<Operator>;

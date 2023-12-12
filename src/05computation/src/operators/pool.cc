@@ -50,5 +50,12 @@ namespace refactor::computation {
         using Collector_ = kernel::PoolCollector;
         return std::make_unique<Collector_>(target, type, ceil, kernelShape, attributes);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        return fmt::format("{}({}, {}, {})",
+                           name(),
+                           ceil,
+                           vec2str(kernelShape),
+                           attributes.toString());
+    }
 
 }// namespace refactor::computation

@@ -5,10 +5,32 @@
 
 namespace refactor::kernel {
 
-    enum class PoolType {
-        Average,
-        Lp,
-        Max,
+    struct PoolType {
+        enum : uint8_t {
+            Average,
+            Lp,
+            Max,
+        } type;
+
+        constexpr PoolType() noexcept
+            : type(Average) {}
+        constexpr PoolType(decltype(type) type_) noexcept
+            : type(type_) {}
+        constexpr operator decltype(type)() const noexcept {
+            return type;
+        }
+        constexpr std::string_view toString() const noexcept {
+            switch (type) {
+                case Average:
+                    return "Average";
+                case Lp:
+                    return "Lp";
+                case Max:
+                    return "Max";
+                default:
+                    UNREACHABLE();
+            }
+        }
     };
 
     using KernelShape = absl::InlinedVector<ddim_t, 2>;
@@ -34,6 +56,7 @@ namespace refactor::kernel {
         ddim_t const *padsBegin() const noexcept;
         ddim_t const *padsEnd() const noexcept;
         ddim_t const *strides() const noexcept;
+        std::string toString() const noexcept;
     };
 
 }// namespace refactor::kernel

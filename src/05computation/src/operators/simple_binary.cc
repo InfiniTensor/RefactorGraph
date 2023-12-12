@@ -72,5 +72,8 @@ namespace refactor::computation {
     auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
         return std::make_unique<Collector_>(target, type);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        return fmt::format("{}()", name());
+    }
 
 }// namespace refactor::computation

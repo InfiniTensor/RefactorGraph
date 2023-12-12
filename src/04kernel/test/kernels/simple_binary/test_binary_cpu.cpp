@@ -1,5 +1,4 @@
-#include "../src/kernels/simple_binary/basic_cpu.hh"
-#include "../src/kernels/simple_binary/no_broadcast_cpu.hh"
+#include "../src/kernels/simple_binary/cpu_kernel.hh"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -10,7 +9,7 @@ void testBinaryCPU(SimpleBinaryType binaryOPT, std::function<float(float, float)
     auto aTensor = Tensor::share(DataType::F32, Shape{10, 20, 30, 40}, LayoutType::NCHW);
     auto bTensor = Tensor::share(DataType::F32, Shape{10, 20, 30, 40}, LayoutType::NCHW);
     auto cTensor = Tensor::share(DataType::F32, Shape{10, 20, 30, 40}, LayoutType::NCHW);
-    auto cpuKernel = Binary11Cpu::build(binaryOPT, *aTensor, *bTensor);
+    auto cpuKernel = BinaryCpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(cpuKernel);
     auto res = runtime::Resources();
     auto cpuRoutine = cpuKernel->lower(res).routine;
@@ -40,7 +39,7 @@ TEST(kernel, BinaryCpuBroadcast) {
     auto a = Tensor::share(DataType::F32, Shape{20, 30, 1});
     auto b = Tensor::share(DataType::F32, Shape{30, 50});
     auto c = Tensor::share(DataType::F32, Shape{20, 30, 50});
-    auto kernel = BinaryBasicCpu::build(SimpleBinaryType::Add, *a, *b);
+    auto kernel = BinaryCpu::build(SimpleBinaryType::Add, *a, *b);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;

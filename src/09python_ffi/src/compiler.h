@@ -28,6 +28,8 @@ namespace refactor::python_ffi {
 
         std::vector<pybind11::array> zeroInputs() const;
         std::optional<pybind11::array> getTensor(CStr) const;
+
+        void serialize(std::string path);
     };
 
 }// namespace refactor::python_ffi

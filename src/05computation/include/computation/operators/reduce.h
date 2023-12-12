@@ -25,6 +25,7 @@ namespace refactor::computation {
         bool isLayoutDependent() const noexcept final;
         void transposeTo(LayoutType target) noexcept final;
         kernel::CollectorBox candidateKernels(Target) const noexcept final;
+        std::string serialize() const noexcept final;
     };
 
 }// namespace refactor::computation

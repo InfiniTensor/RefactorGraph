@@ -39,21 +39,18 @@ struct Inputs {{
     char const *const addr[{0:}];
 }};
 
-extern "C" __global__ void concatKernel(void *output, Inputs inputs) {{
-    using T = {1:};
-
+extern "C" __global__ void kernel({1:} *output, Inputs inputs) {{
     constexpr static unsigned int
         sum = {2:},
         segments[]{{{3:}}};
-    auto dst = reinterpret_cast<T *>(output);
 
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < {4:};
          tid += step) {{
-        auto i = tid % sum * static_cast<unsigned int>(sizeof(T)), j = 0u;
+        auto i = tid % sum * static_cast<unsigned int>(sizeof({1:})), j = 0u;
         while (i >= segments[j]) i -= segments[j++];
-        dst[tid] = *reinterpret_cast<T const *>(inputs.addr[j] + (tid / sum) * segments[j] + i);
+        output[tid] = *reinterpret_cast<{1:} const *>(inputs.addr[j] + (tid / sum) * segments[j] + i);
     }}
 }}
 )~";
@@ -104,7 +101,7 @@ extern "C" __global__ void concatKernel(void *output, Inputs inputs) {{
             params.n                 // 4
         );
 
-        return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "concatKernel"),
+        return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
                 params](Resources &, void *, void const *const *inputs, void *const *outputs) {
             void *args[]{const_cast<void **>(outputs), const_cast<void **>(inputs)};
             CUDA_ASSERT(cuLaunchKernel(

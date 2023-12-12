@@ -62,4 +62,8 @@ namespace refactor::kernel {
         return _values.data() + rank();
     }
 
+    auto PoolAttributes::toString() const noexcept -> std::string {
+        return vec2str(_values);
+    }
+
 }// namespace refactor::kernel

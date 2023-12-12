@@ -2,6 +2,8 @@
 #include "hardware/device_manager.h"
 #include "kernel/allocators.h"
 #include <execution>
+#include <filesystem>
+#include <fstream>
 
 namespace refactor::python_ffi {
     using namespace frontend;
@@ -11,8 +13,9 @@ namespace refactor::python_ffi {
 
     void
     Compiler::substitute(CStr name, int64_t value) {
-        auto ok = _g.substitute(name, value);
-        ASSERT(ok, "Variable {} not exist", name);
+        if (!_g.substitute(name, value)) {
+            fmt::println("\x1b[93mWARNING: variable \"{}\" not exist\x1b[0m", name);
+        }
     }
 
     void
@@ -30,7 +33,7 @@ namespace refactor::python_ffi {
     Arc<Executor> Compiler::compileOn(
         Arc<hardware::Device> device,
         std::string allocator,
-        std ::vector<std::string> passes) {
+        std::vector<std::string> passes) {
         _g.collectVariables();
         std::vector<std::string_view> unknownVariables;
         for (auto const &[_, v] : _g.variables()) {
@@ -118,6 +121,37 @@ namespace refactor::python_ffi {
         auto ans = py::array(buildNumpyDType(tensor.dataType), std::move(shape));
         if (tensor.data) { std::memcpy(ans.mutable_data(), tensor.data->get<void>(), ans.nbytes()); }
         return ans;
+    }
+
+    void
+    Compiler::serialize(std::string path_) {
+        _g.collectVariables();
+        std::vector<std::string_view> unknownVariables;
+        for (auto const &[_, v] : _g.variables()) {
+            if (!v->value.has_value()) {
+                unknownVariables.emplace_back(v->name);
+            }
+        }
+        if (!unknownVariables.empty()) {
+            std::string msg = "Unknown variables: [ ";
+            for (auto const &v : unknownVariables) {
+                msg += v;
+                msg += ' ';
+            }
+            msg += ']';
+            RUNTIME_ERROR(std::move(msg));
+        }
+        _g.fillEdgeInfo(false);
+
+        namespace fs = std::filesystem;
+        auto path = fs::path(std::move(path_));
+        fs::create_directories(path);
+        ASSERT(fs::is_directory(path), "Failed to create \"{}\"", path.c_str());
+
+        auto [text, data] = _g.lower().serialize(true);
+        std::ofstream(path / "graph.info") << std::move(text);
+        std::ofstream(path / "graph.data", std::ios::binary)
+            .write(reinterpret_cast<const char *>(data.data()), data.size());
     }
 
 }// namespace refactor::python_ffi

@@ -1,11 +1,28 @@
 ﻿#include "kernel/collectors/simple_binary.h"
-#include "../kernels/simple_binary/basic_cpu.hh"
-#include "../kernels/simple_binary/basic_cuda.hh"
 #include "../kernels/simple_binary/binary_cudnn.hh"
-#include "../kernels/simple_binary/no_broadcast_cpu.hh"
-#include "../kernels/simple_binary/no_broadcast_cuda.hh"
+#include "../kernels/simple_binary/cpu_kernel.hh"
+#include "../kernels/simple_binary/cuda_kernel.hh"
 
 namespace refactor::kernel {
+
+#define CASE(OP)               \
+    case SimpleBinaryType::OP: \
+        return #OP
+
+    std::string_view opName(SimpleBinaryType type) {
+        switch (type) {
+            CASE(Add);
+            CASE(Sub);
+            CASE(Mul);
+            CASE(Div);
+            CASE(Pow);
+            CASE(And);
+            CASE(Or);
+            CASE(Xor);
+            default:
+                UNREACHABLE();
+        }
+    }
 
 #define REGISTER(T)                             \
     if (auto ptr = T::build(type, a, b); ptr) { \
@@ -25,13 +42,11 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
-                REGISTER(Binary11Cpu)
-                REGISTER(BinaryBasicCpu)
+                REGISTER(BinaryCpu)
                 break;
             case decltype(_target)::Nvidia:
                 REGISTER_BROCAST(BinaryCudnn)
-                REGISTER(Binary11Cuda)
-                REGISTER(BinaryBasicCuda)
+                REGISTER(BinaryCuda)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

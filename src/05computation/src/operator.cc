@@ -8,6 +8,9 @@ namespace refactor::computation {
     kernel::CollectorBox Operator::candidateKernels(Target) const {
         TODO(fmt::format("Operator \"{}\" lower to kernel not implemented", name()));
     }
+    std::string Operator::serialize() const {
+        return fmt::format("{}(...)", name());
+    }
 
     bool LayoutDependentOperator::isLayoutDependent() const { return true; }
     void LayoutDependentOperator::transposeTo(LayoutType) { UNREACHABLE(); }
@@ -25,6 +28,9 @@ namespace refactor::computation {
             default:
                 UNREACHABLE();
         }
+    }
+    std::string AxisRankOperator::serialize() const {
+        return fmt::format("{}({}/{})", name(), axis, rank);
     }
 
 }// namespace refactor::computation

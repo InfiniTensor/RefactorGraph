@@ -66,7 +66,15 @@ namespace refactor::kernel {
             }
             outputsCount *= shape;
         }
-        std::reverse(strides.begin(), strides.end());
+
+        if (strides.size() == inputsCount + 1 &&
+            std::all_of(strides.begin(),
+                        strides.end(),
+                        [](auto x) { return x == 1; })) {
+            strides.clear();
+        } else {
+            std::reverse(strides.begin(), strides.end());
+        }
     }
 
     Broadcaster::Broadcaster(TensorRefs const &inputs)

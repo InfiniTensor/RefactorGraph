@@ -20,6 +20,7 @@ namespace refactor::computation {
         size_t opTypeId() const noexcept final;
         std::string_view name() const noexcept final;
         kernel::CollectorBox candidateKernels(Target) const noexcept final;
+        std::string serialize() const noexcept final;
     };
 
 }// namespace refactor::computation

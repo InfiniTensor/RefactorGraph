@@ -37,7 +37,7 @@ namespace refactor::graph_topo {
         Rc<Node> pushNode(TN, std::vector<Rc<Edge>>);
         void eraseNode(count_t);
         void eraseNode(Rc<Node>);
-        size_t cleanup(bool useless(TE const &) = nullptr);
+        size_t cleanup(bool useful(TE const &) = nullptr);
         bool sort();
     };
 
@@ -86,6 +86,7 @@ namespace refactor::graph_topo {
             node.disconnect(i);
         }
         for (auto const &out : node._outputs) {
+            ASSERT(out->_targets.empty(), "Output edge should not have targets");
             out->_source = nullptr;
         }
     }
@@ -180,15 +181,14 @@ namespace refactor::graph_topo {
         _nodes.erase(it);
     }
 
-    LINKED_GRAPH_FN cleanup(bool useless(TE const &))->size_t {
+    LINKED_GRAPH_FN cleanup(bool useful(TE const &))->size_t {
         std::unordered_set<Edge *> outputs;
         outputs.reserve(_outputs.size());
         std::transform(_outputs.begin(), _outputs.end(), std::inserter(outputs, outputs.end()), [](auto const &e) { return e.get(); });
-        auto useful = [&](Rc<Edge> const &e) {
-            return !e->_targets.empty() ||     // 还有节点连接到这个边
-                   outputs.contains(e.get()) ||// 这个边是全图输出
-                   !useless ||                 // 不需要其他判断
-                   !useless(e->_info);         // 这个边其他原因有用
+        auto useful_ = [&](Rc<Edge> const &e) {
+            return !e->_targets.empty() ||      // 还有节点连接到这个边
+                   outputs.contains(e.get()) || // 这个边是全图输出
+                   (useful && useful(e->_info));// 这个边其他原因有用
         };
 
         auto before = _nodes.size();
@@ -196,7 +196,7 @@ namespace refactor::graph_topo {
             auto endit = std::remove_if(
                 _nodes.begin(), _nodes.end(),
                 [&, this](auto &n) {
-                    auto useless_ = std::none_of(n->_outputs.begin(), n->_outputs.end(), useful);
+                    auto useless_ = std::none_of(n->_outputs.begin(), n->_outputs.end(), useful_);
                     if (useless_) { _cleanupNode(*n); }
                     return useless_;
                 });

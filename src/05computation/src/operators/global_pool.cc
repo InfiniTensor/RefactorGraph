@@ -40,5 +40,8 @@ namespace refactor::computation {
         using Collector_ = kernel::GlobalPoolCollector;
         return std::make_unique<Collector_>(target, type);
     }
+    auto Op::serialize() const noexcept -> std::string {
+        return fmt::format("{}()", name());
+    }
 
 }// namespace refactor::computation

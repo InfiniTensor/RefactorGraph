@@ -11,7 +11,9 @@ namespace refactor::kernel {
         return nullptr;
 #endif
 
-        return std::make_unique<K>(std::move(info));
+        return info.type.isFloat()
+                   ? std::make_unique<K>(std::move(info))
+                   : nullptr;
     }
 
     auto K::typeId() noexcept -> size_t {
