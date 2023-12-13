@@ -39,7 +39,10 @@ struct Outputs {{
     char *const addr[{0:}];
 }};
 
-extern "C" __global__ void kernel(Outputs outputs, {1:} const *input) {{
+extern "C" __global__ void kernel(
+    Outputs outputs,
+    {1:} const *__restrict__ input
+) {{
     constexpr static unsigned int
         sum = {2:},
         segments[]{{{3:}}};

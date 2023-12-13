@@ -44,7 +44,12 @@ __device__ __forceinline__ static {0:} fn({0:} a, {0:} b) {{
     return {1:};
 }}
 
-extern "C" __global__ void kernel({0:} *c, {0:} const *a, {0:} const *b, size_t n) {{
+extern "C" __global__ void kernel(
+    {0:}       *__restrict__ c,
+    {0:} const *__restrict__ a,
+    {0:} const *__restrict__ b,
+    size_t n
+) {{
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < n;
@@ -63,7 +68,13 @@ __device__ __forceinline__ static {0:} fn({0:} a, {0:} b) {{
     return {1:};
 }}
 
-extern "C" __global__ void kernel({0:} *c, {0:} const *a, {0:} const *b, Strides strides, size_t n) {{
+extern "C" __global__ void kernel(
+    {0:}       *__restrict__ c,
+    {0:} const *__restrict__ a,
+    {0:} const *__restrict__ b,
+    Strides strides,
+    size_t n
+) {{
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < n;

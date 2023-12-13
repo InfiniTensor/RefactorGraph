@@ -36,7 +36,11 @@ namespace refactor::kernel {
 #ifdef USE_CUDA
 
     constexpr static const char *TEMPLATE = R"~(
-extern "C" __global__ void kernel({1:} *y, {0:} const *x, size_t n) {{
+extern "C" __global__ void kernel(
+    {1:}       *__restrict__ y,
+    {0:} const *__restrict__ x,
+    size_t n
+) {{
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < n;
