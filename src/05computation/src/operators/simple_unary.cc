@@ -73,8 +73,12 @@ namespace refactor::computation {
                 static uint8_t ID = 17;
                 return reinterpret_cast<size_t>(&ID);
             }
-            case SimpleUnaryType::Not: {
+            case SimpleUnaryType::Neg: {
                 static uint8_t ID = 18;
+                return reinterpret_cast<size_t>(&ID);
+            }
+            case SimpleUnaryType::Not: {
+                static uint8_t ID = 19;
                 return reinterpret_cast<size_t>(&ID);
             }
             default:
@@ -120,6 +124,8 @@ namespace refactor::computation {
                 return "Sigmoid";
             case SimpleUnaryType::Erf:
                 return "Erf";
+            case SimpleUnaryType::Neg:
+                return "Neg";
             case SimpleUnaryType::Not:
                 return "Not";
             default:

@@ -5,6 +5,48 @@
 using namespace refactor;
 using namespace kernel;
 
+TEST(kernel, SliceCpu_with1) {
+    // build routine
+    Dimensions dims{
+        {0, 1, 1},
+        {0, 1, 2},
+        {0, 1, 1},
+        {2, 1, 2},
+    };
+    auto input = Tensor::share(DataType::F32, Shape{1, 2, 1, 4}),
+         output = Tensor::share(DataType::F32, Shape{1, 2, 1, 2});
+    auto kernel = SliceCpu::build(SliceInfo(dims, *input));
+    ASSERT_TRUE(kernel);
+    auto res = runtime::Resources();
+    auto routine = kernel->lower(res).routine;
+    // put input data
+    std::vector<float>
+        data(input->elementsSize()),
+        result(output->elementsSize());
+    std::iota(data.begin(), data.end(), 0);
+    // inference
+    {
+        void const *inputs[]{data.data()};
+        void *outputs[]{result.data()};
+        routine(res, nullptr, inputs, outputs);
+    }
+    // check
+    std::vector<float> ans{2, 3, 6, 7};
+    EXPECT_EQ(result, ans);
+    // test reform
+    auto kernelReformed = SliceCpu::build(SliceInfo(dims, *input).reform(16));
+    ASSERT_TRUE(kernelReformed);
+    auto routineReformed = kernelReformed->lower(res).routine;
+    std::vector<float> resultReformed(result.size());
+    {
+        void const *inputs[]{data.data()};
+        void *outputs[]{resultReformed.data()};
+        routineReformed(res, nullptr, inputs, outputs);
+    }
+    // check
+    EXPECT_EQ(resultReformed, ans);
+}
+
 TEST(kernel, SliceCpu) {
     // build routine
     Dimensions dims{

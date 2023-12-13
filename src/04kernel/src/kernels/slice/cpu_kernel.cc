@@ -25,20 +25,18 @@ namespace refactor::kernel {
     auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
         return [info = this->info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
-            auto src = reinterpret_cast<uint8_t const *>(inputs[0]) + info.baseOffset;
+            auto src = reinterpret_cast<uint8_t const *>(inputs[0]);
             auto dst = reinterpret_cast<uint8_t *>(outputs[0]);
             std::for_each_n(std::execution::par_unseq,
                             natural_t(0), info.blockCount,
                             [=, &info](auto i) {
-                                long rem = i;
-                                auto src_ = src;
-                                auto dst_ = dst + rem * info.blockSize;
+                                long rem = i, j = 0;
                                 for (auto const &dim : info.dims) {
-                                    auto d = std::div(rem, dim.countStride);
-                                    src_ += d.quot * dim.sizeStride + dim.sizeStart;
+                                    auto d = std::div(rem, dim.strideO);
+                                    j += d.quot * dim.strideI + dim.skip;
                                     rem = d.rem;
                                 }
-                                std::memcpy(dst_, src_, info.blockSize);
+                                std::memcpy(dst + i * info.blockSize, src + j * info.blockSize, info.blockSize);
                             });
         };
     }

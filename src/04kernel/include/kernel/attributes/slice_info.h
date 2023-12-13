@@ -15,20 +15,19 @@ namespace refactor::kernel {
     /// @brief 优化用于计算的 Slice 描述。
     struct SliceInfo {
         struct Dim {
-            dim_t countStride, sizeStart;
-            sdim_t sizeStride;
+            dim_t strideO, skip;
+            sdim_t strideI;
 
             bool operator==(Dim const &) const noexcept;
             bool operator!=(Dim const &) const noexcept;
         };
         std::vector<Dim> dims;
-        dim_t blockCount, blockSize, baseOffset;
+        dim_t blockCount, blockSize;
 
         SliceInfo(decltype(dims),
                   decltype(blockCount),
-                  decltype(blockSize),
-                  decltype(baseOffset)) noexcept;
-        SliceInfo(Dimensions const &, Tensor const &);
+                  decltype(blockSize)) noexcept;
+        SliceInfo(Dimensions, Tensor const &);
         SliceInfo reform(dim_t maxblockSize) const noexcept;
         void reformAssign(dim_t maxblockSize) noexcept;
     };
