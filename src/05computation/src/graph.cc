@@ -228,6 +228,7 @@ namespace refactor::computation {
         auto graphMutant = GraphMutant(*this);
         std::vector<std::string_view> passes = {
             "MatMulTransposeFuse",
+            "ConvToMatmul",
         };
         register_();//all pass insert
         auto g = std::make_shared<GraphMutant>(graphMutant);
