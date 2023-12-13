@@ -29,7 +29,7 @@ namespace refactor::kernel::nvrtc {
         }
         NVRTC_ASSERT(nvrtcCreateProgram(&prog, code.data(), name.data(), 0, nullptr, nullptr));
 
-        std::vector<std::string> opts{"--std=c++20", "--gpu-architecture=compute_80"};
+        std::vector<std::string> opts{"--std=c++17", "--gpu-architecture=compute_80"};
 #ifdef CUDA_INCLUDE_PATH
         opts.emplace_back(fmt::format("-I{}", CUDA_INCLUDE_PATH));
 #endif
