@@ -6,7 +6,7 @@ namespace refactor::kernel::cuda {
 
     __global__ static void sliceKernel(
         unsigned long long n,
-        uint8_t const *src, DimInfo const *dims, uint8_t *output,
+        uint8_t const *src, DimInfo const *dims, uint8_t *dst,
         unsigned int rank,
         unsigned int blockSize) {
         extern __shared__ DimInfo dimInfo[];
@@ -18,15 +18,13 @@ namespace refactor::kernel::cuda {
                   step = blockDim.x * gridDim.x;
              tid < n;
              tid += step) {
-            long rem = tid;
-            auto src_ = src;
-            auto dst_ = output + rem * blockSize;
+            long rem = tid, j = 0;
             for (auto i = 0; i < rank; ++i) {
                 auto const &dim = dimInfo[i];
-                src_ += rem / dim.countStride * dim.sizeStride + dim.sizeStart;
-                rem %= dim.countStride;
+                j += rem / dim.strideO * dim.strideI + dim.skip;
+                rem %= dim.strideO;
             }
-            optimizedMemcpy(dst_, src_, blockSize);
+            optimizedMemcpy(dst + tid * blockSize, src + j * blockSize, blockSize);
         }
     }
 

@@ -71,16 +71,9 @@ namespace refactor::computation {
 
         auto modifier = graph_topo::InplaceModifier(graph.topology);
         modifier.reconnect(identities);
-
-        auto cleaner = graph_topo::LinkedGraph(graph_topo::Graph{
-            modifier.take(),
-            std::move(nodes),
-            std::move(edges),
-        });
-        cleaner.cleanup();
-        auto [topo__, nodes__, edges__] = cleaner.intoGraph();
-
-        return kernel::Graph(std::move(topo__), std::move(nodes__), std::move(edges__));
+        return kernel::Graph(modifier.take(),
+                             std::move(nodes),
+                             std::move(edges));
     }
 
     auto Graph::internal() const -> decltype(_internal) const & { return _internal; }
@@ -182,10 +175,12 @@ namespace refactor::computation {
             edges += graph.edges[edge->info()];
         }
         std::stringstream ss;
-        for (auto i = 0; auto n : cleaner.nodes()) {
+        for (auto n : cleaner.nodes()) {
             auto const &[op, name] = graph.nodes[n->info()];
-            if (auto i_ = ++i; op) {
-                ss << fmt::format("{:>5}.\t{:<32}\t{}", i_, name, op->serialize());
+            if (op) {
+                ss << fmt::format("{:>5}.\t{:<32}\t{}", n->info(), name, op->serialize());
+            } else {
+                continue;
             }
 
             for (auto const &e : n->outputs()) {

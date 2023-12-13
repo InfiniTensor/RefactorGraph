@@ -6,8 +6,8 @@
 namespace refactor::kernel::cuda {
 
     struct DimInfo {
-        unsigned int countStride, sizeStart;
-        int sizeStride;
+        unsigned int strideO, skip;
+        int strideI;
     };
 
     void launchSlice(

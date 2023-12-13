@@ -4,9 +4,9 @@
 namespace refactor::kernel {
 
     bool SliceInfo::Dim::operator==(Dim const &rhs) const noexcept {
-        return countStride == rhs.countStride &&
-               sizeStart == rhs.sizeStart &&
-               sizeStride == rhs.sizeStride;
+        return strideO == rhs.strideO &&
+               strideI == rhs.strideI &&
+               skip == rhs.skip;
     }
     bool SliceInfo::Dim::operator!=(Dim const &rhs) const noexcept {
         return !operator==(rhs);
@@ -15,74 +15,70 @@ namespace refactor::kernel {
     SliceInfo::SliceInfo(
         std::vector<Dim> dims_,
         dim_t blockCount_,
-        dim_t blockSize_,
-        dim_t baseOffset_) noexcept
+        dim_t blockSize_) noexcept
         : dims(std::move(dims_)),
           blockCount(blockCount_),
-          blockSize(blockSize_),
-          baseOffset(baseOffset_) {}
+          blockSize(blockSize_) {}
 
-    SliceInfo::SliceInfo(Dimensions const &dims_, Tensor const &input)
-        : dims(1),
+    SliceInfo::SliceInfo(Dimensions dims_, Tensor const &input)
+        : dims{},
           blockCount(1),
-          blockSize(input.dataType.size()),
-          baseOffset(0) {
-        ASSERT(dims_.size() == static_cast<size_t>(input.rank()), "Unreachable");
+          blockSize(input.dataType.size()) {
+        size_t rank = input.rank();
+        if (!rank) { return; }// scalar input
+        ASSERT(dims_.size() == rank, "unreachable");
 
-        auto continuous = true;
-        auto stride = blockSize;
-        dims[0] = {1, 0, static_cast<sdim_t>(stride)};
-        for (auto i : range0_(input.rank()).rev()) {
-            auto l = input.shape[i];
-            auto const &d = dims_[i];
-            if (auto &it = dims.back(); continuous && d.step == 1) {
-                it.countStride *= d.length;
-                it.sizeStart = d.start * stride;
-                it.sizeStride *= l;
-            } else {
-                dims.push_back(Dim{
-                    static_cast<dim_t>(it.countStride * d.length),
-                    static_cast<dim_t>(d.start * stride),
-                    static_cast<sdim_t>(d.step * stride),
-                });
+        std::vector<dim_t> shape;
+        {// 去除形状里的 1
+            shape.reserve(rank);
+            for (auto i : range0_(rank)) {
+                if (auto l = input.shape[i]; l != 1) {
+                    if (auto j = shape.size(); j < i) { dims_[j] = dims_[i]; }
+                    shape.push_back(l);
+                }
             }
-            continuous = d.length == l;
-            stride *= l;
+            dims_.resize(rank = shape.size());
         }
-        baseOffset = dims[0].sizeStart;
-        auto elementCount = dims[0].countStride;
-        blockSize *= elementCount;
-        for (auto &d : dims) {
-            d.countStride /= elementCount;
+        dims.reserve(rank);
+        dim_t strideI = 1;
+        for (auto i : range0_(rank).rev()) {
+            auto const &dim = dims_[i];
+            dims.push_back({
+                .strideO = blockCount,
+                .skip = static_cast<dim_t>(strideI * dim.start),
+                .strideI = static_cast<sdim_t>(strideI * dim.step),
+            });
+            blockCount *= dim.length;
+            strideI *= shape[i];
         }
         std::reverse(dims.begin(), dims.end());
-        blockCount = dims[0].countStride;
-        for (auto i : range(1ul, dims.size())) {
-            dims[i - 1].countStride = dims[i].countStride;
+
+        while (!dims.empty()) {
+            auto const &dim = dims.back();
+            if (dim.strideI == static_cast<sdim_t>(dim.strideO) && !dim.skip) {
+                dims.pop_back();
+            } else {
+                long times = std::gcd(std::gcd(dim.strideI, dim.strideO), dim.skip);
+                blockCount /= times;
+                blockSize *= times;
+                if (!dims.empty()) {
+                    for (auto &dim : dims) {
+                        dim.strideO /= times;
+                        dim.skip /= times;
+                        dim.strideI /= times;
+                    }
+                    if (dims.back().strideO != 1) {
+                        dims.push_back({1, 0, 1});
+                    }
+                }
+                break;
+            }
         }
-        dims.pop_back();
-        dims.shrink_to_fit();
     }
 
     SliceInfo SliceInfo::reform(dim_t maxblockSize) const noexcept {
-        auto blockSize_ = std::gcd(blockSize, maxblockSize);
-        if (blockSize_ == blockSize) { return *this; }
-        auto times = blockSize / blockSize_;
-        SliceInfo ans{
-            std::vector<Dim>(dims.size() + 1),
-            blockCount * times,
-            blockSize_,
-            baseOffset,
-        };
-        for (auto i : range0_(dims.size())) {
-            auto const &d = dims[i];
-            ans.dims[i] = {
-                d.countStride * times,
-                d.sizeStart,
-                d.sizeStride,
-            };
-        }
-        ans.dims.back() = {1, 0, static_cast<sdim_t>(blockSize_)};
+        auto ans = *this;
+        ans.reformAssign(maxblockSize);
         return ans;
     }
 
@@ -93,10 +89,12 @@ namespace refactor::kernel {
         blockCount *= times;
         blockSize = blockSize_;
         for (auto &d : dims) {
-            d.countStride *= times;
+            d.strideO *= times;
+            d.strideI *= times;
+            d.skip *= times;
         }
         dims.resize(dims.size() + 1);
-        dims.back() = {1, 0, static_cast<sdim_t>(blockSize_)};
+        dims.back() = {1, 0, 1};
     }
 
 

@@ -42,9 +42,11 @@ namespace refactor::kernel::nvrtc {
         {
             size_t logSize;
             NVRTC_ASSERT(nvrtcGetProgramLogSize(prog, &logSize));
-            std::vector<char> log(logSize);
-            NVRTC_ASSERT(nvrtcGetProgramLog(prog, log.data()));
-            fmt::println("{}", log.data());
+            if (logSize > 1) {
+                std::vector<char> log(logSize);
+                NVRTC_ASSERT(nvrtcGetProgramLog(prog, log.data()));
+                fmt::println("{}", log.data());
+            }
         }
         if (compileResult != NVRTC_SUCCESS) {
             fmt::println("wrong code:");
