@@ -115,11 +115,9 @@ extern "C" __global__ void kernel(
             auto x = inputs[0];
             auto n = params.n;
             void *args[]{&y, &x, &n};
-            CUDA_ASSERT(cuLaunchKernel(
-                h->kernel(),
-                params.gridSize, 1, 1,
-                params.blockSize, 1, 1,
-                0, nullptr, args, nullptr));
+            h->launch(params.gridSize, 1, 1,
+                      params.blockSize, 1, 1,
+                      0, args);
         };
     }
 

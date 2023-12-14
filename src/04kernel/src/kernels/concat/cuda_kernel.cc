@@ -107,11 +107,9 @@ extern "C" __global__ void kernel(
         return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
                 params](Resources &, void *, void const *const *inputs, void *const *outputs) {
             void *args[]{const_cast<void **>(outputs), const_cast<void **>(inputs)};
-            CUDA_ASSERT(cuLaunchKernel(
-                h->kernel(),
-                params.gridSize, 1, 1,
-                params.blockSize, 1, 1,
-                0, nullptr, args, nullptr));
+            h->launch(params.gridSize, 1, 1,
+                      params.blockSize, 1, 1,
+                      0, args);
         };
     }
 

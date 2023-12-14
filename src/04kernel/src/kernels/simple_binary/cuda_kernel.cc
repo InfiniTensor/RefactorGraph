@@ -164,14 +164,13 @@ extern "C" __global__ void kernel(
                          b = inputs[1];
                     auto n = params.n;
                     void *args[]{&c, &a, &b, &n};
-                    CUDA_ASSERT(cuLaunchKernel(
-                        h->kernel(),
-                        params.gridSize, 1, 1,
-                        params.blockSize, 1, 1,
-                        0, nullptr, args, nullptr));
+                    h->launch(params.gridSize, 1, 1,
+                              params.blockSize, 1, 1,
+                              0, args);
                 };
+
         } else if (auto rank = broadcaster.strides.size() / (broadcaster.inputsCount + 1); rank == 1) {
-            static std::vector<dim_t> S0{0, 1, 1}, S1{1, 0, 1};
+            static const std::vector<dim_t> S0{0, 1, 1}, S1{1, 0, 1};
             auto name = fmt::format("binaryScalar{}", postfix);
             auto code = fmt::format(SCALAR, dt_, op_);
             return [params, h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
@@ -185,12 +184,11 @@ extern "C" __global__ void kernel(
                          v = inputs[1 - scalar];
                     auto n = params.n;
                     void *args[]{&c, &v, &s, &n};
-                    CUDA_ASSERT(cuLaunchKernel(
-                        h->kernel(),
-                        params.gridSize, 1, 1,
-                        params.blockSize, 1, 1,
-                        0, nullptr, args, nullptr));
+                    h->launch(params.gridSize, 1, 1,
+                              params.blockSize, 1, 1,
+                              0, args);
                 };
+
         } else {
             auto name = fmt::format("binary{}{}", rank, postfix);
             auto code = fmt::format(BROADCAST, dt_, op_, rank);
@@ -202,11 +200,9 @@ extern "C" __global__ void kernel(
                          b = inputs[1];
                     auto n = params.n;
                     void *args[]{&c, &a, &b, const_cast<dim_t *>(strides.data()), &n};
-                    CUDA_ASSERT(cuLaunchKernel(
-                        h->kernel(),
-                        params.gridSize, 1, 1,
-                        params.blockSize, 1, 1,
-                        0, nullptr, args, nullptr));
+                    h->launch(params.gridSize, 1, 1,
+                              params.blockSize, 1, 1,
+                              0, args);
                 };
         }
     }
