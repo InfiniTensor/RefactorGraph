@@ -15,6 +15,7 @@
 #include "operators/gemm.hh"
 #include "operators/global_pool.hh"
 #include "operators/mat_mul.hh"
+#include "operators/mat_mul_integer.hh"
 #include "operators/pool.hh"
 #include "operators/range.hh"
 #include "operators/reduce.hh"
@@ -60,6 +61,7 @@ namespace refactor::onnx {
         REGISTER(GlobalLpPool      , GlobalPool        );
         REGISTER(GlobalMaxPool     , GlobalPool        );
         REGISTER(MatMul            , MatMul            );
+        REGISTER(MatMulInteger     , MatMulInteger     );
         REGISTER(AveragePool       , Pool              );
         REGISTER(LpPool            , Pool              );
         REGISTER(MaxPool           , Pool              );

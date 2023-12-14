@@ -19,9 +19,16 @@ namespace refactor::kernel {
                   Tensor const &w,
                   std::optional<std::reference_wrapper<Tensor const>> b,
                   Tensor const &y) -> KernelBox {
+        static const std::unordered_set<decltype(DataType::internal)>
+            SET{DataType::FP16, DataType::BF16, DataType::F32, DataType::F64, DataType::I8};
 #ifndef USE_CUDA
         return nullptr;
 #endif
+
+        auto dt = x.dataType;
+        if (!SET.contains(dt) || w.dataType != dt || y.dataType != dt) {
+            return nullptr;
+        }
 
         std::optional<ExpandInfo> biasExpand = std::nullopt;
         if (b) {
@@ -42,7 +49,7 @@ namespace refactor::kernel {
              p = poolAttributes.pads(),
              s = poolAttributes.strides();
         return std::make_unique<K>(decltype(info){
-            x.dataType,
+            dt,
             {
                 static_cast<int>(x.shape[0]),
                 static_cast<int>(x.shape[1]),
@@ -134,13 +141,18 @@ namespace refactor::kernel {
         auto pp = info.pad;
         auto ss = info.stride;
         auto dd = info.dilation;
+        // clang-format off
+        auto computation = info.dt == DataType::F64 ? DataType::F64
+                         : info.dt == DataType::I8  ? DataType::I32
+                         : DataType::F32;
+        // clang-format on
         CUDNN_ASSERT(cudnnSetConvolution2dDescriptor(
             d->conv,
             std::min(pp[0], pp[2]), std::min(pp[1], pp[3]),
             ss[0], ss[1],
             dd[0], dd[1],
             CUDNN_CROSS_CORRELATION,
-            cudnnDataTypeConvert(d->f32 ? DataType::F32 : DataType::F64)));
+            cudnnDataTypeConvert(computation)));
 
         if (auto group = xs[1] / ws[1]; group > 1) {
             CUDNN_ASSERT(cudnnSetConvolutionGroupCount(d->conv, group));
