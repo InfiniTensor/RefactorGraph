@@ -4,14 +4,6 @@
 #include "common.h"
 #include <cuda.h>
 
-#define CUDA_ASSERT(CALL)                                                             \
-    if (auto result = CALL; result != CUDA_SUCCESS) {                                 \
-        const char *msg;                                                              \
-        cuGetErrorName(result, &msg);                                                 \
-        RUNTIME_ERROR(fmt::format("cuda driver failed on \"" #CALL "\" with {} ({})", \
-                                  msg, (int) result));                                \
-    }
-
 namespace refactor::kernel::nvrtc {
 
     class Handler {
@@ -29,7 +21,14 @@ namespace refactor::kernel::nvrtc {
             std::string_view name,
             std::string_view code,
             std::string_view symbol);
-        CUfunction kernel() const;
+        void launch(unsigned int gridDimX,
+                    unsigned int gridDimY,
+                    unsigned int gridDimZ,
+                    unsigned int blockDimX,
+                    unsigned int blockDimY,
+                    unsigned int blockDimZ,
+                    unsigned int sharedMemBytes,
+                    void **kernelParams) const;
     };
 
     std::string_view memCopyType(size_t);

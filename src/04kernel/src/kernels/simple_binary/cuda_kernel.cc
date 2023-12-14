@@ -44,12 +44,38 @@ __device__ __forceinline__ static {0:} fn({0:} a, {0:} b) {{
     return {1:};
 }}
 
-extern "C" __global__ void kernel({0:} *c, {0:} const *a, {0:} const *b, size_t n) {{
+extern "C" __global__ void kernel(
+    {0:}       *__restrict__ c,
+    {0:} const *__restrict__ a,
+    {0:} const *__restrict__ b,
+    size_t n
+) {{
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < n;
          tid += step) {{
         c[tid] = fn(a[tid], b[tid]);
+    }}
+}}
+)~";
+
+    constexpr static const char *SCALAR = R"~(
+__device__ __forceinline__ static {0:} fn({0:} a, {0:} b) {{
+    return {1:};
+}}
+
+extern "C" __global__ void kernel(
+    {0:}       *__restrict__ y,
+    {0:} const *__restrict__ v,
+    {0:} const *__restrict__ s,
+    size_t n
+) {{
+    auto num = *s;
+    for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
+              step = blockDim.x * gridDim.x;
+         tid < n;
+         tid += step) {{
+        y[tid] = fn(v[tid], num);
     }}
 }}
 )~";
@@ -63,7 +89,13 @@ __device__ __forceinline__ static {0:} fn({0:} a, {0:} b) {{
     return {1:};
 }}
 
-extern "C" __global__ void kernel({0:} *c, {0:} const *a, {0:} const *b, Strides strides, size_t n) {{
+extern "C" __global__ void kernel(
+    {0:}       *__restrict__ c,
+    {0:} const *__restrict__ a,
+    {0:} const *__restrict__ b,
+    Strides strides,
+    size_t n
+) {{
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < n;
@@ -117,47 +149,61 @@ extern "C" __global__ void kernel({0:} *c, {0:} const *a, {0:} const *b, Strides
     auto K::lower(Resources &res) const -> RoutineWorkspace {
         using namespace runtime;
 
+        auto postfix = fmt::format("_{}_{}", dataType.name(), opName(opType));
+        auto dt_ = nvrtc::dataType(dataType);
+        auto op_ = op(opType, dataType);
+        auto params = cuda::ThreadsDistributer()(broadcaster.outputsCount);
+
         if (broadcaster.strides.empty()) {
-            auto name = fmt::format("binary_{}_{}", dataType.name(), opName(opType));
-            auto code = fmt::format(NO_BROADCAST,
-                                    nvrtc::dataType(dataType),
-                                    op(opType, dataType));
-            return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
-                    params = cuda::ThreadsDistributer()(broadcaster.outputsCount)](
-                       Resources &, void *, void const *const *inputs, void *const *outputs) {
-                auto c = outputs[0];
-                auto a = inputs[0],
-                     b = inputs[1];
-                auto n = params.n;
-                void *args[]{&c, &a, &b, &n};
-                CUDA_ASSERT(cuLaunchKernel(
-                    h->kernel(),
-                    params.gridSize, 1, 1,
-                    params.blockSize, 1, 1,
-                    0, nullptr, args, nullptr));
-            };
+            auto name = fmt::format("binary{}", postfix);
+            auto code = fmt::format(NO_BROADCAST, dt_, op_);
+            return [params, h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel")]//
+                (Resources &, void *, void const *const *inputs, void *const *outputs) {
+                    auto c = outputs[0];
+                    auto a = inputs[0],
+                         b = inputs[1];
+                    auto n = params.n;
+                    void *args[]{&c, &a, &b, &n};
+                    h->launch(params.gridSize, 1, 1,
+                              params.blockSize, 1, 1,
+                              0, args);
+                };
+
+        } else if (auto rank = broadcaster.strides.size() / (broadcaster.inputsCount + 1); rank == 1) {
+            static const std::vector<dim_t> S0{0, 1, 1}, S1{1, 0, 1};
+            auto name = fmt::format("binaryScalar{}", postfix);
+            auto code = fmt::format(SCALAR, dt_, op_);
+            return [params, h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
+                    // clang-format off
+                    scalar = broadcaster.strides == S0 ? 0
+                           : broadcaster.strides == S1 ? 1
+                           : UNREACHABLEX(int, "Unreachable")]// clang-format on
+                (Resources &, void *, void const *const *inputs, void *const *outputs) {
+                    auto c = outputs[0];
+                    auto s = inputs[scalar],
+                         v = inputs[1 - scalar];
+                    auto n = params.n;
+                    void *args[]{&c, &v, &s, &n};
+                    h->launch(params.gridSize, 1, 1,
+                              params.blockSize, 1, 1,
+                              0, args);
+                };
+
         } else {
-            auto rank = broadcaster.strides.size() / (broadcaster.inputsCount + 1);
-            auto name = fmt::format("binary{}_{}_{}", rank, dataType.name(), opName(opType));
-            auto code = fmt::format(BROADCAST,
-                                    nvrtc::dataType(dataType),
-                                    op(opType, dataType),
-                                    rank);
-            return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
-                    strides = broadcaster.strides,
-                    params = cuda::ThreadsDistributer()(broadcaster.outputsCount)](
-                       Resources &, void *, void const *const *inputs, void *const *outputs) {
-                auto c = outputs[0];
-                auto a = inputs[0],
-                     b = inputs[1];
-                auto n = params.n;
-                void *args[]{&c, &a, &b, const_cast<dim_t *>(strides.data()), &n};
-                CUDA_ASSERT(cuLaunchKernel(
-                    h->kernel(),
-                    params.gridSize, 1, 1,
-                    params.blockSize, 1, 1,
-                    0, nullptr, args, nullptr));
-            };
+            auto name = fmt::format("binary{}{}", rank, postfix);
+            auto code = fmt::format(BROADCAST, dt_, op_, rank);
+            return [params, h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
+                    strides = broadcaster.strides]//
+                (Resources &, void *, void const *const *inputs, void *const *outputs) {
+                    auto c = outputs[0];
+                    auto a = inputs[0],
+                         b = inputs[1];
+                    auto n = params.n;
+                    void *args[]{&c, &a, &b, const_cast<dim_t *>(strides.data()), &n};
+                    h->launch(params.gridSize, 1, 1,
+                              params.blockSize, 1, 1,
+                              0, args);
+                };
         }
     }
 

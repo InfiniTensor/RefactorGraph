@@ -6,10 +6,10 @@ namespace refactor::kernel::cuda {
 
     __global__ void scatterNDKernel(
         size_t n,
-        uint8_t *out,
-        uint8_t const *in,
-        int64_t const *indices,
-        unsigned int const *strides,
+        uint8_t *__restrict__ out,
+        uint8_t const *__restrict__ in,
+        int64_t const *__restrict__ indices,
+        unsigned int const *__restrict__ strides,
         size_t rank,
         size_t blockSize) {
         for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
@@ -19,7 +19,7 @@ namespace refactor::kernel::cuda {
             unsigned int j = 0;
             auto i = indices + tid * rank;
             for (auto k = 0; k < rank; ++k) {
-                j += i[k] * strides[k];
+                j += i[k] * __ldg(strides + k);
             }
             optimizedMemcpy(out + j * blockSize,
                             in + tid * blockSize,

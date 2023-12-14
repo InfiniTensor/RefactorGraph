@@ -6,23 +6,22 @@ namespace refactor::kernel::cuda {
 
     __global__ static void sliceKernel(
         unsigned long long n,
-        uint8_t const *src, DimInfo const *dims, uint8_t *dst,
+        uint8_t const *__restrict__ src,
+        DimInfo const *__restrict__ dims,
+        uint8_t *__restrict__ dst,
         unsigned int rank,
         unsigned int blockSize) {
-        extern __shared__ DimInfo dimInfo[];
-        for (auto i = threadIdx.x; i < rank; i += blockDim.x) {
-            dimInfo[i] = dims[i];
-        }
-        __syncthreads();
         for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
                   step = blockDim.x * gridDim.x;
              tid < n;
              tid += step) {
             long rem = tid, j = 0;
             for (auto i = 0; i < rank; ++i) {
-                auto const &dim = dimInfo[i];
-                j += rem / dim.strideO * dim.strideI + dim.skip;
-                rem %= dim.strideO;
+                auto strideO = __ldg(&(dims[i].strideO));
+                auto strideI = __ldg(&(dims[i].strideI));
+                auto skip = __ldg(&(dims[i].skip));
+                j += rem / strideO * strideI + skip;
+                rem %= strideO;
             }
             optimizedMemcpy(dst + tid * blockSize, src + j * blockSize, blockSize);
         }
@@ -36,7 +35,7 @@ namespace refactor::kernel::cuda {
         sliceKernel<<<
             params.gridSize,
             params.blockSize,
-            rank * sizeof(DimInfo),
+            0,
             reinterpret_cast<cudaStream_t>(params.stream)>>>(
             params.n,
             reinterpret_cast<uint8_t const *>(src),

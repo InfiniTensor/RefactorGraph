@@ -46,7 +46,11 @@ __device__ __forceinline__ static {0:} fn({0:} x) {{
     return {1:};
 }}
 
-extern "C" __global__ void kernel({0:} *y, {0:} const *x, size_t n) {{
+extern "C" __global__ void kernel(
+    {0:}       *__restrict__ y,
+    {0:} const *__restrict__ x,
+    size_t n
+) {{
     for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
               step = blockDim.x * gridDim.x;
          tid < n;
@@ -148,11 +152,9 @@ extern "C" __global__ void kernel({0:} *y, {0:} const *x, size_t n) {{
             auto x = inputs[0];
             auto n = params.n;
             void *args[]{&y, &x, &n};
-            CUDA_ASSERT(cuLaunchKernel(
-                h->kernel(),
-                params.gridSize, 1, 1,
-                params.blockSize, 1, 1,
-                0, nullptr, args, nullptr));
+            h->launch(params.gridSize, 1, 1,
+                      params.blockSize, 1, 1,
+                      0, args);
         };
     }
 

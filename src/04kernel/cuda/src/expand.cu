@@ -6,23 +6,21 @@ namespace refactor::kernel::cuda {
 
     __global__ static void expandKernel(
         unsigned long long n,
-        uint8_t const *data, expand::DimStride const *strides, uint8_t *output,
+        uint8_t const *__restrict__ data,
+        expand::DimStride const *__restrict__ strides,
+        uint8_t *__restrict__ output,
         unsigned int rank,
         unsigned int eleSize) {
-        extern __shared__ expand::DimStride shared[];
-        for (auto i = threadIdx.x; i < rank; i += blockDim.x) {
-            shared[i] = strides[i];
-        }
-        __syncthreads();
         for (auto tid = blockIdx.x * blockDim.x + threadIdx.x,
                   step = blockDim.x * gridDim.x;
              tid < n;
              tid += step) {
             long rem = tid, i = 0;
             for (auto j = 0; j < rank; ++j) {
-                auto s = shared[j];
-                i += rem / s.o * s.i;
-                rem %= s.o;
+                auto o_ = __ldg(&(strides[j].o));
+                auto i_ = __ldg(&(strides[j].i));
+                i += rem / o_ * i_;
+                rem %= o_;
             }
             optimizedMemcpy(output + tid * eleSize, data + i * eleSize, eleSize);
         }
@@ -37,7 +35,7 @@ namespace refactor::kernel::cuda {
             expandKernel<<<
                 params.gridSize,
                 params.blockSize,
-                rank * sizeof(expand::DimStride),
+                0,
                 reinterpret_cast<cudaStream_t>(params.stream)>>>(
                 params.n,
                 reinterpret_cast<uint8_t const *>(data),

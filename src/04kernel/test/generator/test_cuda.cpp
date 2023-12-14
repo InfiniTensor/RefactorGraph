@@ -14,10 +14,10 @@ extern "C" __global__ void kernel() {
 
 TEST(generator, nvrtc) {
     auto handler = nvrtc::Handler::compile("helloWorld.cu", code, "kernel");
-    CUDA_ASSERT(cuLaunchKernel(handler->kernel(),
-                               1, 1, 1,
-                               1, 1, 1,
-                               0, nullptr, nullptr, nullptr));
+    handler->launch(
+        1, 1, 1,
+        1, 1, 1,
+        0, nullptr);
 }
 
 #endif// USE_CUDA

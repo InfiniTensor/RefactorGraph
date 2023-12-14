@@ -37,7 +37,7 @@ namespace refactor::kernel::cuda {
         concatKernel<<<
             params.gridSize,
             params.blockSize,
-            inputCount *(sizeof(unsigned int) + sizeof(void *)),
+            inputCount * (sizeof(unsigned int) + sizeof(void *)),
             reinterpret_cast<cudaStream_t>(params.stream)>>>(
             params.n,
             reinterpret_cast<uint8_t const **>(inputs),
