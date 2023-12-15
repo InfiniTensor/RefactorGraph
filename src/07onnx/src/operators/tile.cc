@@ -5,8 +5,6 @@
 namespace refactor::onnx {
     using Op = Tile;
 
-    Op::Tile() : Operator() {}
-
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Tile operator should not have attributes");
         return OpBox(std::make_unique<Op>());

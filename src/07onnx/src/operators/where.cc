@@ -6,8 +6,6 @@
 namespace refactor::onnx {
     using Op = Where;
 
-    Op::Where() : Operator() {}
-
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "Where operator should not have attributes");
         return OpBox(std::make_unique<Op>());

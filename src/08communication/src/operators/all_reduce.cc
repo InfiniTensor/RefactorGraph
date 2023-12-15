@@ -4,8 +4,6 @@
 namespace refactor::communication {
     using Op = AllReduce;
 
-    Op::AllReduce() : Operator() {}
-
     auto Op::build(ModelContext const &, std::string_view, Attributes) -> OpBox {
         return OpBox(std::make_unique<Op>());
     }

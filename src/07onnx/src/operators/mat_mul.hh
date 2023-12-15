@@ -7,7 +7,8 @@ namespace refactor::onnx {
     using namespace frontend;
 
     struct MatMul final : public Operator {
-        MatMul();
+
+        constexpr MatMul() noexcept = default;
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();

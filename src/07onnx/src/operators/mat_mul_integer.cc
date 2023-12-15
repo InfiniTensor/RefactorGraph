@@ -6,8 +6,6 @@
 namespace refactor::onnx {
     using Op = MatMulInteger;
 
-    Op::MatMulInteger() : Operator() {}
-
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "MatMulInteger operator should not have attributes");
         return OpBox(std::make_unique<Op>());
@@ -20,18 +18,40 @@ namespace refactor::onnx {
     auto Op::opTypeId() const -> size_t { return typeId(); }
     auto Op::opTypeName() const -> std::string_view { return "onnx::MatMulInteger"; }
 
+    static bool checkZeroPoint(TensorRefs inputs, size_t scalarN) {
+        if (inputs.size() <= scalarN + 2) {
+            return true;
+        }
+        auto const &t = inputs[scalarN];
+        auto const &zp = inputs[scalarN + 2];
+        if (zp.dataType != t.dataType) {
+            return false;
+        }
+        if (zp.rank() == 0) {
+            return true;
+        }
+        switch (t.rank()) {
+            case 1:
+                return zp.shape == decltype(zp.shape){DimExpr(1)};
+            case 2:
+                return zp.shape == decltype(zp.shape){t.shape[scalarN]};
+            default: {
+                auto expect = t.shape;
+                expect[expect.size() - 1 - scalarN] = DimExpr(1);
+                return zp.shape == expect;
+            }
+        }
+    }
+
     auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         static const std::unordered_set<decltype(DataType::internal)>
             SET{DataType::I8, DataType::U8};
 
-        switch (inputs.size()) {
-            case 2:
-                break;
-            case 3:
-            case 4:
-                return Err(InferError(ERROR_MSG("Quantization tensor not support currently")));
-            default:
-                return Err(InferError(ERROR_MSG("Input size error")));
+        if (inputs.size() < 2 || 4 < inputs.size()) {
+            return Err(InferError(ERROR_MSG("Input size not support")));
+        }
+        if (!checkZeroPoint(inputs, 0) || !checkZeroPoint(inputs, 1)) {
+            return Err(InferError(ERROR_MSG("Input zero point not support")));
         }
 
         auto const &a = inputs[0];
@@ -42,7 +62,7 @@ namespace refactor::onnx {
         auto sa = a.shape, sb = b.shape;
         switch (sa.size()) {
             case 1:
-                sa.insert(sa.begin(), DimExpr(1));
+                sa.emplace(sa.begin(), 1);
                 break;
             case 0:
                 return Err(InferError(ERROR_MSG("Input shape not support")));

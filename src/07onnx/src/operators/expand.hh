@@ -7,7 +7,8 @@ namespace refactor::onnx {
     using namespace frontend;
 
     struct Expand final : public Operator {
-        Expand();
+
+        constexpr Expand() noexcept = default;
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();

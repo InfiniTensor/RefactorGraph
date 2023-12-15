@@ -5,8 +5,6 @@
 namespace refactor::onnx {
     using Op = MatMul;
 
-    Op::MatMul() : Operator() {}
-
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         ASSERT(attributes.empty(), "MatMul operator should not have attributes");
         return OpBox(std::make_unique<Op>());

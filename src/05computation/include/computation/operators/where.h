@@ -6,7 +6,8 @@
 namespace refactor::computation {
 
     struct Where final : public Operator {
-        constexpr Where() noexcept : Operator() {}
+
+        constexpr Where() noexcept = default;
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;
