@@ -8,12 +8,11 @@ namespace refactor::kernel {
         : Kernel(), info(std::move(info_)) {}
 
     auto K::build(MatMulInfo info) noexcept -> KernelBox {
-        static const std::unordered_set<decltype(DT::internal)> TYPE{DT::F32, DT::F64, DT::FP16};
 #ifndef USE_CUDA
         return nullptr;
 #endif
 
-        return TYPE.contains(info.dataType)
+        return info.dataType.isIeee754() || info.dataType == DT::I8
                    ? std::make_unique<K>(std::move(info))
                    : nullptr;
     }

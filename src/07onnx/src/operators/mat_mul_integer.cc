@@ -1,6 +1,6 @@
 ﻿#include "mat_mul_integer.hh"
 #include "common.h"
-#include "computation/operators/mat_mul.h"
+#include "computation/operators/mat_mul_integer.h"
 #include <unordered_set>
 
 namespace refactor::onnx {
@@ -95,8 +95,8 @@ namespace refactor::onnx {
     }
 
     auto Op::lower(TensorRefs) const -> computation::OpBox {
-        using Op_ = computation::MatMul;
-        return std::make_unique<Op_>(1.0, 1.0, false, false);
+        using Op_ = computation::MatMulInteger;
+        return std::make_unique<Op_>();
     }
 
 }// namespace refactor::onnx
