@@ -6,11 +6,17 @@ namespace refactor::kernel {
 #define B (inputs[1].get().shape)
 
     MatMulIntegerInfo::Input::Input(TensorRefs const &inputs, size_t i) noexcept
-        : signed_(inputs[i].get().dataType == DataType::I8),
-          withZeroPoint(false) {
+        : withZeroPoint(false),
+          signed_(true),
+          groupCount(1),
+          groupSize(1) {
         if (inputs.size() > i + 2) {
             auto const &t = inputs[i + 2].get();
-            withZeroPoint = t.rank() != 0 || !t.data || t.data->get<uint8_t>() != 0;
+            if (withZeroPoint = t.rank() != 0 || !t.data || t.data->get<uint8_t>() != 0) {
+                signed_ = t.dataType == DataType::I8;
+                groupCount = t.elementsSize();
+                groupSize = inputs[i].get().elementsSize() / groupCount;
+            }
         }
     }
 
