@@ -1,10 +1,8 @@
-#include "kernel/attributes/matmul_info.h"
-#include <cstddef>
-#include <numeric>
+#include "kernel/attributes/mat_mul_info.h"
 
 namespace refactor::kernel {
 
-    ExpandInfo buildBias(size_t m, size_t n,
+    ExpandInfo buildBias(dim_t m, dim_t n,
                          Tensor const &a,
                          Tensor const &b,
                          Tensor const &c) {
@@ -12,8 +10,8 @@ namespace refactor::kernel {
         auto it = output.rbegin();
         *it++ = n;
         *it++ = m;
-        for (auto da = static_cast<size_t>(a.rank() - 2),
-                  db = static_cast<size_t>(b.rank() - 2);
+        for (auto da = static_cast<dim_t>(a.rank() - 2),
+                  db = static_cast<dim_t>(b.rank() - 2);
              auto i : range0_(output.size() - 2)) {
             auto a_ = i < da ? a.shape[da - i - 1] : 1;
             auto b_ = i < db ? b.shape[db - i - 1] : 1;
@@ -24,13 +22,6 @@ namespace refactor::kernel {
             c.dataType,
             slice(c.shape.data(), c.rank()),
             slice(output.data(), output.size()));
-    }
-
-    std::variant<Broadcaster, size_t> buildBroadcasterOrBatch(slice_t<dim_t> dimA, slice_t<dim_t> dimB) {
-        if (std::equal(dimA.begin(), dimA.end(), dimB.begin(), dimB.end())) {
-            return std::accumulate(dimA.begin(), dimA.end(), (size_t) 1, std::multiplies<size_t>());
-        }
-        return Broadcaster({dimA, dimB});
     }
 
     MatMulInfo::MatMulInfo(
@@ -44,7 +35,8 @@ namespace refactor::kernel {
           k(transA ? a.shape.rbegin()[1] : a.shape.rbegin()[0]),
           n(transB ? b.shape.rbegin()[1] : b.shape.rbegin()[0]),
           biasExpand(c ? std::make_optional(buildBias(m, n, a, b, *c)) : std::nullopt),
-          broadcasterOrBatch(buildBroadcasterOrBatch(slice(a.shape.data(), a.shape.size() - 2), slice(b.shape.data(), b.shape.size() - 2))) {
+          broadcaster({slice(a.shape.data(), a.shape.size() - 2),
+                       slice(b.shape.data(), b.shape.size() - 2)}) {
         auto kB = transB ? b.shape.rbegin()[0] : b.shape.rbegin()[1];
         ASSERT(k == kB, "MatMul: input shape not matched.");
     }

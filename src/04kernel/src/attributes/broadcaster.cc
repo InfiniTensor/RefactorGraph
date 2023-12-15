@@ -96,4 +96,8 @@ namespace refactor::kernel {
         }
     }
 
+    bool Broadcaster::needBroadcast() const noexcept {
+        return !strides.empty();
+    }
+
 }// namespace refactor::kernel

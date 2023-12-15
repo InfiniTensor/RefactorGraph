@@ -1,5 +1,6 @@
 #include "cpu_kernel.hh"
 #include "../expand/cpu_kernel.hh"
+#include "../mat_mul_common/cpu_template.hpp"
 
 namespace refactor::kernel {
     using K = MatMulCPU;
@@ -8,7 +9,7 @@ namespace refactor::kernel {
     K::MatMulCPU(decltype(info) info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(MatMulInfo info) noexcept -> KernelBox {
+    auto K::build(decltype(info) info) noexcept -> KernelBox {
         return info.dataType.isCpuNumberic()
                    ? std::make_unique<K>(std::move(info))
                    : nullptr;
@@ -23,31 +24,6 @@ namespace refactor::kernel {
     auto K::description() const noexcept -> std::string_view {
         return "Performing MatMul using CPU";
     }
-
-    template<class T>
-    struct MatMulCPUMetaData {
-        size_t M, K, N;
-        size_t strideA0, strideA1, strideB0, strideB1;
-        T alpha, beta;
-
-        /*
-         * 2D matrix multiplication: Y = a * A @ B + b * Y
-         * Assume bias C has been broadcast to Y already. Beta should be 0 in the absence of bias.
-         */
-        void matrixMultiply(T const *A, T const *B, T *Y) const noexcept {
-            // #pragma omp parallel for
-            for (size_t i = 0; i < M; i++) {
-                for (size_t j = 0; j < N; j++) {
-                    T sum = 0;
-                    // #pragma omp simd reduction(+ : sum)
-                    for (size_t k = 0; k < K; k++) {
-                        sum += A[i * strideA0 + k * strideA1] * B[k * strideB0 + j * strideB1];
-                    }
-                    Y[i * N + j] = beta * Y[i * N + j] + alpha * sum;
-                }
-            }
-        }
-    };
 
     template<class T>
     static auto lowerTyped(MatMulInfo const &info, Resources &res) noexcept -> RoutineWorkspace {
@@ -70,8 +46,8 @@ namespace refactor::kernel {
                           ? std::make_optional(ExpandCpu(*info.biasExpand).lower(res).routine)
                           : std::nullopt;
 
-        if (std::holds_alternative<Broadcaster>(info.broadcasterOrBatch)) {
-            return [broadcaster = std::get<Broadcaster>(info.broadcasterOrBatch),
+        if (info.broadcaster.needBroadcast()) {
+            return [broadcaster = info.broadcaster,
                     stepY, stepA, stepB,
                     md, biasEx]//
                 (runtime::Resources & res, void *workspace, void const *const *inputs, void *const *outputs) {
@@ -87,7 +63,7 @@ namespace refactor::kernel {
                     }
                 };
         } else {
-            return [batch = std::get<size_t>(info.broadcasterOrBatch),
+            return [batch = info.broadcaster.outputsCount,
                     stepY, stepA, stepB,
                     md, biasEx]//
                 (runtime::Resources & res, void *workspace, void const *const *inputs, void *const *outputs) {

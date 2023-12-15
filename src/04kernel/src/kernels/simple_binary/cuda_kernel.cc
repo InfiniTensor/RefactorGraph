@@ -154,7 +154,7 @@ extern "C" __global__ void kernel(
         auto op_ = op(opType, dataType);
         auto params = cuda::ThreadsDistributer()(broadcaster.outputsCount);
 
-        if (broadcaster.strides.empty()) {
+        if (!broadcaster.needBroadcast()) {
             auto name = fmt::format("binary{}", postfix);
             auto code = fmt::format(NO_BROADCAST, dt_, op_);
             return [params, h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel")]//

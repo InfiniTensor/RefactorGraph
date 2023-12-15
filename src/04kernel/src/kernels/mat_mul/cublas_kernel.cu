@@ -28,34 +28,8 @@ namespace refactor::kernel {
                      ? std::make_optional(ExpandCuda(*info.biasExpand).lower(res).routine)
                      : std::nullopt;
         // clang-format on
-        if (std::holds_alternative<size_t>(info.broadcasterOrBatch)) {
-            return [batch = std::get<size_t>(info.broadcasterOrBatch),
-                    cudaDataType,
-                    alpha, beta, tA, tB,
-                    m, n, k,
-                    strideA, strideB,
-                    lda, ldb,
-                    biasEx]//
-                (Resources & res, void *workspace, void const *const *inputs, void *const *outputs) {
-                    // Call expand kernel to broadcast bias if bias is used
-                    if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }
-
-                    auto a = reinterpret_cast<T const *>(inputs[0]);
-                    auto b = reinterpret_cast<T const *>(inputs[1]);
-                    auto y = reinterpret_cast<T *>(outputs[0]);
-                    cublasGemmStridedBatchedEx(
-                        res.fetchOrStore<CublasContext>()->handle,
-                        tB, tA,
-                        n, m, k,
-                        &alpha,
-                        b, cudaDataType, ldb, strideB,
-                        a, cudaDataType, lda, strideA,
-                        &beta, y, cudaDataType,
-                        n, m * n, batch, cudaDataType,
-                        CUBLAS_GEMM_DEFAULT);
-                };
-        } else {//  if use boradcaster
-            return [broadcaster = std::get<Broadcaster>(info.broadcasterOrBatch),
+        if (info.broadcaster.needBroadcast()) {
+            return [broadcaster = info.broadcaster,
                     cudaDataType,
                     alpha, beta, tA, tB,
                     m, n, k,
@@ -82,6 +56,33 @@ namespace refactor::kernel {
                             n, cudaDataType,
                             CUBLAS_GEMM_DEFAULT);
                     }
+                };
+
+        } else {
+            return [batch = info.broadcaster.outputsCount,
+                    cudaDataType,
+                    alpha, beta, tA, tB,
+                    m, n, k,
+                    strideA, strideB,
+                    lda, ldb,
+                    biasEx]//
+                (Resources & res, void *workspace, void const *const *inputs, void *const *outputs) {
+                    // Call expand kernel to broadcast bias if bias is used
+                    if (biasEx) { (*biasEx)(res, workspace, inputs + 2, outputs); }
+
+                    auto a = reinterpret_cast<T const *>(inputs[0]);
+                    auto b = reinterpret_cast<T const *>(inputs[1]);
+                    auto y = reinterpret_cast<T *>(outputs[0]);
+                    cublasGemmStridedBatchedEx(
+                        res.fetchOrStore<CublasContext>()->handle,
+                        tB, tA,
+                        n, m, k,
+                        &alpha,
+                        b, cudaDataType, ldb, strideB,
+                        a, cudaDataType, lda, strideA,
+                        &beta, y, cudaDataType,
+                        n, m * n, batch, cudaDataType,
+                        CUBLAS_GEMM_DEFAULT);
                 };
         }
     }

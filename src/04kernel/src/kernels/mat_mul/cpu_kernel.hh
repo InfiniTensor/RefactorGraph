@@ -1,18 +1,17 @@
 #ifndef KERNEL_MATMUL_CPU_KERNEL_HH
 #define KERNEL_MATMUL_CPU_KERNEL_HH
 
-#include "kernel/attributes/matmul_info.h"
+#include "kernel/attributes/mat_mul_info.h"
 #include "kernel/kernel.h"
-#include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
     struct MatMulCPU final : public Kernel {
         MatMulInfo info;
 
-        explicit MatMulCPU(MatMulInfo) noexcept;
+        explicit MatMulCPU(decltype(info)) noexcept;
 
-        static KernelBox build(MatMulInfo) noexcept;
+        static KernelBox build(decltype(info)) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
