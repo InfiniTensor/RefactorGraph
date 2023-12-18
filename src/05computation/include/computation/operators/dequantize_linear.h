@@ -1,13 +1,13 @@
-﻿#ifndef COMPUTATION_CAST_H
-#define COMPUTATION_CAST_H
+﻿#ifndef COMPUTATION_DEQUANTIZE_LINEAR_H
+#define COMPUTATION_DEQUANTIZE_LINEAR_H
 
 #include "../operator.h"
 
 namespace refactor::computation {
 
-    struct Cast final : public Operator {
+    struct DequantizeLinear final : public Operator {
 
-        constexpr Cast() noexcept = default;
+        constexpr DequantizeLinear() noexcept = default;
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;
@@ -18,4 +18,4 @@ namespace refactor::computation {
 
 }// namespace refactor::computation
 
-#endif// COMPUTATION_CAST_H
+#endif// COMPUTATION_DEQUANTIZE_LINEAR_H
