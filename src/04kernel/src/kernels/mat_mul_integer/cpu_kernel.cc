@@ -2,10 +2,10 @@
 #include "../mat_mul_common/cpu_template.hpp"
 
 namespace refactor::kernel {
-    using K = MatMulIntegerCPU;
+    using K = MatMulIntegerCpu;
     using DT = DataType;
 
-    K::MatMulIntegerCPU(decltype(info) info_) noexcept
+    K::MatMulIntegerCpu(decltype(info) info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
     auto K::build(decltype(info) info) noexcept -> KernelBox {

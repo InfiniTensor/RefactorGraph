@@ -11,7 +11,7 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
-                if (auto ptr = MatMulIntegerCPU::build(info); ptr) {
+                if (auto ptr = MatMulIntegerCpu::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

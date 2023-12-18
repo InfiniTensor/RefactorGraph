@@ -6,10 +6,10 @@
 
 namespace refactor::kernel {
 
-    struct MatMulIntegerCPU final : public Kernel {
+    struct MatMulIntegerCpu final : public Kernel {
         MatMulIntegerInfo info;
 
-        explicit MatMulIntegerCPU(decltype(info)) noexcept;
+        explicit MatMulIntegerCpu(decltype(info)) noexcept;
 
         static KernelBox build(decltype(info)) noexcept;
         static size_t typeId() noexcept;
