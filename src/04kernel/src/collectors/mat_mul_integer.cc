@@ -1,5 +1,6 @@
 ﻿#include "kernel/collectors/mat_mul_integer.h"
 #include "../../src/kernels/mat_mul_integer/cpu_kernel.hh"
+#include "../../src/kernels/mat_mul_integer/cublas_kernel.hh"
 #include "kernel/attributes/mat_mul_integer_info.h"
 
 namespace refactor::kernel {
@@ -16,6 +17,9 @@ namespace refactor::kernel {
                 }
                 break;
             case decltype(_target)::Nvidia:
+                if (auto ptr = MatMulIntegerCublas::build(info); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

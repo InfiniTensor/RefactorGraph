@@ -37,7 +37,7 @@ namespace refactor::kernel {
         }
     }
 
-    auto K::lower(Resources &res) const noexcept -> RoutineWorkspace {
+    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
 
         size_t workspace = 0;
