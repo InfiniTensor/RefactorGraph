@@ -1,6 +1,5 @@
 ﻿#include "../../utilities/cuda/cublas_context.hh"
 #include "cublas_kernel.hh"
-#include <cublas_v2.h>
 #include <thrust/execution_policy.h>
 #include <thrust/tabulate.h>
 
@@ -68,43 +67,44 @@ namespace refactor::kernel {
                 b = workspacePtr;
             }
 
-            int32_t alpha = 1, beta = 0;
+            auto handle = res.fetchOrStore<CublasContext>()->handle;
+            int32_t alpha = 1,
+                    beta = 0;
             auto m = info.m,
                  n = info.n,
                  k = info.k;
             auto strideY = m * n,
                  strideA = m * k,
                  strideB = k * n;
-            auto lda = info.k,
-                 ldb = info.n;
+            auto lda = k,
+                 ldb = n;
             if (info.broadcaster.needBroadcast()) {
 
                 uint32_t offset[2];
                 for (auto i : range0_(info.broadcaster.outputsCount)) {
                     info.broadcaster.locate(i, offset);
-                    cublasGemmEx(
-                        res.fetchOrStore<CublasContext>()->handle,
+                    CUBLAS_ASSERT(cublasGemmEx(
+                        handle,
                         CUBLAS_OP_N, CUBLAS_OP_N,
                         n, m, k,
                         &alpha,
                         b + strideB * offset[1], CUDA_R_8I, ldb,
                         a + strideA * offset[0], CUDA_R_8I, lda,
-                        &beta, y + strideY * i, CUDA_R_32I,
-                        n, CUDA_R_32I,
-                        CUBLAS_GEMM_DEFAULT);
+                        &beta, y + strideY * i, CUDA_R_32I, n,
+                        CUDA_R_32I, CUBLAS_GEMM_DEFAULT));
                 }
             } else {
 
-                cublasGemmStridedBatchedEx(
-                    res.fetchOrStore<CublasContext>()->handle,
+                CUBLAS_ASSERT(cublasGemmStridedBatchedEx(
+                    handle,
                     CUBLAS_OP_N, CUBLAS_OP_N,
                     n, m, k,
                     &alpha,
                     b, CUDA_R_8I, ldb, strideB,
                     a, CUDA_R_8I, lda, strideA,
-                    &beta, y, CUDA_R_32I,
-                    n, m * n, info.broadcaster.outputsCount, CUDA_R_32I,
-                    CUBLAS_GEMM_DEFAULT);
+                    &beta, y, CUDA_R_32I, n,
+                    strideY, info.broadcaster.outputsCount,
+                    CUDA_R_32I, CUBLAS_GEMM_DEFAULT));
             }
         };
 

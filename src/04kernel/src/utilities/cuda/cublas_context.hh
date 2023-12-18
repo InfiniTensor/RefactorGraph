@@ -4,6 +4,13 @@
 #include "runtime/resource.h"
 #include <cublas_v2.h>
 
+#define CUBLAS_ASSERT(STATUS)                                      \
+    if (auto status = (STATUS); status != CUBLAS_STATUS_SUCCESS) { \
+        fmt::println("cublas failed on \"" #STATUS "\" with {}",   \
+                     (int) status);                                \
+        abort();                                                   \
+    }
+
 namespace refactor::kernel::cublas {
 
     struct CublasContext final : public runtime::Resource {

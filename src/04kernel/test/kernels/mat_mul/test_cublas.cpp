@@ -92,9 +92,7 @@ TEST(kernel, MatMulCublas_Broadcast) {
     std::vector<float> result(Y->elementsSize());
     my->copyToHost(result.data(), Y->bytesSize());
     // check
-    for (auto i : range0_(result.size())) {
-        EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
-    }
+    EXPECT_EQ(result, cpuOut);
 }
 
 TEST(kernel, MatMulCublas_TransABNoBias) {
@@ -137,9 +135,7 @@ TEST(kernel, MatMulCublas_TransABNoBias) {
     std::vector<float> result(Y->elementsSize());
     my->copyToHost(result.data(), Y->bytesSize());
     // check
-    for (auto i : range0_(result.size())) {
-        EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
-    }
+    EXPECT_EQ(result, cpuOut);
 }
 
 TEST(kernel, MatMulCublas_Large) {
@@ -192,9 +188,7 @@ TEST(kernel, MatMulCublas_Large) {
     std::vector<float> result(Y->elementsSize());
     my->copyToHost(result.data(), Y->bytesSize());
     // check
-    for (auto i : range0_(result.size())) {
-        EXPECT_FLOAT_EQ(result[i], cpuOut[i]);
-    }
+    EXPECT_EQ(result, cpuOut);
 }
 
 #endif

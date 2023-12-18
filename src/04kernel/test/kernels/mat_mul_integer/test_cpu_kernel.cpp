@@ -12,11 +12,12 @@ TEST(kernel, MatMulIntegerCpu) {
     auto kernel = MatMulIntegerCpu::build(MatMulIntegerInfo(TensorRefs{*A, *B}));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
-    auto routine = kernel->lower(res).routine;
+    auto [routine, workspaceSize] = kernel->lower(res);
     // put input data
     std::vector<uint8_t>
         dataA{1, 2, 3, 4, 5, 6},
-        dataB{1, 2, 3};
+        dataB{1, 2, 3},
+        workspace(workspaceSize);
     std::vector<int32_t>
         result(Y->elementsSize()),
         ans{14, 32};
@@ -24,7 +25,7 @@ TEST(kernel, MatMulIntegerCpu) {
     {
         void const *inputs[]{dataA.data(), dataB.data()};
         void *outputs[]{result.data()};
-        routine(res, nullptr, inputs, outputs);
+        routine(res, workspace.data(), inputs, outputs);
     }
     // check
     EXPECT_EQ(result, ans);
