@@ -22,6 +22,14 @@ namespace refactor::kernel {
         return "Performing dynamic quantize linear using CPU";
     }
 
+    template<class TO, class TI>
+    static TO saturate(TI x) {
+        constexpr static auto
+            QMIN = static_cast<TI>(std::numeric_limits<TO>::min()),
+            QMAX = static_cast<TI>(std::numeric_limits<TO>::max());
+        return static_cast<TO>(std::round(std::clamp(x, QMIN, QMAX)));
+    }
+
     auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
         return [size = size](Resources &, void *, void const *const *inputs, void *const *outputs) {
@@ -49,13 +57,13 @@ namespace refactor::kernel {
                 });
             auto len = std::max(ZERO, max) - std::min(ZERO, min);
             auto scale = len / QLEN;
-            auto zp = static_cast<TO>(std::round(QMIN - min * QLEN / len));
+            auto zp = saturate<TO>(QMIN - min * QLEN / len);
 
             std::transform(
                 std::execution::par_unseq,
                 x, x + size,
                 reinterpret_cast<TO *>(outputs[0]),
-                [=](auto it) { return static_cast<TO>(std::round(it / scale) + zp); });
+                [=](auto it) { return saturate<TO>(std::round(it / scale) + zp); });
             *reinterpret_cast<TI *>(outputs[1]) = scale;
             *reinterpret_cast<TO *>(outputs[2]) = zp;
         };

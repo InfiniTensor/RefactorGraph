@@ -124,7 +124,7 @@ namespace refactor::kernel {
                     tempStorage, tempStorageSize_,
                     doubled, minmax, params.n,
                     QuantizeReduceMinMaxFunctor<TI>{},
-                    QuantizeMinMax<TI>{_MIN, _MAX});
+                    QuantizeMinMax<TI>{_MAX, _MIN});
 
                 kernel<<<params.gridSize, params.blockSize>>>(
                     params.n, minmax, x, y, scale, zp);
