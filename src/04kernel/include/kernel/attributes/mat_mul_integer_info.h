@@ -7,9 +7,10 @@ namespace refactor::kernel {
 
     struct MatMulIntegerInfo {
         struct Input {
-            bool withZeroPoint;
-            bool signed_;
-            dim_t groupCount, groupSize;
+            bool
+                withZeroPoint,
+                signed_,
+                scalar;
 
             Input(TensorRefs const &, size_t i) noexcept;
         };
@@ -19,6 +20,7 @@ namespace refactor::kernel {
         Broadcaster broadcaster;
 
         explicit MatMulIntegerInfo(TensorRefs const &inputs) noexcept;
+        dim_t batch() const noexcept;
     };
 
 }// namespace refactor::kernel

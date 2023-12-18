@@ -2,6 +2,7 @@
 #include "cublas_kernel.hh"
 #include <thrust/execution_policy.h>
 #include <thrust/tabulate.h>
+#include <thrust/transform.h>
 
 namespace refactor::kernel {
     using namespace runtime;
@@ -12,35 +13,90 @@ namespace refactor::kernel {
     template<> __device__ __forceinline__ int8_t sub<uint8_t>(uint8_t a, uint8_t b) { return static_cast<int8_t>(static_cast<int16_t>(a) - static_cast<int16_t>(b)); }
 
     template<class T>
-    struct MatMulIntegerZPFunctor {
-        dim_t groupSize;
-        T const *src, *zp;
+    struct MatMulIntegerZPFunctorScalar {
+        T const *zp;
 
-        __device__ int8_t operator()(size_t i) const noexcept {
-            return sub(src[i], zp[i / groupSize]);
+        __device__ int8_t operator()(T x) const noexcept {
+            return sub(x, *zp);
         }
     };
 
     template<class T>
-    static void applyZeroPoint(MatMulIntegerInfo::Input meta, int8_t *dst, void const *src, void const *zp) {
-        thrust::tabulate(
-            thrust::device,
-            dst, dst + meta.groupCount * meta.groupSize,
-            MatMulIntegerZPFunctor<T>{
-                .groupSize = meta.groupSize,
-                .src = reinterpret_cast<T const *>(src),
-                .zp = reinterpret_cast<T const *>(zp),
-            });
+    static void applyZeroPointScalar(
+        size_t size, int8_t *dst, void const *src_, void const *zp_) {
+
+        auto src = reinterpret_cast<T const *>(src_),
+             zp = reinterpret_cast<T const *>(zp_);
+        thrust::transform(thrust::device,
+                          src, src + size,
+                          dst, MatMulIntegerZPFunctorScalar<T>{zp});
+    }
+
+    template<class T>
+    struct MatMulIntegerZPFunctorA {
+        dim_t m, n;
+        T const *src, *zp;
+
+        __device__ int8_t operator()(size_t idx) const noexcept {
+            auto
+                // k = idx % n,
+                j = idx / n % m,
+                i = idx / n / m;
+            return sub(src[idx], zp[i * m + j]);
+        }
+    };
+
+    template<class T>
+    static void applyZeroPointA(
+        dim_t b, dim_t m, dim_t n,
+        int8_t *dst, void const *src_, void const *zp_) {
+        thrust::tabulate(thrust::device,
+                         dst, dst + b * m * n,
+                         MatMulIntegerZPFunctorA<T>{
+                             m,
+                             n,
+                             reinterpret_cast<T const *>(src_),
+                             reinterpret_cast<T const *>(zp_),
+                         });
+    }
+
+    template<class T>
+    struct MatMulIntegerZPFunctorB {
+        dim_t m, n;
+        T const *src, *zp;
+
+        __device__ int8_t operator()(size_t idx) const noexcept {
+            auto
+                k = idx % n,
+                // j = idx / n % m,
+                i = idx / n / m;
+            return sub(src[idx], zp[i * n + k]);
+        }
+    };
+
+    template<class T>
+    static void applyZeroPointB(
+        dim_t b, dim_t m, dim_t n,
+        int8_t *dst, void const *src_, void const *zp_) {
+
+        thrust::tabulate(thrust::device,
+                         dst, dst + b * m * n,
+                         MatMulIntegerZPFunctorB<T>{
+                             m,
+                             n,
+                             reinterpret_cast<T const *>(src_),
+                             reinterpret_cast<T const *>(zp_),
+                         });
     }
 
     auto MatMulIntegerCublas::lower(Resources &res) const noexcept -> RoutineWorkspace {
 
         size_t workspace = 0;
         if (info.a.withZeroPoint) {
-            workspace += info.a.groupCount * info.a.groupSize;
+            workspace += info.batch() * info.m * info.k;
         }
         if (info.b.withZeroPoint) {
-            workspace += info.b.groupCount * info.b.groupSize;
+            workspace += info.batch() * info.k * info.n;
         }
 
         auto routine = [info = info](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
@@ -50,19 +106,39 @@ namespace refactor::kernel {
             auto y = reinterpret_cast<int32_t *>(outputs[0]);
 
             if (auto meta = info.a; meta.withZeroPoint) {
-                if (meta.signed_) {
-                    applyZeroPoint<int8_t>(meta, workspacePtr, a, inputs[2]);
+                auto size = info.batch() * info.m * info.k;
+                auto zp = inputs[2];
+                if (meta.scalar) {
+                    if (meta.signed_) {
+                        applyZeroPointScalar<int8_t>(size, workspacePtr, a, zp);
+                    } else {
+                        applyZeroPointScalar<uint8_t>(size, workspacePtr, a, zp);
+                    }
                 } else {
-                    applyZeroPoint<uint8_t>(meta, workspacePtr, a, inputs[2]);
+                    if (meta.signed_) {
+                        applyZeroPointA<int8_t>(info.batch(), info.m, info.k, workspacePtr, a, zp);
+                    } else {
+                        applyZeroPointA<uint8_t>(info.batch(), info.m, info.k, workspacePtr, a, zp);
+                    }
                 }
                 a = workspacePtr;
-                workspacePtr += meta.groupCount * meta.groupSize;
+                workspacePtr += size;
             }
             if (auto meta = info.b; meta.withZeroPoint) {
-                if (meta.signed_) {
-                    applyZeroPoint<int8_t>(meta, workspacePtr, b, inputs[3]);
+                auto size = info.batch() * info.k * info.n;
+                auto zp = inputs[3];
+                if (meta.scalar) {
+                    if (meta.signed_) {
+                        applyZeroPointScalar<int8_t>(size, workspacePtr, b, zp);
+                    } else {
+                        applyZeroPointScalar<uint8_t>(size, workspacePtr, b, zp);
+                    }
                 } else {
-                    applyZeroPoint<uint8_t>(meta, workspacePtr, b, inputs[3]);
+                    if (meta.signed_) {
+                        applyZeroPointA<int8_t>(info.batch(), info.k, info.n, workspacePtr, b, zp);
+                    } else {
+                        applyZeroPointA<uint8_t>(info.batch(), info.k, info.n, workspacePtr, b, zp);
+                    }
                 }
                 b = workspacePtr;
             }
@@ -81,7 +157,7 @@ namespace refactor::kernel {
             if (info.broadcaster.needBroadcast()) {
 
                 uint32_t offset[2];
-                for (auto i : range0_(info.broadcaster.outputsCount)) {
+                for (auto i : range0_(info.batch())) {
                     info.broadcaster.locate(i, offset);
                     CUBLAS_ASSERT(cublasGemmEx(
                         handle,
@@ -103,7 +179,7 @@ namespace refactor::kernel {
                     b, CUDA_R_8I, ldb, strideB,
                     a, CUDA_R_8I, lda, strideA,
                     &beta, y, CUDA_R_32I, n,
-                    strideY, info.broadcaster.outputsCount,
+                    strideY, info.batch(),
                     CUDA_R_32I, CUBLAS_GEMM_DEFAULT));
             }
         };
