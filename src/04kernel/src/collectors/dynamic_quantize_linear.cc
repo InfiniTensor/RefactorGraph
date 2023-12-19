@@ -1,5 +1,6 @@
 ﻿#include "kernel/collectors/dynamic_quantize_linear.h"
 #include "../kernels/dynamic_quantize_linear/cpu_kernel.hh"
+#include "../kernels/dynamic_quantize_linear/cuda_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -19,6 +20,9 @@ namespace refactor::kernel {
                 }
                 break;
             case decltype(_target)::Nvidia:
+                if (auto ptr = DynamicQuantizeLinearCuda::build(size); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

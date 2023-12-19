@@ -20,4 +20,4 @@ namespace refactor::kernel {
 
 }// namespace refactor::kernel
 
-#endif// KERNEL_SOFTMAX_CPU_KERNEL_HH
+#endif// KERNEL_DYNAMIC_QUANTIZE_LINEAR_CPU_KERNEL_HH
