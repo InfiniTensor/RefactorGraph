@@ -61,18 +61,15 @@ namespace refactor::kernel {
         auto zp = static_cast<TO>(round(QMIN<TI, TO> - min / scale));
 
         auto tid = blockIdx.x * blockDim.x + threadIdx.x;
-        for (auto step = blockDim.x * gridDim.x;
-             tid < n;
-             tid += step) {
-            y[tid] = static_cast<TO>(std::round(x[tid] / scale) + zp);
+        for (auto step = blockDim.x * gridDim.x,
+                  i = tid;
+             i < n;
+             i += step) {
+            y[i] = static_cast<TO>(std::round(x[i] / scale) + zp);
         }
-        switch (tid) {
-            case 0:
-                *scale_ = scale;
-                break;
-            case 1:
-                *zp_ = zp;
-                break;
+        if (tid == 0) {
+            *scale_ = scale;
+            *zp_ = zp;
         }
     }
 
@@ -89,11 +86,14 @@ namespace refactor::kernel {
 
         QuantizeMinMax<TI> *nullTyped = nullptr;
         size_t tempStorageBytes = 0;
-        cub::DeviceReduce::Reduce(
+        auto e = cub::DeviceReduce::Reduce(
             nullptr, tempStorageBytes,
-            nullTyped, nullTyped, 0,
+            nullTyped, nullTyped, size,
             QuantizeReduceMinMaxFunctor<TI>{},
             QuantizeMinMax<TI>{});
+        if (e != cudaSuccess) {
+            RUNTIME_ERROR(fmt::format("error: {} {}", (int) e, cudaGetErrorString(e)));
+        }
 
         auto offset0 = workspaceSize;
         workspaceSize += tempStorageBytes;
@@ -120,11 +120,14 @@ namespace refactor::kernel {
                     QuantizeMapMinMaxFunctor<TI>{});
 
                 auto tempStorageSize_ = tempStorageBytes;
-                cub::DeviceReduce::Reduce(
+                auto e = cub::DeviceReduce::Reduce(
                     tempStorage, tempStorageSize_,
                     doubled, minmax, params.n,
                     QuantizeReduceMinMaxFunctor<TI>{},
                     QuantizeMinMax<TI>{_MAX, _MIN});
+                if (e != cudaSuccess) {
+                    RUNTIME_ERROR(fmt::format("error: {} {}", (int) e, cudaGetErrorString(e)));
+                }
 
                 kernel<<<params.gridSize, params.blockSize>>>(
                     params.n, minmax, x, y, scale, zp);

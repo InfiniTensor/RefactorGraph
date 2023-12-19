@@ -50,6 +50,12 @@ TEST(kernel, DynamicQuantizeLinearCuda) {
         std::vector<uint8_t> result(size);
         yGpu->copyToHost(result.data());
         EXPECT_EQ(result, y);
+        float scale_;
+        scaleGpu->copyToHost(&scale_);
+        EXPECT_EQ(scale_, scale);
+        uint8_t zp_;
+        zpGpu->copyToHost(&zp_);
+        EXPECT_EQ(zp_, zeroPoint);
     }
 }
 
