@@ -16,7 +16,7 @@ namespace refactor::kernel {
     template<class T>
     struct QuantizeMapMinMaxFunctor {
         __device__ __forceinline__ QuantizeMinMax<T>
-        operator()(T x) const {
+        operator()(T x) const noexcept {
             return {x, x};
         }
     };
@@ -24,9 +24,8 @@ namespace refactor::kernel {
     template<class T>
     struct QuantizeReduceMinMaxFunctor {
         __device__ __forceinline__ QuantizeMinMax<T>
-        operator()(QuantizeMinMax<T> a, QuantizeMinMax<T> b) const {
-            return {a.min < b.min ? a.min : b.min,
-                    a.max > b.max ? a.max : b.max};
+        operator()(QuantizeMinMax<T> a, QuantizeMinMax<T> b) const noexcept {
+            return {CUB_MIN(a.min, b.min), CUB_MAX(a.max, b.max)};
         }
     };
 
@@ -56,8 +55,8 @@ namespace refactor::kernel {
         TO *__restrict__ zp_) {
 
         auto const [min, max] = *minmax;
-        auto temp = QuantizeReduceMinMaxFunctor<TI>{}({min, max}, {ZERO<TI>, ZERO<TI>});
-        auto scale = (temp.max - temp.min) / QLEN<TI, TO>;
+        auto cover0 = QuantizeReduceMinMaxFunctor<TI>{}({min, max}, {ZERO<TI>, ZERO<TI>});
+        auto scale = (cover0.max - cover0.min) / QLEN<TI, TO>;
         auto zp = static_cast<TO>(round(QMIN<TI, TO> - min / scale));
 
         auto tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -73,7 +72,7 @@ namespace refactor::kernel {
         }
     }
 
-    auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
+    auto K::lower(Resources &) const -> RoutineWorkspace {
         using namespace runtime;
         using TI = float;
         using TO = uint8_t;

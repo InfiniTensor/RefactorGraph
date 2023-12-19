@@ -5,9 +5,6 @@ namespace refactor::kernel {
     using namespace runtime;
 
     template<class T>
-    __device__ __forceinline__ T max_(T a, T b) { return a > b ? a : b; }
-
-    template<class T>
     __device__ __forceinline__ T exp_(T x);
     template<> __device__ __forceinline__ float exp_<float>(float x) { return expf(x); }
     template<> __device__ __forceinline__ double exp_<double>(double x) { return exp(x); }
@@ -58,16 +55,6 @@ namespace refactor::kernel {
         }
     }
 
-    template<class T> struct SumOp {
-        __device__ __forceinline__ T operator()(T const &a, T const &b) const {
-            return a + b;
-        }
-    };
-    template<class T> struct MaxOp {
-        __device__ __forceinline__ T operator()(T const &a, T const &b) const {
-            return max_(a, b);
-        }
-    };
     template<class T, class ReductionOp>
     __device__ __forceinline__ T WarpAllReduce(T val, ReductionOp op) {
         for (int mask = blockDim.x >> 1; mask > 0; mask >>= 1) {
@@ -92,9 +79,9 @@ namespace refactor::kernel {
 
             T maxData = -__FLT_MAX__;
             for (int i = threadIdx.x; i < dimsize; i += blockDim.x) {
-                maxData = max_(maxData, input[tid + i * stride]);
+                maxData = CUB_MAX(maxData, input[tid + i * stride]);
             }
-            maxData = WarpAllReduce(maxData, MaxOp<T>{});
+            maxData = WarpAllReduce(maxData, cub::Max());
             if (threadIdx.x == 0) {
                 maxTotal[threadIdx.y] = maxData;
             }
@@ -104,7 +91,7 @@ namespace refactor::kernel {
             for (int i = threadIdx.x; i < dimsize; i += blockDim.x) {
                 sumData += exp_(input[tid + i * stride] - maxTotal[threadIdx.y]);
             }
-            sumData = WarpAllReduce(sumData, SumOp<T>{});
+            sumData = WarpAllReduce(sumData, cub::Sum());
             if (threadIdx.x == 0) {
                 sumTotal[threadIdx.y] = sumData;
             }
