@@ -10,7 +10,10 @@ namespace refactor::kernel {
 
     template<class T> __device__ __forceinline__ static int8_t sub(T, T);
     template<> __device__ __forceinline__ int8_t sub<int8_t>(int8_t a, int8_t b) { return a - b; }
-    template<> __device__ __forceinline__ int8_t sub<uint8_t>(uint8_t a, uint8_t b) { return static_cast<int8_t>(static_cast<int16_t>(a) - static_cast<int16_t>(b)); }
+    template<> __device__ __forceinline__ int8_t sub<uint8_t>(uint8_t a, uint8_t b) {
+        constexpr static int16_t MAX = 127;
+        return static_cast<int8_t>(CUB_MIN(MAX, static_cast<int16_t>(a) - static_cast<int16_t>(b)));
+    }
 
     template<class T>
     struct MatMulIntegerZPFunctorScalar {
@@ -33,16 +36,16 @@ namespace refactor::kernel {
     }
 
     template<class T>
-    struct MatMulIntegerZPFunctorA {
-        dim_t m, n;
+    struct MatMulIntegerZPFunctor {
+        dim_t m, n, a, b, c;
         T const *src, *zp;
 
         __device__ int8_t operator()(size_t idx) const noexcept {
             auto
-                // k = idx % n,
+                k = idx % n,
                 j = idx / n % m,
                 i = idx / n / m;
-            return sub(src[idx], zp[i * m + j]);
+            return sub(src[idx], zp[i * a + j * b + k * c]);
         }
     };
 
@@ -52,27 +55,16 @@ namespace refactor::kernel {
         int8_t *dst, void const *src_, void const *zp_) {
         thrust::tabulate(thrust::device,
                          dst, dst + b * m * n,
-                         MatMulIntegerZPFunctorA<T>{
+                         MatMulIntegerZPFunctor<T>{
                              m,
                              n,
+                             m,
+                             1,
+                             0,
                              reinterpret_cast<T const *>(src_),
                              reinterpret_cast<T const *>(zp_),
                          });
     }
-
-    template<class T>
-    struct MatMulIntegerZPFunctorB {
-        dim_t m, n;
-        T const *src, *zp;
-
-        __device__ int8_t operator()(size_t idx) const noexcept {
-            auto
-                k = idx % n,
-                // j = idx / n % m,
-                i = idx / n / m;
-            return sub(src[idx], zp[i * n + k]);
-        }
-    };
 
     template<class T>
     static void applyZeroPointB(
@@ -81,9 +73,12 @@ namespace refactor::kernel {
 
         thrust::tabulate(thrust::device,
                          dst, dst + b * m * n,
-                         MatMulIntegerZPFunctorB<T>{
+                         MatMulIntegerZPFunctor<T>{
                              m,
                              n,
+                             n,
+                             0,
+                             1,
                              reinterpret_cast<T const *>(src_),
                              reinterpret_cast<T const *>(zp_),
                          });
