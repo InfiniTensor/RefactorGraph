@@ -12,6 +12,7 @@
 #include "operators/dynamic_quantize_linear.hh"
 #include "operators/einsum.hh"
 #include "operators/expand.hh"
+#include "operators/flatten.hh"
 #include "operators/gather.hh"
 #include "operators/gather_elements.hh"
 #include "operators/gemm.hh"
@@ -81,6 +82,7 @@ namespace refactor::onnx {
         REGISTER(ReduceSum            , Reduce               );
         REGISTER(ReduceSumSquare      , Reduce               );
         REGISTER(Reshape              , Reshape              );
+        REGISTER(Flatten              , Flatten              );
         REGISTER(ScatterND            , ScatterND            );
         REGISTER(Max                  , Select               );
         REGISTER(Min                  , Select               );
