@@ -1,8 +1,7 @@
 ﻿#include "kernel/collectors/mat_mul.h"
 #include "../kernels/mat_mul/cpu_kernel.hh"
 #include "../kernels/mat_mul/cublas_kernel.hh"
-#include "common.h"
-#include "kernel/attributes/matmul_info.h"
+#include "kernel/attributes/mat_mul_info.h"
 
 namespace refactor::kernel {
 #define REGISTER(T)                       \

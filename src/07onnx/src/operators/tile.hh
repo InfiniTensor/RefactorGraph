@@ -8,7 +8,7 @@ namespace refactor::onnx {
 
     struct Tile final : public Operator {
 
-        Tile();
+        constexpr Tile() noexcept = default;
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();

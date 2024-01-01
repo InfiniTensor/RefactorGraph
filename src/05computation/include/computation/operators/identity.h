@@ -6,7 +6,8 @@
 namespace refactor::computation {
 
     struct Identity final : public Operator {
-        constexpr Identity() noexcept : Operator() {}
+
+        constexpr Identity() noexcept = default;
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;

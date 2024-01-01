@@ -23,6 +23,7 @@ def parse_args():
         args.actual,
     )
 
+
 def getDiff(base, test):
     absolute_diff = np.subtract(base, test)
     max_absolute_diff = np.max(np.abs(absolute_diff))
@@ -35,16 +36,19 @@ def getDiff(base, test):
 
     return max_absolute_diff, max_relative_diff
 
-def compare_npy(actual_path, expect_path, edge, node):
+
+def compare_npy(node, actual_path, expect_path):
     actual = np.load(actual_path)
     expect = np.load(expect_path)
     if np.isnan(actual).any():
-        print(f"NAN value in node:{node} edge:{edge}")
+        print(f"NAN value in node:{node}\t{actual_path}\t{expect_path}")
         return
-    
+
     max_absolute_diff, max_relative_diff = getDiff(expect, actual)
-    if max_absolute_diff != 0.0: ## No need to print tensor with no diff
-        print(f'{max_absolute_diff}\t{max_relative_diff}\t{node}\t{edge}')
+    if max_absolute_diff != 0.0:  ## No need to print tensor with no diff
+        print(
+            f"{max_absolute_diff}\t{max_relative_diff}\t{node}\t{actual_path}\t{expect_path}"
+        )
 
 
 def main():
@@ -70,9 +74,7 @@ def main():
                     expect_file = expect_file + ".npy"
                     expect_file_path = os.path.join(expect_dir, expect_file)
                     if os.path.exists(expect_file_path):
-                        compare_npy(
-                            actual_file_path, expect_file_path, edge_name, node_name
-                        )
+                        compare_npy(meta_file, actual_file_path, expect_file_path)
 
 
 if __name__ == "__main__":

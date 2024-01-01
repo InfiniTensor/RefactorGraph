@@ -15,6 +15,7 @@ namespace refactor::kernel {
         explicit Broadcaster(std::vector<slice_t<dim_t>>);
         explicit Broadcaster(TensorRefs const &inputs);
         void locate(dim_t k, dim_t ans[]) const noexcept;
+        bool needBroadcast() const noexcept;
     };
 
 }// namespace refactor::kernel

@@ -4,8 +4,6 @@
 namespace refactor::onnx {
     using Op = Range;
 
-    Op::Range() : Operator() {}
-
     auto Op::build(ModelContext const &, std::string_view, Attributes) -> OpBox {
         return OpBox(std::make_unique<Op>());
     }

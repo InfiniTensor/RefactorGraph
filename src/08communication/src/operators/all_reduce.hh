@@ -8,7 +8,7 @@ namespace refactor::communication {
 
     struct AllReduce final : public Operator {
 
-        AllReduce();
+        constexpr AllReduce() noexcept = default;
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();

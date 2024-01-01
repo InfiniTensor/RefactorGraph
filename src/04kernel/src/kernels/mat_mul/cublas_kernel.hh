@@ -1,7 +1,7 @@
 ﻿#ifndef KERNEL_MATMUL_CUBLAS_KERNEL_HH
 #define KERNEL_MATMUL_CUBLAS_KERNEL_HH
 
-#include "kernel/attributes/matmul_info.h"
+#include "kernel/attributes/mat_mul_info.h"
 #include "kernel/kernel.h"
 
 namespace refactor::kernel {
@@ -9,9 +9,9 @@ namespace refactor::kernel {
     struct MatMulCublas final : public Kernel {
         MatMulInfo info;
 
-        explicit MatMulCublas(MatMulInfo) noexcept;
+        explicit MatMulCublas(decltype(info)) noexcept;
 
-        static KernelBox build(MatMulInfo) noexcept;
+        static KernelBox build(decltype(info)) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

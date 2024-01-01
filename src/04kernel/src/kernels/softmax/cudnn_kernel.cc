@@ -58,11 +58,8 @@ namespace refactor::kernel {
         auto d = std::make_shared<Descriptors>(
             static_cast<cudnnSoftmaxAlgorithm_t>(algo),
             dataType != DataType::F64);
-        CUDNN_ASSERT(cudnnSetTensor4dDescriptor(
-            d->t,
-            CUDNN_TENSOR_NCHW,
-            cudnnDataTypeConvert(dataType),
-            pre, mid, post, 1));
+        int dims[]{pre, mid, post, 1};
+        setCudnnTensor(d->t, dataType, slice(dims, 4));
 
         res.fetchOrStore<CudnnContext>();
         return [d = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {

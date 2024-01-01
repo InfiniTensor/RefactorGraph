@@ -7,7 +7,7 @@ namespace refactor::computation {
 
     struct Cast final : public Operator {
 
-        constexpr explicit Cast() noexcept : Operator() {}
+        constexpr Cast() noexcept = default;
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;

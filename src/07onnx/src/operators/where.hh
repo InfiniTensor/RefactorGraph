@@ -8,7 +8,7 @@ namespace refactor::onnx {
 
     struct Where final : public Operator {
 
-        Where();
+        constexpr Where() noexcept = default;
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();
