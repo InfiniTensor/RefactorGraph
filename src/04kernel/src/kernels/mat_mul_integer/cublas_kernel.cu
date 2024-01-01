@@ -84,13 +84,28 @@ namespace refactor::kernel {
                          });
     }
 
+    struct MatMulIntegerCastFunctor {
+        __device__ int8_t operator()(uint8_t x) const noexcept {
+            return static_cast<int8_t>(CUB_MIN(127, x));
+        }
+    };
+
+    static void applyCast(
+        size_t size, int8_t *dst, void const *src_) {
+
+        auto src = reinterpret_cast<uint8_t const *>(src_);
+        thrust::transform(thrust::device,
+                          src, src + size,
+                          dst, MatMulIntegerCastFunctor{});
+    }
+
     auto MatMulIntegerCublas::lower(Resources &res) const noexcept -> RoutineWorkspace {
 
         size_t workspace = 0;
-        if (info.a.withZeroPoint) {
+        if (info.a.withZeroPoint || !info.a.signed_) {
             workspace += info.batch() * info.m * info.k;
         }
-        if (info.b.withZeroPoint) {
+        if (info.b.withZeroPoint || !info.b.signed_) {
             workspace += info.batch() * info.k * info.n;
         }
 
@@ -118,6 +133,11 @@ namespace refactor::kernel {
                 }
                 a = workspacePtr;
                 workspacePtr += size;
+            } else if (!meta.signed_) {
+                auto size = info.batch() * info.m * info.k;
+                applyCast(size, workspacePtr, a);
+                a = workspacePtr;
+                workspacePtr += size;
             }
             if (auto meta = info.b; meta.withZeroPoint) {
                 auto size = info.batch() * info.k * info.n;
@@ -135,6 +155,10 @@ namespace refactor::kernel {
                         applyZeroPointA<uint8_t>(info.batch(), info.k, info.n, workspacePtr, b, zp);
                     }
                 }
+                b = workspacePtr;
+            } else if (!meta.signed_) {
+                auto size = info.batch() * info.k * info.n;
+                applyCast(size, workspacePtr, b);
                 b = workspacePtr;
             }
 

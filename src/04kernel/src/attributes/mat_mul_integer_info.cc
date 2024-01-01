@@ -8,16 +8,17 @@ namespace refactor::kernel {
           scalar(true) {
         if (inputs.size() > i + 2) {
             auto const &t = inputs[i + 2].get();
+            signed_ = t.dataType == DataType::I8;
+
             auto size = t.elementsSize();
+            scalar = size == 1;
+
             if (t.data) {
                 auto data = slice(t.data->get<uint8_t>(), size);
-                if (std::all_of(data.begin(), data.end(), [](auto x) { return x == 0; })) {
-                    return;
-                }
+                withZeroPoint = std::any_of(data.begin(), data.end(), [](auto x) { return x != 0; });
+            } else {
+                withZeroPoint = true;
             }
-            withZeroPoint = true;
-            signed_ = t.dataType == DataType::I8;
-            scalar = size == 1;
         }
     }
 
