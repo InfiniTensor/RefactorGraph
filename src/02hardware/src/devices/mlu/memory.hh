@@ -1,11 +1,11 @@
-﻿#ifndef HARDWARE_DEVICES_CPU_MEMORY_HH
-#define HARDWARE_DEVICES_CPU_MEMORY_HH
+#ifndef HARDWARE_DEVICES_MLU_MEMORY_CUH
+#define HARDWARE_DEVICES_MLU_MEMORY_CUH
 
 #include "hardware/memory.h"
 
 namespace refactor::hardware {
 
-    class CpuMemory final : public Memory {
+    class MluMemory final : public Memory {
         void *malloc(size_t) final;
         void free(void *) final;
         void *copyHD(void *dst, void const *src, size_t bytes) const final;
@@ -15,4 +15,4 @@ namespace refactor::hardware {
 
 }// namespace refactor::hardware
 
-#endif// HARDWARE_DEVICES_CPU_MEMORY_HH
+#endif// HARDWARE_DEVICES_MLU_MEMORY_HH

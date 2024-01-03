@@ -5,6 +5,7 @@ message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 option(ABSL_PROPAGATE_CXX_STD "Abseil need this option" ON)
 option(USE_CUDA "Support Nvidia GPU" OFF)
 option(USE_KUNLUN "Support Baidu Kunlunxin" OFF)
+option(USE_BANG "Support Hanwuji MLU" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -39,6 +40,10 @@ if(USE_KUNLUN)
         message(FATAL_ERROR "KUNLUN_HOME is not defined from cmake or env")
     endif()
     message(STATUS "KUNLUN_HOME: ${KUNLUN_HOME}")
+endif()
+
+if (USE_BANG)
+    add_compile_definitions(USE_BANG)
 endif()
 
 add_compile_options(-march=native) # this will cause error in some machine
