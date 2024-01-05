@@ -1,4 +1,4 @@
-#include "functions.cc"
+#include "functions.hh"
 #include "hardware/devices/mlu.h"
 #include "hardware/mem_pool.h"
 #include "memory.hh"
@@ -6,6 +6,7 @@
 namespace refactor::hardware {
 
     static Arc<Memory> bangMemory(int32_t card) {
+#ifdef USE_BANG
         ASSERT(0 <= card && card < getDeviceCount(), "Invalid card id: {}", card);
         setDevice(card);
         auto [free, total] = getMemInfo();
@@ -16,6 +17,9 @@ namespace refactor::hardware {
             std::make_shared<MluMemory>(),
             size,
             256ul);
+#else
+        return nullptr;
+#endif
     }
 
     Mlu::Mlu(int32_t card) : Device(card, bangMemory(card)) {}

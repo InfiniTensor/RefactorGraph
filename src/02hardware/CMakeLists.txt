@@ -3,14 +3,10 @@ project(hardware VERSION 0.0.0 LANGUAGES CXX)
 message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
 # Source files
-file(GLOB HARDWARE_SRC src/*.cc src/*.cpp src/devices/cpu/*.cc)
+file(GLOB_RECURSE HARDWARE_SRC src/*.cc src/*.cpp)
 
 if(USE_CUDA)
-    file(GLOB_RECURSE HARDWARE_CUDA_SRC src/devices/nvidia/*.cu src/devices/nvidia/*.cc)
-endif()
-
-if(USE_BANG)
-    file(GLOB_RECURSE HARDWARE_BANG_SRC src/devices/mlu/*.cc)
+    file(GLOB_RECURSE HARDWARE_CUDA_SRC src/devices/nvidia/*.cu)
 endif()
 
 add_library(hardware STATIC ${HARDWARE_SRC} ${HARDWARE_CUDA_SRC} ${HARDWARE_BANG_SRC})

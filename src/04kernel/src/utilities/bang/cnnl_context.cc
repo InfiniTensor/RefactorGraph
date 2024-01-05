@@ -1,4 +1,6 @@
-﻿#include "cnnl_context.hh"
+﻿#ifdef USE_BANG
+
+#include "cnnl_context.hh"
 #include "cnnl_functions.h"
 
 namespace refactor::kernel::cnnl {
@@ -29,3 +31,5 @@ namespace refactor::kernel::cnnl {
     }
 
 }// namespace refactor::kernel::cnnl
+
+#endif

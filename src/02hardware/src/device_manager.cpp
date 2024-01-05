@@ -37,7 +37,8 @@ namespace refactor::hardware::device {
 
         using T = Device::Type;
         // clang-format off
-        auto device = type == T::Mlu    ? std::make_shared<Mlu>(card)
+        auto device = type == T::Nvidia ? std::make_shared<Nvidia>(card)
+                    : type == T::Mlu    ? std::make_shared<Mlu>(card)
                     : UNREACHABLEX(Arc<Device>, "");
         // clang-format on
         auto [kind, ok] = DEVICES.try_emplace(static_cast<int32_t>(type));
