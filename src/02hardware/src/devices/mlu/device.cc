@@ -10,7 +10,7 @@ namespace refactor::hardware {
         setDevice(card);
         auto [free, total] = getMemInfo();
         auto size = std::min(free, std::max(5ul << 30, total * 4 / 5));
-        fmt::println("initializing Nvidia GPU {}, memory {} / {}, alloc {}",
+        fmt::println("initializing Cambricon MLU {}, memory {} / {}, alloc {}",
                      card, free, total, size);
         return std::make_shared<MemPool>(
             std::make_shared<MluMemory>(),
