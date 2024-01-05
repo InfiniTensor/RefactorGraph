@@ -1,6 +1,7 @@
 ﻿#include "kernel/collectors/transpose.h"
 #include "../kernels/transpose/cpu_kernel.hh"
 #include "../kernels/transpose/cuda_kernel.hh"
+#include "../kernels/transpose/cnnl_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -22,6 +23,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = TransposeCuda::build(info); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = TransposeCnnl::build(data.dataType, data.shape, perm); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
