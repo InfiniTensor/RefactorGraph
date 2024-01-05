@@ -36,7 +36,7 @@ if(USE_KUNLUN)
     target_link_libraries(kernel PUBLIC ${KUNLUN_RT} ${KUNLUN_DNN})
 endif()
 if(USE_BANG)
-    target_link_libraries(kernel ${CAMBRICON_CNCL} ${CAMBRICON_CNNL} ${CAMBRICON_CNRT} ${CAMBRICON_CNDRV} stdc++)
+    target_link_libraries(kernel PUBLIC ${CAMBRICON_CNNL} ${CAMBRICON_CNRT} ${CAMBRICON_CNDRV})
 endif()
 
 file(GLOB_RECURSE KERNEL_TEST test/*.cpp)

@@ -1,6 +1,7 @@
 #ifndef HARDWARE_DEVICES_MLU_FUNCTIONS_CUH
 #define HARDWARE_DEVICES_MLU_FUNCTIONS_CUH
 
+#include "cnrt.h"
 #include "common.h"
 
 #define BANG_ASSERT(STATUS)                                                          \
