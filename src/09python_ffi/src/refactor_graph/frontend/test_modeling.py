@@ -30,12 +30,13 @@ class TestModeling(unittest.TestCase):
     class AddTwoModel(InfiniTensorModel):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.addone = self.make_submodel(TestModeling.AddOneModel)
+            self.addone1 = self.make_submodel(TestModeling.AddOneModel)
+            self.addone2 = self.make_submodel(TestModeling.AddOneModel)
 
         def __call__(self, input: str):
             super().__call__([input])
-            output = self.addone(input)
-            output = self.addone(output)
+            output = self.addone1(input)
+            output = self.addone2(output)
             self.outputs.append(output)
             return output
 
@@ -63,6 +64,22 @@ class TestModeling(unittest.TestCase):
             output = self.make_op("Add", {}, tuple([output, self.bias]), ("output",))[0]
             self.outputs.append(output)
             return output
+        
+    def test_submodule_topo(self):
+        inputs = ["A"]
+        shape = [1, 2, 3]
+        model = self.AddThreeModel(shape)
+        model(inputs[0])
+        add1 = "AddThreeModel/AddTwoModel/AddOneModel/Add"
+        add2 = "AddThreeModel/AddTwoModel/AddOneModel_1/Add"
+        add3 = "AddThreeModel/Add"
+        self.assertTrue(add1 in model._nodes)
+        self.assertTrue("A" == model._nodes[add1][0][0])
+        self.assertTrue(add2 in model._nodes)
+        self.assertTrue(model._nodes[add1][1][0] == model._nodes[add2][0][0])
+        self.assertTrue(add3 in model._nodes)
+        self.assertTrue(model._nodes[add2][1][0] == model._nodes[add3][0][0])
+        self.assertTrue(model._nodes[add3][1][0] == "output")
 
     def test_submodule_with_param_loading(self):
         inputs = ["A"]
