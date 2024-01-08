@@ -62,6 +62,26 @@ TEST(kernel, BinaryCnnlSub) {
     testBinaryCnnl(SimpleBinaryType::Sub, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
 }
 
+TEST(kernel, BinaryCnnlDiv) {
+    testBinaryCnnl(SimpleBinaryType::Div, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+}
+
+// TEST(kernel, BinaryCnnlAnd) {
+//     testBinaryCnnl(SimpleBinaryType::And, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+// }
+
+// TEST(kernel, BinaryCnnlOr) {
+//     testBinaryCnnl(SimpleBinaryType::Or, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+// }
+
+// TEST(kernel, BinaryCnnlXor) {
+//     testBinaryCnnl(SimpleBinaryType::Xor, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+// }
+
+TEST(kernel, BinaryCnnlPow) {
+    testBinaryCnnl(SimpleBinaryType::Pow, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+}
+
 TEST(kernel, BinaryCnnlBroadcast) {
     testBinaryCnnl(SimpleBinaryType::Add, Shape{3, 4, 5, 6}, Shape{}, Shape{3, 4, 5, 6});
 }
