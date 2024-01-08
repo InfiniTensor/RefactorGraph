@@ -56,7 +56,7 @@ namespace refactor::hardware {
     Device::Device(decltype(_card) card, decltype(_mem) mem)
         : _card(card), _mem(std::move(mem)) {}
 
-    void Device::setContext() const noexcept {}
+    void Device::setContext() const {}
     auto Device::malloc(size_t size) -> Arc<Blob> {
         return Arc<Blob>(new Blob(this, size));
     }

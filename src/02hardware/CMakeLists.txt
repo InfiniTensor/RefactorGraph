@@ -2,14 +2,14 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(hardware VERSION 0.0.0 LANGUAGES CXX)
 message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
-if(USE_CUDA)
-    file(GLOB_RECURSE HARDWARE_CUDA_SRC src/*.cu)
-endif()
-
 file(GLOB_RECURSE HARDWARE_SRC src/*.cc src/*.cpp)
 add_library(hardware STATIC ${HARDWARE_SRC} ${HARDWARE_CUDA_SRC})
 target_link_libraries(hardware PUBLIC common)
 target_include_directories(hardware PUBLIC include)
+
+if(USE_CUDA)
+    target_include_directories(hardware PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+endif()
 
 file(GLOB_RECURSE HARDWARE_TEST test/*.cpp)
 if(HARDWARE_TEST)

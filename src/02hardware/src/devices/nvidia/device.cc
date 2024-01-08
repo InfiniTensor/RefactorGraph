@@ -1,17 +1,28 @@
 ﻿#include "hardware/devices/nvidia.h"
 #include "hardware/mem_pool.h"
+
 #ifdef USE_CUDA
-#include "functions.cuh"
-#include "memory.cuh"
+#include "memory.hh"
+#include <cuda_runtime.h>
+
+#define CUDA_ASSERT(STATUS)                                                          \
+    if (auto status = (STATUS); status != cudaSuccess) {                             \
+        RUNTIME_ERROR(fmt::format("cuda failed on \"" #STATUS "\" with \"{}\" ({})", \
+                                  cudaGetErrorString(status), (int) status));        \
+    }
 #endif
 
 namespace refactor::hardware {
 
     static Arc<Memory> cudaMemory(int32_t card) {
 #ifdef USE_CUDA
-        ASSERT(0 <= card && card < getDeviceCount(), "Invalid card id: {}", card);
-        setDevice(card);
-        auto [free, total] = getMemInfo();
+        int deviceCount;
+        CUDA_ASSERT(cudaGetDeviceCount(&deviceCount));
+        ASSERT(0 <= card && card < deviceCount, "Invalid card id: {}", card);
+        CUDA_ASSERT(cudaSetDevice(card));
+
+        size_t free, total;
+        CUDA_ASSERT(cudaMemGetInfo(&free, &total));
         auto size = std::min(free, std::max(5ul << 30, total * 4 / 5));
         fmt::println("initializing Nvidia GPU {}, memory {} / {}, alloc {}",
                      card, free, total, size);
@@ -26,9 +37,9 @@ namespace refactor::hardware {
 
     Nvidia::Nvidia(int32_t card) : Device(card, cudaMemory(card)) {}
 
-    void Nvidia::setContext() const noexcept {
+    void Nvidia::setContext() const  {
 #ifdef USE_CUDA
-        setDevice(_card);
+        CUDA_ASSERT(cudaSetDevice(_card));
 #endif
     }
 
