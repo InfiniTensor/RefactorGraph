@@ -1,20 +1,20 @@
-﻿#include "functions.cuh"
-#include "hardware/devices/nvidia.h"
+#include "functions.hh"
+#include "hardware/devices/mlu.h"
 #include "hardware/mem_pool.h"
-#include "memory.cuh"
+#include "memory.hh"
 
 namespace refactor::hardware {
 
-    static Arc<Memory> cudaMemory(int32_t card) {
-#ifdef USE_CUDA
+    static Arc<Memory> bangMemory(int32_t card) {
+#ifdef USE_BANG
         ASSERT(0 <= card && card < getDeviceCount(), "Invalid card id: {}", card);
         setDevice(card);
         auto [free, total] = getMemInfo();
         auto size = std::min(free, std::max(5ul << 30, total * 4 / 5));
-        fmt::println("initializing Nvidia GPU {}, memory {} / {}, alloc {}",
+        fmt::println("initializing Cambricon MLU {}, memory {} / {}, alloc {}",
                      card, free, total, size);
         return std::make_shared<MemPool>(
-            std::make_shared<NvidiaMemory>(),
+            std::make_shared<MluMemory>(),
             size,
             256ul);
 #else
@@ -22,9 +22,9 @@ namespace refactor::hardware {
 #endif
     }
 
-    Nvidia::Nvidia(int32_t card) : Device(card, cudaMemory(card)) {}
+    Mlu::Mlu(int32_t card) : Device(card, bangMemory(card)) {}
 
-    void Nvidia::setContext() const noexcept {
+    void Mlu::setContext() const noexcept {
         setDevice(_card);
     }
 

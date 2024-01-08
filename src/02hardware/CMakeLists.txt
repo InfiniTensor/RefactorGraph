@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(hardware VERSION 0.0.0 LANGUAGES CXX)
 message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
 
+# Source files
+file(GLOB_RECURSE HARDWARE_SRC src/*.cc src/*.cpp)
+
 if(USE_CUDA)
-    file(GLOB_RECURSE HARDWARE_CUDA_SRC src/*.cu)
+    file(GLOB_RECURSE HARDWARE_CUDA_SRC src/devices/nvidia/*.cu)
 endif()
 
-file(GLOB_RECURSE HARDWARE_SRC src/*.cc src/*.cpp)
-add_library(hardware STATIC ${HARDWARE_SRC} ${HARDWARE_CUDA_SRC})
+add_library(hardware STATIC ${HARDWARE_SRC} ${HARDWARE_CUDA_SRC} ${HARDWARE_BANG_SRC})
 target_link_libraries(hardware PUBLIC common)
 target_include_directories(hardware PUBLIC include)
 

@@ -11,6 +11,8 @@ namespace refactor::hardware {
         enum class Type : int32_t {
             Cpu,
             Nvidia,
+            Mlu,
+            Kunlun,
         };
 
     protected:
