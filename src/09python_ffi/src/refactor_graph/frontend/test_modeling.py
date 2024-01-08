@@ -95,5 +95,20 @@ class TestModeling(unittest.TestCase):
         output = executor.get_output(0)
         self.assertTrue(np.array_equal(output, input + input + input + input))
 
+    def test_onnx(self):
+        inputs = ["A"]
+        shape = [1, 2, 3]
+        model = self.AddThreeModel(shape)
+        model(inputs[0])
+        model.load_param({model.bias: np.ones(shape, dtype=np.int32)})
+        onnx_model = model.make_onnx({inputs[0]: (DTYPE.I32, shape)})
+        import onnxruntime
+        infer_session = onnxruntime.InferenceSession(onnx_model.SerializeToString())
+        output_names = [output.name for output in infer_session.get_outputs()]
+        input = np.ones(shape, dtype=np.int32)
+        output = infer_session.run(output_names, {"A": input})[0]
+        self.assertTrue(np.array_equal(output, input + input + input + input))
+        
+
 if __name__ == "__main__":
     unittest.main()

@@ -31,14 +31,16 @@ class DTYPE(Enum):
     U64 = (13, np.uint64)
     Complex64 = (14, np.complex64)
     Complex128 = (15, np.complex128)
-    BF16 = (16, np.float32) # numpy does not support bf16 yet, should be handled by backend
+    BF16 = (
+        16,
+        np.float32,
+    )  # TODO:numpy does not support bf16 yet, should be handled by backend
 
     def onnx_type(self):
         return self.value[0]
-    
+
     def np_type(self):
         return self.value[1]
-
 
 
 def next_name(names_dict: Dict[str, int], name: str):
@@ -57,25 +59,27 @@ class InfiniTensorModel:
     def __init__(
         self,
         model_name: str | None = None,
-        _parameters: Dict[str, Tensor] | None = None,
-        _const_edges: Dict[str, Tensor] | None = None,
+        _parameters: Dict[str, np.ndarray] | None = None,
+        _const_edges: Dict[str, np.ndarray] | None = None,
         _nodes: Dict[str, Tuple[List[str], List[str]]] | None = None,
-        _operators: Dict[str, Operator] | None = None,
+        _operators: Dict[str, Tuple[str, Dict[str, Any]]] | None = None,
         _node_names: Dict[str, int] | None = None,
         _tensor_names: Dict[str, int] | None = None,
     ) -> None:
         self.inputs: List[str] = []
         self.outputs: List[str] = []
-        self._parameters: Dict[str, Tensor] = (
+        self._parameters: Dict[str, np.ndarray] = (
             _parameters if _parameters is not None else {}
         )
-        self._const_edges: Dict[str, Tensor] = (
+        self._const_edges: Dict[str, np.ndarray] = (
             _const_edges if _const_edges is not None else {}
         )
         self._nodes: Dict[str, Tuple[List[str], List[str]]] = (
             _nodes if _nodes is not None else {}
         )
-        self._operators: Dict[str, Operator] = _operators if _operators is not None else {}
+        self._operators: Dict[str, Tuple[str, Dict[str, Any]]] = (
+            _operators if _operators is not None else {}
+        )
 
         # Fixed model name
         self.model_name = (
@@ -86,7 +90,9 @@ class InfiniTensorModel:
 
         self.onnx_context = {"opset_version": 19}
         # Maps that keep track of naming uniqueness
-        self._node_names: Dict[str, int] = _node_names if _node_names is not None else {}
+        self._node_names: Dict[str, int] = (
+            _node_names if _node_names is not None else {}
+        )
         self._tensor_names: Dict[str, int] = (
             _tensor_names if _tensor_names is not None else {}
         )
@@ -131,17 +137,14 @@ class InfiniTensorModel:
                 input_name = self.constant(input, f"{op_type}_Input")
                 input_names.append(input_name)
         # make op
-        self._operators[node_name] = _make_operator(
-            self.onnx_context,
-            op_type,
-            attributes,
-        )
+        self._operators[node_name] = (op_type, attributes)
+        # record topo info
         self._nodes[node_name] = (input_names, output_names)
         return output_names
 
     def make_tensor_np(self, data: np.ndarray, name: str):
         tensor_name = next_name(self._tensor_names, f"{self.base_name}/{name}")
-        return tensor_name, _make_data(data)
+        return tensor_name, data  # _make_data(data)
 
     def parameter(self, data: np.ndarray, name: str = "Param"):
         tensor_name, tensor = self.make_tensor_np(data, name)
@@ -168,25 +171,72 @@ class InfiniTensorModel:
         return submodel
 
     def make_compiler(self, inputs: Dict[str, Tuple[DTYPE, List[Any]]]):
+        const_edges = {
+            name: _make_data(data) for name, data in self._const_edges.items()
+        }
+        parameters = {name: _make_data(data) for name, data in self._parameters.items()}
         edges: Dict[str, Tensor] = {}
         for input in self.inputs:
             data = inputs.get(input)
             assert data is not None, f"Input [{input}] not provided!"
             edges[input] = _make_tensor(data[0].onnx_type(), data[1])
-        edges.update(self._const_edges)
-        edges.update(self._parameters)
-        return _make_compiler(
-            self._nodes, self._operators, edges, self.inputs, self.outputs
+        edges.update(const_edges)
+        edges.update(parameters)
+
+        operators = {
+            name: _make_operator(self.onnx_context, op_type, attributes)
+            for name, (op_type, attributes) in self._operators.items()
+        }
+
+        return _make_compiler(self._nodes, operators, edges, self.inputs, self.outputs)
+
+    def make_onnx(self, inputs: Dict[str, Tuple[DTYPE, List[Any]]]):
+        import onnx.helper
+        import onnx.numpy_helper
+
+        input_info = []
+        for input in self.inputs:
+            data = inputs.get(input)
+            assert data is not None, f"Input [{input}] not provided!"
+            input_info.append(
+                onnx.helper.make_value_info(
+                    input,
+                    onnx.helper.make_tensor_type_proto(data[0].onnx_type(), data[1]),
+                )
+            )
+        output_info = [
+            onnx.helper.make_empty_tensor_value_info(output) for output in self.outputs
+        ]
+
+        nodes = [
+            onnx.helper.make_node(
+                op,
+                inputs=self._nodes[node_name][0],
+                outputs=self._nodes[node_name][1],
+                **attributes,
+            )
+            for node_name, (op, attributes) in self._operators.items()
+        ]
+
+        initializer = []
+        for name, data in self._const_edges.items():
+            initializer.append(onnx.numpy_helper.from_array(data, name=name))
+        for name, data in self._parameters.items():
+            initializer.append(onnx.numpy_helper.from_array(data, name=name))
+
+        graph = onnx.helper.make_graph(
+            nodes, self.base_name, input_info, output_info, initializer
         )
+
+        return onnx.helper.make_model(graph)
 
     def load_param(self, data: Dict[str, np.ndarray]):
         for name in self._parameters:
             new_data = data.get(name)
             if new_data is not None:
-                self._parameters[name] = _make_data(new_data)
+                self._parameters[name] = new_data
             else:
                 print(f"Warning: Value for {name} is not provided for loading.")
-
 
     #############################
     # Operator APIs
@@ -194,60 +244,72 @@ class InfiniTensorModel:
     def sqrt(self, X, Y=""):
         return self.make_op("Sqrt", {}, (X,), (Y,))[0]
 
-    def sigmoid(self, X, Y=""):            
+    def sigmoid(self, X, Y=""):
         return self.make_op("Sigmoid", {}, (X,), (Y,))[0]
 
     def add(self, A, B, C=""):
         return self.make_op("Add", {}, (A, B), (C,))[0]
-    
+
     def sub(self, A, B, C=""):
         return self.make_op("Sub", {}, (A, B), (C,))[0]
-    
+
     def mul(self, A, B, C=""):
         return self.make_op("Mul", {}, (A, B), (C,))[0]
-    
+
     def div(self, A, B, C=""):
         return self.make_op("Div", {}, (A, B), (C,))[0]
-    
+
     def pow(self, A, B, C=""):
         return self.make_op("Pow", {}, (A, B), (C,))[0]
-    
+
     def matmul(self, A, B, Y=""):
         return self.make_op("MatMul", {}, (A, B), (Y,))[0]
-        
+
     def gemm(self, A, B, C=None, Y="", alpha=1.0, beta=1.0, transA=0, transB=0):
         inputs = (A, B, C) if C is not None else (A, B)
-        return self.make_op("Gemm", {"alpha":alpha, "beta":beta, "transA":transA, "transB":transB}, inputs, (Y,))[0]
+        return self.make_op(
+            "Gemm",
+            {"alpha": alpha, "beta": beta, "transA": transA, "transB": transB},
+            inputs,
+            (Y,),
+        )[0]
 
     def reshape(self, data, shape, reshaped=""):
         return self.make_op("Reshape", {}, (data, shape), (reshaped,))[0]
-    
+
     def transpose(self, data, perm: List[int], transposed=""):
         return self.make_op("Transpose", {"perm": perm}, (data,), (transposed,))[0]
-    
+
     def squeeze(self, data, axes: int | List[int], squeezed=""):
         return self.make_op("Squeeze", {}, (data, np.array(axes)), (squeezed,))[0]
 
     def unsqueeze(self, data, axes: int | List[int], unsqueezed=""):
         return self.make_op("Unsqueeze", {}, (data, np.array(axes)), (unsqueezed,))[0]
-    
+
     def gather(self, data, indices, axis, output=""):
         return self.make_op("Gather", {"axis": axis}, (data, indices), (output,))[0]
 
-    #TODO: support array inputs in the future
-    def slice(self, data, axis, start=0, end=9223372036854775807, step = 1):
-        return self.make_op("Slice", {}, (data, np.array(start), np.array(end), np.array(axis), np.array(step)))[0]
+    # TODO: support array inputs in the future
+    def slice(self, data, axis, start=0, end=9223372036854775807, step=1):
+        return self.make_op(
+            "Slice",
+            {},
+            (data, np.array(start), np.array(end), np.array(axis), np.array(step)),
+        )[0]
 
-    def concat(self, inputs: Tuple[str,...], axis, result=""):
+    def concat(self, inputs: Tuple[str, ...], axis, result=""):
         return self.make_op("Concat", {"axis": axis}, inputs, (result,))[0]
 
     def split(self, input, axis, num_outputs):
-        outputs = self.make_op("Split", {"axis": axis, "num_outputs": num_outputs}, (input,), num_outputs)
+        outputs = self.make_op(
+            "Split", {"axis": axis, "num_outputs": num_outputs}, (input,), num_outputs
+        )
         return tuple(outputs)
 
     def reduce_sum(self, data, axes: List[int], reduced="", keepdims=1):
-        return self.make_op("ReduceSum", {"keepdims": keepdims}, (data, np.array(axes)), (reduced,))[0]
+        return self.make_op(
+            "ReduceSum", {"keepdims": keepdims}, (data, np.array(axes)), (reduced,)
+        )[0]
 
     def cast(self, input, to: DTYPE, output=""):
         return self.make_op("Cast", {"to": to.onnx_type()}, (input,), (output,))
-    
