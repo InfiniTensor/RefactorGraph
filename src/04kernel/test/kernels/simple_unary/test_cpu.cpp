@@ -31,4 +31,5 @@ TEST(kernel, SimpleUnaryCpu) {
     testOp(SimpleUnaryType::Abs, std::abs);
     testOp(SimpleUnaryType::Sqrt, std::sqrt);
     testOp(SimpleUnaryType::Tanh, std::tanh);
+    testOp(SimpleUnaryType::Erf, std::erf);
 }
