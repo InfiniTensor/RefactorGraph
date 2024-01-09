@@ -24,12 +24,15 @@ namespace refactor::hardware {
         size_t free, total;
         CUDA_ASSERT(cudaMemGetInfo(&free, &total));
         auto size = std::min(free, std::max(5ul << 30, total * 4 / 5));
-        fmt::println("initializing Nvidia GPU {}, memory {} / {}, alloc {}",
-                     card, free, total, size);
+        cudaDeviceProp prop;
+        CUDA_ASSERT(cudaGetDeviceProperties(&prop, 0));
+        size_t alignment = prop.textureAlignment;
+        fmt::println("initializing Nvidia GPU {}, memory {} / {}, alloc {}, alignment {}",
+                     card, free, total, size, alignment);
         return std::make_shared<MemPool>(
             std::make_shared<NvidiaMemory>(),
             size,
-            256ul);
+            alignment);
 #else
         RUNTIME_ERROR("CUDA is not enabled");
 #endif
@@ -37,7 +40,7 @@ namespace refactor::hardware {
 
     Nvidia::Nvidia(int32_t card) : Device(card, cudaMemory(card)) {}
 
-    void Nvidia::setContext() const  {
+    void Nvidia::setContext() const {
 #ifdef USE_CUDA
         CUDA_ASSERT(cudaSetDevice(_card));
 #endif
