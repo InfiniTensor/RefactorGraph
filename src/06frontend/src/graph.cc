@@ -175,42 +175,30 @@ namespace refactor::frontend {
 
         std::vector<computation::Node> nodes(_internal.nodes.size());
         std::vector<computation::Edge> edges(_internal.edges.size());
+
+        auto fn = [&edges, this](auto i) {
+            if (edges[i].tensor) {
+                return;
+            }
+            auto const &[tensor, name] = _internal.edges[i];
+            computation::Shape shape(tensor->shape.size());
+            std::transform(std::execution::unseq,
+                           tensor->shape.begin(), tensor->shape.end(), shape.begin(),
+                           [](auto const &dim) { return dim.value(); });
+            auto layout = shape.size() == 4 ? computation::LayoutType::NCHW : computation::LayoutType::Others;
+            edges[i].tensor = computation::Tensor::share(tensor->dataType, std::move(shape), layout, tensor->data);
+            edges[i].name = name;
+        };
+
         std::transform(_internal.topology.begin(), _internal.topology.end(), nodes.begin(),
-                       [&edges, this](auto const &nodeRef) {
+                       [&fn, this](auto const &nodeRef) {
                            auto const &[op, name] = _internal.nodes[nodeRef.idx];
+                           std::for_each(nodeRef.inputs.begin(), nodeRef.inputs.end(), fn);
+                           std::for_each(nodeRef.outputs.begin(), nodeRef.outputs.end(), fn);
                            auto constant = std::all_of(std::execution::unseq,
                                                        nodeRef.outputs.begin(), nodeRef.outputs.end(),
                                                        [this](auto i) { return _internal.edges[i].tensor->data; });
-                           if (constant) {
-                               return computation::Node{nullptr, name};
-                           }
-                           auto fn = [&edges, &nodeRef, this](auto i) {
-                               if (edges[i].tensor) {
-                                   return;
-                               }
-                               auto const &[tensor, name] = _internal.edges[i];
-                               computation::Shape shape(tensor->shape.size());
-                               std::transform(std::execution::unseq,
-                                              tensor->shape.begin(), tensor->shape.end(), shape.begin(),
-                                              [](auto const &dim) { return dim.value(); });
-                               auto layout = shape.size() == 4 ? computation::LayoutType::NCHW : computation::LayoutType::Others;
-                               edges[i].tensor = computation::Tensor::share(tensor->dataType, std::move(shape), layout, tensor->data);
-                               edges[i].name = name;
-                           };
-                           auto op_ = op->lower(TensorRefs(_internal.edges, nodeRef.inputs));
-                           auto valueDependentInputs = op->valueDependentInputs();
-                           auto it = valueDependentInputs.begin();
-                           for (auto i : range0_(nodeRef.inputs.size())) {
-                               auto input = nodeRef.inputs[i];
-                               if (it != valueDependentInputs.end() && i == *it) {
-                                   edges[input].name = _internal.edges[input].name;
-                                   ++it;
-                                   continue;
-                               }
-                               fn(input);
-                           }
-                           std::for_each(std::execution::unseq, nodeRef.outputs.begin(), nodeRef.outputs.end(), fn);
-                           return computation::Node{std::move(op_), name};
+                           return computation::Node{constant ? nullptr : op->lower(TensorRefs(_internal.edges, nodeRef.inputs)), name};
                        });
 
         auto const endTime = high_resolution_clock::now();
