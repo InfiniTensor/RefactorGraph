@@ -42,9 +42,11 @@ namespace refactor::runtime {
                decltype(_device));
 
         decltype(_graph) const &graph() const noexcept { return _graph; }
-        void setData(count_t, void const *, size_t);
+        auto setData(count_t, size_t) -> Arc<hardware::Device::Blob>;
         void setData(count_t, Arc<hardware::Device::Blob>);
-        bool getData(count_t, void *, size_t) const;
+        auto getData(count_t) -> Arc<hardware::Device::Blob> const;
+        void setData(count_t, void const *, size_t);
+        bool copyData(count_t, void *, size_t) const;
         void run();
         auto bench(void (*sync)()) -> std::vector<std::chrono::nanoseconds>;
         void trace(std::function<void(count_t, void const *const *, void const *const *)>);

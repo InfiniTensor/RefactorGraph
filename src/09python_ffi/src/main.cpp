@@ -21,6 +21,7 @@ namespace refactor::python_ffi {
         py::class_<Tensor      , Arc<Tensor>      >(m, "Tensor"      );
         py::class_<OpBox       , Arc<OpBox>       >(m, "Operator"    );
         py::class_<Device      , Arc<Device>      >(m, "Device"      );
+        py::class_<Device::Blob, Arc<Device::Blob>>(m, "Pinned"      );
 
         m   .def("config_log"      , &configLog                  , return_::automatic )
             .def("find_device"     , &findDevice                 , return_::move      )
@@ -44,6 +45,8 @@ namespace refactor::python_ffi {
             .def("dispatch"        , &Executor::dispatch         , return_::automatic )
             .def("set_input"       , &Executor::setInput         , return_::automatic )
             .def("get_output"      , &Executor::getOutput        , return_::move      )
+            .def("pin"             , &Executor::pin              , return_::move      )
+            .def("set_pinned"      , &Executor::setPinned        , return_::automatic )
             .def("run"             , &Executor::run              , return_::automatic )
             .def("bench"           , &Executor::bench            , return_::automatic )
             .def("trace"           , &Executor::trace            , return_::automatic )

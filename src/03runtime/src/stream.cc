@@ -18,15 +18,21 @@ namespace refactor::runtime {
               std::move(edges),
           } {}
 
+    auto Stream::setData(count_t i, size_t size) -> Arc<hardware::Device::Blob> {
+        return _graph.edges[i].blob = _device->malloc(size);
+    }
+    void Stream::setData(count_t i, Arc<hardware::Device::Blob> blob) {
+        _graph.edges[i].blob = std::move(blob);
+    }
     void Stream::setData(count_t i, void const *data, size_t size) {
         auto blob = _device->malloc(size);
         blob->copyFromHost(data, size);
         _graph.edges[i].blob = std::move(blob);
     }
-    void Stream::setData(count_t i, Arc<hardware::Device::Blob> blob) {
-        _graph.edges[i].blob = std::move(blob);
+    auto Stream::getData(count_t i) -> Arc<hardware::Device::Blob> const {
+        return _graph.edges[i].blob;
     }
-    bool Stream::getData(count_t i, void *data, size_t size) const {
+    bool Stream::copyData(count_t i, void *data, size_t size) const {
         if (!_graph.edges[i].blob) { return false; }
         _graph.edges[i].blob->copyToHost(data, size);
         return true;
