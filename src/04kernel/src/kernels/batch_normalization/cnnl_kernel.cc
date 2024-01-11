@@ -107,10 +107,10 @@ namespace refactor::kernel {
         CNNL_ASSERT(cnnlSetTransposeDescriptor(d->NHWC2NCHW, 4, permuteOut));
 
         auto handle = res.fetchOrStore<CnnlContext>()->handle;
-        auto xTransSize = cnnlGetTensorElementNum(d->inDescTrans) * sizeof(info.dtX);
+        auto xTransSize = cnnlGetTensorElementNum(d->inDescTrans) * info.dtX.size();
         size_t workspaceSize;
         CNNL_ASSERT(cnnlGetTransposeWorkspaceSize(handle, d->inDesc, d->NCHW2NHWC, &workspaceSize));
-        size_t totalWorkspaceSize = xTransSize + workspaceSize;
+        size_t totalWorkspaceSize = xTransSize * 2 + workspaceSize;
 
         res.fetchOrStore<CnnlContext>();
         auto routine = [d = std::move(d),
@@ -129,7 +129,7 @@ namespace refactor::kernel {
 
             void *xTrans = workspace;
             void *yTrans = xTrans + xTransSize;
-            void *cursor = yTrans + workspaceSize;
+            void *cursor = yTrans + xTransSize;
 
             // transpose NCHW input to NHWC
             CNNL_ASSERT(cnnlTranspose_v2(handle, d->NCHW2NHWC, d->inDesc, x,

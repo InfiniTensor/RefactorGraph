@@ -9,13 +9,18 @@ namespace refactor::kernel {
     using Shape = absl::InlinedVector<dim_t, 4>;
     using Permutation = Shape;
 
-    struct TransposeCnnl final : public Kernel {
+    struct TransposeInfoCnnl {
         DataType dataType;
-        Shape dimIn;
-        Shape dimOut;
-        Permutation perm;
+        std::vector<int> inDim, outDim, perm;
 
-        TransposeCnnl(DataType, Shape, Shape, Permutation) noexcept;
+        TransposeInfoCnnl(DataType, std::vector<int>, std::vector<int>);
+        TransposeInfoCnnl(DataType, Shape, Permutation);
+    };
+
+    struct TransposeCnnl final : public Kernel {
+        TransposeInfoCnnl info;
+
+        TransposeCnnl(TransposeInfoCnnl) noexcept;
 
         static KernelBox build(DataType, Shape, Permutation) noexcept;
         static size_t typeId() noexcept;

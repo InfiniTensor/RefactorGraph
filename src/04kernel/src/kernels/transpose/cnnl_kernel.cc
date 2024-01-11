@@ -8,21 +8,29 @@
 
 namespace refactor::kernel {
     using K = TransposeCnnl;
-    using Info = TransposeInfo;
+    using Info = TransposeInfoCnnl;
 
-    K::TransposeCnnl(DataType dataType_, Shape dimIn_, Shape dimOut_, Permutation perm_) noexcept
-        : Kernel(), dataType(dataType_), dimIn(std::move(dimIn_)),
-          dimOut(std::move(dimOut_)), perm(std::move(perm_)) {}
+    Info::TransposeInfoCnnl(DataType dataType_, std::vector<int> input_, std::vector<int> perm_) 
+        : dataType(dataType_), inDim(input_), perm(perm_) {
+        ASSERT(input_.size() == perm_.size(), "Unreachable");
+        for (uint32_t i = 0; i < input_.size(); i++) {
+            outDim.push_back(input_[perm_[i]]);
+        }
+    }
 
-    auto K::build(DataType dataType, Shape shape_, Permutation perm_) noexcept -> KernelBox {
+    Info::TransposeInfoCnnl(DataType dataType, Shape shape, Permutation perm) 
+        : TransposeInfoCnnl(dataType, 
+                            std::move(std::vector<int>(shape.begin(), shape.end())),
+                            std::move(std::vector<int>(perm.begin(), perm.end()))) { }
+
+    K::TransposeCnnl(Info info_) noexcept
+        : Kernel(), info(std::move(info_)) { }
+
+    auto K::build(DataType dataType, Shape shape, Permutation perm) noexcept -> KernelBox {
 #ifndef USE_BANG
         return nullptr;
 #endif
-        Shape dimOut_;
-        for (uint32_t i = 0; i < shape_.size(); i++) {
-            dimOut_.push_back(shape_[perm_[i]]);
-        }
-        return std::make_unique<K>(dataType, std::move(shape_), std::move(dimOut_), std::move(perm_));
+        return std::make_unique<K>(TransposeInfoCnnl(dataType, shape, perm));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -63,10 +71,10 @@ namespace refactor::kernel {
             Descriptors(Descriptors &&) = delete;
         };
 
-        auto d = std::make_shared<Descriptors>(dataType != DT::F64);
-        setCnnlTensor(d->x, dataType, slice((int *)(dimIn.data()), dimIn.size()));
-        setCnnlTensor(d->y, dataType, slice((int *)(dimOut.data()), dimOut.size()));
-        CNNL_ASSERT(cnnlSetTransposeDescriptor(d->trans, perm.size(), (int *)perm.data()));
+        auto d = std::make_shared<Descriptors>(info.dataType != DT::F64);
+        setCnnlTensor(d->x, info.dataType, slice(info.inDim.data(), info.inDim.size()));
+        setCnnlTensor(d->y, info.dataType, slice(info.outDim.data(), info.outDim.size()));
+        CNNL_ASSERT(cnnlSetTransposeDescriptor(d->trans, info.perm.size(), info.perm.data()));
 
         auto handle = res.fetchOrStore<CnnlContext>()->handle;
         size_t workspaceSize;
