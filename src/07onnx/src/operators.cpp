@@ -95,6 +95,7 @@ namespace refactor::onnx {
         REGISTER(And                  , SimpleBinary         );
         REGISTER(Or                   , SimpleBinary         );
         REGISTER(Xor                  , SimpleBinary         );
+        REGISTER(Mod                  , SimpleBinary         );
         REGISTER(Abs                  , SimpleUnary          );
         REGISTER(Acos                 , SimpleUnary          );
         REGISTER(Acosh                , SimpleUnary          );
