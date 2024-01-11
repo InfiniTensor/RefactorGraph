@@ -158,14 +158,18 @@ extern "C" __global__ void kernel(
             case SimpleBinaryType::Fmod:
                 switch (dt) {
                     case DataType::U8:
-                    case DataType::I8:
                     case DataType::U16:
-                    case DataType::I16:
-                    case DataType::I32:
-                    case DataType::I64:
                     case DataType::U32:
                     case DataType::U64:
-                        return "a % b < 0 ? (a % b + b) : (a % b)";
+                        return "a % b";
+                    case DataType::I8:
+                        return "static_cast<char>(fmodf(a, b))";
+                    case DataType::I16:
+                        return "static_cast<short>(fmodf(a, b))";
+                    case DataType::I32:
+                        return "static_cast<int>(fmodf(a, b))";
+                    case DataType::I64:
+                        return "static_cast<long long>(fmodf(a, b))";
                     case DataType::F32:
                         return "fmodf(a, b)";
                     case DataType::FP16:
