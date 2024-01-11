@@ -52,6 +52,7 @@ TEST(kernel, SimpleUnaryCuda) {
     testOp(SimpleUnaryType::Sigmoid);
     testOp(SimpleUnaryType::Tanh);
     testOp(SimpleUnaryType::Erf);
+    testOp(SimpleUnaryType::HardSwish);
 }
 
 #endif

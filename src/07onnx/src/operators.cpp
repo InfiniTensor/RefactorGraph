@@ -116,6 +116,7 @@ namespace refactor::onnx {
         REGISTER(Not                  , SimpleUnary          );
         REGISTER(Neg                  , SimpleUnary          );
         REGISTER(Identity             , SimpleUnary          );
+        REGISTER(HardSwish            , SimpleUnary          );
         REGISTER(Slice                , Slice                );
         REGISTER(Softmax              , Softmax              );
         REGISTER(Split                , Split                );
