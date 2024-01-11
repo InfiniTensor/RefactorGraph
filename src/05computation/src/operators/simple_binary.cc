@@ -39,6 +39,14 @@ namespace refactor::computation {
                 static uint8_t ID = 8;
                 return reinterpret_cast<size_t>(&ID);
             }
+            case Ty::Mod: {
+                static uint8_t ID = 9;
+                return reinterpret_cast<size_t>(&ID);
+            }
+            case Ty::Fmod: {
+                static uint8_t ID = 10;
+                return reinterpret_cast<size_t>(&ID);
+            }            
             default:
                 UNREACHABLE();
         }
@@ -64,6 +72,10 @@ namespace refactor::computation {
                 return "Or";
             case Ty::Xor:
                 return "Xor";
+            case Ty::Mod:
+                return "Mod";
+            case Ty::Fmod:
+                return "Fmod";                
             default:
                 UNREACHABLE();
         }

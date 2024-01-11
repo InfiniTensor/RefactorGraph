@@ -135,11 +135,45 @@ extern "C" __global__ void kernel(
                     case DataType::F32:
                         return "powf(a, b)";
                     case DataType::FP16:
-                        return "__float2half(__powf(__half2float(a), __half2float(b)))";
+                        return "__float2half(powf(__half2float(a), __half2float(b)))";
                     case DataType::BF16:
                         return "__float2bfloat16(powf(__bfloat162float(a), __bfloat162float(b)))";
                     default:
                         return "pow(a, b)";
+                }
+            case SimpleBinaryType::Mod:
+                switch (dt) {
+                    case DataType::U8:
+                    case DataType::I8:
+                    case DataType::U16:
+                    case DataType::I16:
+                    case DataType::I32:
+                    case DataType::I64:
+                    case DataType::U32:
+                    case DataType::U64:
+                        return "a % b";
+                    default:
+                        UNREACHABLE();
+                }
+            case SimpleBinaryType::Fmod:
+                switch (dt) {
+                    case DataType::U8:
+                    case DataType::I8:
+                    case DataType::U16:
+                    case DataType::I16:
+                    case DataType::I32:
+                    case DataType::I64:
+                    case DataType::U32:
+                    case DataType::U64:
+                        return "a % b < 0 ? (a % b + b) : (a % b)";
+                    case DataType::F32:
+                        return "fmodf(a, b)";
+                    case DataType::FP16:
+                        return "__float2half(fmodf(__half2float(a), __half2float(b)))";
+                    case DataType::BF16:
+                        return "__float2bfloat16(fmodf(__bfloat162float(a), __bfloat162float(b)))";
+                    default:
+                        UNREACHABLE();
                 }
             default:
                 UNREACHABLE();

@@ -10,7 +10,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Simple binary operator should not have attributes");
+        auto fmod = defaultOr(attributes, "fmod", {0}).int_();
         // clang-format off
         auto type =
             opType == "onnx::Add" ? Ty::Add :
@@ -21,6 +21,7 @@ namespace refactor::onnx {
             opType == "onnx::And" ? Ty::And :
             opType == "onnx::Or"  ? Ty::Or  :
             opType == "onnx::Xor" ? Ty::Xor :
+            opType == "onnx::Mod" ? (fmod == 0 ? Ty::Mod : Ty::Fmod) :
             UNREACHABLEX(Ty, "Unsupported binary operator: {}", opType);
         // clang-format on
         return OpBox(std::make_unique<Op>(type));
@@ -48,6 +49,26 @@ namespace refactor::onnx {
                 static uint8_t ID = 5;
                 return reinterpret_cast<size_t>(&ID);
             }
+            case Ty::And: {
+                static uint8_t ID = 6;
+                return reinterpret_cast<size_t>(&ID);
+            }
+            case Ty::Or: {
+                static uint8_t ID = 7;
+                return reinterpret_cast<size_t>(&ID);
+            }
+            case Ty::Xor: {
+                static uint8_t ID = 8;
+                return reinterpret_cast<size_t>(&ID);
+            }
+            case Ty::Mod: {
+                static uint8_t ID = 9;
+                return reinterpret_cast<size_t>(&ID);
+            }
+            case Ty::Fmod: {
+                static uint8_t ID = 10;
+                return reinterpret_cast<size_t>(&ID);
+            }            
             default:
                 UNREACHABLE();
         }
@@ -65,6 +86,8 @@ namespace refactor::onnx {
             case Ty::And: return "onnx::And";
             case Ty::Or : return "onnx::Or" ;
             case Ty::Xor: return "onnx::Xor";
+            case Ty::Mod: return "onnx::Mod";
+            case Ty::Fmod: return "onnx::Mod";
             default: UNREACHABLE();
         }
         // clang-format on
@@ -162,6 +185,8 @@ namespace refactor::onnx {
             case Ty::And : type_ = Ty_::And; break;
             case Ty::Or  : type_ = Ty_::Or ; break;
             case Ty::Xor : type_ = Ty_::Xor; break;
+            case Ty::Mod : type_ = Ty_::Mod; break;
+            case Ty::Fmod : type_ = Ty_::Fmod; break;
             default: UNREACHABLE();
         }
         // clang-format on
