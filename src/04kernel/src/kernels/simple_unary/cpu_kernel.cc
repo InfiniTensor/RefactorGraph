@@ -18,6 +18,7 @@ namespace refactor::kernel {
             Op::Sigmoid,
             Op::Tanh,
             Op::Neg,
+            Op::Erf,
         };
         return supportedOp.contains(op) && a.dataType.isCpuNumberic()
                    ? std::make_unique<K>(op, a.dataType, a.elementsSize())
@@ -152,6 +153,21 @@ namespace refactor::kernel {
                     CASE(-, I16);
                     CASE(-, I32);
                     CASE(-, I64);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Erf:
+                switch (dataType) {
+                    CASE(std::erf, F32);
+                    CASE(std::erf, F64);
+                    CASE(std::erf, I8);
+                    CASE(std::erf, I16);
+                    CASE(std::erf, I32);
+                    CASE(std::erf, I64);
+                    CASE(std::erf, U8);
+                    CASE(std::erf, U16);
+                    CASE(std::erf, U32);
+                    CASE(std::erf, U64);
                     default:
                         UNREACHABLE();
                 }
