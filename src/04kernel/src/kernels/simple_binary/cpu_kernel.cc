@@ -1,4 +1,5 @@
 ﻿#include "cpu_kernel.hh"
+#include <cmath>
 #include <execution>
 
 namespace refactor::kernel {
@@ -118,8 +119,38 @@ namespace refactor::kernel {
                         UNREACHABLE();
                 }
             }
-            default:
-                UNREACHABLE();
+            case Op::Mod: {
+                switch (dataType.internal) {
+                    CASE_DT(a % b, U8);
+                    CASE_DT(a % b, I8);
+                    CASE_DT(a % b, U16);
+                    CASE_DT(a % b, I16);
+                    CASE_DT(a % b, I32);
+                    CASE_DT(a % b, I64);
+                    CASE_DT(a % b, U32);
+                    CASE_DT(a % b, U64);
+                    default:
+                        UNREACHABLE();
+                }
+            }
+            case Op::Fmod: {
+                switch (dataType.internal) {
+                    CASE_DT(std::fmod(a, b), F32);
+                    CASE_DT(a % b, U8);
+                    CASE_DT(a % b < 0 ? (a % b + b) : (a % b), I8);
+                    CASE_DT(a % b, U16);
+                    CASE_DT(a % b < 0 ? (a % b + b) : (a % b), I16);
+                    CASE_DT(a % b < 0 ? (a % b + b) : (a % b), I32);
+                    CASE_DT(a % b < 0 ? (a % b + b) : (a % b), I64);
+                    CASE_DT(std::fmod(a, b), F64);
+                    CASE_DT(a % b, U32);
+                    CASE_DT(a % b, U64);
+                    default:
+                        UNREACHABLE();
+                }
+                default:
+                    UNREACHABLE();
+            }
         }
     }
 

@@ -9,12 +9,13 @@ using namespace refactor;
 using namespace kernel;
 using namespace hardware;
 
+template<decltype(DataType::internal) T>
 void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape dimC) {
     // Create Tensor and build kernels
-    using T_ = primitive<DataType::I8>::type;
-    auto aTensor = Tensor::share(DataType::I8, dimA, LayoutType::NCHW);
-    auto bTensor = Tensor::share(DataType::I8, dimB, LayoutType::NCHW);
-    auto cTensor = Tensor::share(DataType::I8, dimC, LayoutType::NCHW);
+    using T_ = primitive<T>::type;
+    auto aTensor = Tensor::share(T, dimA, LayoutType::NCHW);
+    auto bTensor = Tensor::share(T, dimB, LayoutType::NCHW);
+    auto cTensor = Tensor::share(T, dimC, LayoutType::NCHW);
 
     auto cpuKernel = BinaryCpu::build(binaryOPT, *aTensor, *bTensor),
          cudaKernel = BinaryCuda::build(binaryOPT, *aTensor, *bTensor);
@@ -24,8 +25,8 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     auto cudaRoutine = cudaKernel->lower(res).routine;
 
     // Init inputs and outputs
-    std::vector<T_> a(aTensor->elementsSize(), 3.0f);
-    std::vector<T_> b(bTensor->elementsSize(), 2.0f);
+    std::vector<T_> a(aTensor->elementsSize(), 3);
+    std::vector<T_> b(bTensor->elementsSize(), 2);
     std::vector<T_> c(cTensor->elementsSize());
     auto &dev = *device::init(Device::Type::Nvidia, 0, "");
     auto aGPU = dev.malloc(aTensor->bytesSize()),
@@ -53,35 +54,56 @@ void testBinaryCuda(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
 }
 
 TEST(kernel, BinaryCudaAdd) {
-    testBinaryCuda(SimpleBinaryType::Add,
-                   Shape{2, 5, 10, 20, 3, 4},
-                   Shape{2, 5, 10, 20, 3, 4},
-                   Shape{2, 5, 10, 20, 3, 4});
+    testBinaryCuda<DataType::I8>(SimpleBinaryType::Add,
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCudaMul) {
-    testBinaryCuda(SimpleBinaryType::Mul,
-                   Shape{2, 5, 10, 20, 3, 4},
-                   Shape{2, 5, 10, 20, 3, 4},
-                   Shape{2, 5, 10, 20, 3, 4});
+    testBinaryCuda<DataType::I8>(SimpleBinaryType::Mul,
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCudaSub) {
-    testBinaryCuda(SimpleBinaryType::Sub,
-                   Shape{2, 5, 10, 20, 3, 4},
-                   Shape{2, 5, 10, 20, 3, 4},
-                   Shape{2, 5, 10, 20, 3, 4});
+    testBinaryCuda<DataType::I8>(SimpleBinaryType::Sub,
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCudaDiv) {
-    testBinaryCuda(SimpleBinaryType::Div,
-                   Shape{2, 5, 10, 20, 3, 4},
-                   Shape{2, 5, 10, 20, 3, 4},
-                   Shape{2, 5, 10, 20, 3, 4});
+    testBinaryCuda<DataType::I8>(SimpleBinaryType::Div,
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4});
+}
+
+TEST(kernel, BinaryCudaMod) {
+    testBinaryCuda<DataType::I8>(SimpleBinaryType::Mod,
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4});
+}
+
+TEST(kernel, BinaryCudaFmodI8) {
+    testBinaryCuda<DataType::I8>(SimpleBinaryType::Fmod,
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4},
+                                 Shape{2, 5, 10, 20, 3, 4});
+}
+
+TEST(kernel, BinaryCudaFmodF32) {
+    testBinaryCuda<DataType::F32>(SimpleBinaryType::Fmod,
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCudaBroadcast) {
-    testBinaryCuda(SimpleBinaryType::Add, Shape{1, 2, 3, 4, 5, 6}, Shape{}, Shape{1, 2, 3, 4, 5, 6});
+    testBinaryCuda<DataType::I8>(SimpleBinaryType::Add, Shape{1, 2, 3, 4, 5, 6}, Shape{}, Shape{1, 2, 3, 4, 5, 6});
 }
 
 #endif

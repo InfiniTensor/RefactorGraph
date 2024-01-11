@@ -14,6 +14,8 @@ namespace refactor::kernel {
         And,
         Or,
         Xor,
+        Mod,
+        Fmod,
     };
 
     std::string_view opName(SimpleBinaryType type);

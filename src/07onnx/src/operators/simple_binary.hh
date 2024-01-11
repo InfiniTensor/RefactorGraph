@@ -15,6 +15,8 @@ namespace refactor::onnx {
         And,
         Or,
         Xor,
+        Mod,
+        Fmod,
     };
 
     struct SimpleBinary final : public Operator {
