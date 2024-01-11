@@ -65,6 +65,10 @@ namespace refactor::onnx {
                 static uint8_t ID = 9;
                 return reinterpret_cast<size_t>(&ID);
             }
+            case Ty::Fmod: {
+                static uint8_t ID = 10;
+                return reinterpret_cast<size_t>(&ID);
+            }            
             default:
                 UNREACHABLE();
         }
@@ -83,6 +87,7 @@ namespace refactor::onnx {
             case Ty::Or : return "onnx::Or" ;
             case Ty::Xor: return "onnx::Xor";
             case Ty::Mod: return "onnx::Mod";
+            case Ty::Fmod: return "onnx::Mod";
             default: UNREACHABLE();
         }
         // clang-format on
@@ -181,6 +186,7 @@ namespace refactor::onnx {
             case Ty::Or  : type_ = Ty_::Or ; break;
             case Ty::Xor : type_ = Ty_::Xor; break;
             case Ty::Mod : type_ = Ty_::Mod; break;
+            case Ty::Fmod : type_ = Ty_::Fmod; break;
             default: UNREACHABLE();
         }
         // clang-format on
