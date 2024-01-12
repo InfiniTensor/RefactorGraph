@@ -10,7 +10,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        auto fmod = attributes.getOrInsert( "fmod", {0}).int_();
+        auto fmod = attributes.getOrInsert("fmod", {0}).int_();
         // clang-format off
         auto type =
             opType == "onnx::Add" ? Ty::Add :

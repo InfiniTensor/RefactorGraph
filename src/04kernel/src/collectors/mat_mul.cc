@@ -1,4 +1,5 @@
 ﻿#include "kernel/collectors/mat_mul.h"
+#include "../kernels/mat_mul/cnnl_kernel.hh"
 #include "../kernels/mat_mul/cpu_kernel.hh"
 #include "../kernels/mat_mul/cublas_kernel.hh"
 #include "kernel/attributes/mat_mul_info.h"
@@ -25,6 +26,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 REGISTER(MatMulCublas)
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = MatMulCnnl::build(inputs, outputs, transA, transB, alpha, beta); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");
