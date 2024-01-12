@@ -29,7 +29,7 @@ namespace refactor::runtime {
         blob->copyFromHost(data, size);
         _graph.edges[i].blob = std::move(blob);
     }
-    auto Stream::getData(count_t i) -> Arc<hardware::Device::Blob> const {
+    auto Stream::getData(count_t i) const -> Arc<hardware::Device::Blob> {
         return _graph.edges[i].blob;
     }
     bool Stream::copyData(count_t i, void *data, size_t size) const {

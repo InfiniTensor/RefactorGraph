@@ -44,7 +44,7 @@ namespace refactor::runtime {
         decltype(_graph) const &graph() const noexcept { return _graph; }
         auto setData(count_t, size_t) -> Arc<hardware::Device::Blob>;
         void setData(count_t, Arc<hardware::Device::Blob>);
-        auto getData(count_t) -> Arc<hardware::Device::Blob> const;
+        auto getData(count_t) const -> Arc<hardware::Device::Blob>;
         void setData(count_t, void const *, size_t);
         bool copyData(count_t, void *, size_t) const;
         void run();

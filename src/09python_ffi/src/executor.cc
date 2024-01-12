@@ -40,7 +40,15 @@ namespace refactor::python_ffi {
         _stream.setData(i, data.data(), data.nbytes());
     }
 
-    auto Executor::getOutput(count_t i) -> pybind11::array {
+    void Executor::setInputBlob(count_t i, Arc<hardware::Device::Blob> blob) {
+        i = _stream.graph().topology.globalInputs().at(i);
+
+        auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
+        ASSERT(tensor.bytesSize() == blob->size(), "input size mismatch");
+        _stream.setData(i, std::move(blob));
+    }
+
+    auto Executor::getOutput(count_t i) const -> pybind11::array {
         i = _stream.graph().topology.globalOutputs().at(i);
 
         auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
@@ -49,20 +57,10 @@ namespace refactor::python_ffi {
         return ans;
     }
 
-    auto Executor::pin(count_t i) -> Arc<hardware::Device::Blob> {
-        i = _stream.graph().topology.globalInputs().at(i);
+    auto Executor::getOutputBlob(count_t i) const -> Arc<hardware::Device::Blob> {
+        i = _stream.graph().topology.globalOutputs().at(i);
 
-        if (auto pinned = _stream.getData(i); pinned) {
-            return pinned;
-        } else {
-            auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
-            return _stream.setData(i, tensor.bytesSize());
-        }
-    }
-    void Executor::setPinned(count_t i, Arc<hardware::Device::Blob> pinned) {
-        i = _stream.graph().topology.globalInputs().at(i);
-
-        _stream.setData(i, std::move(pinned));
+        return _stream.getData(i);
     }
 
     void Executor::run() {
