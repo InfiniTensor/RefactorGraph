@@ -1,6 +1,7 @@
 ﻿#include "kernel/collectors/clip.h"
 #include "../kernels/clip/cpu_kernel.hh"
 #include "../kernels/clip/cuda_kernel.hh"
+#include "../kernels/clip/cnnl_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -21,6 +22,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = ClipCuda::build(data, hasMax); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = ClipCnnl::build(data, hasMax); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

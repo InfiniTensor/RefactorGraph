@@ -16,21 +16,19 @@ namespace refactor::kernel {
 
     auto K::build(Op op, Tensor const &a, Tensor const &b, Tensor const &c) noexcept -> KernelBox {
         static const std::unordered_set<Op>
-            ARTHIMETIC{Op::Add, Op::Sub, Op::Mul, Op::Div, Op::And, Op::Or, Op::Xor, Op::Pow};
+            ARTHIMETIC{Op::Add, Op::Sub, Op::Mul, Op::Div, Op::And, Op::Or, Op::Xor, Op::Pow, Op::Mod, Op::Fmod};
 
 #ifndef USE_BANG
         return nullptr;
 #endif
 
         if (a.dataType != b.dataType ||
-            !a.dataType.isFloat() ||
+            // !a.dataType.isFloat() ||
             !ARTHIMETIC.contains(op) ||
             // At least one of a,b should have the same shape as c
             (a.shape != c.shape && b.shape != c.shape) ||
             // Sub only supports brocasting b
-            (a.shape != c.shape && op == Op::Sub) ||
-            // Cnnl binary op only supports up to 5D
-            !((a.rank() == 5 && b.rank() == 5) || (a.rank() <= 4 && b.rank() <= 4))) {
+            (a.shape != c.shape && op == Op::Sub)) {
             return nullptr;
         }
 
@@ -103,16 +101,19 @@ namespace refactor::kernel {
         setCnnlTensor(d->aDesc, dataType, slice(aDims.data(), aDims.size()));
         setCnnlTensor(d->bDesc, dataType, slice(bDims.data(), bDims.size()));
         setCnnlTensor(d->cDesc, dataType, slice(cDims.data(), cDims.size()));
-        CNNL_ASSERT(cnnlSetOpTensorDescriptor(
-            d->opDesc, cnnlOP,
-            cnnlDataTypeConvert(d->f32 ? DT::F32 : DT::F64),
-            CNNL_NOT_PROPAGATE_NAN));
+        if (cnnlOP) {
+            CNNL_ASSERT(cnnlSetOpTensorDescriptor(
+                d->opDesc, cnnlOP,
+                cnnlDataTypeConvert(dataType),
+                CNNL_NOT_PROPAGATE_NAN));
+        }
 
         auto cnnlGetBinaryWorkspaceSize =
             (opType == SimpleBinaryType::Add || opType == SimpleBinaryType::Sub || opType == SimpleBinaryType::Mul)  ? cnnlGetOpTensorWorkspaceSize
             : (opType == SimpleBinaryType::Div)                                                                      ? cnnlGetDivWorkspaceSize
             : (opType == SimpleBinaryType::And || opType == SimpleBinaryType::Or || opType == SimpleBinaryType::Xor) ? cnnlGetLogicOpWorkspaceSize
             : (opType == SimpleBinaryType::Pow)                                                                      ? cnnlGetPowWorkspaceSize
+            : (opType == SimpleBinaryType::Mod || opType == SimpleBinaryType::Fmod)                                  ? cnnlGetFloorModWorkspaceSize
                                                                                                                      : nullptr;
 
         if (cnnlGetBinaryWorkspaceSize == nullptr) {
@@ -184,7 +185,15 @@ namespace refactor::kernel {
                                     d->bDesc, b,
                                     workspace, workspaceSize,
                                     d->cDesc, c));
+            } else if (op == SimpleBinaryType::Mod || op == SimpleBinaryType::Fmod) {
+                CNNL_ASSERT(cnnlFloorMod(handle,
+                                         d->aDesc, a,
+                                         d->bDesc, b,
+                                         d->cDesc, c,
+                                         workspace, workspaceSize));
             }
+            
+            BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
         };
 
         return {std::move(routine), workspaceSize};

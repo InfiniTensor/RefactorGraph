@@ -1,4 +1,5 @@
 ﻿#include "kernel/collectors/gather.h"
+#include "../kernels/gather/cnnl_kernel.hh"
 #include "../kernels/gather/cpu_kernel.hh"
 #include "../kernels/gather/cuda_kernel.hh"
 
@@ -17,6 +18,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = GatherCuda::build(info); ptr != nullptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = GatherCnnl::build(axis, inputs[0].get(), inputs[1].get(), outputs[0].get()); ptr != nullptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

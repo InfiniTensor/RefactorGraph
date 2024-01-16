@@ -9,11 +9,13 @@ using namespace refactor;
 using namespace kernel;
 using namespace hardware;
 
+template<decltype(DataType::internal) T>
 void testBinaryCnnl(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape dimC) {
     // Create Tensor and build kernels
-    auto aTensor = Tensor::share(DataType::F32, dimA, LayoutType::NCHW);
-    auto bTensor = Tensor::share(DataType::F32, dimB, LayoutType::NCHW);
-    auto cTensor = Tensor::share(DataType::F32, dimC, LayoutType::NCHW);
+    using T_ = primitive<T>::type;
+    auto aTensor = Tensor::share(T, dimA, LayoutType::NCHW);
+    auto bTensor = Tensor::share(T, dimB, LayoutType::NCHW);
+    auto cTensor = Tensor::share(T, dimC, LayoutType::NCHW);
     auto kernel = BinaryCnnl::build(binaryOPT, *aTensor, *bTensor, *cTensor);
     auto kCpu = BinaryCpu::build(binaryOPT, *aTensor, *bTensor);
     ASSERT_TRUE(kCpu && kernel);
@@ -21,10 +23,9 @@ void testBinaryCnnl(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
     auto [routine, workspaceSize] = kernel->lower(res);
     auto rCpu = kCpu->lower(res).routine;
     // Init inputs and outputs
-    std::vector<float>
-        a(aTensor->elementsSize(), 3.0f),
-        b(bTensor->elementsSize(), 2.0f),
-        c(cTensor->elementsSize());
+    std::vector<T_> a(aTensor->elementsSize(), 3);
+    std::vector<T_> b(bTensor->elementsSize(), 2);
+    std::vector<T_> c(cTensor->elementsSize());
     auto &dev = *device::init(Device::Type::Mlu, 0, "");
     auto workspace = dev.malloc(workspaceSize),
          aMLU = dev.malloc(aTensor->bytesSize()),
@@ -44,47 +45,85 @@ void testBinaryCnnl(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
         rCpu(res, nullptr, inputs, outputs);
     }
     // Compare
-    std::vector<float> result(cTensor->elementsSize());
+    std::vector<T_> result(cTensor->elementsSize());
     cMLU->copyToHost(result.data(), cTensor->bytesSize());
     for (auto i : range0_(result.size())) {
-        EXPECT_FLOAT_EQ(c[i], result[i]);
+        EXPECT_EQ(c[i], result[i]);
     }
 }
-
 TEST(kernel, BinaryCnnlAdd) {
-    testBinaryCnnl(SimpleBinaryType::Add, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+    testBinaryCnnl<DataType::F32>(SimpleBinaryType::Add,
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCnnlMul) {
-    testBinaryCnnl(SimpleBinaryType::Mul, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+    testBinaryCnnl<DataType::F32>(SimpleBinaryType::Mul,
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCnnlSub) {
-    testBinaryCnnl(SimpleBinaryType::Sub, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+    testBinaryCnnl<DataType::F32>(SimpleBinaryType::Sub,
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4});
 }
 
 TEST(kernel, BinaryCnnlDiv) {
-    testBinaryCnnl(SimpleBinaryType::Div, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+    testBinaryCnnl<DataType::F32>(SimpleBinaryType::Div,
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4});
 }
-
-// TEST(kernel, BinaryCnnlAnd) {
-//     testBinaryCnnl(SimpleBinaryType::And, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
-// }
-
-// TEST(kernel, BinaryCnnlOr) {
-//     testBinaryCnnl(SimpleBinaryType::Or, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
-// }
-
-// TEST(kernel, BinaryCnnlXor) {
-//     testBinaryCnnl(SimpleBinaryType::Xor, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
-// }
 
 TEST(kernel, BinaryCnnlPow) {
-    testBinaryCnnl(SimpleBinaryType::Pow, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40}, Shape{10, 20, 30, 40});
+    testBinaryCnnl<DataType::F32>(SimpleBinaryType::Pow,
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4});
 }
 
-TEST(kernel, BinaryCnnlBroadcast) {
-    testBinaryCnnl(SimpleBinaryType::Add, Shape{3, 4, 5, 6}, Shape{}, Shape{3, 4, 5, 6});
+TEST(kernel, BinaryCnnlMod) {
+    testBinaryCnnl<DataType::I32>(SimpleBinaryType::Mod,
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4});
 }
+
+TEST(kernel, BinaryCnnlFMod) {
+    testBinaryCnnl<DataType::F32>(SimpleBinaryType::Fmod,
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4},
+                                  Shape{2, 5, 10, 20, 3, 4});
+}
+
+// TEST(kernel, BinaryCnnlMod) {
+//     testBinaryCnnl<DataType::I8>(SimpleBinaryType::Mod,
+//                                  Shape{2, 5, 10, 20, 3, 4},
+//                                  Shape{2, 5, 10, 20, 3, 4},
+//                                  Shape{2, 5, 10, 20, 3, 4});
+// }
+
+// TEST(kernel, BinaryCnnlFmodI8) {
+//     testBinaryCnnl<DataType::I8>(SimpleBinaryType::Fmod,
+//                                  Shape{2, 5, 10, 20, 3, 4},
+//                                  Shape{2, 5, 10, 20, 3, 4},
+//                                  Shape{2, 5, 10, 20, 3, 4});
+// }
+
+// TEST(kernel, BinaryCnnlFmodF32) {
+//     testBinaryCnnl<DataType::F32>(SimpleBinaryType::Fmod,
+//                                   Shape{2, 5, 10, 20, 3, 4},
+//                                   Shape{2, 5, 10, 20, 3, 4},
+//                                   Shape{2, 5, 10, 20, 3, 4});
+// }
+
+TEST(kernel, BinaryCnnlBroadcast) {
+    testBinaryCnnl<DataType::F32>(SimpleBinaryType::Add, Shape{1, 2, 3, 4, 5, 6}, Shape{}, Shape{1, 2, 3, 4, 5, 6});
+}
+
 
 #endif

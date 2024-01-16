@@ -51,6 +51,7 @@ TEST(kernel, SimpleUnaryCnnl) {
     testOp(SimpleUnaryType::Abs, false);
     testOp(SimpleUnaryType::Neg, false);
     testOp(SimpleUnaryType::Sqrt, false);
+    testOp(SimpleUnaryType::Erf, false);
 }
 
 TEST(kernel, ActivationCnnl) {

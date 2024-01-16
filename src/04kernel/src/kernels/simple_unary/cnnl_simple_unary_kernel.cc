@@ -17,7 +17,7 @@ namespace refactor::kernel {
         : Kernel(), type(type_), dataType(dataType_), size(size_) {}
 
     auto K::build(Op op, Tensor const &a) noexcept -> KernelBox {
-        static const std::unordered_set<Op> supportedOp{Op::Abs, Op::Sqrt, Op::Neg};
+        static const std::unordered_set<Op> supportedOp{Op::Abs, Op::Sqrt, Op::Neg, Op::Erf};
 
 #ifndef USE_BANG
         return nullptr;
@@ -74,6 +74,8 @@ namespace refactor::kernel {
                     return cnnlNegTensor(handle, x_desc, x, y_desc, y);
                 case Ty::Sqrt:
                     return cnnlSqrt_v2(handle, CNNL_COMPUTATION_HIGH_PRECISION, x_desc, x, y_desc, y);
+                case Ty::Erf:
+                    return cnnlErf_v2(handle, CNNL_COMPUTATION_HIGH_PRECISION, x_desc, x, y_desc, y);
                 default:
                     UNREACHABLE();
             }
