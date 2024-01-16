@@ -39,7 +39,7 @@ namespace refactor::onnx {
         auto dependencies = extractDependency(inputs);
         if (inputs.size() == 1) {
             Tensors ans(numOutputs, nullptr);
-            auto each = total + numOutputs - 1 / numOutputs;
+            auto each = (total + numOutputs - 1) / numOutputs;
             for (auto i : range0_(numOutputs)) {
                 if (total > each) {
                     ans[i] = Tensor::share(input.dataType, input.shape, dependencies);
