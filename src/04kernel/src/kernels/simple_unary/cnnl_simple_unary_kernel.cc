@@ -62,12 +62,12 @@ namespace refactor::kernel {
 
         setCnnlTensor(d->tensor, dataType, slice(&size, 1));
 
-        auto cnnlUnaryForward = [this](cnnlHandle_t handle,
-                                       const cnnlTensorDescriptor_t x_desc,
-                                       const void *x,
-                                       const cnnlTensorDescriptor_t y_desc,
-                                       void *y) -> cnnlStatus_t {
-            switch (this->type) {
+        auto cnnlUnaryForward = [t = this->type](cnnlHandle_t handle,
+                                                 const cnnlTensorDescriptor_t x_desc,
+                                                 const void *x,
+                                                 const cnnlTensorDescriptor_t y_desc,
+                                                 void *y) -> cnnlStatus_t {
+            switch (t) {
                 case Ty::Abs:
                     return cnnlAbs(handle, x_desc, x, y_desc, y);
                 case Ty::Neg:
@@ -77,6 +77,7 @@ namespace refactor::kernel {
                 case Ty::Erf:
                     return cnnlErf_v2(handle, CNNL_COMPUTATION_HIGH_PRECISION, x_desc, x, y_desc, y);
                 default:
+                    // fmt::println("{}", unaryName(t));
                     UNREACHABLE();
             }
         };

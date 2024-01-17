@@ -9,6 +9,8 @@ namespace refactor::kernel {
     ConcatCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         SplitInfo info(axis, inputs);
 
+        auto const &b = outputs[0];
+
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
@@ -22,7 +24,7 @@ namespace refactor::kernel {
                 }
                 break;
             case decltype(_target)::Mlu:
-                if (auto ptr = ConcatCnnl::build(axis, inputs, outputs[0].get()); ptr) {
+                if (auto ptr = ConcatCnnl::build(axis, inputs, b); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

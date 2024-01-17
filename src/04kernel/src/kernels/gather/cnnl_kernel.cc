@@ -11,13 +11,14 @@ namespace refactor::kernel {
     K::GatherCnnl(decltype(info) info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(int axis, Tensor input, Tensor index, Tensor output) noexcept -> KernelBox {
+    auto K::build(int axis, Tensor const &input, Tensor const &index, Tensor const &output) noexcept -> KernelBox {
 #ifndef USE_BANG
         return nullptr;
 #endif
+
         return std::make_unique<K>(decltype(info){
             input.dataType,
-            index.dataType,
+            DataType::I32,
             axis,
             std::vector<int>(input.shape.begin(), input.shape.end()),
             std::vector<int>(index.shape.begin(), index.shape.end()),

@@ -26,9 +26,10 @@ namespace refactor::kernel {
             // !a.dataType.isFloat() ||
             !ARTHIMETIC.contains(op) ||
             // At least one of a,b should have the same shape as c
-            (a.shape != c.shape && b.shape != c.shape) ||
+            (a.shape != c.shape && b.shape != c.shape)
             // Sub only supports brocasting b
-            (a.shape != c.shape && op == Op::Sub)) {
+            // (a.shape != c.shape && op == Op::Sub)
+            ) {
             return nullptr;
         }
 
@@ -122,18 +123,13 @@ namespace refactor::kernel {
 
         auto handle = res.fetchOrStore<CnnlContext>()->handle;
         size_t workspaceSize;
-        if (aDims != cDims) {
-            CNNL_ASSERT(cnnlGetBinaryWorkspaceSize(handle, d->bDesc,
-                                                   d->aDesc, d->cDesc,
-                                                   &workspaceSize));
-        } else {
-            CNNL_ASSERT(cnnlGetBinaryWorkspaceSize(handle, d->aDesc,
+        CNNL_ASSERT(cnnlGetBinaryWorkspaceSize(handle, d->aDesc,
                                                    d->bDesc, d->cDesc,
                                                    &workspaceSize));
-        }
+        
 
         res.fetchOrStore<CnnlContext>();
-        auto routine = [swap = aDims != cDims, d,
+        auto routine = [d = std::move(d),
                         workspaceSize, cnnlLogicOP,
                         op = this->opType](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             auto handle = res.fetchOrStore<CnnlContext>()->handle;
@@ -151,20 +147,11 @@ namespace refactor::kernel {
                      beta = d->f32
                                 ? factor<fp32_t>(0)
                                 : factor<fp64_t>(0);
-
-                if (swap) {
-                    CNNL_ASSERT(cnnlOpTensor(handle, d->opDesc,
-                                             &alphaB, d->bDesc, b,
-                                             &alphaA, d->aDesc, a,
-                                             workspace, workspaceSize,
-                                             &beta, d->cDesc, c));
-                } else {
                     CNNL_ASSERT(cnnlOpTensor(handle, d->opDesc,
                                              &alphaA, d->aDesc, a,
                                              &alphaB, d->bDesc, b,
                                              workspace, workspaceSize,
                                              &beta, d->cDesc, c));
-                }
             } else if (op == SimpleBinaryType::Div) {
                 CNNL_ASSERT(cnnlDiv_v2(handle,
                                        CNNL_COMPUTATION_HIGH_PRECISION,

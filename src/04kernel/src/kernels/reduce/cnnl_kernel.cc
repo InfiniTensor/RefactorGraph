@@ -75,8 +75,10 @@ namespace refactor::kernel {
         for (auto axis : axes) {
             dimsO[axis] = 1;
         }
-        setCnnlTensor(d->x, dataType, slice(dimsI.data(), dimsI.size()));
-        setCnnlTensor(d->y, dataType, slice(dimsO.data(), dimsO.size()));
+        // setCnnlTensor(d->x, dataType, slice(dimsI.data(), dimsI.size()));
+        // setCnnlTensor(d->y, dataType, slice(dimsO.data(), dimsO.size()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(d->x, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(dataType), dimsI.size(), dimsI.data()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(d->y, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(dataType), dimsO.size(), dimsO.data()));
 
         // clang-format off
         auto reduceOp = reduceType == ReduceType::Mean ? CNNL_REDUCE_AVG

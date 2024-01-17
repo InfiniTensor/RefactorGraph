@@ -12,7 +12,7 @@ namespace refactor::kernel {
     K::ConcatCnnl(SplitInfoCnnl info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(int axis, TensorRefs inputs, Tensor output) noexcept -> KernelBox {
+    auto K::build(int axis, TensorRefs inputs, Tensor const &output) noexcept -> KernelBox {
 #ifndef USE_BANG
         return nullptr;
 #endif

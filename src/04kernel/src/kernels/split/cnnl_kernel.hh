@@ -14,7 +14,7 @@ namespace refactor::kernel {
         std::vector<std::vector<int>> outDims;
 
         SplitInfoCnnl(DataType, int, int, std::vector<int>, std::vector<std::vector<int>>);
-        SplitInfoCnnl(int, Tensor, TensorRefs);
+        SplitInfoCnnl(int, Tensor const &, TensorRefs);
     };
 
     struct SplitCnnl final : public Kernel {
@@ -22,7 +22,7 @@ namespace refactor::kernel {
 
         explicit SplitCnnl(SplitInfoCnnl) noexcept;
 
-        static KernelBox build(int, Tensor, TensorRefs) noexcept;
+        static KernelBox build(int, Tensor const &, TensorRefs) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

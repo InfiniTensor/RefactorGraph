@@ -15,7 +15,7 @@ namespace refactor::kernel {
 
         explicit GatherCnnl(decltype(info)) noexcept;
 
-        static KernelBox build(int, Tensor, Tensor, Tensor) noexcept;
+        static KernelBox build(int, Tensor const &, Tensor const &, Tensor const &) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

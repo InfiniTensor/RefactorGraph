@@ -14,7 +14,7 @@ namespace refactor::kernel {
         : dataType(dt_), axis(axis_), num(num_), inDim(std::move(in_)), outDims(std::move(out_)) {}
 
 
-    Info::SplitInfoCnnl(int axis, Tensor input, TensorRefs outputs)
+    Info::SplitInfoCnnl(int axis, Tensor const &input, TensorRefs outputs)
         : SplitInfoCnnl(input.dataType, axis, outputs.size(),
                         std::move(std::vector<int>(input.shape.begin(), input.shape.end())),
                         std::move([](TensorRefs tensors) -> std::vector<std::vector<int>> {
@@ -29,7 +29,7 @@ namespace refactor::kernel {
     K::SplitCnnl(SplitInfoCnnl info_) noexcept
         : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(int axis, Tensor input, TensorRefs outputs) noexcept -> KernelBox {
+    auto K::build(int axis, Tensor const &input, TensorRefs outputs) noexcept -> KernelBox {
 #ifndef USE_BANG
         return nullptr;
 #endif
@@ -78,9 +78,12 @@ namespace refactor::kernel {
             Descriptors(Descriptors &&) = delete;
         };
         auto d = std::make_shared<Descriptors>(info.num, info.dataType != DT::F64);
-        setCnnlTensor(d->in, info.dataType, slice(info.inDim.data(), info.inDim.size()));
+        // setCnnlTensor(d->in, info.dataType, slice(info.inDim.data(), info.inDim.size()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(d->in, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), info.inDim.size(), info.inDim.data()));
+
         for (auto i = 0; i < info.outDims.size(); i++) {
-            setCnnlTensor(d->out[i], info.dataType, slice(info.outDims[i].data(), info.outDims[i].size()));
+            // setCnnlTensor(d->out[i], info.dataType, slice(info.outDims[i].data(), info.outDims[i].size()));
+            CNNL_ASSERT(cnnlSetTensorDescriptor(d->out[i], CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), info.outDims[i].size(), info.outDims[i].data()));
         }
 
         auto handle = res.fetchOrStore<CnnlContext>()->handle;

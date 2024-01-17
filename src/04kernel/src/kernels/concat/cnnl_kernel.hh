@@ -11,7 +11,7 @@ namespace refactor::kernel {
 
         explicit ConcatCnnl(SplitInfoCnnl) noexcept;
 
-        static KernelBox build(int, TensorRefs, Tensor) noexcept;
+        static KernelBox build(int, TensorRefs, Tensor const &) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

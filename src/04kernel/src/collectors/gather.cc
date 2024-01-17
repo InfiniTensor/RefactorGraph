@@ -9,7 +9,12 @@ namespace refactor::kernel {
     GatherCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         GatherInfo info(axis, inputs[0], inputs[1]);
 
-        std::vector<KernelBox> ans;
+        auto const &a = inputs[0];
+        auto const &b = inputs[1];
+        auto const &c = outputs[0];
+
+        std::vector<KernelBox>
+            ans;
         switch (_target) {
             case decltype(_target)::Cpu:
                 if (auto ptr = GatherCpu::build(info); ptr != nullptr) {
@@ -22,7 +27,7 @@ namespace refactor::kernel {
                 }
                 break;
             case decltype(_target)::Mlu:
-                if (auto ptr = GatherCnnl::build(axis, inputs[0].get(), inputs[1].get(), outputs[0].get()); ptr != nullptr) {
+                if (auto ptr = GatherCnnl::build(axis, a, b, c); ptr != nullptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

@@ -9,6 +9,8 @@ namespace refactor::kernel {
     SplitCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         SplitInfo info(axis, outputs);
 
+        auto const &a = inputs[0];
+
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
@@ -22,7 +24,7 @@ namespace refactor::kernel {
                 }
                 break;
             case decltype(_target)::Mlu:
-                if (auto ptr = SplitCnnl::build(axis, inputs[0].get(), outputs); ptr) {
+                if (auto ptr = SplitCnnl::build(axis, a, outputs); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
