@@ -34,6 +34,7 @@ namespace refactor::python_ffi {
         py::class_<Compiler , Arc<Compiler>>(m, "Compiler" )
             .def("substitute"      , &Compiler::substitute       , return_::automatic )
             .def("set_input"       , &Compiler::setInput         , return_::automatic )
+            .def("set_input_info"  , &Compiler::setInputInfo     , return_::automatic )
             .def("check_variables" , &Compiler::fillEdgeInfo     , return_::move      )
             .def("zero_inputs"     , &Compiler::zeroInputs       , return_::move      )
             .def("get_tensor"      , &Compiler::getTensor        , return_::move      )
