@@ -15,7 +15,8 @@ namespace refactor::python_ffi {
     public:
         explicit Compiler(frontend::Graph);
         void substitute(CStr, int64_t);
-        void setInput(size_t index, int dataType, DimVec dims);
+        void setInput(size_t index, pybind11::array);
+        void setInputInfo(size_t index, int dataType, DimVec dims);
         std::unordered_set<std::string> fillEdgeInfo(bool calculate);
         Arc<Executor> compileOn(
             Arc<hardware::Device> device,

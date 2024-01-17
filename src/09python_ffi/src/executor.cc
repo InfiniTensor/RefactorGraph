@@ -33,7 +33,7 @@ namespace refactor::python_ffi {
     }
 
     void Executor::setInput(count_t i, pybind11::array data) {
-        i = _stream.graph().topology.globalInputs().at(i);
+        i = _graph.internal().contiguous().topology.globalInputs().at(i);
 
         auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
         ASSERT(tensor.bytesSize() == static_cast<size_t>(data.nbytes()), "input size mismatch");
@@ -41,7 +41,7 @@ namespace refactor::python_ffi {
     }
 
     void Executor::setInputBlob(count_t i, Arc<hardware::Device::Blob> blob) {
-        i = _stream.graph().topology.globalInputs().at(i);
+        i = _graph.internal().contiguous().topology.globalInputs().at(i);
 
         auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
         ASSERT(tensor.bytesSize() == blob->size(), "input size mismatch");
@@ -49,7 +49,7 @@ namespace refactor::python_ffi {
     }
 
     auto Executor::getOutput(count_t i) const -> pybind11::array {
-        i = _stream.graph().topology.globalOutputs().at(i);
+        i = _graph.internal().contiguous().topology.globalOutputs().at(i);
 
         auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
         auto ans = pybind11::array(buildNumpyDType(tensor.dataType), std::move(tensor.shape));
@@ -58,7 +58,7 @@ namespace refactor::python_ffi {
     }
 
     auto Executor::getOutputBlob(count_t i) const -> Arc<hardware::Device::Blob> {
-        i = _stream.graph().topology.globalOutputs().at(i);
+        i = _graph.internal().contiguous().topology.globalOutputs().at(i);
 
         return _stream.getData(i);
     }
