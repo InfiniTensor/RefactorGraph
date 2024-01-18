@@ -17,6 +17,7 @@
 #include "operators/gather_elements.hh"
 #include "operators/gemm.hh"
 #include "operators/global_pool.hh"
+#include "operators/hard_sigmoid.hh"
 #include "operators/mat_mul.hh"
 #include "operators/mat_mul_integer.hh"
 #include "operators/pool.hh"
@@ -124,6 +125,7 @@ namespace refactor::onnx {
         REGISTER(Transpose            , Transpose            );
         REGISTER(Unsqueeze            , Unsqueeze            );
         REGISTER(Where                , Where                );
+        REGISTER(HardSigmoid          , HardSigmoid          );
         #undef REGISTER
         // clang-format on
     }
