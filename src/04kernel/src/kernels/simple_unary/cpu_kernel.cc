@@ -51,14 +51,10 @@ namespace refactor::kernel {
         return static_cast<T>(std::tanh(static_cast<M>(x)));
     }
     template<class T> auto hardswishFun(T x) noexcept -> T {
-		auto res = x / 6.f;
-		if (res >= 0.5) {
-			return x;
-		} else if (res <= -0.5) {
-			return 0.;
-		} else {
-			return x * (x / 6.f + 0.5);
-		}
+        auto mid = x / 6.f + .5f;
+        return (mid <= 0)   ? 0
+               : (1 <= mid) ? x
+                            : x * mid;
     }
     auto copyForUnsigned(size_t n) noexcept -> Routine {
         return [n](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
