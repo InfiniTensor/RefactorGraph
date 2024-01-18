@@ -96,6 +96,7 @@ namespace refactor::onnx {
         REGISTER(And                  , SimpleBinary         );
         REGISTER(Or                   , SimpleBinary         );
         REGISTER(Xor                  , SimpleBinary         );
+        REGISTER(Mod                  , SimpleBinary         );
         REGISTER(Abs                  , SimpleUnary          );
         REGISTER(Acos                 , SimpleUnary          );
         REGISTER(Acosh                , SimpleUnary          );
@@ -117,6 +118,7 @@ namespace refactor::onnx {
         REGISTER(Not                  , SimpleUnary          );
         REGISTER(Neg                  , SimpleUnary          );
         REGISTER(Identity             , SimpleUnary          );
+        REGISTER(HardSwish            , SimpleUnary          );
         REGISTER(Slice                , Slice                );
         REGISTER(Softmax              , Softmax              );
         REGISTER(Split                , Split                );

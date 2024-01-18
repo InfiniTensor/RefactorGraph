@@ -81,6 +81,10 @@ namespace refactor::computation {
                 static uint8_t ID = 19;
                 return reinterpret_cast<size_t>(&ID);
             }
+            case SimpleUnaryType::HardSwish: {
+                static uint8_t ID = 20;
+                return reinterpret_cast<size_t>(&ID);
+            }
             default:
                 UNREACHABLE();
         }
@@ -128,6 +132,8 @@ namespace refactor::computation {
                 return "Neg";
             case SimpleUnaryType::Not:
                 return "Not";
+            case SimpleUnaryType::HardSwish:
+                return "HardSwish";
             default:
                 UNREACHABLE();
         }

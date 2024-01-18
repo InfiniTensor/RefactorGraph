@@ -31,6 +31,7 @@ namespace refactor::kernel {
             CASE(Erf);
             CASE(Neg);
             CASE(Not);
+            CASE(HardSwish);
             default:
                 UNREACHABLE();
         }
