@@ -30,6 +30,15 @@ namespace refactor::kernel::cnnl {
         return "CnnlContext";
     }
 
+    void CnnlContext::copyFromCPU(void *dst, const void *src, size_t size) {
+        BANG_ASSERT(cnrtMemcpy(dst, const_cast<void *>(src), size,
+                               CNRT_MEM_TRANS_DIR_HOST2DEV));
+    }
+
+    void CnnlContext::queueSync() {
+        BANG_ASSERT(cnrtQueueSync(queue));
+    }
+
 }// namespace refactor::kernel::cnnl
 
 #endif

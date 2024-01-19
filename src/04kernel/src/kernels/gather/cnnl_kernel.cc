@@ -4,6 +4,7 @@
 #include "../../utilities/bang/cnnl_context.hh"
 #include "../../utilities/bang/cnnl_functions.h"
 #endif
+#include <iostream>
 
 namespace refactor::kernel {
     using K = GatherCnnl;
@@ -15,11 +16,11 @@ namespace refactor::kernel {
 #ifndef USE_BANG
         return nullptr;
 #endif
-
+        
         return std::make_unique<K>(decltype(info){
             input.dataType,
             DataType::I32,
-            axis,
+            axis ? axis : 0,
             std::vector<int>(input.shape.begin(), input.shape.end()),
             std::vector<int>(index.shape.begin(), index.shape.end()),
             std::vector<int>(output.shape.begin(), output.shape.end()),
@@ -70,15 +71,16 @@ namespace refactor::kernel {
 
         res.fetchOrStore<CnnlContext>();
         auto routine = [d = std::move(d),
-                        shape = info.inDim.data(), workspaceSize,
+                        shape = std::vector<int>(info.inDim.begin(), info.inDim.end()), 
+                        workspaceSize,
                         dim = info.axis](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            BANG_ASSERT(cnrtMemcpy(workspace, (void*) shape, workspaceSize, CNRT_MEM_TRANS_DIR_HOST2DEV));
+            res.fetchOrStore<CnnlContext>()->copyFromCPU(workspace, shape.data(), workspaceSize);
             CNNL_ASSERT(cnnlGatherV2(res.fetchOrStore<CnnlContext>()->handle, dim,
                                      d->inDesc, inputs[0], reinterpret_cast<const int *>(workspace),
-                                      d->indexDesc, reinterpret_cast<const int *>(inputs[1]),
+                                     d->indexDesc, reinterpret_cast<const int *>(inputs[1]),
                                      d->outDesc, outputs[0]));
             BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
-        };
+       };
 
         return {std::move(routine), workspaceSize};
     }

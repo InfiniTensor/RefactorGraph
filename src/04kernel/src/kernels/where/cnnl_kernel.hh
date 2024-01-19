@@ -7,12 +7,10 @@
 
 namespace refactor::kernel {
 
-    using Shape = absl::InlinedVector<dim_t, 4>;
-
     struct WhereCnnl final : public Kernel {
         struct {
             DataType dataType;
-            Shape condDim, thenDim, elseDim, outputDim;
+            std::vector<int> condDim, thenDim, elseDim, outputDim;
         } info;
 
         WhereCnnl(decltype(info)) noexcept;

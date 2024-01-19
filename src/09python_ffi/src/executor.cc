@@ -7,6 +7,10 @@
 #include "kernel/cuda/functions.cuh"
 #endif// USE_CUDA
 
+#ifdef USE_BANG
+#include "cnrt_functions.h"
+#endif// USE_BANG
+
 namespace refactor::python_ffi {
 
     Executor::Executor(computation::Graph graph, runtime::Stream stream)
@@ -71,8 +75,12 @@ namespace refactor::python_ffi {
 #ifdef USE_CUDA
         auto ans = _stream.bench(sync ? kernel::cuda::sync : nullptr);
 #else
+    #ifdef USE_BANG
+        auto ans = _stream.bench(sync ? kernel::cnnl::sync : nullptr);
+#else
         auto ans = _stream.bench(nullptr);
-#endif// USE_CUDA
+    #endif
+#endif
         auto const &nodes = _graph.internal().contiguous().nodes;
         for (auto i : range0_(nodes.size())) {
             fmt::println("{} {} {}",
@@ -212,6 +220,9 @@ namespace refactor::python_ffi {
                 buffer.resize(size);
 #ifdef USE_CUDA
                 kernel::cuda::copyOut(buffer.data(), addresses[idx], size);
+#endif
+#ifdef USE_BANG
+                kernel::cnnl::copyOut(buffer.data(), addresses[idx], size);
 #endif
 
                 auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);

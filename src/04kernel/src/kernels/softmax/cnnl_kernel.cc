@@ -59,9 +59,11 @@ namespace refactor::kernel {
             static_cast<cnnlSoftmaxAlgorithm_t>(algo),
             dataType != DataType::F64);
         int dims[]{pre, mid, post};
-        cnnlSoftmaxMode_t mode = (post == 1)  ? CNNL_SOFTMAX_MODE_HIGH_DIMENSION
-                                 : (pre == 1) ? CNNL_SOFTMAX_MODE_LOW_DIMENSION
-                                              : CNNL_SOFTMAX_MODE_MEDIUM_DIMENSION;
+        // cnnlSoftmaxMode_t mode = (pre == 1)  ? CNNL_SOFTMAX_MODE_HIGH_DIMENSION
+        //                          : (post == 1) ? CNNL_SOFTMAX_MODE_LOW_DIMENSION
+        //                                       : CNNL_SOFTMAX_MODE_MEDIUM_DIMENSION;
+        // FIXME(bolun): CNNL Softmax mode
+        cnnlSoftmaxMode_t mode = CNNL_SOFTMAX_MODE_MEDIUM_DIMENSION;
 
         // cnnlSoftmaxForward_v2 is applied to a 3D input tensor only
         CNNL_ASSERT(cnnlSetTensorDescriptor(d->t, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(dataType), 3, dims));
@@ -78,6 +80,7 @@ namespace refactor::kernel {
                 CNNL_COMPUTATION_ULTRAHIGH_PRECISION,
                 &a, d->t, inputs[0],
                 &b, d->t, outputs[0]));
+            res.fetchOrStore<CnnlContext>()->queueSync();
         };
     }
 

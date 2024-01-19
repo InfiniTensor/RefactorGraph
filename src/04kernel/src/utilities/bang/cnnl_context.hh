@@ -22,6 +22,8 @@ namespace refactor::kernel::cnnl {
         size_t resourceTypeId() const noexcept final;
         std::string_view description() const noexcept final;
 
+        void copyFromCPU(void *dst, const void *src, size_t size);
+        void queueSync();
     };
 
 }// namespace refactor::kernel::cnnl

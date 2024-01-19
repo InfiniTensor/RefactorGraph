@@ -71,14 +71,15 @@ namespace refactor::kernel {
 
         std::vector<int>
             dimsI(shape.begin(), shape.end()),
-            dimsO(shape.begin(), shape.end());
+            dimsO(shape.begin(), shape.end()),
+            indices(axes.begin(), axes.end());
         for (auto axis : axes) {
             dimsO[axis] = 1;
         }
         // setCnnlTensor(d->x, dataType, slice(dimsI.data(), dimsI.size()));
         // setCnnlTensor(d->y, dataType, slice(dimsO.data(), dimsO.size()));
-        CNNL_ASSERT(cnnlSetTensorDescriptor(d->x, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(dataType), dimsI.size(), dimsI.data()));
-        CNNL_ASSERT(cnnlSetTensorDescriptor(d->y, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(dataType), dimsO.size(), dimsO.data()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(d->x, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(dataType), dimsI.size(), dimsI.data()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(d->y, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(dataType), dimsO.size(), dimsO.data()));
 
         // clang-format off
         auto reduceOp = reduceType == ReduceType::Mean ? CNNL_REDUCE_AVG
@@ -91,12 +92,12 @@ namespace refactor::kernel {
                       : UNREACHABLEX(cnnlReduceOp_t, "");
         // clang-format on
         CNNL_ASSERT(cnnlSetReduceDescriptor_v2(
-            d->reduce, (int *) (axes.data()), axes.size(), reduceOp,
+            d->reduce, indices.data(), indices.size(), reduceOp,
             cnnlDataTypeConvert(d->f32 ? DataType::F32 : DataType::F64),
             CNNL_NOT_PROPAGATE_NAN, CNNL_REDUCE_NO_INDICES, CNNL_32BIT_INDICES, 0.0));
 
         auto handler = res.fetchOrStore<CnnlContext>()->handle;
-        size_t idxWorkspaceSize = axes.size() * sizeof(int);
+        size_t idxWorkspaceSize = indices.size() * sizeof(int);
         // idxWorkspaceSize = hardware::alignBytes(idxWorkspaceSize, 256);
         size_t workspaceSize;
         // get workspace

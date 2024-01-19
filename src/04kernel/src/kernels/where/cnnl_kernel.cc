@@ -16,13 +16,24 @@ namespace refactor::kernel {
 #ifndef USE_BANG
         return nullptr;
 #endif
-        return std::make_unique<K>(decltype(info) {
-            inputs[1].get().dataType,
-            inputs[0].get().shape,
-            inputs[1].get().shape,
-            inputs[2].get().shape,
-            outputs[0].get().shape,
-        });
+        std::vector<int> cDim(inputs[0].get().shape.begin(), inputs[0].get().shape.end()),
+            xDim(inputs[1].get().shape.begin(), inputs[1].get().shape.end()),
+            yDim(inputs[2].get().shape.begin(), inputs[2].get().shape.end()),
+            ansDim(outputs[0].get().shape.begin(), outputs[0].get().shape.end());
+        if (ansDim.size() == 0) {
+            ansDim.push_back(1);
+        }
+        if (xDim.size() == 0) {
+            xDim.push_back(1);
+        }
+        if (yDim.size() == 0) {
+            yDim.push_back(1);
+        }
+        if (cDim.size() == 0) {
+            cDim.push_back(1);
+        }
+        return std::make_unique<K>(decltype(info){
+            inputs[1].get().dataType, cDim, xDim, yDim, ansDim});
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -44,11 +55,10 @@ namespace refactor::kernel {
 
         struct Descriptors {
             cnnlTensorDescriptor_t cond, x, y, ans;
-            bool f32;
 
-            explicit Descriptors(decltype(f32) f32_)
+            explicit Descriptors()
                 : cond(nullptr), x(nullptr), y(nullptr),
-                  ans(nullptr), f32(f32_) {
+                  ans(nullptr) {
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&cond));
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&x));
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&y));
@@ -64,29 +74,20 @@ namespace refactor::kernel {
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
-        auto d = std::make_shared<Descriptors>(info.dataType != DT::F64);
+        auto d = std::make_shared<Descriptors>();
 
-        std::vector<int> cDim(info.condDim.begin(), info.condDim.end()),
-            xDim(info.thenDim.begin(), info.thenDim.end()),
-            yDim(info.elseDim.begin(), info.elseDim.end()),
-            ansDim(info.outputDim.begin(), info.outputDim.end());
-
-        auto rightAlign = [](std::vector<int> &dim, uint32_t targetLength) {
-            if (dim.size() < targetLength) {
-                dim.insert(dim.begin(), targetLength - dim.size(), 1);
-            }
-        };
-        if (ansDim.size() == 0) {
-            ansDim.push_back(1);
-        }
-        rightAlign(cDim, ansDim.size());
-        rightAlign(xDim, ansDim.size());
-        rightAlign(yDim, ansDim.size());
-
-        CNNL_ASSERT(cnnlSetTensorDescriptor(d->cond, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(DT::Bool), cDim.size(), cDim.data()));
-        CNNL_ASSERT(cnnlSetTensorDescriptor(d->x, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), xDim.size(), xDim.data()));
-        CNNL_ASSERT(cnnlSetTensorDescriptor(d->y, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), yDim.size(), yDim.data()));
-        CNNL_ASSERT(cnnlSetTensorDescriptor(d->ans, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), ansDim.size(), ansDim.data()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(
+            d->cond, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(DT::Bool),
+            info.condDim.size(), info.condDim.data()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(
+            d->x, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(info.dataType),
+            info.thenDim.size(), info.thenDim.data()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(
+            d->y, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(info.dataType),
+            info.elseDim.size(), info.elseDim.data()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(
+            d->ans, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(info.dataType),
+            info.outputDim.size(), info.outputDim.data()));
 
         auto handle = res.fetchOrStore<CnnlContext>()->handle;
         size_t workspaceSize;
@@ -94,19 +95,14 @@ namespace refactor::kernel {
 
         res.fetchOrStore<CnnlContext>();
         auto routine = [d = std::move(d), workspaceSize](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            // fetch cnnl handle from resources
-            auto handle = res.fetchOrStore<CnnlContext>()->handle;
-            auto cond = inputs[0],
-                 x = inputs[1],
-                 y = inputs[2];
-            auto ans = outputs[0];
 
             CNNL_ASSERT(cnnlSelectV2(
-                handle, d->cond, cond, d->x, x,
-                d->y, y, workspace, workspaceSize,
-                d->ans, ans));
+                res.fetchOrStore<CnnlContext>()->handle,
+                d->cond, inputs[0], d->x, inputs[1],
+                d->y, inputs[2], workspace, workspaceSize,
+                d->ans, outputs[0]));
 
-            cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue);
+            res.fetchOrStore<CnnlContext>()->queueSync();
         };
 
         return {std::move(routine), workspaceSize};
