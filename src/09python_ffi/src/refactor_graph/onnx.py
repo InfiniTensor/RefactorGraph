@@ -63,7 +63,7 @@ def make_compiler(model: ModelProto, external_data_path: str = "") -> Compiler:
         {
             node.name: _make_operator(
                 context,
-                node.op_type,
+                "onnx::" + node.op_type,
                 _parse_attribute(node, external_data_path),
             )
             for node in model.graph.node

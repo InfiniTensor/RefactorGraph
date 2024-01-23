@@ -65,7 +65,7 @@ namespace refactor::python_ffi {
             ctx_.insert({std::move(name), {std::move(value)}});
         }
         return std::make_shared<OpBox>(Operator::build(
-            ctx_, fmt::format("onnx::{}", opType), std::move(attrs_)));
+            ctx_, std::move(opType), std::move(attrs_)));
     }
 
     Arc<Compiler>
