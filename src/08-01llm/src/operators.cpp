@@ -1,5 +1,5 @@
 ﻿#include "llm/operators.h"
-#include "operators/rms_normalization.hh"
+#include "operators/mat_mul.hh"
 
 namespace refactor::llm {
     using namespace frontend;
@@ -7,6 +7,7 @@ namespace refactor::llm {
     void register_() {
         // clang-format off
         #define REGISTER(NAME, CLASS) Operator::register_<CLASS>("llm::" #NAME)
+        REGISTER(MatMul, MatMul);
         #undef REGISTER
         // clang-format on
     }

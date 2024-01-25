@@ -1,6 +1,7 @@
 ﻿#include "communication/operators.h"
 #include "hardware/device.h"
 #include "import.h"
+#include "llm/operators.h"
 #include "onnx/operators.h"
 #include <pybind11/stl.h>// keep this line to convert stl types
 
@@ -14,6 +15,7 @@ namespace refactor::python_ffi {
         using namespace frontend;
 
         onnx::register_();
+        llm::register_();
         communication::register_();
 
         // clang-format off
