@@ -51,20 +51,6 @@ namespace refactor::kernel {
         }
 
         if (broadcaster.needBroadcast()) {
-            return [n = broadcaster.outputsCount, inputsNum, op](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
-                auto output = reinterpret_cast<T *>(outputs[0]);
-                for (auto i : range0_(n)) {
-                    for (auto inputIdx : range0_(inputsNum)) {
-                        auto input = reinterpret_cast<const T *>(inputs[inputIdx]);
-                        if (inputIdx == 0) {
-                            output[i] = input[i];
-                        } else {
-                            output[i] = op(output[i], input[i]);
-                        }
-                    }
-                };
-            };
-        } else {
             return [broadcaster, inputsNum, op](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
                 auto output = reinterpret_cast<T *>(outputs[0]);
                 for (auto i : range0_(broadcaster.outputsCount)) {
@@ -79,6 +65,20 @@ namespace refactor::kernel {
                         }
                     }
                 }
+            };
+        } else {
+            return [n = broadcaster.outputsCount, inputsNum, op](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
+                auto output = reinterpret_cast<T *>(outputs[0]);
+                for (auto i : range0_(n)) {
+                    for (auto inputIdx : range0_(inputsNum)) {
+                        auto input = reinterpret_cast<const T *>(inputs[inputIdx]);
+                        if (inputIdx == 0) {
+                            output[i] = input[i];
+                        } else {
+                            output[i] = op(output[i], input[i]);
+                        }
+                    }
+                };
             };
         }
     }
