@@ -8,8 +8,8 @@ namespace refactor::onnx {
     Op::DequantizeLinear(Int axis_) noexcept
         : Operator(), axis(axis_) {}
 
-    auto Op::build(ModelContext const &, std::string_view, Attributes attrs) -> OpBox {
-        auto axis = defaultOr(attrs, "axis", {1}).int_();
+    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
+        auto axis = attributes.getOrInsert("axis", {1}).int_();
         return OpBox(std::make_unique<Op>(axis));
     }
     auto Op::typeId() -> size_t {

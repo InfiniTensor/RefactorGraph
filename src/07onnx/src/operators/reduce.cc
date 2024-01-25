@@ -21,12 +21,12 @@ namespace refactor::onnx {
         auto noopWithEmptyAxes = false;
         decltype(Op::axes) axes = std::nullopt;
         if (opsetVer >= 18) {
-            noopWithEmptyAxes = defaultOr(attributes, "noop_with_empty_axes", {0}).int_() != 0;
+            noopWithEmptyAxes = attributes.getOrInsert( "noop_with_empty_axes", {0}).int_() != 0;
         } else {
-            axes.emplace(defaultOr(attributes, "axes", {{}}).ints());
+            axes.emplace(attributes.getOrInsert( "axes", {{}}).ints());
         }
 
-        auto keepDims = defaultOr(attributes, "keepdims", {1}).int_();
+        auto keepDims = attributes.getOrInsert( "keepdims", {1}).int_();
         Ty ty;
         if (opType == "onnx::ReduceMean") {
             ty = Ty::Mean;

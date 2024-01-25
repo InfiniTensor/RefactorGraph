@@ -10,8 +10,8 @@ namespace refactor::onnx {
         : Operator(), alpha(alpha), beta(beta) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto alpha = defaultOr(attributes, "alpha", {0.2f}).float_();
-        auto beta = defaultOr(attributes, "beta", {0.5f}).float_();
+        auto alpha = attributes.getOrInsert( "alpha", {0.2f}).float_();
+        auto beta = attributes.getOrInsert( "beta", {0.5f}).float_();
         return OpBox(std::make_unique<Op>(alpha, beta));
     }
     auto Op::typeId() -> size_t {
@@ -38,4 +38,3 @@ namespace refactor::onnx {
 
 
 }// namespace refactor::onnx
-

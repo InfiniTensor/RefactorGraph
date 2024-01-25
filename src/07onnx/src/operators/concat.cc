@@ -10,7 +10,7 @@ namespace refactor::onnx {
         : Operator(), axis(axis_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto axis = attributes.at("axis").int_();
+        auto axis = attributes["axis"].int_();
         return OpBox(std::make_unique<Op>(axis));
     }
     auto Op::typeId() -> size_t {

@@ -10,7 +10,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        auto fmod = defaultOr(attributes, "fmod", {0}).int_();
+        auto fmod = attributes.getOrInsert( "fmod", {0}).int_();
         // clang-format off
         auto type =
             opType == "onnx::Add" ? Ty::Add :
@@ -68,7 +68,7 @@ namespace refactor::onnx {
             case Ty::Fmod: {
                 static uint8_t ID = 10;
                 return reinterpret_cast<size_t>(&ID);
-            }            
+            }
             default:
                 UNREACHABLE();
         }

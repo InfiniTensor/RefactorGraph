@@ -12,7 +12,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Simple binary operator should not have attributes");
+        EXPECT_NO_ATTRI;
 
         // clang-format off
         auto type =

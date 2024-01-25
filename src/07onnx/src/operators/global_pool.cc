@@ -11,7 +11,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Global pool operator should not have attributes");
+        EXPECT_NO_ATTRI;
 
         if (opType == "onnx::GlobalAveragePool") {
             return OpBox(std::make_unique<Op>(Ty::Average));

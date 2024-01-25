@@ -56,9 +56,9 @@ namespace refactor::python_ffi {
 
     SharedOp
     makeOp(AttributeMap ctx, Name opType, AttributeMap attrs) {
-        std::unordered_map<Name, Attribute> attrs_;
+        Attributes attrs_;
         for (auto &[name, value] : attrs) {
-            attrs_.insert({std::move(name), {std::move(value)}});
+            attrs_.insert(std::move(name), {std::move(value)});
         }
         std::unordered_map<Name, Attribute> ctx_;
         for (auto &[name, value] : ctx) {

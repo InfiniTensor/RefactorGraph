@@ -8,7 +8,7 @@ namespace refactor::communication {
         : Operator(), nranks(nranks_) {}
 
     auto Op::build(ModelContext const &ctx, std::string_view, Attributes attributes) -> OpBox {
-        auto nranks = attributes.at("nranks").int_();
+        auto nranks = attributes["nranks"].int_();
         return OpBox(std::make_unique<Op>(nranks));
     }
     auto Op::typeId() -> size_t {

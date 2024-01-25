@@ -10,20 +10,20 @@ namespace refactor::onnx {
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
         Attribute value;
-        if (auto it = attributes.find("value"); it != attributes.end()) {
-            value = std::move(it->second);
-        } else if (auto it = attributes.find("value_float"); it != attributes.end()) {
-            value = std::move(it->second);
-        } else if (auto it = attributes.find("value_floats"); it != attributes.end()) {
-            value = std::move(it->second);
-        } else if (auto it = attributes.find("value_int"); it != attributes.end()) {
-            value = std::move(it->second);
-        } else if (auto it = attributes.find("value_ints"); it != attributes.end()) {
-            value = std::move(it->second);
-        } else if (auto it = attributes.find("value_string"); it != attributes.end()) {
-            value = std::move(it->second);
-        } else if (auto it = attributes.find("value_strings"); it != attributes.end()) {
-            value = std::move(it->second);
+        if (auto opt = attributes.get("value"); opt) {
+            value = std::move(opt->get());
+        } else if (auto opt = attributes.get("value_float"); opt) {
+            value = std::move(opt->get());
+        } else if (auto opt = attributes.get("value_floats"); opt) {
+            value = std::move(opt->get());
+        } else if (auto opt = attributes.get("value_int"); opt) {
+            value = std::move(opt->get());
+        } else if (auto opt = attributes.get("value_ints"); opt) {
+            value = std::move(opt->get());
+        } else if (auto opt = attributes.get("value_string"); opt) {
+            value = std::move(opt->get());
+        } else if (auto opt = attributes.get("value_strings"); opt) {
+            value = std::move(opt->get());
         } else {
             RUNTIME_ERROR("Constant value not support");
         }

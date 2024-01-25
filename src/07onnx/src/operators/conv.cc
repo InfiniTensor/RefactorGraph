@@ -20,14 +20,14 @@ namespace refactor::onnx {
             dilations = std::nullopt,
             pads = std::nullopt,
             strides = std::nullopt;
-        if (auto it = attributes.find("dilations"); it != attributes.end()) {
-            dilations.emplace(std::move(it->second.ints()));
+        if (auto opt = attributes.get("dilations"); opt) {
+            dilations.emplace(std::move(opt->get().ints()));
         }
-        if (auto it = attributes.find("pads"); it != attributes.end()) {
-            pads.emplace(std::move(it->second.ints()));
+        if (auto opt = attributes.get("pads"); opt) {
+            pads.emplace(std::move(opt->get().ints()));
         }
-        if (auto it = attributes.find("strides"); it != attributes.end()) {
-            strides.emplace(std::move(it->second.ints()));
+        if (auto opt = attributes.get("strides"); opt) {
+            strides.emplace(std::move(opt->get().ints()));
         }
         return OpBox(std::make_unique<Op>(std::move(dilations), std::move(pads), std::move(strides)));
     }
