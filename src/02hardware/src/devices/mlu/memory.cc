@@ -2,6 +2,7 @@
 #include "functions.hh"
 
 namespace refactor::hardware {
+#ifdef USE_BANG
     using M = MluMemory;
 
     void *M::malloc(size_t size) {
@@ -27,5 +28,6 @@ namespace refactor::hardware {
                                CNRT_MEM_TRANS_DIR_PEER2PEER));
         return dst;
     }
+#endif
 
 }// namespace refactor::hardware

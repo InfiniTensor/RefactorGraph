@@ -2,6 +2,7 @@
 
 namespace refactor::hardware {
 
+#ifdef USE_BANG
     int getDeviceCount() {
         unsigned deviceCount;
         BANG_ASSERT(cnrtGetDeviceCount(&deviceCount));
@@ -15,5 +16,6 @@ namespace refactor::hardware {
         BANG_ASSERT(cnrtMemGetInfo(&memInfo.free, &memInfo.total));
         return memInfo;
     }
+#endif
 
 }// namespace refactor::hardware

@@ -1,4 +1,4 @@
-﻿#include "functions.cuh"
+﻿﻿#include "functions.cuh"
 #include "hardware/devices/nvidia.h"
 #include "hardware/mem_pool.h"
 #include "memory.cuh"
@@ -6,6 +6,7 @@
 namespace refactor::hardware {
 
     static Arc<Memory> cudaMemory(int32_t card) {
+#ifdef USE_CUDA
         ASSERT(0 <= card && card < getDeviceCount(), "Invalid card id: {}", card);
         setDevice(card);
         auto [free, total] = getMemInfo();
@@ -16,6 +17,9 @@ namespace refactor::hardware {
             std::make_shared<NvidiaMemory>(),
             size,
             256ul);
+#else
+        return nullptr;
+#endif
     }
 
     Nvidia::Nvidia(int32_t card) : Device(card, cudaMemory(card)) {}
