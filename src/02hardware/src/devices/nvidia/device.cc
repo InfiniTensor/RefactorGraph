@@ -34,7 +34,7 @@ namespace refactor::hardware {
             size,
             alignment);
 #else
-        RUNTIME_ERROR("CUDA is not enabled");
+        return nullptr;
 #endif
     }
 
