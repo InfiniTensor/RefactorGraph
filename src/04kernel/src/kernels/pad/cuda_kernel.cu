@@ -7,18 +7,18 @@ namespace refactor::kernel {
     using namespace runtime;
 
     auto PadCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
-        thrust::host_vector<cuda::DimInfo> dims(info.dims.size());
+        thrust::host_vector<cuda::PadDimInfo> dims(info.dims.size());
         std::transform(info.dims.begin(), info.dims.end(),
                        dims.begin(),
                        [](auto const &d) {
-                           return cuda::DimInfo{
+                           return cuda::PadDimInfo{
                                d.strideI,
                                d.strideO,
                                d.padS,
                                d.dimI,
                            };
                        });
-        return [dims = thrust::device_vector<cuda::DimInfo>(dims),
+        return [dims = thrust::device_vector<cuda::PadDimInfo>(dims),
                 params = cuda::ThreadsDistributer()(info.blockCount),
                 blockSize = info.blockSize,
                 value = this->valueLength](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
@@ -27,7 +27,6 @@ namespace refactor::kernel {
             if (value != 0) {
                 auto constValue = reinterpret_cast<uint8_t const *>(inputs[2]);
                 for (auto i : range0_(blockSize / value)) {
-                    // std::memcpy(defaultValueHost.data() + i * value, constValue, value);
                     cudaMemcpy(defaultValue.data().get() + i * value, constValue, value, cudaMemcpyDeviceToDevice);
                 }
             }
@@ -38,4 +37,3 @@ namespace refactor::kernel {
     }
 
 }// namespace refactor::kernel
-

@@ -7,17 +7,17 @@ namespace refactor::kernel {
     using namespace runtime;
 
     auto SliceCuda::lower(Resources &) const noexcept -> RoutineWorkspace {
-        thrust::host_vector<cuda::DimInfo> dims(info.dims.size());
+        thrust::host_vector<cuda::SliceDimInfo> dims(info.dims.size());
         std::transform(info.dims.begin(), info.dims.end(),
                        dims.begin(),
                        [](auto const &d) {
-                           return cuda::DimInfo{
+                           return cuda::SliceDimInfo{
                                d.strideO,
                                d.skip,
                                d.strideI,
                            };
                        });
-        return [dims = thrust::device_vector<cuda::DimInfo>(dims),
+        return [dims = thrust::device_vector<cuda::SliceDimInfo>(dims),
                 params = cuda::ThreadsDistributer()(info.blockCount),
                 blockSize = info.blockSize](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto src = reinterpret_cast<uint8_t const *>(inputs[0]);

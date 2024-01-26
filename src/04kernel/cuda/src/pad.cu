@@ -8,7 +8,7 @@ namespace refactor::kernel::cuda {
         unsigned long long n,
         uint8_t const *__restrict__ src,
         uint8_t const *__restrict__ src_const,
-        DimInfo const *__restrict__ dims,
+        PadDimInfo const *__restrict__ dims,
         uint8_t *__restrict__ dst,
         unsigned int rank,
         unsigned int blockSize) {
@@ -42,7 +42,7 @@ namespace refactor::kernel::cuda {
     void launchPad(
         KernelLaunchParameters const &params,
         uint8_t const *src, uint8_t const *src_const,
-        DimInfo const *dims, void *output,
+        PadDimInfo const *dims, void *output,
         unsigned int rank,
         unsigned int blockSize) {
 

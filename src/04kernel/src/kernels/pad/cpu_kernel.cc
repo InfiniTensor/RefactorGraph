@@ -12,14 +12,6 @@ namespace refactor::kernel {
             return nullptr;
         }
         size_t value = value_ ? value_->get().dataType.size() : 0;
-        // std::vector<uint8_t> constValue(info.blockSize, 0);
-        // if (value_) {
-        //     auto constValueSize = value_->get().dataType.size();
-        //     auto n = constValueSize / info.blockSize;
-        //     for (auto i : range0_(n)) {
-        //         std::memcpy(constValue.data() + i * info.blockSize, (void const *) *value_->get().data, constValueSize);
-        //     }
-        // }
         return std::make_unique<K>(std::move(info), mode, value);
     }
     auto K::typeId() noexcept -> size_t {
@@ -42,7 +34,6 @@ namespace refactor::kernel {
             auto src = reinterpret_cast<uint8_t const *>(inputs[0]);
             auto dst = reinterpret_cast<uint8_t *>(outputs[0]);
             std::vector<uint8_t> defaultValue(info.blockSize, 0);
-            // fmt::println("value = {}, blockSize = {}", value, info.blockSize);
             if (value != 0) {
                 auto constValue = reinterpret_cast<uint8_t const *>(inputs[2]);
                 for (auto i : range0_(info.blockSize / value)) {

@@ -10,7 +10,6 @@ namespace refactor::onnx {
     Op::Pad(Pm mode_) : Operator(), mode(mode_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        //auto mode = defaultOr(attributes, "mode", {"constant"}).string();
         auto mode = attributes.getOrInsert("mode", {"constant"}).string();
         Pm pm;
         if (mode == "constant") {
@@ -134,12 +133,16 @@ namespace refactor::onnx {
         switch (mode) {
             case Pm::Constant:
                 mode_ = Ty_::Constant;
+                break;
             case Pm::Reflect:
                 mode_ = Ty_::Reflect;
+                break;
             case Pm::Edge:
                 mode_ = Ty_::Edge;
+                break;
             case Pm::Wrap:
                 mode_ = Ty_::Wrap;
+                break;
             default:
                 UNREACHABLE();
         }
@@ -147,4 +150,3 @@ namespace refactor::onnx {
     }
 
 }// namespace refactor::onnx
-

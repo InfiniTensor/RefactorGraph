@@ -46,7 +46,6 @@ namespace refactor::kernel {
                 shape.pop_back();
                 dims_.pop_back();
             } else {
-                dims.resize(rank = shape.size());
                 if (auto &dim = dims_[i]; dim.step == 1) {
                     if (auto times = std::gcd(std::gcd(dim.start, dim.length), shape[i]); times > 1) {
                         blockSize *= times;
@@ -58,6 +57,7 @@ namespace refactor::kernel {
                 break;
             }
         }
+        dims.resize(rank = shape.size());
         dim_t strideI = 1;
         for (auto i : range0_(rank).rev()) {
             auto const &dim = dims_[i];

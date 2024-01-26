@@ -6,14 +6,14 @@
 
 namespace refactor::kernel::cuda {
 
-    struct DimInfo {
+    struct PadDimInfo {
         unsigned int strideI, strideO, padS, dimI;
     };
 
     void launchPad(
         KernelLaunchParameters const &,
         uint8_t const *src, uint8_t const *src_const,
-        DimInfo const *dims, void *output,
+        PadDimInfo const *dims, void *output,
         unsigned int rank,
         unsigned int blockSize);
 

@@ -5,14 +5,14 @@
 
 namespace refactor::kernel::cuda {
 
-    struct DimInfo {
+    struct SliceDimInfo {
         unsigned int strideO, skip;
         int strideI;
     };
 
     void launchSlice(
         KernelLaunchParameters const &,
-        void const *src, DimInfo const *dims, void *output,
+        void const *src, SliceDimInfo const *dims, void *output,
         unsigned int rank,
         unsigned int blockSize);
 

@@ -15,14 +15,6 @@ namespace refactor::kernel {
         }
         size_t value = value_ ? value_->get().dataType.size() : 0;
         info.reform(16);
-        // std::vector<uint8_t> constValue(info.blockSize, 0);
-        // if (value_) {
-        //     auto constValueSize = value_->get().dataType.size();
-        //     auto n = constValueSize / info.blockSize;
-        //     for (auto i : range0_(n)) {
-        //         std::memcpy(constValue.data() + i * info.blockSize, (void const *) *value_->get().data, constValueSize);
-        //     }
-        // }
         return std::make_unique<K>(std::move(info), mode, value);
     }
 

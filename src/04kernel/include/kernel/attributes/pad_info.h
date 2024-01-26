@@ -48,9 +48,6 @@ namespace refactor::kernel {
     struct PadInfo {
         struct Dim {
             dim_t strideI, strideO, padS, dimI;
-
-            // bool operator==(Dim const &) const noexcept;
-            // bool operator!=(Dim const &) const noexcept;
         };
         std::vector<Dim> dims;
         dim_t blockCount, blockSize;
