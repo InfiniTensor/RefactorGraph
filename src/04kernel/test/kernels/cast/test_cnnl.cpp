@@ -1,7 +1,8 @@
 ﻿#ifdef USE_BANG
 
-#include "../../../src/kernels/cast/cpu_kernel.hh"
 #include "../../../src/kernels/cast/cnnl_kernel.hh"
+#include "../../../src/kernels/cast/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
@@ -34,6 +35,7 @@ TEST(kernel, CastCnnl) {
         void const *inputs[]{*xMlu};
         void *outputs[]{*yMlu};
         routine(res, nullptr, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{x_.data()};

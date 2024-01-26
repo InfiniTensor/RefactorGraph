@@ -209,9 +209,9 @@ namespace refactor::kernel {
             // }
 
             void *xTrans = workspace;
-            void *wTrans = xTrans + xTransSize;
-            void *yTrans = wTrans + wTransSize;
-            void *opWorkspace = yTrans + yTransSize;
+            void *wTrans = reinterpret_cast<uint8_t *>(xTrans) + xTransSize;
+            void *yTrans = reinterpret_cast<uint8_t *>(wTrans) + wTransSize;
+            void *opWorkspace = reinterpret_cast<uint8_t *>(yTrans) + yTransSize;
 
             // transpose NCHW input to NHWC
             CNNL_ASSERT(cnnlTranspose_v2(handle, d->NCHW2NHWC, d->x, x,

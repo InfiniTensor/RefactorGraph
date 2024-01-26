@@ -130,7 +130,7 @@ namespace refactor::kernel {
             auto handle = res.fetchOrStore<CnnlContext>()->handle;
            
             void *extraInputDev = workspace;
-            void *poolWorkSpace = workspace + extraInputSize;
+            void *poolWorkSpace = reinterpret_cast<uint8_t *>(workspace) + extraInputSize;
 
             void *extraInputHost = malloc(extraInputSize);
             CNNL_ASSERT(cnnlInitPoolingExtraInput(handle, d->pooling, d->x, d->y, extraInputHost));
@@ -145,7 +145,7 @@ namespace refactor::kernel {
                 &b, extraInputDev, d->y, outputs[0],
                 poolWorkSpace, workspaceSize));
 
-            BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
+            res.fetchOrStore<CnnlContext>()->queueSync();
 
             free(extraInputHost);
         };

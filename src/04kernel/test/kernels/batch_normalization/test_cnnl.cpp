@@ -2,6 +2,7 @@
 
 #include "../../../src/kernels/batch_normalization/cnnl_kernel.hh"
 #include "../../../src/kernels/batch_normalization/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -57,6 +58,7 @@ TEST(kernel, BatchNormalizationCnnl) {
         void const *inputs[]{*mluIn, *mluScale, *mluBias, *mluMean, *mluVar};
         void *outputs[]{*mluOut};
         rMlu(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     // take output data
     std::vector<float> result(outTensor->elementsSize());

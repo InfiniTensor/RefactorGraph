@@ -52,7 +52,7 @@ namespace refactor::kernel {
             }
             ~Descriptors() noexcept(false) {
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(in));
-                for (auto i = 0; i < out.size(); i++) {
+                for (size_t i = 0; i < out.size(); i++) {
                     CNNL_ASSERT(cnnlDestroyTensorDescriptor(out[i]));
                 }
             }
@@ -62,7 +62,7 @@ namespace refactor::kernel {
         };
         auto d = std::make_shared<Descriptors>(info.num, info.dataType != DT::F64);
         setCnnlTensor(d->in, info.dataType, slice(info.inDim.data(), info.inDim.size()));
-        for (auto i = 0; i < info.outDims.size(); i++) {
+        for (size_t i = 0; i < info.outDims.size(); i++) {
             setCnnlTensor(d->out[i], info.dataType, slice(info.outDims[i].data(), info.outDims[i].size()));
         }
 

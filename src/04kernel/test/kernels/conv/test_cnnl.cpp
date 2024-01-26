@@ -1,6 +1,7 @@
 #ifdef USE_BANG
 
 #include "../../../src/kernels/conv/cnnl_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
@@ -39,15 +40,7 @@ void testConvCnnl(int rank, const int64_t *pads, const int64_t *strides, const i
     void const *inputs[]{*xMlu, *wMlu};
     void *outputs[]{*yMlu};
     routine(res, *workspace, inputs, outputs);
-
-    xMlu->copyToHost(xData.data(), xTensor->bytesSize());
-    wMlu->copyToHost(wData.data(), wTensor->bytesSize());
-    // fmt::println("{}", vec2str(xData));
-    // fmt::println("{}", vec2str(wData));
-
-    // std::vector<float> ws(workspaceSize);
-    // workspace->copyToHost(ws.data(), workspaceSize);
-    // fmt::println("{}", vec2str(ws));
+    kernel::bang::sync();
 
     // take output data
     std::vector<float> result(yTensor->elementsSize());

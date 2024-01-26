@@ -80,7 +80,6 @@ namespace refactor::kernel {
                 CNNL_COMPUTATION_ULTRAHIGH_PRECISION,
                 &a, d->t, inputs[0],
                 &b, d->t, outputs[0]));
-            res.fetchOrStore<CnnlContext>()->queueSync();
         };
     }
 

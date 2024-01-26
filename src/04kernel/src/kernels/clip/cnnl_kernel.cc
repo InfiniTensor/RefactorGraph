@@ -57,7 +57,6 @@ namespace refactor::kernel {
                                     CNNL_POINTER_MODE_DEVICE, d->t,
                                     inputs[0], inputs[1], hasMax ? inputs[2] : nullptr,
                                     d->t, outputs[0]));
-            BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
         };
     }
 

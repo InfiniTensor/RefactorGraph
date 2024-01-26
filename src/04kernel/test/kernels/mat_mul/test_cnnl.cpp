@@ -2,6 +2,7 @@
 
 #include "../src/kernels/mat_mul/cnnl_kernel.hh"
 #include "../src/kernels/mat_mul/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -48,6 +49,7 @@ TEST(kernel, MatMulCnnl_OnlyBias) {
     void const *inputs[]{*ma, *mb, *mc};
     void *outputs[]{*my};
     routine(res, *workspace, inputs, outputs);
+    kernel::bang::sync();
     // take output data
     std::vector<float> result(Y->elementsSize());
     my->copyToHost(result.data(), Y->bytesSize());
@@ -91,6 +93,7 @@ TEST(kernel, MatMulCnnl_Broadcast) {
         void const *inputs[]{*ma, *mb, *mc};
         void *outputs[]{*my};
         mluRoutine(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{dataA.data(), dataB.data(), dataC.data()};
@@ -135,6 +138,7 @@ TEST(kernel, MatMulCnnl_TransABNoBias) {
         void const *inputs[]{*ma, *mb};
         void *outputs[]{*my};
         mluRoutine(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{dataA.data(), dataB.data()};
@@ -189,6 +193,7 @@ TEST(kernel, MatMulCnnl_Large) {
         void const *inputs[]{*ma, *mb, *mc};
         void *outputs[]{*my};
         mluRoutine(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{dataA.data(), dataB.data(), dataC.data()};

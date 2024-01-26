@@ -128,8 +128,8 @@ namespace refactor::kernel {
             auto y = outputs[0];
 
             void *xTrans = workspace;
-            void *yTrans = xTrans + xTransSize;
-            void *cursor = yTrans + xTransSize;
+            void *yTrans = reinterpret_cast<uint8_t *>(xTrans) + xTransSize;
+            void *cursor = reinterpret_cast<uint8_t *>(yTrans) + xTransSize;
 
             // transpose NCHW input to NHWC
             CNNL_ASSERT(cnnlTranspose_v2(handle, d->NCHW2NHWC, d->inDesc, x,
@@ -147,7 +147,6 @@ namespace refactor::kernel {
             CNNL_ASSERT(cnnlTranspose_v2(handle, d->NHWC2NCHW, d->inDescTrans, yTrans,
                                          d->inDesc, y, cursor, workspaceSize));
 
-            BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
         };
 
         return {std::move(routine), totalWorkspaceSize};

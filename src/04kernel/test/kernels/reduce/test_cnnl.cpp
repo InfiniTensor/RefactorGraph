@@ -1,6 +1,7 @@
 #ifdef USE_BANG
 
 #include "../../../src/kernels/reduce/cnnl_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -28,6 +29,7 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
         void const *inputs[]{*mluMemIn};
         void *outputs[]{*mluMemOut};
         routine(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     // take output data
     Shape outDimArray;

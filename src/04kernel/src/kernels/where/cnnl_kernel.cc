@@ -102,7 +102,6 @@ namespace refactor::kernel {
                 d->y, inputs[2], workspace, workspaceSize,
                 d->ans, outputs[0]));
 
-            res.fetchOrStore<CnnlContext>()->queueSync();
         };
 
         return {std::move(routine), workspaceSize};

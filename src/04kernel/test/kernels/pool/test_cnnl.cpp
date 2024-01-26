@@ -1,6 +1,7 @@
 #ifdef USE_BANG
 
 #include "../../../src/kernels/pool/cnnl_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -32,6 +33,7 @@ void testPoolCnnl(PoolType poolType, int rank, const int64_t *pads, const int64_
     void const *inputs[]{*mluMem};
     void *outputs[]{*mluMem};
     routine(res, *workspace, inputs, outputs);
+    kernel::bang::sync();
     // take output data
     std::vector<float> result(yTensor->elementsSize());
     mluMem->copyToHost(result.data(), yTensor->bytesSize());

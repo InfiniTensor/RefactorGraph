@@ -69,7 +69,7 @@ namespace refactor::kernel {
             }
             ~Descriptors() noexcept(false) {
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(in));
-                for (auto i = 0; i < out.size(); i++) {
+                for (size_t i = 0; i < out.size(); i++) {
                     CNNL_ASSERT(cnnlDestroyTensorDescriptor(out[i]));
                 }
             }
@@ -81,7 +81,7 @@ namespace refactor::kernel {
         // setCnnlTensor(d->in, info.dataType, slice(info.inDim.data(), info.inDim.size()));
         CNNL_ASSERT(cnnlSetTensorDescriptor(d->in, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), info.inDim.size(), info.inDim.data()));
 
-        for (auto i = 0; i < info.outDims.size(); i++) {
+        for (size_t i = 0; i < info.outDims.size(); i++) {
             // setCnnlTensor(d->out[i], info.dataType, slice(info.outDims[i].data(), info.outDims[i].size()));
             CNNL_ASSERT(cnnlSetTensorDescriptor(d->out[i], CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), info.outDims[i].size(), info.outDims[i].data()));
         }

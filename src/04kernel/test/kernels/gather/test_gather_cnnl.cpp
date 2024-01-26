@@ -2,6 +2,7 @@
 
 #include "../src/kernels/gather/cnnl_kernel.hh"
 #include "../src/kernels/gather/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -39,6 +40,7 @@ TEST(kernel, GatherCnnl) {
             void const *inputs[]{*aMLU, *bMLU};
             void *outputs[]{*cMLU};
             cnnlRoutine(res, *workspace, inputs, outputs);
+            kernel::bang::sync();
         }
         {
             void const *inputs[]{a.data(), b.data()};
@@ -81,6 +83,7 @@ TEST(kernel, GatherCnnl) {
             void const *inputs[]{*aMLU, *bMLU};
             void *outputs[]{*cMLU};
             cnnlRoutine(res, *workspace, inputs, outputs);
+            kernel::bang::sync();
         }
         {
             void const *inputs[]{a.data(), b.data()};
@@ -110,7 +113,7 @@ TEST(kernel, GatherCnnl) {
         auto cpuRoutine = cpuKernel->lower(res).routine;
         // Init inputs and outputs
         std::vector<float> a;
-        for (auto i = 0; i < data->elementsSize(); i++) {
+        for (size_t i = 0; i < data->elementsSize(); i++) {
             a.push_back(i + 0.1f);
         }
         std::vector<int64_t> b(indices->elementsSize(), 0);
@@ -126,6 +129,7 @@ TEST(kernel, GatherCnnl) {
             void const *inputs[]{*aMLU, *bMLU};
             void *outputs[]{*cMLU};
             cnnlRoutine(res, *workspace, inputs, outputs);
+            kernel::bang::sync();
         }
         {
             void const *inputs[]{a.data(), b.data()};

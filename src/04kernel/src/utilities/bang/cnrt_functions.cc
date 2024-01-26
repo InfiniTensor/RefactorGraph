@@ -4,7 +4,7 @@
 #include <cnrt.h>
 #include <cstdio>
 
-namespace refactor::kernel::cnnl {
+namespace refactor::kernel::bang {
 
     int currentDevice() {
         int device;
@@ -22,6 +22,6 @@ namespace refactor::kernel::cnnl {
                                CNRT_MEM_TRANS_DIR_DEV2HOST));
     }
 
-}// namespace refactor::kernel::cnnl
+}// namespace refactor::kernel::bang
 
 #endif

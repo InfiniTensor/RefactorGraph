@@ -1,7 +1,8 @@
 ﻿#ifdef USE_BANG
 
-#include "../../../src/kernels/split/cpu_kernel.hh"
 #include "../../../src/kernels/split/cnnl_kernel.hh"
+#include "../../../src/kernels/split/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
@@ -64,6 +65,7 @@ TEST(kernel, SplitCnnl) {
         void const *inputs[]{*mluIn};
         void *outputs[]{*mluOuts[0], *mluOuts[1], *mluOuts[2], *mluOuts[3]};
         routine(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{data.data()};

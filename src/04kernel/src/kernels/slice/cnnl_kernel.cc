@@ -64,7 +64,7 @@ namespace refactor::kernel {
         CNNL_ASSERT(cnnlSetTensorDescriptor(d->in, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), info.inDim.size(), info.inDim.data()));
         CNNL_ASSERT(cnnlSetTensorDescriptor(d->out, CNNL_LAYOUT_NCHW, cnnlDataTypeConvert(info.dataType), info.outDim.size(), info.outDim.data()));
         std::vector<int> begin, end, stride;
-        for (auto i = 0; i < info.dims.size(); i++) {
+        for (size_t i = 0; i < info.dims.size(); i++) {
             // [begin, end), end is not inclued
             begin.push_back(info.dims[i].start);
             auto sign = info.dims[i].step > 0 ? 1 : -1;

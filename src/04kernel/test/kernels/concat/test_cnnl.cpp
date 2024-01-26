@@ -1,7 +1,8 @@
 ﻿#ifdef USE_BANG
 
-#include "../../../src/kernels/concat/cpu_kernel.hh"
 #include "../../../src/kernels/concat/cnnl_kernel.hh"
+#include "../../../src/kernels/concat/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
@@ -65,6 +66,7 @@ TEST(kernel, ConcatCnnl) {
         void const *inputs[]{*mluIns[0], *mluIns[1], *mluIns[2], *mluIns[3]};
         void *outputs[]{*mluOut};
         routine(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{cpuIns[0].data(), cpuIns[1].data(), cpuIns[2].data(), cpuIns[3].data()};

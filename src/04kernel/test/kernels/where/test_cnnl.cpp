@@ -2,6 +2,7 @@
 
 #include "../../../src/kernels/where/cnnl_kernel.hh"
 #include "../../../src/kernels/where/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -49,6 +50,7 @@ void testWhereCnnl(Shape cDim, Shape xDim, Shape yDim, Shape outDim) {
         void const *inputs[]{*mluC, *mluX, *mluY};
         void *outputs[]{*mluOut};
         rCnnl(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     // take output data
     std::vector<float> result(outTensor->elementsSize());

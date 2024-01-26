@@ -180,7 +180,6 @@ namespace refactor::kernel {
                                          workspace, workspaceSize));
             }
             
-            BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
         };
 
         return {std::move(routine), workspaceSize};

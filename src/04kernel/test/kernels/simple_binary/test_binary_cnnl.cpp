@@ -2,6 +2,7 @@
 
 #include "../src/kernels/simple_binary/binary_cnnl.hh"
 #include "../src/kernels/simple_binary/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -38,6 +39,7 @@ void testBinaryCnnl(SimpleBinaryType binaryOPT, Shape dimA, Shape dimB, Shape di
         void const *inputs[]{*aMLU, *bMLU};
         void *outputs[]{*cMLU};
         routine(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{a.data(), b.data()};
@@ -99,27 +101,6 @@ TEST(kernel, BinaryCnnlFMod) {
                                   Shape{2, 5, 10, 20, 3, 4},
                                   Shape{2, 5, 10, 20, 3, 4});
 }
-
-// TEST(kernel, BinaryCnnlMod) {
-//     testBinaryCnnl<DataType::I8>(SimpleBinaryType::Mod,
-//                                  Shape{2, 5, 10, 20, 3, 4},
-//                                  Shape{2, 5, 10, 20, 3, 4},
-//                                  Shape{2, 5, 10, 20, 3, 4});
-// }
-
-// TEST(kernel, BinaryCnnlFmodI8) {
-//     testBinaryCnnl<DataType::I8>(SimpleBinaryType::Fmod,
-//                                  Shape{2, 5, 10, 20, 3, 4},
-//                                  Shape{2, 5, 10, 20, 3, 4},
-//                                  Shape{2, 5, 10, 20, 3, 4});
-// }
-
-// TEST(kernel, BinaryCnnlFmodF32) {
-//     testBinaryCnnl<DataType::F32>(SimpleBinaryType::Fmod,
-//                                   Shape{2, 5, 10, 20, 3, 4},
-//                                   Shape{2, 5, 10, 20, 3, 4},
-//                                   Shape{2, 5, 10, 20, 3, 4});
-// }
 
 TEST(kernel, BinaryCnnlBroadcast) {
     testBinaryCnnl<DataType::F32>(SimpleBinaryType::Add, Shape{1, 2, 3, 4, 5, 6}, Shape{}, Shape{1, 2, 3, 4, 5, 6});

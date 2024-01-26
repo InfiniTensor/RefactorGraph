@@ -3,6 +3,7 @@
 #include "../../../src/kernels/simple_unary/cnnl_activation_kernel.hh"
 #include "../../../src/kernels/simple_unary/cnnl_simple_unary_kernel.hh"
 #include "../../../src/kernels/simple_unary/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -32,6 +33,7 @@ static void testOp(SimpleUnaryType opType, bool activation = true) {
         void const *inputs[]{*mluMem};
         void *outputs[]{*mluMem};
         routine(res, nullptr, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{data.data()};

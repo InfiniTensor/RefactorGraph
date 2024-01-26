@@ -76,7 +76,7 @@ namespace refactor::python_ffi {
         auto ans = _stream.bench(sync ? kernel::cuda::sync : nullptr);
 #else
     #ifdef USE_BANG
-        auto ans = _stream.bench(sync ? kernel::cnnl::sync : nullptr);
+        auto ans = _stream.bench(sync ? kernel::bang::sync : nullptr);
 #else
         auto ans = _stream.bench(nullptr);
     #endif
@@ -222,7 +222,7 @@ namespace refactor::python_ffi {
                 kernel::cuda::copyOut(buffer.data(), addresses[idx], size);
 #endif
 #ifdef USE_BANG
-                kernel::cnnl::copyOut(buffer.data(), addresses[idx], size);
+                kernel::bang::copyOut(buffer.data(), addresses[idx], size);
 #endif
 
                 auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);

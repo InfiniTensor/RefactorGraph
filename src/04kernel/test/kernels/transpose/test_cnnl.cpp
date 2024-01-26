@@ -2,6 +2,7 @@
 
 #include "../../../src/kernels/transpose/cnnl_kernel.hh"
 #include "../../../src/kernels/transpose/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
@@ -42,6 +43,7 @@ TEST(kernel, TransposeCnnl) {
         void const *inputs[]{*mluIn};
         void *outputs[]{*mluOut};
         routine(res, *workspace, inputs, outputs);
+        kernel::bang::sync();
     }
     // take output data
     std::vector<float> result(dataTensor->elementsSize());

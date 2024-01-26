@@ -65,7 +65,6 @@ namespace refactor::kernel {
         return [d = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             CNNL_ASSERT(cnnlCastDataType(res.fetchOrStore<CnnlContext>()->handle,
                                          d->inDesc, inputs[0], d->cast, d->outDesc, outputs[0]));
-            // BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
         };
     }
 

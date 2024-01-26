@@ -79,7 +79,6 @@ namespace refactor::kernel {
                                      d->inDesc, inputs[0], reinterpret_cast<const int *>(workspace),
                                      d->indexDesc, reinterpret_cast<const int *>(inputs[1]),
                                      d->outDesc, outputs[0]));
-            BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
        };
 
         return {std::move(routine), workspaceSize};

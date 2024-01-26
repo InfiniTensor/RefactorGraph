@@ -1,7 +1,8 @@
 ﻿#ifdef USE_BANG
 
-#include "../../../src/kernels/scatter_nd/cpu_kernel.hh"
 #include "../../../src/kernels/scatter_nd/cnnl_kernel.hh"
+#include "../../../src/kernels/scatter_nd/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 #include <numeric>
@@ -48,6 +49,7 @@ TEST(kernel, ScatterNDCnnl) {
         void const *inputs[]{*mluData, *mluIndices, *mluUpdates};
         void *outputs[]{*mluOut};
         routine(res, nullptr, inputs, outputs);
+        kernel::bang::sync();
     }
     {
         void const *inputs[]{data_.data(), indices_.data(), updates_.data()};

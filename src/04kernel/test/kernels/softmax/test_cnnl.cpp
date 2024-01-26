@@ -1,7 +1,8 @@
 #ifdef USE_BANG
 
-#include "../../../src/kernels/softmax/cpu_kernel.hh"
 #include "../../../src/kernels/softmax/cnnl_kernel.hh"
+#include "../../../src/kernels/softmax/cpu_kernel.hh"
+#include "../src/utilities/bang/cnrt_functions.h"
 #include "hardware/device_manager.h"
 #include <gtest/gtest.h>
 
@@ -39,6 +40,7 @@ TEST(kernel, SoftmaxCnnl) {
         void const *inputs[]{*mluIn};
         void *outputs[]{*mluOut};
         rCnnl(res, nullptr, inputs, outputs);
+        kernel::bang::sync();
     }
     // take output data
     std::vector<float> result(outTensor->elementsSize());
