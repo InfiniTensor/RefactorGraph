@@ -12,9 +12,9 @@ using namespace hardware;
 
 TEST(kernel, RmsNormalizationCuda) {
     // build routine
-    auto y = Tensor::share(DataType::F32, Shape{2, 3, 4});
-    auto x = Tensor::share(DataType::F32, Shape{2, 3, 4});
-    auto w = Tensor::share(DataType::F32, Shape{4});
+    auto y = Tensor::share(DataType::F32, Shape{2, 3, 4096});
+    auto x = Tensor::share(DataType::F32, Shape{2, 3, 4096});
+    auto w = Tensor::share(DataType::F32, Shape{4096});
     auto kernel = RmsNormalizationCuda::build(0, *x),
          kCpu = RmsNormalizationCpu::build(0, *x);
     ASSERT_TRUE(kernel && kCpu);
@@ -28,10 +28,8 @@ TEST(kernel, RmsNormalizationCuda) {
          wGpu = dev.malloc(w->bytesSize());
     // put input data
     std::vector<float> y_(y->elementsSize());
-    std::vector<float> x_(x->elementsSize());
-    std::vector<float> w_(w->elementsSize());
-    std::iota(x_.begin(), x_.end(), 0);
-    std::iota(w_.begin(), w_.end(), 1);
+    std::vector<float> x_(x->elementsSize(), 2);
+    std::vector<float> w_(w->elementsSize(), 3);
     xGpu->copyFromHost(x_.data(), x->bytesSize());
     wGpu->copyFromHost(w_.data(), w->bytesSize());
     // inference

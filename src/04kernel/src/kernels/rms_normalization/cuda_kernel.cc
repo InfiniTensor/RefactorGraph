@@ -47,7 +47,7 @@ namespace refactor::kernel {
 #ifdef USE_CUDA
 
     // 0: data type
-    // 1: block size
+    // 1: blockDim
     // 2: T -> float
     // 3: T <- float
     constexpr static const char *TEMPLATE = R"~(
@@ -57,22 +57,33 @@ extern "C" __global__ void kernel(
     {0:} *__restrict__ y,
     {0:} const *__restrict__ x,
     {0:} const *__restrict__ w,
+    unsigned int blockSize,
     float epsilon) {{
 
-    x += blockIdx.x * blockDim.x + threadIdx.x;
-    y += blockIdx.x * blockDim.x + threadIdx.x;
+    auto init = blockIdx.x * blockSize + threadIdx.x,
+         step = blockDim.x;
+    x += init;
+    y += init;
     w += threadIdx.x;
 
     using BlockReduce = cub::BlockReduce<{0:}, {1:}>;
     __shared__ typename BlockReduce::TempStorage tempStorage;
     __shared__ {0:} rms;
-    auto acc = BlockReduce(tempStorage).Reduce(*x * *x, cub::Sum());
+
+    auto acc = *x * *x;
+    for (auto i = step; i < blockSize; i += step) {{
+        acc += x[i] * x[i];
+    }}
+    acc = BlockReduce(tempStorage).Reduce(acc, cub::Sum());
+
     if (threadIdx.x == 0) {{
-        rms = {3:}(rsqrt({2:}(acc) / blockDim.x + epsilon));
+        rms = {3:}(rsqrt({2:}(acc) / blockSize + epsilon));
     }}
     __syncthreads();
 
-    *y = *x * rms * *w;
+    for (auto i = 0; i < blockSize; i += step) {{
+        y[i] = x[i] * rms * w[i];
+    }}
 }}
 )~";
 
@@ -83,10 +94,11 @@ extern "C" __global__ void kernel(
         ss << "RmsNorm" << nvrtc::dataType(dataType) << blockSize;
         ss << ".cu";
         auto name = ss.str();
+        auto blockDim = std::min(blockSize, 1024u);
         auto code = fmt::format(
             TEMPLATE,
             nvrtc::dataType(dataType),// 0
-            blockSize,                // 1
+            blockDim,                 // 1
             // clang-format off
             dataType == DataType::F32  ? ""
           : dataType == DataType::F64  ? "static_cast<float>"
@@ -104,15 +116,17 @@ extern "C" __global__ void kernel(
         return [h = nvrtc::Handler::compile(name.c_str(), code.c_str(), "kernel"),
                 epsilon_ = this->epsilon,
                 blockCount = this->blockCount,
-                blockSize = this->blockSize]//
+                blockSize_ = this->blockSize,
+                blockDim]//
             (Resources &, void *, void const *const *inputs, void *const *outputs) {
                 auto y = outputs[0];
                 auto x = inputs[0];
                 auto w = inputs[1];
+                auto blockSize = blockSize_;
                 auto epsilon = epsilon_;
-                void *args[]{&y, &x, &w, &epsilon};
+                void *args[]{&y, &x, &w, &blockSize, &epsilon};
                 h->launch(blockCount, 1, 1,
-                          blockSize, 1, 1,
+                          blockDim, 1, 1,
                           0, args);
             };
     }
