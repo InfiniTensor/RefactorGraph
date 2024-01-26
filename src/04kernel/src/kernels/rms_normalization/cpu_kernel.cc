@@ -1,9 +1,9 @@
 ﻿#include "cpu_kernel.hh"
+#include <execution>
 #include <numeric>
 
 namespace refactor::kernel {
     using K = RmsNormalizationCpu;
-    using DT = DataType;
 
     K::RmsNormalizationCpu(
         decltype(epsilon) epsilon_,
@@ -37,38 +37,41 @@ namespace refactor::kernel {
         return "Performing rms normalization on generic cpu";
     }
 
-    template<decltype(DT::internal) T>
+    template<class T>
     static Routine lowerTyped(float epsilon, dim_t blockCount, dim_t blockSize) {
         using namespace runtime;
-        using dt = typename primitive<T>::type;
 
         return [epsilon, blockCount, blockSize]//
             (Resources &, void *, void const *const *inputs, void *const *outputs) {
-                auto x = reinterpret_cast<dt const *>(inputs[0]);
-                auto w = reinterpret_cast<dt const *>(inputs[1]);
-                auto y = reinterpret_cast<dt *>(outputs[0]);
-                for (auto i : range0_(blockCount)) {
-                    auto x_ = x + i * blockSize;
-                    auto y_ = y + i * blockSize;
+                auto x = reinterpret_cast<T const *>(inputs[0]);
+                auto w = reinterpret_cast<T const *>(inputs[1]);
+                auto y = reinterpret_cast<T *>(outputs[0]);
+                std::for_each_n(
+                    std::execution::par_unseq,
+                    natural_t(0),
+                    blockCount,
+                    [blockSize, epsilon, x, w, y](auto i) {
+                        auto x_ = x + i * blockSize;
+                        auto y_ = y + i * blockSize;
 
-                    auto ss = std::accumulate(x_, x_ + blockSize, dt(0), [](auto acc, auto it) {
-                        return acc + it * it;
+                        auto ss = std::accumulate(
+                            x_, x_ + blockSize, 0,
+                            [](auto acc, auto it) { return acc + it * it; });
+                        ss /= blockSize;
+                        ss += epsilon;
+                        ss = 1. / std::sqrt(ss);
+
+                        for (auto j : range0_(blockSize)) {
+                            y_[j] = x_[j] * ss * w[j];
+                        }
                     });
-                    ss /= blockSize;
-                    ss += epsilon;
-                    ss = 1. / std::sqrt(ss);
-
-                    for (auto j : range0_(blockSize)) {
-                        y_[j] = x_[j] * ss * w[j];
-                    }
-                }
             };
     }
 
     auto K::lower(Resources &) const noexcept -> RoutineWorkspace {
         return dataType == DataType::F32
-                   ? lowerTyped<DataType::F32>(epsilon, blockCount, blockSize)
-                   : lowerTyped<DataType::F64>(epsilon, blockCount, blockSize);
+                   ? lowerTyped<float>(epsilon, blockCount, blockSize)
+                   : lowerTyped<double>(epsilon, blockCount, blockSize);
     }
 
 }// namespace refactor::kernel
