@@ -17,6 +17,7 @@
 #include "operators/gather_elements.hh"
 #include "operators/gemm.hh"
 #include "operators/global_pool.hh"
+#include "operators/hard_sigmoid.hh"
 #include "operators/mat_mul.hh"
 #include "operators/mat_mul_integer.hh"
 #include "operators/pool.hh"
@@ -95,6 +96,7 @@ namespace refactor::onnx {
         REGISTER(And                  , SimpleBinary         );
         REGISTER(Or                   , SimpleBinary         );
         REGISTER(Xor                  , SimpleBinary         );
+        REGISTER(Mod                  , SimpleBinary         );
         REGISTER(Abs                  , SimpleUnary          );
         REGISTER(Acos                 , SimpleUnary          );
         REGISTER(Acosh                , SimpleUnary          );
@@ -116,6 +118,7 @@ namespace refactor::onnx {
         REGISTER(Not                  , SimpleUnary          );
         REGISTER(Neg                  , SimpleUnary          );
         REGISTER(Identity             , SimpleUnary          );
+        REGISTER(HardSwish            , SimpleUnary          );
         REGISTER(Slice                , Slice                );
         REGISTER(Softmax              , Softmax              );
         REGISTER(Split                , Split                );
@@ -124,6 +127,7 @@ namespace refactor::onnx {
         REGISTER(Transpose            , Transpose            );
         REGISTER(Unsqueeze            , Unsqueeze            );
         REGISTER(Where                , Where                );
+        REGISTER(HardSigmoid          , HardSigmoid          );
         #undef REGISTER
         // clang-format on
     }

@@ -1,6 +1,7 @@
 ﻿#include "communication/operators.h"
 #include "hardware/device.h"
 #include "import.h"
+#include "llm/operators.h"
 #include "onnx/operators.h"
 #include <pybind11/stl.h>// keep this line to convert stl types
 
@@ -14,6 +15,7 @@ namespace refactor::python_ffi {
         using namespace frontend;
 
         onnx::register_();
+        llm::register_();
         communication::register_();
 
         // clang-format off
@@ -21,6 +23,7 @@ namespace refactor::python_ffi {
         py::class_<Tensor      , Arc<Tensor>      >(m, "Tensor"      );
         py::class_<OpBox       , Arc<OpBox>       >(m, "Operator"    );
         py::class_<Device      , Arc<Device>      >(m, "Device"      );
+        py::class_<Device::Blob, Arc<Device::Blob>>(m, "Pinned"      );
 
         m   .def("config_log"      , &configLog                  , return_::automatic )
             .def("find_device"     , &findDevice                 , return_::move      )
@@ -33,6 +36,7 @@ namespace refactor::python_ffi {
         py::class_<Compiler , Arc<Compiler>>(m, "Compiler" )
             .def("substitute"      , &Compiler::substitute       , return_::automatic )
             .def("set_input"       , &Compiler::setInput         , return_::automatic )
+            .def("set_input_info"  , &Compiler::setInputInfo     , return_::automatic )
             .def("check_variables" , &Compiler::fillEdgeInfo     , return_::move      )
             .def("zero_inputs"     , &Compiler::zeroInputs       , return_::move      )
             .def("get_tensor"      , &Compiler::getTensor        , return_::move      )
@@ -43,7 +47,9 @@ namespace refactor::python_ffi {
         py::class_<Executor , Arc<Executor>>(m, "Executor" )
             .def("dispatch"        , &Executor::dispatch         , return_::automatic )
             .def("set_input"       , &Executor::setInput         , return_::automatic )
+            .def("set_input_blob"  , &Executor::setInputBlob     , return_::automatic )
             .def("get_output"      , &Executor::getOutput        , return_::move      )
+            .def("get_output_blob" , &Executor::getOutputBlob    , return_::move      )
             .def("run"             , &Executor::run              , return_::automatic )
             .def("bench"           , &Executor::bench            , return_::automatic )
             .def("trace"           , &Executor::trace            , return_::automatic )

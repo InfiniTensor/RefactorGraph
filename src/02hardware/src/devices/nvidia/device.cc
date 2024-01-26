@@ -1,22 +1,39 @@
 ﻿﻿#include "functions.cuh"
 #include "hardware/devices/nvidia.h"
 #include "hardware/mem_pool.h"
-#include "memory.cuh"
+
+#ifdef USE_CUDA
+#include "memory.hh"
+#include <cuda_runtime.h>
+
+#define CUDA_ASSERT(STATUS)                                                          \
+    if (auto status = (STATUS); status != cudaSuccess) {                             \
+        RUNTIME_ERROR(fmt::format("cuda failed on \"" #STATUS "\" with \"{}\" ({})", \
+                                  cudaGetErrorString(status), (int) status));        \
+    }
+#endif
 
 namespace refactor::hardware {
 
     static Arc<Memory> cudaMemory(int32_t card) {
 #ifdef USE_CUDA
-        ASSERT(0 <= card && card < getDeviceCount(), "Invalid card id: {}", card);
-        setDevice(card);
-        auto [free, total] = getMemInfo();
-        auto size = std::min(free, std::max(5ul << 30, total * 4 / 5));
-        fmt::println("initializing Nvidia GPU {}, memory {} / {}, alloc {}",
-                     card, free, total, size);
+        int deviceCount;
+        CUDA_ASSERT(cudaGetDeviceCount(&deviceCount));
+        ASSERT(0 <= card && card < deviceCount, "Invalid card id: {}", card);
+        CUDA_ASSERT(cudaSetDevice(card));
+
+        size_t free, total;
+        CUDA_ASSERT(cudaMemGetInfo(&free, &total));
+        auto size = free * 9 / 10;
+        cudaDeviceProp prop;
+        CUDA_ASSERT(cudaGetDeviceProperties(&prop, 0));
+        size_t alignment = prop.textureAlignment;
+        fmt::println("initializing Nvidia GPU {}, memory {} / {}, alloc {}, alignment {}",
+                     card, free, total, size, alignment);
         return std::make_shared<MemPool>(
             std::make_shared<NvidiaMemory>(),
             size,
-            256ul);
+            alignment);
 #else
         return nullptr;
 #endif
@@ -24,8 +41,10 @@ namespace refactor::hardware {
 
     Nvidia::Nvidia(int32_t card) : Device(card, cudaMemory(card)) {}
 
-    void Nvidia::setContext() const noexcept {
-        setDevice(_card);
+    void Nvidia::setContext() const {
+#ifdef USE_CUDA
+        CUDA_ASSERT(cudaSetDevice(_card));
+#endif
     }
 
 }// namespace refactor::hardware

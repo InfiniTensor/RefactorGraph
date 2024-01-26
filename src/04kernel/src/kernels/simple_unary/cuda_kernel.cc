@@ -18,7 +18,8 @@ namespace refactor::kernel {
     auto K::build(Op op, Tensor const &a) noexcept -> KernelBox {
         static const std::unordered_set<Op>
             supportedOp{Op::Abs, Op::Relu, Op::Sqrt,
-                        Op::Sigmoid, Op::Tanh, Op::Neg};
+                        Op::Sigmoid, Op::Tanh, Op::Neg,
+                        Op::Erf, Op::HardSwish};
 #ifndef USE_CUDA
         return nullptr;
 #endif
@@ -140,6 +141,24 @@ extern "C" __global__ void kernel(
             {__(Op::Neg, DT::BF16), "-x"},
             {__(Op::Neg, DT::F32 ), "-x"},
             {__(Op::Neg, DT::F64 ), "-x"},
+
+            {__(Op::Erf, DT::F32 ), "erff(x)"},
+            {__(Op::Erf, DT::F64 ), "erf(x)"},
+            {__(Op::Erf, DT::U8  ), "erff(static_cast<float>(x))"},
+            {__(Op::Erf, DT::I8  ), "erff(static_cast<float>(x))"},
+            {__(Op::Erf, DT::U16 ), "erff(static_cast<float>(x))"},
+            {__(Op::Erf, DT::I16 ), "erff(static_cast<float>(x))"},
+            {__(Op::Erf, DT::U32 ), "erf(static_cast<double>(x))"},
+            {__(Op::Erf, DT::I32 ), "erf(static_cast<double>(x))"},
+            {__(Op::Erf, DT::U64 ), "erf(static_cast<double>(x))"},
+            {__(Op::Erf, DT::I64 ), "erf(static_cast<double>(x))"},
+            {__(Op::Erf, DT::FP16), "__float2half(erff(__half2float(x)))"},
+            {__(Op::Erf, DT::BF16), "__float2bfloat16(erff(__bfloat162float(x)))"},
+
+            {__(Op::HardSwish, DT::F32 ), "x * fmaxf(0.f, fminf(1.f, fmaf(1.f/6.f, x, 0.5f)))"},
+            {__(Op::HardSwish, DT::FP16), "x * __hmax(CUDART_ZERO_FP16, __hmin(CUDART_ONE_FP16, hrcp(__float2half(6.f)) * x + hrcp(__float2half(2.f))))"},
+            {__(Op::HardSwish, DT::F64 ), "x * fmax(0.0, fmin(1.0, fma(1.0/6.0, x, 0.5)))"},
+
         };
         // clang-format on
 

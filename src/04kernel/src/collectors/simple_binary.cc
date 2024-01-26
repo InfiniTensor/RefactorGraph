@@ -19,6 +19,8 @@ namespace refactor::kernel {
             CASE(And);
             CASE(Or);
             CASE(Xor);
+            CASE(Mod);
+            CASE(Fmod);
             default:
                 UNREACHABLE();
         }

@@ -59,7 +59,8 @@ TEST(kernel, SliceCpu) {
     };
     auto input = Tensor::share(DataType::F32, Shape{7, 6, 5, 1, 2, 3}),
          output = Tensor::share(DataType::F32, Shape{3, 2, 3, 1, 2, 3});
-    auto kernel = SliceCpu::build(SliceInfo(dims, *input));
+    auto info = SliceInfo(dims, *input);
+    auto kernel = SliceCpu::build(info);
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;
@@ -94,7 +95,7 @@ TEST(kernel, SliceCpu) {
         }
     }
     // test reform
-    auto kernelReformed = SliceCpu::build(SliceInfo(dims, *input).reform(16));
+    auto kernelReformed = SliceCpu::build(info.reform(16));
     ASSERT_TRUE(kernelReformed);
     auto routineReformed = kernelReformed->lower(res).routine;
     std::vector<float> resultReformed(result.size());

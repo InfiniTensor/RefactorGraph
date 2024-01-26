@@ -19,7 +19,21 @@ namespace refactor::python_ffi {
     }
 
     void
-    Compiler::setInput(size_t index, int dataType, DimVec dims) {
+    Compiler::setInput(size_t index, pybind11::array data) {
+        ASSERT(index < _g.internal().topology.globalInputsCount(),
+               "Input {} not exist", index);
+
+        Shape shape(data.ndim(), DimExpr(1));
+        std::transform(std::execution::unseq,
+                       data.shape(), data.shape() + data.ndim(), shape.begin(),
+                       [](auto const &d) { return DimExpr(d); });
+        auto ans = Tensor::share(parseNumpyDType(data.dtype()), std::move(shape), {});
+        std::memcpy(ans->malloc(), data.data(), data.nbytes());
+        _g.internal().edges[index].tensor = std::move(ans);
+    }
+
+    void
+    Compiler::setInputInfo(size_t index, int dataType, DimVec dims) {
         ASSERT(index < _g.internal().topology.globalInputsCount(),
                "Input {} not exist", index);
 

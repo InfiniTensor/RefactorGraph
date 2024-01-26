@@ -15,7 +15,9 @@ namespace refactor::python_ffi {
         Executor(computation::Graph, runtime::Stream);
         void dispatch(Arc<hardware::Device>, std::string allocator);
         void setInput(count_t, pybind11::array);
-        auto getOutput(count_t) -> pybind11::array;
+        void setInputBlob(count_t, Arc<hardware::Device::Blob>);
+        auto getOutput(count_t) const -> pybind11::array;
+        auto getOutputBlob(count_t) const -> Arc<hardware::Device::Blob>;
         void run();
         void bench(bool sync);
         void trace(std::string path, std::string format);

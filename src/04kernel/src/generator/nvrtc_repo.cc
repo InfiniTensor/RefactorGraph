@@ -2,6 +2,7 @@
 
 #include "nvrtc_repo.h"
 #include "hardware/device_manager.h"
+#include <filesystem>
 #include <nvrtc.h>
 
 #define NVRTC_ASSERT(CALL)                                                 \
@@ -38,9 +39,24 @@ namespace refactor::kernel::nvrtc {
         NVRTC_ASSERT(nvrtcCreateProgram(&prog, code.data(), name.data(), 0, nullptr, nullptr));
 
         std::vector<std::string> opts{"--std=c++17", "--gpu-architecture=compute_80"};
+        {
+            auto proj = std::filesystem::path(__FILE__)
+                            .parent_path()
+                            .parent_path()
+                            .parent_path()
+                            .parent_path()
+                            .parent_path();
+            auto cccl = proj / "3rd-party/cccl";
+            auto cudacxx = cccl / "libcudacxx/include";
+            auto cub = cccl / "cub";
+            ASSERT(std::filesystem::is_directory(cub), "cub not exist");
+            opts.emplace_back(fmt::format("-I{}", cudacxx.c_str()));
+            opts.emplace_back(fmt::format("-I{}", cub.c_str()));
+        }
 #ifdef CUDA_INCLUDE_PATH
         opts.emplace_back(fmt::format("-I{}", CUDA_INCLUDE_PATH));
 #endif
+
         std::vector<const char *> optsPtr(opts.size());
         std::transform(opts.begin(), opts.end(), optsPtr.begin(),
                        [](auto &s) { return s.c_str(); });

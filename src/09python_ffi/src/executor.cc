@@ -26,31 +26,41 @@ namespace refactor::python_ffi {
         for (auto i : graph.topology.globalInputs()) {
             auto size = graph.edges[i].tensor->bytesSize();
             buffer.resize(size);
-            if (stream.getData(i, buffer.data(), size)) {
+            if (stream.copyData(i, buffer.data(), size)) {
                 _stream.setData(i, buffer.data(), size);
             }
         }
     }
 
     void Executor::setInput(count_t i, pybind11::array data) {
-        i = _stream.graph().topology.globalInputs().at(i);
+        i = _graph.internal().contiguous().topology.globalInputs().at(i);
 
-        auto const &name = _stream.graph().edges[i].name;
-        auto const &edges = _graph.internal().contiguous().edges;
-        auto const &tensor = *std::find_if(edges.begin(), edges.end(), [&](auto const &e) { return e.name == name; })->tensor;
+        auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
         ASSERT(tensor.bytesSize() == static_cast<size_t>(data.nbytes()), "input size mismatch");
         _stream.setData(i, data.data(), data.nbytes());
     }
 
-    auto Executor::getOutput(count_t i) -> pybind11::array {
-        i = _stream.graph().topology.globalOutputs().at(i);
+    void Executor::setInputBlob(count_t i, Arc<hardware::Device::Blob> blob) {
+        i = _graph.internal().contiguous().topology.globalInputs().at(i);
 
-        auto const &name = _stream.graph().edges[i].name;
-        auto const &edges = _graph.internal().contiguous().edges;
-        auto const &tensor = *std::find_if(edges.begin(), edges.end(), [&](auto const &e) { return e.name == name; })->tensor;
+        auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
+        ASSERT(tensor.bytesSize() == blob->size(), "input size mismatch");
+        _stream.setData(i, std::move(blob));
+    }
+
+    auto Executor::getOutput(count_t i) const -> pybind11::array {
+        i = _graph.internal().contiguous().topology.globalOutputs().at(i);
+
+        auto const &tensor = *_graph.internal().contiguous().edges[i].tensor;
         auto ans = pybind11::array(buildNumpyDType(tensor.dataType), std::move(tensor.shape));
-        _stream.getData(i, ans.mutable_data(), ans.nbytes());
+        _stream.copyData(i, ans.mutable_data(), ans.nbytes());
         return ans;
+    }
+
+    auto Executor::getOutputBlob(count_t i) const -> Arc<hardware::Device::Blob> {
+        i = _graph.internal().contiguous().topology.globalOutputs().at(i);
+
+        return _stream.getData(i);
     }
 
     void Executor::run() {
@@ -74,6 +84,60 @@ namespace refactor::python_ffi {
 
     static void writeBin(std::ofstream os, char const *ptr, size_t size) {
         os.write(ptr, size);
+    }
+
+    static void writeText(std::ofstream os, char const *ptr, size_t size,
+                          DataType dataType, computation::Shape const &shape) {
+        if (shape.empty()) {
+            os << dataType.name() << "<>" << std::endl;
+            return;
+        } else {
+            auto iter = shape.begin();
+            os << dataType.name() << '<' << *iter++;
+            while (iter != shape.end()) { os << 'x' << *iter++; }
+            os << '>' << std::endl;
+        };
+
+#define CASE(T)                                        \
+    case DataType::T: {                                \
+        using T_ = primitive<DataType::T>::type;       \
+        auto ptr_ = reinterpret_cast<T_ const *>(ptr); \
+        for (auto i : range0_(size / sizeof(T_))) {    \
+            os << ptr_[i] << '\t';                     \
+        }                                              \
+    } break
+
+        switch (dataType) {
+            case DataType::U8: {
+                auto ptr_ = reinterpret_cast<uint8_t const *>(ptr);
+                for (auto i : range0_(size)) {
+                    os << static_cast<int>(ptr_[i]) << '\t';
+                }
+            } break;
+            case DataType::I8: {
+                auto ptr_ = reinterpret_cast<int8_t const *>(ptr);
+                for (auto i : range0_(size)) {
+                    os << static_cast<int>(ptr_[i]) << '\t';
+                }
+            } break;
+            case DataType::Bool: {
+                auto ptr_ = reinterpret_cast<bool const *>(ptr);
+                for (auto i : range0_(size)) {
+                    os << (ptr_[i] ? "true " : "false") << '\t';
+                }
+            } break;
+                CASE(F32);
+                CASE(U16);
+                CASE(I16);
+                CASE(I32);
+                CASE(I64);
+                CASE(F64);
+                CASE(U32);
+                CASE(U64);
+            default:
+                UNREACHABLE();
+                break;
+        }
     }
 
     static void writeNpy(std::ofstream os, char const *ptr, size_t size,
@@ -126,7 +190,6 @@ namespace refactor::python_ffi {
         fs::create_directories(path);
         ASSERT(fs::is_directory(path), "Failed to create \"{}\"", path.c_str());
 
-        auto const npy = format == "npy";
         size_t dataIdx = 0;
 
         auto const &graph = _graph.internal().contiguous();
@@ -154,9 +217,12 @@ namespace refactor::python_ffi {
                 auto file = path / fmt::format("data{:06}.{}", dataIdx++, format);
                 fs::remove(file);
                 std::ofstream os(file, std::ios::binary);
-                if (npy) {
+                if (format == "npy") {
                     writeNpy(std::move(os), buffer.data(), size,
                              edge.tensor->dataType, edge.tensor->shape);
+                } else if (format == "text") {
+                    writeText(std::move(os), buffer.data(), size,
+                              edge.tensor->dataType, edge.tensor->shape);
                 } else {
                     writeBin(std::move(os), buffer.data(), size);
                 }

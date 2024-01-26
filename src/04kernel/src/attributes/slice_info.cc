@@ -39,40 +39,35 @@ namespace refactor::kernel {
             }
             dims_.resize(rank = shape.size());
         }
-        dims.reserve(rank);
-        dim_t strideI = 1;
+        // 合并末尾的连续维度
         for (auto i : range0_(rank).rev()) {
-            auto const &dim = dims_[i];
-            dims.push_back({
-                .strideO = blockCount,
-                .skip = static_cast<dim_t>(strideI * dim.start),
-                .strideI = static_cast<sdim_t>(strideI * dim.step),
-            });
-            blockCount *= dim.length;
-            strideI *= shape[i];
-        }
-        std::reverse(dims.begin(), dims.end());
-
-        while (!dims.empty()) {
-            auto const &dim = dims.back();
-            if (dim.strideI == static_cast<sdim_t>(dim.strideO) && !dim.skip) {
-                dims.pop_back();
+            if (auto d = shape[i]; dims_[i].length == d) {
+                blockSize *= d;
+                shape.pop_back();
+                dims_.pop_back();
             } else {
-                long times = std::gcd(std::gcd(dim.strideI, dim.strideO), dim.skip);
-                blockCount /= times;
-                blockSize *= times;
-                if (!dims.empty()) {
-                    for (auto &dim : dims) {
-                        dim.strideO /= times;
-                        dim.skip /= times;
-                        dim.strideI /= times;
-                    }
-                    if (dims.back().strideO != 1) {
-                        dims.push_back({1, 0, 1});
+                dims.resize(rank = shape.size());
+                if (auto &dim = dims_[i]; dim.step == 1) {
+                    if (auto times = std::gcd(std::gcd(dim.start, dim.length), shape[i]); times > 1) {
+                        blockSize *= times;
+                        dim.start /= times;
+                        dim.length /= times;
+                        shape[i] /= times;
                     }
                 }
                 break;
             }
+        }
+        dim_t strideI = 1;
+        for (auto i : range0_(rank).rev()) {
+            auto const &dim = dims_[i];
+            dims[i] = {
+                .strideO = blockCount,
+                .skip = static_cast<dim_t>(strideI * dim.start),
+                .strideI = static_cast<sdim_t>(strideI * dim.step),
+            };
+            blockCount *= dim.length;
+            strideI *= shape[i];
         }
     }
 
@@ -96,6 +91,5 @@ namespace refactor::kernel {
         dims.resize(dims.size() + 1);
         dims.back() = {1, 0, 1};
     }
-
 
 }// namespace refactor::kernel

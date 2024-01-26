@@ -52,7 +52,7 @@ namespace refactor::hardware {
 
         virtual ~Device() = default;
         virtual Type type() const noexcept = 0;
-        virtual void setContext() const noexcept;
+        virtual void setContext() const;
 
         Arc<Blob> malloc(size_t);
         Arc<Blob> absorb(Arc<Blob> &&);

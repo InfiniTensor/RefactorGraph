@@ -10,7 +10,7 @@ namespace refactor::onnx {
         : Operator(), perm(perm_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto perm = defaultOr(attributes, "perm", {}).ints();
+        auto perm = attributes.getOrInsert( "perm", {}).ints();
         return OpBox(std::make_unique<Op>(std::move(perm)));
     }
     auto Op::typeId() -> size_t {

@@ -10,7 +10,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Compair operator should not have attributes");
+        EXPECT_NO_ATTRI;
 
         if (opType == "onnx::Equal") {
             return OpBox(std::make_unique<Op>(Ty::EQ));

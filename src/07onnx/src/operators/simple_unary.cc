@@ -12,7 +12,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Simple binary operator should not have attributes");
+        EXPECT_NO_ATTRI;
 
         // clang-format off
         auto type =
@@ -37,6 +37,7 @@ namespace refactor::onnx {
         opType == "onnx::Not"     ? Ty::Not     :
         opType == "onnx::Neg"     ? Ty::Neg     :
         opType == "onnx::Identity"? Ty::Identity:
+        opType == "onnx::HardSwish" ? Ty::HardSwish :
         UNREACHABLEX(Ty, "Unsupported unary operator: {}", opType);
         // clang-format on
 
@@ -129,6 +130,10 @@ namespace refactor::onnx {
                 static uint8_t ID = 21;
                 return reinterpret_cast<size_t>(&ID);
             }
+            case Ty::HardSwish: {
+                static uint8_t ID = 22;
+                return reinterpret_cast<size_t>(&ID);
+            }
             default:
                 UNREACHABLE();
         }
@@ -159,6 +164,7 @@ namespace refactor::onnx {
             case Ty::Not      : return "onnx::Not";
             case Ty::Neg      : return "onnx::Neg";
             case Ty::Identity : return "onnx::Identity";
+            case Ty::HardSwish : return "onnx::HardSwish";
             default: UNREACHABLE();
         }
         // clang-format on
@@ -187,7 +193,7 @@ namespace refactor::onnx {
              Ty::Atan, Ty::Atanh,
              Ty::Cos, Ty::Cosh,
              Ty::Sin, Ty::Sinh,
-             Ty::Tan},
+             Ty::Tan, Ty::HardSwish},
             {Ty::Tanh, Ty::Sqrt, Ty::Sigmoid, Ty::Log},
             {Ty::Neg},
             {Ty::Identity}};
@@ -287,6 +293,7 @@ namespace refactor::onnx {
             case Ty::Not      : type_ = Ty_::Not      ; break;
             case Ty::Neg      : type_ = Ty_::Neg      ; break;
             case Ty::Identity : return std::make_unique<computation::Identity>();
+            case Ty::HardSwish      : type_ = Ty_::HardSwish      ; break;
             default: UNREACHABLE();
         }
         // clang-format on

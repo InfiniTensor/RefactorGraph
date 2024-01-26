@@ -7,19 +7,19 @@ namespace refactor::onnx {
 
     Op::Squeeze(decltype(axes) axes_) : Operator(), axes(std::move(axes_)) {}
 
-    auto Op::build(ModelContext const &ctx, std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &ctx, std::string_view opType, Attributes attributes) -> OpBox {
         auto iter = ctx.find("opset_version");
         auto opsetVer = iter != ctx.end() ? iter->second.int_() : StandardOpsetVersion;
 
         if (opsetVer >= 13) {
-            ASSERT(attributes.empty(), "Squeeze operator should not have attributes");
+            EXPECT_NO_ATTRI;
             return OpBox(std::make_unique<Op>(
                 std::nullopt));
-        } else if (auto it = attributes.find("axes"); it != attributes.end()) {
+        } else if (auto opt = attributes.get("axes"); opt) {
             return OpBox(std::make_unique<Op>(
                 std::make_optional(
                     std::make_optional(
-                        std::move(it->second.ints())))));
+                        std::move(opt->get().ints())))));
         } else {
             return OpBox(std::make_unique<Op>(
                 std::make_optional<std::optional<Ints>>(

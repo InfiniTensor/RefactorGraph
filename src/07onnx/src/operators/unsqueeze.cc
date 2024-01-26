@@ -7,15 +7,15 @@ namespace refactor::onnx {
 
     Op::Unsqueeze(decltype(axes) axes_) : Operator(), axes(std::move(axes_)) {}
 
-    auto Op::build(ModelContext const &ctx, std::string_view, Attributes attributes) -> OpBox {
+    auto Op::build(ModelContext const &ctx, std::string_view opType, Attributes attributes) -> OpBox {
         auto iter = ctx.find("opset_version");
         auto opsetVer = iter != ctx.end() ? iter->second.int_() : StandardOpsetVersion;
 
         if (opsetVer >= 13) {
-            ASSERT(attributes.empty(), "Unsqueeze operator should not have attributes");
+            EXPECT_NO_ATTRI;
             return OpBox(std::make_unique<Op>(std::nullopt));
         } else {
-            return OpBox(std::make_unique<Op>(std::make_optional(attributes.at("axes").ints())));
+            return OpBox(std::make_unique<Op>(std::make_optional(attributes["axes"].ints())));
         }
     }
     auto Op::typeId() -> size_t {
