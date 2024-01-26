@@ -16,10 +16,8 @@ namespace refactor::kernel {
           blockCount(blockCount_),
           blockSize(blockSize_) {}
 
-    auto K::build(float epsilon, TensorRefs inputs) noexcept -> KernelBox {
-        auto const &x = inputs[0].get();
-        auto const &w = inputs[1].get();
-        if ((x.dataType != DataType::F32 && x.dataType != DataType::F64) || x.dataType != w.dataType) {
+    auto K::build(float epsilon, Tensor const &x) noexcept -> KernelBox {
+        if (x.dataType != DataType::F32 && x.dataType != DataType::F64) {
             return nullptr;
         }
         auto it = x.shape.rbegin();
@@ -55,7 +53,7 @@ namespace refactor::kernel {
                         auto y_ = y + i * blockSize;
 
                         auto ss = std::accumulate(
-                            x_, x_ + blockSize, 0,
+                            x_, x_ + blockSize, static_cast<T>(0),
                             [](auto acc, auto it) { return acc + it * it; });
                         ss /= blockSize;
                         ss += epsilon;

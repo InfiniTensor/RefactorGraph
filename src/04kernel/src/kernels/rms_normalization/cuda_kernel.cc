@@ -21,14 +21,12 @@ namespace refactor::kernel {
           blockCount(blockCount_),
           blockSize(blockSize_) {}
 
-    auto K::build(float epsilon, TensorRefs inputs) noexcept -> KernelBox {
+    auto K::build(float epsilon, Tensor const &x) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
 
-        auto const &x = inputs[0].get();
-        auto const &w = inputs[1].get();
-        if (!x.dataType.isFloat() || x.dataType != w.dataType) {
+        if (!x.dataType.isFloat()) {
             return nullptr;
         }
         auto it = x.shape.rbegin();

@@ -17,7 +17,7 @@ namespace refactor::kernel {
             decltype(blockCount),
             decltype(blockSize)) noexcept;
 
-        static KernelBox build(float, TensorRefs) noexcept;
+        static KernelBox build(float, Tensor const &x) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

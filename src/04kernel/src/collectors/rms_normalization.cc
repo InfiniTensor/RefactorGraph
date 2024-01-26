@@ -4,9 +4,9 @@
 
 namespace refactor::kernel {
 
-#define REGISTER(T)                                  \
-    if (auto ptr = T::build(epsilon, inputs); ptr) { \
-        ans.emplace_back(std::move(ptr));            \
+#define REGISTER(T)                                     \
+    if (auto ptr = T::build(epsilon, inputs[0]); ptr) { \
+        ans.emplace_back(std::move(ptr));               \
     }
 
     std::vector<KernelBox>
