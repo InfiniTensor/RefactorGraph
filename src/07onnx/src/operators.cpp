@@ -20,6 +20,7 @@
 #include "operators/hard_sigmoid.hh"
 #include "operators/mat_mul.hh"
 #include "operators/mat_mul_integer.hh"
+#include "operators/pad.hh"
 #include "operators/pool.hh"
 #include "operators/range.hh"
 #include "operators/reduce.hh"
@@ -128,6 +129,7 @@ namespace refactor::onnx {
         REGISTER(Unsqueeze            , Unsqueeze            );
         REGISTER(Where                , Where                );
         REGISTER(HardSigmoid          , HardSigmoid          );
+        REGISTER(Pad                  , Pad                  );
         #undef REGISTER
         // clang-format on
     }
