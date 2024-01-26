@@ -19,3 +19,6 @@
 [submodule "src/09python_ffi/pybind11"]
 	path = src/09python_ffi/pybind11
 	url = git@github.com:pybind/pybind11.git
+[submodule "3rd-party/cccl"]
+	path = 3rd-party/cccl
+	url = git@github.com:NVIDIA/cccl.git
