@@ -1,5 +1,4 @@
-﻿﻿#include "functions.cuh"
-#include "hardware/devices/nvidia.h"
+﻿#include "hardware/devices/nvidia.h"
 #include "hardware/mem_pool.h"
 
 #ifdef USE_CUDA
