@@ -7,8 +7,9 @@ namespace refactor::llm {
     using namespace frontend;
 
     struct RmsNormalization final : public Operator {
+        float epsilon;
 
-        constexpr RmsNormalization() noexcept = default;
+        RmsNormalization(decltype(epsilon));
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();
@@ -16,6 +17,7 @@ namespace refactor::llm {
         size_t opTypeId() const final;
         std::string_view opTypeName() const final;
         InferResult infer(TensorRefs, InferOptions const &) const final;
+        computation::OpBox lower(TensorRefs) const final;
     };
 
 }// namespace refactor::llm
