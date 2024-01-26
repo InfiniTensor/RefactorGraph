@@ -25,7 +25,9 @@ namespace refactor::hardware {
     Mlu::Mlu(int32_t card) : Device(card, bangMemory(card)) {}
 
     void Mlu::setContext() const noexcept {
+#ifdef USE_BANG
         setDevice(_card);
+#endif
     }
 
 }// namespace refactor::hardware

@@ -46,7 +46,6 @@ namespace refactor::kernel::cuda {
         unsigned int rank,
         unsigned int blockSize) {
 
-
         padKernel<<<
             params.gridSize,
             params.blockSize,
