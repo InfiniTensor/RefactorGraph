@@ -5,14 +5,14 @@
 #include "kernel/collectors/pad.h"
 
 namespace refactor::computation {
-    using kernel::PadsShape;
     using kernel::PadType;
+    using Dimensions = kernel::PadDimension;
 
     struct Pad final : public LayoutDependentOperator {
-        PadsShape pads;
+        Dimensions dims;
         PadType mode;
 
-        Pad(decltype(pads), PadType) noexcept;
+        Pad(decltype(dims), PadType) noexcept;
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;

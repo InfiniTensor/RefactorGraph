@@ -1,28 +1,27 @@
-#include "../kernels/pad/cpu_kernel.hh"
-// #include "../kernels/pad/cuda_kernel.hh"
 #include "kernel/collectors/pad.h"
+#include "../kernels/pad/cpu_kernel.hh"
+#include "../kernels/pad/cuda_kernel.hh"
 
 namespace refactor::kernel {
 
     std::vector<KernelBox>
     PadCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         auto const &input = inputs[0];
-        auto const &output = outputs[0];
-        bool have_value = inputs.size() >= 3 ? true : false;
-        PadInfo info(pads, mode, input, output, have_value);
+        PadInfo info(dims, input);
+        auto const_value = inputs.size() >= 3 ? std::make_optional(inputs[2]) : std::nullopt;
 
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
-                if (auto ptr = PadCpu::build(std::move(info)); ptr) {
+                if (auto ptr = PadCpu::build(std::move(info), mode, const_value); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
-            // case decltype(_target)::Nvidia:
-            //     if (auto ptr = PadCuda::build(); ptr) {
-            //         ans.emplace_back(std::move(ptr));
-            //     }
-            //     break;
+            case decltype(_target)::Nvidia:
+                if (auto ptr = PadCuda::build(std::move(info), mode, const_value); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
             default:
                 UNREACHABLEX(void, "Unknown target");
         }
@@ -30,3 +29,4 @@ namespace refactor::kernel {
     }
 
 }// namespace refactor::kernel
+

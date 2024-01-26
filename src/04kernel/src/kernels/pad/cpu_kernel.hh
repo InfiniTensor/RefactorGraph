@@ -8,10 +8,12 @@ namespace refactor::kernel {
 
     struct PadCpu final : public Kernel {
         PadInfo info;
+        PadType mode;
+        size_t valueLength;
 
-        explicit PadCpu(PadInfo) noexcept;
+        explicit PadCpu(PadInfo, PadType, size_t) noexcept;
 
-        static KernelBox build(PadInfo) noexcept;
+        static KernelBox build(PadInfo, PadType, std::optional<std::reference_wrapper<Tensor const>>) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;
@@ -22,3 +24,4 @@ namespace refactor::kernel {
 }// namespace refactor::kernel
 
 #endif// KERNEL_PAD_CPU_KERNEL_HH
+

@@ -7,11 +7,11 @@
 namespace refactor::kernel {
 
     struct PadCollector final : public InfoCollector {
-        PadsShape pads;
+        PadDimension dims;
         PadType mode;
 
-        explicit PadCollector(decltype(_target) target, PadsShape const &pads_, PadType mode_) noexcept
-            : InfoCollector(target), pads(std::move(pads_)), mode(mode_) {}
+        explicit PadCollector(decltype(_target) target, PadDimension const &dims_, PadType mode_) noexcept
+            : InfoCollector(target), dims(std::move(dims_)), mode(mode_) {}
 
         std::vector<KernelBox>
         filter(TensorRefs inputs, TensorRefs outputs) const final;

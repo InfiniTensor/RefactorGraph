@@ -8,9 +8,11 @@ namespace refactor::kernel {
 
     struct PadCuda final : public Kernel {
         PadInfo info;
+        PadType mode;
+        size_t valueLength;
 
-        PadCuda(PadInfo) noexcept;
-        static KernelBox build(PadInfo) noexcept;
+        PadCuda(PadInfo, PadType, size_t) noexcept;
+        static KernelBox build(PadInfo, PadType, std::optional<std::reference_wrapper<Tensor const>>) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

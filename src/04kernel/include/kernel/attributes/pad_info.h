@@ -37,23 +37,28 @@ namespace refactor::kernel {
         }
     };
 
-    using PadsShape = absl::InlinedVector<int64_t, 4>;
+    namespace pad {
+        struct Dim {
+            int64_t dimI, dimO, pads;
+        };
+    }// namespace pad
 
+    using PadDimension = std::vector<pad::Dim>;
 
     struct PadInfo {
-        int rank;
-        PadType mode;
-        PadsShape pads;
-        PadsShape wholeNDim;
-        PadsShape partNDim;
-        PadsShape partStride;
-        DataType type;
-        bool have_value;
-        size_t size;
+        struct Dim {
+            dim_t strideI, strideO, padS, dimI;
 
-        explicit PadInfo(PadsShape, PadType, Tensor const &, Tensor const &, bool) noexcept;
+            // bool operator==(Dim const &) const noexcept;
+            // bool operator!=(Dim const &) const noexcept;
+        };
+        std::vector<Dim> dims;
+        dim_t blockCount, blockSize;
+
+        PadInfo(decltype(dims), dim_t, dim_t) noexcept;
+        PadInfo(PadDimension, Tensor const &);
+        void reform(dim_t) noexcept;
     };
-
 
 }// namespace refactor::kernel
 

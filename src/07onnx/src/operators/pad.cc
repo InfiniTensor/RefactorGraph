@@ -10,7 +10,8 @@ namespace refactor::onnx {
     Op::Pad(Pm mode_) : Operator(), mode(mode_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        auto mode = defaultOr(attributes, "mode", {"constant"}).string();
+        //auto mode = defaultOr(attributes, "mode", {"constant"}).string();
+        auto mode = attributes.getOrInsert("mode", {"constant"}).string();
         Pm pm;
         if (mode == "constant") {
             pm = Pm::Constant;
@@ -104,11 +105,12 @@ namespace refactor::onnx {
     auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Ty_ = computation::PadType;
         using Op_ = computation::Pad;
-        using Shape_ = computation::PadsShape;
+        using Dimension = computation::Dimensions;
 
         auto rank = inputs[0].rank();
         int64_t const *pads_ = inputs[1].data->get<int64_t>();
-        Shape_ pads_info(2 * rank, 0);
+        std::vector<int64_t> pads_info(2 * rank, 0);
+        Dimension dims(rank);
         if (inputs.size() != 4) {
             for (auto i : range0_(inputs[1].shape[0].value())) { pads_info[i] = pads_[i]; }
         } else {
@@ -123,6 +125,11 @@ namespace refactor::onnx {
                 pads_info[axis + rank] = pads_[i + axes_len];
             }
         }
+        for (auto i : range0_(rank)) {
+            auto dimI = inputs[0].shape[i].value();
+            dims[i] = {
+                dimI, dimI + pads_info[i] + pads_info[i + rank], pads_info[i]};
+        }
         Ty_ mode_;
         switch (mode) {
             case Pm::Constant:
@@ -136,7 +143,8 @@ namespace refactor::onnx {
             default:
                 UNREACHABLE();
         }
-        return std::make_unique<Op_>(std::move(pads_info), mode_);
+        return std::make_unique<Op_>(std::move(dims), mode_);
     }
 
 }// namespace refactor::onnx
+

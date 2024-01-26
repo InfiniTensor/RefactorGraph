@@ -4,8 +4,8 @@
 namespace refactor::computation {
     using Op = Pad;
 
-    Op::Pad(decltype(pads) pads_,
-            PadType mode_) noexcept : LayoutDependentOperator(), pads(std::move(pads_)), mode(mode_) {}
+    Op::Pad(decltype(dims) dims_,
+            PadType mode_) noexcept : LayoutDependentOperator(), dims(std::move(dims_)), mode(mode_) {}
 
     auto Op::typeId() noexcept -> size_t {
         static uint8_t ID = 1;
@@ -15,13 +15,16 @@ namespace refactor::computation {
     auto Op::name() const noexcept -> std::string_view { return "Pad"; }
     auto Op::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
         using Collector_ = kernel::PadCollector;
-        return std::make_unique<Collector_>(target, std::move(pads), mode);
+        return std::make_unique<Collector_>(target, std::move(dims), mode);
     }
     auto Op::serialize() const noexcept -> std::string {
-        return fmt::format("{}({}, {})",
-                           name(),
-                           vec2str(pads),
-                           mode.toString());
+        std::stringstream ss;
+        ss << name() << "([";
+        for (auto const &d : dims) {
+            ss << "input = " << d.dimI << ", output = " << d.dimO << ", pads = " << d.pads;
+        }
+        ss << "mode = " << mode.toString() << " ])";
+        return ss.str();
     }
 
 }// namespace refactor::computation
