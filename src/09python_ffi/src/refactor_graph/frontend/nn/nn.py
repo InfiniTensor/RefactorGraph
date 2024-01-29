@@ -19,7 +19,7 @@ class Linear(InfiniTensorModel):
         super().__init__(**kwargs)
         shape = (in_features, out_features)
         self.weight = self.parameter(
-            (np.random.random(shape) * 0.0001).astype(dtype.np_type()), "weight"
+            (np.random.random(shape)).astype(dtype.np_type()), "weight"
         )
         self.use_bias = bias
         if self.use_bias:

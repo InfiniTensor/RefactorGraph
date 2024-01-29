@@ -63,7 +63,7 @@ class LlamaModel(InfiniTensorModel):
         )
         self.num_layers = config.num_hidden_layers
         self.embed_tokens = self.parameter(
-            (np.random.random((config.vocab_size, config.hidden_size)) * 0.001).astype(
+            (np.random.random((config.vocab_size, config.hidden_size))).astype(
                 config.dtype.np_type()
             ),
             "embed_tokens",
@@ -102,8 +102,9 @@ class LlamaModel(InfiniTensorModel):
 
     def generate(self, input_text: str, tokenizer: InfiniTensorTokenizer):
         token_ids, r_embedding_cos, r_embedding_sin, attention_mask = tuple(self.inputs)
-        input_data = tokenizer.encode(input_text)
-        batch_size, seq_len, past_seq_len = input_data.shape[0], input_data.shape[1], 0
+        input_tokens = tokenizer.encode(input_text)
+        batch_size, seq_len, past_seq_len = 1, len(input_tokens), 0
+        input_data = np.array(input_tokens).reshape((batch_size, seq_len))
         variable_map = {
             "batch_size": batch_size,
             "seq_len": seq_len,
@@ -114,9 +115,9 @@ class LlamaModel(InfiniTensorModel):
             (batch_size, seq_len)
         )
         inputs = {
-            token_ids: tokenizer.encode(input_text),
+            token_ids: input_data,
             attention_mask: np.triu(
-                np.ones((seq_len, seq_len), dtype=np.float32) * -np.inf, 1
+                np.ones((seq_len, seq_len), dtype=self.config.dtype.np_type()) * -np.inf, 1
             ),
         }
         inputs[r_embedding_cos], inputs[r_embedding_sin] = self.rope_embed(pos_ids)
@@ -128,7 +129,7 @@ class LlamaModel(InfiniTensorModel):
         print(input_text, end="")
         output = output[:, -1, None, :]
         output_token = greedy_search(output)
-        output_text = tokenizer.decode(output_token[0])
+        output_text = tokenizer.decode(output_token.flatten().tolist())
         print(output_text, end="")
         whole_text += output_text
 
@@ -145,7 +146,7 @@ class LlamaModel(InfiniTensorModel):
             )
             output = self.run(inputs, variable_map)[0]
             output_token = greedy_search(output)
-            output_text = tokenizer.decode(output_token[0])
+            output_text = tokenizer.decode(output_token.flatten().tolist())
             print(output_text, end="")
             whole_text += output_text
             if whole_text.endswith("</s>"):
@@ -192,11 +193,11 @@ class LlamaModel(InfiniTensorModel):
         self.load_params(tensors)
 
 
-def greedy_search(logits):
+def greedy_search(logits) -> np.ndarray:
     assert len(logits.shape) == 3
     return np.argmax(logits, axis=-1)
 
-def random_search(logits, top_k=5):
+def random_search(logits, top_k=5) -> np.ndarray:
     assert len(logits.shape) == 3
     bs, seq_l, vocab_size = logits.shape
     # Apply softmax to convert logits to probabilities

@@ -1,12 +1,13 @@
 import numpy as np
 from regex import F
+from typing import List
 
 
 class InfiniTensorTokenizer:
-    def encode(self, input_text: str) -> np.ndarray:
+    def encode(self, input_text: str) -> List[int]:
         raise NotImplementedError()
 
-    def decode(self, token_ids: np.ndarray) -> str:
+    def decode(self, token_ids: int | List[int]) -> str:
         raise NotImplementedError()
 
 
@@ -19,16 +20,17 @@ class HuggingFaceTokenizer(InfiniTensorTokenizer):
             model_path, local_files_only=True
         )
 
-    def encode(self, input_text):
-        return self.tokenizer.encode(input_text, return_tensors="np")
+    def encode(self, input_text) -> List[int]:
+        return self.tokenizer.encode(input_text)
 
-    def decode(self, token_ids):
-        # TODO: AutoTokenizer cannot covert "▁" to white space.
-        #       Should use decode method when fixed.
+    def decode(self, token_ids) -> str:
         if isinstance(token_ids, int):
-            return self.tokenizer.convert_ids_to_tokens(token_ids)
-        else:
-            result = ""
-            for s in self.tokenizer.convert_ids_to_tokens(token_ids):
-                result += s.replace("▁", " ")
-            return result
+            return self.tokenizer.convert_ids_to_tokens(token_ids).replace("▁", " ")
+        elif isinstance(token_ids, np.ndarray):
+            token_ids = token_ids.flatten().tolist()
+        result = ""
+        for s in self.tokenizer.convert_ids_to_tokens(token_ids):
+            # TODO: AutoTokenizer cannot covert "▁" to white space.
+            #       Should use decode method when fixed.
+            result += s.replace("▁", " ")
+        return result
