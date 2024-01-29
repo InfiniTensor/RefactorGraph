@@ -9,7 +9,7 @@ namespace refactor::llm {
     struct RmsNormalization final : public Operator {
         float epsilon;
 
-        RmsNormalization(decltype(epsilon));
+        explicit RmsNormalization(decltype(epsilon));
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();

@@ -42,8 +42,8 @@
 namespace refactor::onnx {
 
     void register_() {
+#define REGISTER(NAME, CLASS) Operator::register_<CLASS>("onnx::" #NAME)
         // clang-format off
-        #define REGISTER(NAME, CLASS) Operator::register_<CLASS>("onnx::" #NAME)
         REGISTER(BatchNormalization   , BatchNormalization   );
         REGISTER(Cast                 , Cast                 );
         REGISTER(Clip                 , Clip                 );
@@ -130,8 +130,8 @@ namespace refactor::onnx {
         REGISTER(Where                , Where                );
         REGISTER(HardSigmoid          , HardSigmoid          );
         REGISTER(Pad                  , Pad                  );
-        #undef REGISTER
         // clang-format on
+#undef REGISTER
     }
 
 }// namespace refactor::onnx
