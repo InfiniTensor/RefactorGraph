@@ -35,7 +35,12 @@ namespace refactor::kernel {
                 }
             }
         }
-        if (rank == 0) { return; }
+        if (rank == 0) {
+            dims = {{1, 1}};
+            blockSize *= blockCount;
+            blockCount = 1;
+            return;
+        }
         // 合并连续的维度
         {
             std::vector<ddim_t> mapDim(rank, 0);
@@ -67,6 +72,14 @@ namespace refactor::kernel {
                 }
             }
             perm.resize(rank);
+        }
+        // 合并末尾连续访存
+        if (perm.back() == rank - 1) {
+            blockSize *= shape.back();
+            blockCount /= shape.back();
+            shape.pop_back();
+            perm.pop_back();
+            --rank;
         }
         // 计算 stride
         struct StrideI {
