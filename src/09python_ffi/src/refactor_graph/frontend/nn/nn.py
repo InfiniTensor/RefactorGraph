@@ -17,7 +17,7 @@ class Linear(InfiniTensorModel):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        shape = (in_features, out_features)
+        shape = (out_features, in_features)
         self.weight = self.parameter(
             (np.random.random(shape)).astype(dtype.np_type()), "weight"
         )
@@ -29,7 +29,7 @@ class Linear(InfiniTensorModel):
 
     def __call__(self, input):
         super().__call__([input])
-        output = self.matmul(input, self.weight)
+        output = self.matmul(input, self.weight, transB=1)
         if self.use_bias:
             output = self.add(output, self.bias)
         self.outputs.append(output)

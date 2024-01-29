@@ -186,7 +186,7 @@ class InfiniTensorModel:
         inputs: Tuple[Union[str, np.ndarray], ...],
         outputs: Tuple[str, ...] | int = 1,
         name: str | None = None,
-        use_onnx_standard: bool = True
+        use_onnx_standard: bool = True,
     ):
         if use_onnx_standard and not op_type.startswith("onnx::"):
             op_type = "onnx::" + op_type
@@ -357,7 +357,7 @@ class InfiniTensorModel:
                 self._nodes, operators, edges, input_names, output_names
             )
             self._executor = self._compiler.compile_on(
-                find_device(self._device, self._device_id), "default", []
+                find_device(self._device, self._device_id), "default", ["ce"]
             )
         elif recompile or self._executor is None:
             # Set input info
@@ -382,7 +382,7 @@ class InfiniTensorModel:
                     self._compiler.set_input(input_names.index(name), dynamic_tensor)
 
             self._executor = self._compiler.compile_on(
-                find_device(self._device, self._device_id), "default", []
+                find_device(self._device, self._device_id), "default", ["ce"]
             )
 
         ## Executor should have been created at this point
@@ -489,6 +489,8 @@ class InfiniTensorModel:
         return onnx.helper.make_model(graph)
 
     def load_params(self, data: Dict[str, np.ndarray]):
+        if len(self._parameters) != len(data):
+            print(f"Warning: the number of loaded params does not match current model.")
         for name in self._parameters:
             new_data = data.get(name)
             if new_data is not None:
@@ -534,8 +536,8 @@ class InfiniTensorModel:
     def pow(self, A, B, C="") -> str:
         return self.make_op("Pow", {}, (A, B), (C,))[0]
 
-    def matmul(self, A, B, Y="") -> str:
-        return self.make_op("MatMul", {}, (A, B), (Y,))[0]
+    def matmul(self, A, B, Y="", transA=0, transB=0) -> str:
+        return self.make_op("llm::MatMul", {"transA": transA, "transB": transB}, (A, B), (Y,), use_onnx_standard=False)[0]
 
     def gemm(self, A, B, C=None, Y="", alpha=1.0, beta=1.0, transA=0, transB=0) -> str:
         inputs = (A, B, C) if C is not None else (A, B)
@@ -615,3 +617,12 @@ class InfiniTensorModel:
 
     def softmax(self, input, axis=-1, output="") -> str:
         return self.make_op("Softmax", {"axis": axis}, (input,), (output,))[0]
+
+    def rms_norm(self, input, weight, eps=1e-5, output=""):
+        return self.make_op(
+            "llm::RmsNormalization",
+            {"epsilon": eps},
+            (input, weight),
+            (output,),
+            use_onnx_standard=False,
+        )[0]

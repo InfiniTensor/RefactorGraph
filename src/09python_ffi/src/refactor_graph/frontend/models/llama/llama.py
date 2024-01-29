@@ -172,7 +172,6 @@ class LlamaModel(InfiniTensorModel):
                 tensor_name = ""
                 if naming[0] == "lm_head":
                     tensor_name = "LlamaModel/lm_head/weight"
-                    data = np.transpose(data, (1, 0)).copy()
                 elif naming[0] == "model" and naming[1] == "embed_tokens":
                     tensor_name = "LlamaModel/embed_tokens"
                 elif naming[0] == "model" and naming[1] == "norm":
@@ -181,10 +180,8 @@ class LlamaModel(InfiniTensorModel):
                     tensor_name = f"LlamaModel/Decoder_{naming[2]}/"
                     if naming[3] == "self_attn":
                         tensor_name += f"Attention/{naming[4]}/weight"
-                        data = np.transpose(data, (1, 0)).copy()
                     elif naming[3] == "mlp":
                         tensor_name += f"FeedForward/{naming[4]}/weight"
-                        data = np.transpose(data, (1, 0)).copy()
                     else:
                         tensor_name += f"{naming[3]}/weight"
                 else:
