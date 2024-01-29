@@ -50,37 +50,21 @@ namespace refactor::kernel {
                 UNREACHABLE();
         }
 
-        if (broadcaster.needBroadcast()) {
-            return [broadcaster, inputsNum, op](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
-                auto output = reinterpret_cast<T *>(outputs[0]);
-                for (auto i : range0_(broadcaster.outputsCount)) {
-                    std::vector<dim_t> ans(broadcaster.inputsCount);
-                    broadcaster.locate(i, ans.data());
-                    for (auto inputIdx : range0_(inputsNum)) {
-                        auto input = reinterpret_cast<const T *>(inputs[inputIdx]);
-                        if (inputIdx == 0) {
-                            output[i] = input[ans[inputIdx]];
-                        } else {
-                            output[i] = op(output[i], input[ans[inputIdx]]);
-                        }
+        return [broadcaster, inputsNum, op](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
+            auto output = reinterpret_cast<T *>(outputs[0]);
+            for (auto i : range0_(broadcaster.outputsCount)) {
+                std::vector<dim_t> ans(broadcaster.inputsCount);
+                broadcaster.locate(i, ans.data());
+                for (auto inputIdx : range0_(inputsNum)) {
+                    auto input = reinterpret_cast<const T *>(inputs[inputIdx]);
+                    if (inputIdx == 0) {
+                        output[i] = input[ans[inputIdx]];
+                    } else {
+                        output[i] = op(output[i], input[ans[inputIdx]]);
                     }
                 }
-            };
-        } else {
-            return [n = broadcaster.outputsCount, inputsNum, op](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
-                auto output = reinterpret_cast<T *>(outputs[0]);
-                for (auto i : range0_(n)) {
-                    for (auto inputIdx : range0_(inputsNum)) {
-                        auto input = reinterpret_cast<const T *>(inputs[inputIdx]);
-                        if (inputIdx == 0) {
-                            output[i] = input[i];
-                        } else {
-                            output[i] = op(output[i], input[i]);
-                        }
-                    }
-                };
-            };
-        }
+            }
+        };
     }
 
     auto K::lower(Resources &) const noexcept -> RoutineWorkspace {

@@ -10,6 +10,8 @@ namespace refactor::kernel {
         Min,
     };
 
+    std::string_view opName(SelectType type);
+
     struct SelectCollector final : public InfoCollector {
         SelectType selectType;
 

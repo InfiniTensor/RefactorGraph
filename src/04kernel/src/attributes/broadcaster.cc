@@ -86,13 +86,17 @@ namespace refactor::kernel {
           }()) {}
 
     void Broadcaster::locate(dim_t k, dim_t ans[]) const noexcept {
-        long rem = k;
-        std::fill_n(ans, inputsCount, 0);
-        for (auto i : range0_(strides.size() / (inputsCount + 1))) {
-            auto dim = strides.data() + (inputsCount + 1) * i;
-            auto div = std::div(rem, dim[inputsCount]);
-            for (auto j : range0_(inputsCount)) { ans[j] += dim[j] * div.quot; }
-            rem = div.rem;
+        if (!needBroadcast()) {
+            std::fill_n(ans, inputsCount, k);
+        } else {
+            long rem = k;
+            std::fill_n(ans, inputsCount, 0);
+            for (auto i : range0_(strides.size() / (inputsCount + 1))) {
+                auto dim = strides.data() + (inputsCount + 1) * i;
+                auto div = std::div(rem, dim[inputsCount]);
+                for (auto j : range0_(inputsCount)) { ans[j] += dim[j] * div.quot; }
+                rem = div.rem;
+            }
         }
     }
 

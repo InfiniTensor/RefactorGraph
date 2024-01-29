@@ -1,6 +1,26 @@
 #include "kernel/collectors/select.h"
+#include "../kernels/select/cpu_kernel.hh"
+#include "../kernels/select/cuda_kernel.hh"
 
 namespace refactor::kernel {
+
+#define REGISTER(T)                                     \
+    if (auto ptr = T::build(selectType, inputs); ptr) { \
+        ans.emplace_back(std::move(ptr));               \
+    }
+
+#define CASE(OP)         \
+    case SelectType::OP: \
+        return #OP
+
+    std::string_view opName(SelectType type) {
+        switch (type) {
+            CASE(Max);
+            CASE(Min);
+            default:
+                UNREACHABLE();
+        }
+    }
 
     SelectCollector::SelectCollector(decltype(_target) target, SelectType type) noexcept
         : InfoCollector(target), selectType(type) {}
@@ -10,8 +30,10 @@ namespace refactor::kernel {
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
+                REGISTER(SelectCpu)
                 break;
             case decltype(_target)::Nvidia:
+                REGISTER(SelectCuda)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");
