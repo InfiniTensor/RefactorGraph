@@ -14,8 +14,7 @@ static void testReducemean(const Shape &shape, const std::vector<float> &data,
     auto routine = kernel->lower(res).routine;
     // put input output data
     void const *inputs[]{data.data()};
-    std::vector<float>
-        out(data.size());
+    std::vector<float> out(data.size());
     void *outputs[]{out.data()};
     // inference
     routine(res, nullptr, inputs, outputs);
