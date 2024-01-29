@@ -1,4 +1,3 @@
-from math import inf
 from python_ffi import (
     Compiler,
     Tensor,
@@ -43,6 +42,13 @@ class DTYPE(Enum):
         return self.value[1]
 
 
+def find_onnx_type(numpy_type):
+    for dtype in DTYPE:
+        if dtype.np_type() == numpy_type:
+            return dtype.onnx_type()
+    raise ValueError(f"No corresponding ONNX type found for numpy type: {numpy_type}")
+
+
 def next_name(names_dict: Dict[str, int], name: str):
     if name in names_dict:
         result = f"{name}_{names_dict[name]}"
@@ -53,14 +59,17 @@ def next_name(names_dict: Dict[str, int], name: str):
     return result
 
 
-def resolve_variable(data: Tuple[Union[str, int], ...], variable_map: Dict[str, int]):
+def resolve_variable(
+    data: Tuple[Union[str, int], ...] | List[Union[str, int]],
+    variable_map: Dict[str, int],
+):
     result = []
     for item in data:
         if isinstance(item, int):
             result.append(item)
         else:
             result.append(variable_map[item])
-    return np.array(result)
+    return result
 
 
 class InfiniTensorModel:
@@ -91,7 +100,9 @@ class InfiniTensorModel:
         _operators: Dict[str, Tuple[str, Dict[str, Any]]] | None = None,
         _node_names: Dict[str, int] | None = None,
         _tensor_names: Dict[str, int] | None = None,
-        _dynamic_tensors: Dict[str, Tuple[Union[str, int], ...]] | None = None,
+        _dynamic_tensors: Dict[str, Tuple[Tuple[Union[str, int], ...], DTYPE]]
+        | None = None,
+        _cache: List[Tuple[str, str, Any]] | None = None,
     ) -> None:
         """The initializer for InfiniTensor Model.
 
@@ -111,6 +122,7 @@ class InfiniTensorModel:
             _node_names ({node_name: int}): Counter for seen node names, used for naming uniqueness
             _tensor_names ({tensor_name: int}): Counter for seen tensor names, used for naming uniqueness
             _dynamic_tensors ({tensor_name: (int|str,...)}): Dynamic tensors containing number or str
+            _cache ({tensor_name: Memory | None}): cached tensors that live across multiple runs
         """
         self.inputs: List[str] = []
         self.outputs: List[str] = []
@@ -126,9 +138,10 @@ class InfiniTensorModel:
         self._operators: Dict[str, Tuple[str, Dict[str, Any]]] = (
             _operators if _operators is not None else {}
         )
-        self._dynamic_tensors: Dict[str, Tuple[Union[str, int], ...]] = (
+        self._dynamic_tensors: Dict[str, Tuple[Tuple[Union[str, int], ...], DTYPE]] = (
             _dynamic_tensors if _dynamic_tensors is not None else {}
         )
+        self._cache: List[Tuple[str, str, Any]] = _cache if _cache is not None else []
         # Fixed model name, default to class name
         self.model_name = (
             model_name if model_name is not None else self.__class__.__name__
@@ -148,10 +161,11 @@ class InfiniTensorModel:
 
         self._parent = None
         self._executor = None
+        self._compiler = None
         self._device = "cpu"
         self._device_id = 0
 
-    def __call__(self, inputs: List[str]) -> List[str]:
+    def __call__(self, inputs: List[str]) -> Tuple[str, ...] | str | None:
         """Method that actually builds the model given input names. Normally should
         be overriden by sub classes.
 
@@ -163,7 +177,6 @@ class InfiniTensorModel:
         """
         self.inputs = inputs.copy()
         self.outputs = []
-        return self.outputs
 
     def make_op(
         self,
@@ -218,11 +231,18 @@ class InfiniTensorModel:
         self._const_edges[tensor_name] = tensor
         return tensor_name
 
-    def dynamic_tensor(self, data: Tuple[Union[str, int], ...]):
+    def init_cache(
+        self, tensor, updated, shape: Tuple[Union[str, int], ...], dtype: DTYPE
+    ):
+        if tensor in self.inputs:
+            self.inputs.remove(tensor)
+        self._cache.append((tensor, updated, [shape, dtype, None]))
+
+    def dynamic_tensor(self, data: Tuple[Union[str, int], ...], dtype: DTYPE):
         for item in data:
             if isinstance(item, str):
                 tensor_name = next_name(self._tensor_names, f"{self.base_name}/Dynamic")
-                self._dynamic_tensors[tensor_name] = data
+                self._dynamic_tensors[tensor_name] = (data, dtype)
                 return tensor_name
         return np.array(data)
 
@@ -234,6 +254,7 @@ class InfiniTensorModel:
         kwargs["_node_names"] = self._node_names
         kwargs["_tensor_names"] = self._tensor_names
         kwargs["_dynamic_tensors"] = self._dynamic_tensors
+        kwargs["_cache"] = self._cache
         kwargs["model_name"] = next_name(
             self._node_names, f"{self.base_name}/{submodel_type.__name__}"
         )
@@ -248,7 +269,7 @@ class InfiniTensorModel:
         if self._device != device or self._device_id != id:
             self._device = device
             self._device_id = id
-            if self._device != "cpu" and self._executor is not None:
+            if self._executor is not None:
                 self._executor.dispatch(
                     find_device(self._device, self._device_id), "default"
                 )
@@ -257,6 +278,7 @@ class InfiniTensorModel:
         self,
         inputs: Dict[str, np.ndarray] | None = None,
         variable_map: Dict[str, int] | None = None,
+        recompile: bool = True,
     ):
         """Run model inference with InfiniTensor.
         The model will be compiled once during the first run, and will not be recompiled
@@ -265,54 +287,125 @@ class InfiniTensorModel:
         Args:
             inputs ({input_name: np.ndarray}): The inputs. Can be none or empty if inputs are absent or already given.
             variable_map ({variable_name: int}): Variable map to resolve dynamic tensors. All the dynamic
-                values must be resolved or the compilation will fail. Only need to be provided once if the
-                rules don't change, or the model will be recompiled.
+                values must be resolved or the compilation will fail.
+            recompile (bool): Whether the backend graph will be recompiled. Need to be true if a new variable map is provided or
+                the shape of any input (including cache) is changed. True by default.
 
         Returns:
             [output]: list of outputs
         """
-        if self._executor is not None and variable_map is None:
-            if inputs is not None:
-                for i, input_name in enumerate(self.inputs):
-                    self._executor.set_input(i, inputs[input_name])
-            self._executor.run()
-            return [
-                self._executor.get_output(i)
-                for i, input_name in enumerate(self.outputs)
-            ]
-        const_edges = {
-            name: _make_data(data) for name, data in self._const_edges.items()
-        }
-        parameters = {name: _make_data(data) for name, data in self._parameters.items()}
-        edges: Dict[str, Tensor] = {}
-        if inputs is not None:
-            for input in self.inputs:
-                data = inputs.get(input)
-                assert data is not None, f"Input [{input}] not provided!"
-                edges[input] = _make_data(data)
-        edges.update(const_edges)
-        edges.update(parameters)
-        dynamic_tensors = {
-            name: _make_data(resolve_variable(shape, variable_map or {}))
-            for name, shape in self._dynamic_tensors.items()
-        }
-        edges.update(dynamic_tensors)
 
-        operators = {
-            name: _make_operator(self.onnx_context, op_type, attributes)
-            for name, (op_type, attributes) in self._operators.items()
-        }
-        compiler = _make_compiler(
-            self._nodes, operators, edges, self.inputs, self.outputs
-        )
-        self._executor = compiler.compile_on(
-            find_device(self._device, self._device_id), "default", []
-        )
+        # Run without recompile
+        input_names = self.inputs.copy()
+        input_names.extend(list(self._dynamic_tensors.keys()))
+        output_names = self.outputs.copy()
+        cache_info: Dict[str, Tuple[Any, Any]] = {}
+        for cache_in, cache_out, cache_data in self._cache:
+            input_names.append(cache_in)
+            if cache_out not in output_names:
+                output_names.append(cache_out)
+            cache_shape, cache_dtype = cache_data[0], cache_data[1]
+            cache_info[cache_in] = (
+                cache_dtype.onnx_type(),
+                resolve_variable(cache_shape, variable_map or {}),
+            )
+
+        # Build Compiler
+        if self._compiler is None:
+            const_edges = {
+                name: _make_data(data) for name, data in self._const_edges.items()
+            }
+            parameters = {
+                name: _make_data(data) for name, data in self._parameters.items()
+            }
+            edges: Dict[str, Tensor] = {}
+            if inputs is not None:
+                for input in self.inputs:
+                    data = inputs.get(input)
+                    assert data is not None, f"Input [{input}] not provided!"
+                    edges[input] = _make_tensor(
+                        find_onnx_type(data.dtype), list(data.shape)
+                    )
+            edges.update(const_edges)
+            edges.update(parameters)
+            dynamic_tensors = {
+                name: _make_data(
+                    np.array(
+                        resolve_variable(d_data, variable_map or {}),
+                        dtype=d_dtype.np_type(),
+                    )
+                )
+                for name, (d_data, d_dtype) in self._dynamic_tensors.items()
+            }
+            edges.update(dynamic_tensors)
+            edges.update(
+                {
+                    name: _make_tensor(cache_type, cache_shape)
+                    for name, (cache_type, cache_shape) in cache_info.items()
+                }
+            )
+            operators = {
+                name: _make_operator(self.onnx_context, op_type, attributes)
+                for name, (op_type, attributes) in self._operators.items()
+            }
+            self._compiler = _make_compiler(
+                self._nodes, operators, edges, input_names, output_names
+            )
+            self._executor = self._compiler.compile_on(
+                find_device(self._device, self._device_id), "default", []
+            )
+        elif recompile or self._executor is None:
+            # Set input info
+            if inputs is not None:
+                for i, input in enumerate(self.inputs):
+                    data = inputs.get(input)
+                    if data is not None:
+                        self._compiler.set_input_info(
+                            i, find_onnx_type(data.dtype), list(data.shape)
+                        )
+            # Set cache info
+            for name, (cache_type, cache_shape) in cache_info.items():
+                self._compiler.set_input_info(
+                    input_names.index(name), cache_type, cache_shape
+                )
+            # Copy in dynamic tensors
+            if variable_map is not None:
+                for name, (d_data, d_dtype) in self._dynamic_tensors.items():
+                    dynamic_tensor = np.array(
+                        resolve_variable(d_data, variable_map), dtype=d_dtype.np_type()
+                    )
+                    self._compiler.set_input(input_names.index(name), dynamic_tensor)
+            
+            self._executor = self._compiler.compile_on(
+                find_device(self._device, self._device_id), "default", []
+            )
+
+        ## Executor should have been created at this point
+        # Copy in real input
+        if inputs is not None:
+            for i, input_name in enumerate(self.inputs):
+                input_data = inputs.get(input_name)
+                if input_data is not None:
+                    self._executor.set_input(i, input_data)
+
+        # Copy in cache if data is already present
+        for cache_in, cache_out, cache_data in self._cache:
+            if cache_data[2] != None:
+                self._executor.set_input_blob(
+                    input_names.index(cache_in), cache_data[2]
+                )
+        # Run
         self._executor.run()
+        # Update cache
+        for cache_in, cache_out, cache_data in self._cache:
+            cache_data[2] = self._executor.get_output_blob(
+                output_names.index(cache_out)
+            )
 
         return [
             self._executor.get_output(i) for i, output_name in enumerate(self.outputs)
         ]
+
 
     def make_onnx(
         self,
@@ -335,6 +428,18 @@ class InfiniTensorModel:
         output_info = [
             onnx.helper.make_empty_tensor_value_info(output) for output in self.outputs
         ]
+        for cache_in, cache_out, cache_data in self._cache:
+            input_info.append(
+                onnx.helper.make_value_info(
+                    cache_in,
+                    onnx.helper.make_tensor_type_proto(
+                        cache_data[1].onnx_type(),
+                        resolve_variable(cache_data[0], variable_map or {}),
+                    ),
+                )
+            )
+            if cache_out not in self.outputs:
+                output_info.append(onnx.helper.make_empty_tensor_value_info(cache_out))
 
         nodes = [
             onnx.helper.make_node(
@@ -351,10 +456,14 @@ class InfiniTensorModel:
             initializer.append(onnx.numpy_helper.from_array(data, name=name))
         for name, data in self._parameters.items():
             initializer.append(onnx.numpy_helper.from_array(data, name=name))
-        for name, dynamic_tensor in self._dynamic_tensors.items():
+        for name, (dynamic_tensor, tensor_type) in self._dynamic_tensors.items():
             initializer.append(
                 onnx.numpy_helper.from_array(
-                    resolve_variable(dynamic_tensor, variable_map or {}), name=name
+                    np.array(
+                        resolve_variable(dynamic_tensor, variable_map or {}),
+                        tensor_type.np_type(),
+                    ),
+                    name=name,
                 )
             )
         graph = onnx.helper.make_graph(
@@ -374,31 +483,37 @@ class InfiniTensorModel:
     #############################
     # Operator APIs
     #############################
-    def sqrt(self, X, Y=""):
+    def neg(self, X, Y="") -> str:
+        return self.make_op("Neg", {}, (X,), (Y,))[0]
+
+    def sqrt(self, X, Y="") -> str:
         return self.make_op("Sqrt", {}, (X,), (Y,))[0]
 
-    def sigmoid(self, X, Y=""):
+    def sigmoid(self, X, Y="") -> str:
         return self.make_op("Sigmoid", {}, (X,), (Y,))[0]
 
-    def add(self, A, B, C=""):
+    def silu(self, X, Y="") -> str:
+        return self.mul(self.sigmoid(X), X, Y)
+
+    def add(self, A, B, C="") -> str:
         return self.make_op("Add", {}, (A, B), (C,))[0]
 
-    def sub(self, A, B, C=""):
+    def sub(self, A, B, C="") -> str:
         return self.make_op("Sub", {}, (A, B), (C,))[0]
 
-    def mul(self, A, B, C=""):
+    def mul(self, A, B, C="") -> str:
         return self.make_op("Mul", {}, (A, B), (C,))[0]
 
-    def div(self, A, B, C=""):
+    def div(self, A, B, C="") -> str:
         return self.make_op("Div", {}, (A, B), (C,))[0]
 
-    def pow(self, A, B, C=""):
+    def pow(self, A, B, C="") -> str:
         return self.make_op("Pow", {}, (A, B), (C,))[0]
 
-    def matmul(self, A, B, Y=""):
+    def matmul(self, A, B, Y="") -> str:
         return self.make_op("MatMul", {}, (A, B), (Y,))[0]
 
-    def gemm(self, A, B, C=None, Y="", alpha=1.0, beta=1.0, transA=0, transB=0):
+    def gemm(self, A, B, C=None, Y="", alpha=1.0, beta=1.0, transA=0, transB=0) -> str:
         inputs = (A, B, C) if C is not None else (A, B)
         return self.make_op(
             "Gemm",
@@ -407,42 +522,70 @@ class InfiniTensorModel:
             (Y,),
         )[0]
 
-    def reshape(self, data, shape, reshaped=""):
+    def reshape(self, data, shape, reshaped="") -> str:
         return self.make_op("Reshape", {}, (data, shape), (reshaped,))[0]
 
-    def transpose(self, data, perm: List[int], transposed=""):
+    def expand(self, input, shape, output="") -> str:
+        return self.make_op("Expand", {}, (input, shape), (output,))[0]
+
+    def transpose(self, data, perm: List[int], transposed="") -> str:
         return self.make_op("Transpose", {"perm": perm}, (data,), (transposed,))[0]
 
-    def squeeze(self, data, axes: int | List[int], squeezed=""):
+    def squeeze(self, data, axes: int | List[int], squeezed="") -> str:
         return self.make_op("Squeeze", {}, (data, np.array(axes)), (squeezed,))[0]
 
-    def unsqueeze(self, data, axes: int | List[int], unsqueezed=""):
+    def unsqueeze(self, data, axes: int | List[int], unsqueezed="") -> str:
         return self.make_op("Unsqueeze", {}, (data, np.array(axes)), (unsqueezed,))[0]
 
-    def gather(self, data, indices, axis, output=""):
+    def gather(self, data, indices, axis, output="") -> str:
         return self.make_op("Gather", {"axis": axis}, (data, indices), (output,))[0]
 
-    # TODO: support array inputs in the future
-    def slice(self, data, axis, start=0, end=9223372036854775807, step=1):
+    def slice(self, data, axis, start=0, end=9223372036854775807, step=1) -> str:
+        def parse_input(input):
+            if isinstance(input, int):
+                return np.array([input])
+            elif isinstance(input, list):
+                return np.array(input)
+            elif isinstance(input, str):
+                return input
+            else:
+                raise RuntimeError("Invalid input for Slice.")
+
         return self.make_op(
             "Slice",
             {},
-            (data, np.array(start), np.array(end), np.array(axis), np.array(step)),
+            (
+                data,
+                parse_input(start),
+                parse_input(end),
+                parse_input(axis),
+                parse_input(step),
+            ),
         )[0]
 
-    def concat(self, inputs: Tuple[str, ...], axis, result=""):
+    def concat(self, inputs: Tuple[str, ...], axis, result="") -> str:
         return self.make_op("Concat", {"axis": axis}, inputs, (result,))[0]
 
-    def split(self, input, axis, num_outputs):
+    def split(self, input, axis, num_outputs) -> Tuple[str, ...]:
         outputs = self.make_op(
             "Split", {"axis": axis, "num_outputs": num_outputs}, (input,), num_outputs
         )
         return tuple(outputs)
 
-    def reduce_sum(self, data, axes: List[int], reduced="", keepdims=1):
+    def reduce_sum(self, data, axes: List[int] | int, reduced="", keepdims=1) -> str:
         return self.make_op(
             "ReduceSum", {"keepdims": keepdims}, (data, np.array(axes)), (reduced,)
         )[0]
 
-    def cast(self, input, to: DTYPE, output=""):
-        return self.make_op("Cast", {"to": to.onnx_type()}, (input,), (output,))
+    def reduce_mean(self, data, axes: List[int] | int, reduced="", keepdims=1) -> str:
+        if isinstance(axes, int):
+            axes = [axes]
+        return self.make_op(
+            "ReduceMean", {"keepdims": keepdims}, (data, np.array(axes)), (reduced,)
+        )[0]
+
+    def cast(self, input, to: DTYPE, output="") -> str:
+        return self.make_op("Cast", {"to": to.onnx_type()}, (input,), (output,))[0]
+
+    def softmax(self, input, axis=-1, output="") -> str:
+        return self.make_op("Softmax", {"axis": axis}, (input,), (output,))[0]

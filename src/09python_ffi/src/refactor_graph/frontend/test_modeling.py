@@ -106,7 +106,7 @@ class TestModeling(unittest.TestCase):
 
         def __call__(self, input: str):
             super().__call__([input])
-            shape = self.dynamic_tensor((self.b, self.l, 2))
+            shape = self.dynamic_tensor((self.b, self.l, 2), DTYPE.I64)
             output = self.reshape(input, shape)
             self.outputs = [output]
             return output
@@ -118,8 +118,8 @@ class TestModeling(unittest.TestCase):
         model = self.ReshapeModel()
         model(inputs[0])
         # First Run as (4, 8, 2)
-        output = model.run({"A": input}, {model.b: 4, model.l: 8})[0]
-        self.assertEqual(output.shape, (4, 8, 2))
+        outputs = model.run({"A": input}, {model.b: 4, model.l: 8})
+        self.assertEqual(outputs[0].shape, (4, 8, 2))
         # Second Run as (8, 4, 2)
         output = model.run({"A": input}, {model.b: 8, model.l: 4})[0]
         self.assertEqual(output.shape, (8, 4, 2))
