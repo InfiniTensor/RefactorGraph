@@ -4,14 +4,14 @@ namespace refactor::kernel {
     using K = TransposeCuda;
     using Info = TransposeInfo;
 
-    K::TransposeCuda(DataType dataType_, Info info_) noexcept
-        : Kernel(), dataType(dataType_), info(std::move(info_)) {}
+    K::TransposeCuda(Info info_) noexcept
+        : Kernel(), info(std::move(info_)) {}
 
-    auto K::build(DataType dataType, Info info) noexcept -> KernelBox {
+    auto K::build(Info info) noexcept -> KernelBox {
 #ifndef USE_CUDA
         return nullptr;
 #endif
-        return std::make_unique<K>(dataType, std::move(info));
+        return std::make_unique<K>(std::move(info));
     }
     auto K::typeId() noexcept -> size_t {
         static uint8_t ID = 1;

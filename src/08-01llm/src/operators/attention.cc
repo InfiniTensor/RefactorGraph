@@ -124,6 +124,7 @@ namespace refactor::llm {
             default:
                 UNREACHABLEX(void, "Attention operator should have 3, 4 or 6 inputs");
         }
+        UNREACHABLE();
     }
 
     auto Op::lower(TensorRefs) const -> computation::OpBox {

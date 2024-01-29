@@ -4,11 +4,12 @@
 
 namespace refactor::kernel {
 
-    TransposeInfo::TransposeInfo(Shape const &shape_, Permutation const &perm_)
-        : dims(), size(0) {
+    TransposeInfo::TransposeInfo(DataType dt, Shape const &shape_, Permutation const &perm_)
+        : dims{},
+          blockSize(dt.size()),
+          blockCount(std::accumulate(shape_.begin(), shape_.end(), 1, std::multiplies())) {
         auto rank = shape_.size();
         ASSERT(perm_.size() == rank, "");
-        if (rank == 0) { return; }
 
         std::vector<dim_t> shape;
         std::vector<dim_t> perm;
@@ -81,7 +82,6 @@ namespace refactor::kernel {
             dims[i - 1].strideO = dims[i].strideO * shape[perm[i]];
             // clang-format on
         }
-        size = buf[0].strideI * shape[0];
         // 输入的 stride 按输出顺序重排
         for (auto i : range0_(rank)) {
             dims[i].strideI = buf[permMap[i]].strideI;

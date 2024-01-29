@@ -7,12 +7,11 @@
 namespace refactor::kernel {
 
     struct TransposeCuda final : public Kernel {
-        DataType dataType;
         TransposeInfo info;
 
-        TransposeCuda(DataType, TransposeInfo) noexcept;
+        TransposeCuda(TransposeInfo) noexcept;
 
-        static KernelBox build(DataType, TransposeInfo) noexcept;
+        static KernelBox build(TransposeInfo) noexcept;
         static size_t typeId() noexcept;
 
         size_t kernelTypeId() const noexcept final;

@@ -8,7 +8,11 @@ using namespace kernel;
 TEST(kernel, TransposeCpu) {
     // build routine
     auto dataTensor = Tensor::share(DataType::F32, Shape{1, 3, 2, 5});
-    auto kernel = TransposeCpu::build(dataTensor->dataType, TransposeInfo(dataTensor->shape, Permutation{2, 3, 0, 1}));
+    auto kernel = TransposeCpu::build(
+        TransposeInfo(
+            dataTensor->dataType,
+            dataTensor->shape,
+            Permutation{2, 3, 0, 1}));
     ASSERT_TRUE(kernel);
     auto res = runtime::Resources();
     auto routine = kernel->lower(res).routine;

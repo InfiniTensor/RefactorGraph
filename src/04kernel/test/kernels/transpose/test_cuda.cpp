@@ -13,9 +13,9 @@ using namespace hardware;
 TEST(kernel, TransposeCuda) {
     // build routine
     auto dataTensor = Tensor::share(DataType::F32, Shape{1, 3, 2, 5});
-    auto info = TransposeInfo(dataTensor->shape, Permutation{2, 3, 0, 1});
-    auto kCpu = TransposeCpu::build(dataTensor->dataType, info);
-    auto kernel = TransposeCuda::build(dataTensor->dataType, info);
+    auto info = TransposeInfo(dataTensor->dataType, dataTensor->shape, Permutation{2, 3, 0, 1});
+    auto kCpu = TransposeCpu::build(info);
+    auto kernel = TransposeCuda::build(info);
     ASSERT_TRUE(kCpu && kernel);
     auto res = runtime::Resources();
     auto rCpu = kCpu->lower(res).routine;

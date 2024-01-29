@@ -12,8 +12,8 @@ namespace refactor::kernel {
                        strides.begin(),
                        [](auto const &dim) { return DimStride{dim.strideI, dim.strideO}; });
         return [strides = thrust::device_vector<DimStride>(strides),
-                params = cuda::ThreadsDistributer()(info.size),
-                eleSize = dataType.size()](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
+                params = cuda::ThreadsDistributer()(info.blockCount),
+                eleSize = info.blockSize](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             cuda::launchTranspose(
                 params,
                 inputs[0],
