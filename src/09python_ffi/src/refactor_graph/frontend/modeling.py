@@ -186,7 +186,10 @@ class InfiniTensorModel:
         inputs: Tuple[Union[str, np.ndarray], ...],
         outputs: Tuple[str, ...] | int = 1,
         name: str | None = None,
+        use_onnx_standard: bool = True
     ):
+        if use_onnx_standard and not op_type.startswith("onnx::"):
+            op_type = "onnx::" + op_type
         # Get complete node name from op_type if name not given.
         # This node name should be unique throughout the whole model topology.
         node_name = (
@@ -377,7 +380,7 @@ class InfiniTensorModel:
                         resolve_variable(d_data, variable_map), dtype=d_dtype.np_type()
                     )
                     self._compiler.set_input(input_names.index(name), dynamic_tensor)
-            
+
             self._executor = self._compiler.compile_on(
                 find_device(self._device, self._device_id), "default", []
             )
