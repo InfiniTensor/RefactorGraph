@@ -26,7 +26,7 @@ y = (x^2 + δ)^(-1/2) * w * x
 
 - **Y(heterogeneous) - T**: 输出张量。形状与 `X` 相同。
 
-## Attention
+## Attention (with Causual Decoder Mask)
 
 ### Summary
 
@@ -36,7 +36,7 @@ Multi-head Self Attention 的封装形式，用于 transformer 模型。
 
 | 序号 | 输入数量 | `max_seq_len` | 使用 kv cache | 输出数量 | cache s 维度 | 备注
 |:-:|:-:|:-----:|:-------:|:-:|:------------------------:|:-
-| 1 | 3 |     0 | none    | 1 | -                        |
+| 1 | 3 |     0 | none    | 1 | -                        | -
 | 2 | 3 | S > 0 | init    | 3 | `S`                      | `assert(S >= seq_len)`
 | 3 | 4 |     0 | inplace | 3 | `past_seq_len + seq_len` | `past_seq_len` 必须是常量
 | 4 | 4 | S > 0 | inplace | 3 | `S`                      | `assert(S >= past_seq_len + seq_len)`
