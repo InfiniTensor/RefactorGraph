@@ -79,7 +79,7 @@ class TestModeling(unittest.TestCase):
         input = np.ones(shape, dtype=np.int32)
         model = self.AddThreeModel(shape)
         model(inputs[0])
-        model.load_param({model.bias: np.ones(shape, dtype=np.int32)})
+        model.load_params({model.bias: np.ones(shape, dtype=np.int32)})
         outputs = model.run({"A": input})
         output = outputs[0]
         self.assertTrue(np.array_equal(output, input + input + input + input))
@@ -89,9 +89,10 @@ class TestModeling(unittest.TestCase):
         shape = [1, 2, 3]
         model = self.AddThreeModel(shape)
         model(inputs[0])
-        model.load_param({model.bias: np.ones(shape, dtype=np.int32)})
+        model.load_params({model.bias: np.ones(shape, dtype=np.int32)})
         onnx_model = model.make_onnx({inputs[0]: (DTYPE.I32, shape)})
         import onnxruntime
+
         infer_session = onnxruntime.InferenceSession(onnx_model.SerializeToString())
         output_names = [output.name for output in infer_session.get_outputs()]
         input = np.ones(shape, dtype=np.int32)

@@ -12,6 +12,7 @@ from python_ffi import (
 from typing import Dict, List, Any, Tuple, Union, Type
 import numpy as np
 from enum import Enum
+from collections import OrderedDict
 
 
 class DTYPE(Enum):
@@ -94,7 +95,7 @@ class InfiniTensorModel:
     def __init__(
         self,
         model_name: str | None = None,
-        _parameters: Dict[str, np.ndarray] | None = None,
+        _parameters: OrderedDict[str, np.ndarray] | None = None,
         _const_edges: Dict[str, np.ndarray] | None = None,
         _nodes: Dict[str, Tuple[List[str], List[str]]] | None = None,
         _operators: Dict[str, Tuple[str, Dict[str, Any]]] | None = None,
@@ -126,8 +127,8 @@ class InfiniTensorModel:
         """
         self.inputs: List[str] = []
         self.outputs: List[str] = []
-        self._parameters: Dict[str, np.ndarray] = (
-            _parameters if _parameters is not None else {}
+        self._parameters: OrderedDict[str, np.ndarray] = (
+            _parameters if _parameters is not None else OrderedDict()
         )
         self._const_edges: Dict[str, np.ndarray] = (
             _const_edges if _const_edges is not None else {}
@@ -209,7 +210,7 @@ class InfiniTensorModel:
             if isinstance(input, str):
                 input_names.append(input)
             else:  # is numpy
-                input_name = self.constant(input, f"{op_type}_Input")
+                input_name = self.constant(input, f"{node_name}_Input")
                 input_names.append(input_name)
         # make op
         self._operators[node_name] = (op_type, attributes)
@@ -221,12 +222,12 @@ class InfiniTensorModel:
         tensor_name = next_name(self._tensor_names, f"{self.base_name}/{name}")
         return tensor_name, data  # _make_data(data)
 
-    def parameter(self, data: np.ndarray, name: str = "Param"):
+    def parameter(self, data: np.ndarray, name: str = "param"):
         tensor_name, tensor = self.make_tensor_np(data, name)
         self._parameters[tensor_name] = tensor
         return tensor_name
 
-    def constant(self, data: np.ndarray, name: str = "Constant"):
+    def constant(self, data: np.ndarray, name: str = "constant"):
         tensor_name, tensor = self.make_tensor_np(data, name)
         self._const_edges[tensor_name] = tensor
         return tensor_name
@@ -241,7 +242,7 @@ class InfiniTensorModel:
     def dynamic_tensor(self, data: Tuple[Union[str, int], ...], dtype: DTYPE):
         for item in data:
             if isinstance(item, str):
-                tensor_name = next_name(self._tensor_names, f"{self.base_name}/Dynamic")
+                tensor_name = next_name(self._tensor_names, f"{self.base_name}/dynamic")
                 self._dynamic_tensors[tensor_name] = (data, dtype)
                 return tensor_name
         return np.array(data)
@@ -255,8 +256,9 @@ class InfiniTensorModel:
         kwargs["_tensor_names"] = self._tensor_names
         kwargs["_dynamic_tensors"] = self._dynamic_tensors
         kwargs["_cache"] = self._cache
+        model_name = kwargs.pop("model_name", submodel_type.__name__)
         kwargs["model_name"] = next_name(
-            self._node_names, f"{self.base_name}/{submodel_type.__name__}"
+            self._node_names, f"{self.base_name}/{model_name}"
         )
         submodel = submodel_type(*args, **kwargs)
         submodel.parent = self
@@ -406,10 +408,9 @@ class InfiniTensorModel:
             self._executor.get_output(i) for i, output_name in enumerate(self.outputs)
         ]
 
-
     def make_onnx(
         self,
-        inputs: Dict[str, Tuple[DTYPE, List[Any]]],
+        inputs: Dict[str, Tuple[DTYPE, List[Any]]] | Dict[str, np.ndarray],
         variable_map: Dict[str, int] | None = None,
     ):
         import onnx.helper
@@ -419,12 +420,24 @@ class InfiniTensorModel:
         for input in self.inputs:
             data = inputs.get(input)
             assert data is not None, f"Input [{input}] not provided!"
-            input_info.append(
-                onnx.helper.make_value_info(
-                    input,
-                    onnx.helper.make_tensor_type_proto(data[0].onnx_type(), data[1]),
+            if isinstance(data, np.ndarray) or isinstance(data, np.number):
+                input_info.append(
+                    onnx.helper.make_value_info(
+                        input,
+                        onnx.helper.make_tensor_type_proto(
+                            find_onnx_type(data.dtype), list(data.shape)
+                        ),
+                    )
                 )
-            )
+            else:
+                input_info.append(
+                    onnx.helper.make_value_info(
+                        input,
+                        onnx.helper.make_tensor_type_proto(
+                            data[0].onnx_type(), data[1]
+                        ),
+                    )
+                )
         output_info = [
             onnx.helper.make_empty_tensor_value_info(output) for output in self.outputs
         ]
@@ -472,10 +485,18 @@ class InfiniTensorModel:
 
         return onnx.helper.make_model(graph)
 
-    def load_param(self, data: Dict[str, np.ndarray]):
+    def load_params(self, data: Dict[str, np.ndarray]):
         for name in self._parameters:
             new_data = data.get(name)
             if new_data is not None:
+                if self._parameters[name].shape != new_data.shape:
+                    print(
+                        f"Warning: Shape mismatch for {name}, expecting {self._parameters[name].shape} but get {new_data.shape}"
+                    )
+                if self._parameters[name].dtype != new_data.dtype:
+                    print(
+                        f"Warning: Type mismatch for {name}, expecting {self._parameters[name].dtype} but get {new_data.dtype}"
+                    )
                 self._parameters[name] = new_data
             else:
                 print(f"Warning: Value for {name} is not provided for loading.")
@@ -535,9 +556,11 @@ class InfiniTensorModel:
         return self.make_op("Squeeze", {}, (data, np.array(axes)), (squeezed,))[0]
 
     def unsqueeze(self, data, axes: int | List[int], unsqueezed="") -> str:
+        if isinstance(axes, int):
+            axes = [axes]
         return self.make_op("Unsqueeze", {}, (data, np.array(axes)), (unsqueezed,))[0]
 
-    def gather(self, data, indices, axis, output="") -> str:
+    def gather(self, data, indices, axis=0, output="") -> str:
         return self.make_op("Gather", {"axis": axis}, (data, indices), (output,))[0]
 
     def slice(self, data, axis, start=0, end=9223372036854775807, step=1) -> str:
