@@ -489,19 +489,20 @@ class InfiniTensorModel:
         return onnx.helper.make_model(graph)
 
     def load_params(self, data: Dict[str, np.ndarray]):
-        if len(self._parameters) != len(data):
-            print(f"Warning: the number of loaded params does not match current model.")
+        if len(self._parameters) != len(data) or set(data.keys()) != set(self._parameters.keys()):
+            print(f"Warning: the number or name of loaded params does not match current model.")
         for name in self._parameters:
             new_data = data.get(name)
             if new_data is not None:
                 if self._parameters[name].shape != new_data.shape:
                     print(
-                        f"Warning: Shape mismatch for {name}, expecting {self._parameters[name].shape} but get {new_data.shape}"
+                        f"Warning: Shape mismatch for {name}, expecting {self._parameters[name].shape} but get {new_data.shape}."
                     )
                 if self._parameters[name].dtype != new_data.dtype:
                     print(
-                        f"Warning: Type mismatch for {name}, expecting {self._parameters[name].dtype} but get {new_data.dtype}"
+                        f"Warning: Type mismatch for {name}. Casting to {self._parameters[name].dtype} from {new_data.dtype}."
                     )
+                    new_data = new_data.astype(self._parameters[name].dtype)
                 self._parameters[name] = new_data
             else:
                 print(f"Warning: Value for {name} is not provided for loading.")
