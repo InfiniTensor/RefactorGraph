@@ -20,9 +20,10 @@ namespace refactor::kernel::cuda {
              tid += step) {
             auto i = tid / batch,
                  j = tid % batch;
-            auto index = __ldg(indices + i % midSizeO);
+            auto k = __ldg(indices + i % midSizeO);
+            auto quot = k >= 0 ? i / midSizeO : i / midSizeO + 1;
             optimizedMemcpy(unit * tid + output,
-                            unit * (batch * (i / midSizeO * midSizeI + index) + j) + data,
+                            unit * (batch * (quot * midSizeI + k) + j) + data,
                             unit);
         }
     }
