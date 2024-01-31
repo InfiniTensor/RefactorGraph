@@ -17,7 +17,7 @@ namespace refactor::kernel {
         : Kernel(), type(type_), dataType(dataType_), size(size_) {}
 
     auto K::build(Op op, Tensor const &a) noexcept -> KernelBox {
-        static const std::unordered_set<Op> ARTHIMETIC{Op::Sigmoid, Op::Relu, Op::Tanh};
+        static const std::unordered_set<Op> ARTHIMETIC{Op::Sigmoid, Op::Relu, Op::Tanh, Op::HardSwish};
 
 #ifndef USE_BANG
         return nullptr;
@@ -64,20 +64,27 @@ namespace refactor::kernel {
         auto d = std::make_shared<Descriptors>();
 
         // clang-format off
-        auto mode = type == Ty::Relu    ? CNNL_ACTIVATION_RELU
-                  : type == Ty::Sigmoid ? CNNL_ACTIVATION_SIGMOID
-                  : type == Ty::Tanh    ? CNNL_ACTIVATION_TANH
+        auto mode = type == Ty::Relu      ? CNNL_ACTIVATION_RELU
+                  : type == Ty::Sigmoid   ? CNNL_ACTIVATION_SIGMOID
+                  : type == Ty::Tanh      ? CNNL_ACTIVATION_TANH
+                  : type == Ty::HardSwish ? CNNL_ACTIVATION_HARDSWISH
                   : UNREACHABLEX(cnnlActivationMode_t, "");
+        float coef = 0.0;
+        float slicedDim = 0.0;
+        float gamma = 0.0;
+        float scale = 0.0;
         // clang-format on
 
         setCnnlTensor(d->tensor, dataType, slice(&size, 1));
-        CNNL_ASSERT(cnnlSetActivationDescriptor_v2(d->activation, mode, CNNL_ACTIVATION_HIGH_PRECISION,
-                                                   CNNL_NOT_PROPAGATE_NAN, 0.0));
+        CNNL_ASSERT(cnnlSetActivationDescriptor_v5(d->activation, mode,
+                                                   CNNL_ACTIVATION_HIGH_PRECISION,
+                                                   CNNL_NOT_PROPAGATE_NAN, coef,
+                                                   slicedDim, gamma, scale, true));
 
         res.fetchOrStore<CnnlContext>();
         return [d = std::move(d)]//
             (Resources & res, void *, void const *const *inputs, void *const *outputs) {
-                float alpha = 1, beta = 0;
+                float alpha = 1.f, beta = 0.f;
                 CNNL_ASSERT(cnnlActivationForward(
                     res.fetchOrStore<CnnlContext>()->handle,
                     d->activation,

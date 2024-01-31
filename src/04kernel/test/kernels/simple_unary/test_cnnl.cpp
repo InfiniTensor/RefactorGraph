@@ -60,6 +60,7 @@ TEST(kernel, ActivationCnnl) {
     testOp(SimpleUnaryType::Relu);
     testOp(SimpleUnaryType::Sigmoid);
     testOp(SimpleUnaryType::Tanh);
+    testOp(SimpleUnaryType::HardSwish);
 }
 
 

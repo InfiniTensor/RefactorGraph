@@ -16,13 +16,16 @@ namespace refactor::kernel {
 #ifndef USE_BANG
         return nullptr;
 #endif
-        
+        auto indicesDim = std::vector<int>(index.shape.begin(), index.shape.end());
+        if (indicesDim.size() == 0) {
+            indicesDim.push_back(1);
+        }
         return std::make_unique<K>(decltype(info){
             input.dataType,
-            DataType::I32,
-            axis ? axis : 0,
+            index.dataType,
+            axis,
             std::vector<int>(input.shape.begin(), input.shape.end()),
-            std::vector<int>(index.shape.begin(), index.shape.end()),
+            std::move(indicesDim),
             std::vector<int>(output.shape.begin(), output.shape.end()),
         });
     }
@@ -60,8 +63,9 @@ namespace refactor::kernel {
         CNNL_ASSERT(cnnlSetTensorDescriptor(
             d->inDesc, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(info.dataType),
             info.inDim.size(), info.inDim.data()));
+        // cnnlGatherV2 does not support int64 indices
         CNNL_ASSERT(cnnlSetTensorDescriptor(
-            d->indexDesc, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(info.indexDataType),
+            d->indexDesc, CNNL_LAYOUT_ARRAY, CNNL_DTYPE_INT32,
             info.indexDim.size(), info.indexDim.data()));
         CNNL_ASSERT(cnnlSetTensorDescriptor(
             d->outDesc, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(info.dataType),
@@ -71,7 +75,7 @@ namespace refactor::kernel {
 
         res.fetchOrStore<CnnlContext>();
         auto routine = [d = std::move(d),
-                        shape = std::vector<int>(info.inDim.begin(), info.inDim.end()), 
+                        shape = std::vector<int>(info.inDim.begin(), info.inDim.end()),
                         workspaceSize,
                         dim = info.axis](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
             res.fetchOrStore<CnnlContext>()->copyFromCPU(workspace, shape.data(), workspaceSize);
@@ -79,7 +83,7 @@ namespace refactor::kernel {
                                      d->inDesc, inputs[0], reinterpret_cast<const int *>(workspace),
                                      d->indexDesc, reinterpret_cast<const int *>(inputs[1]),
                                      d->outDesc, outputs[0]));
-       };
+        };
 
         return {std::move(routine), workspaceSize};
     }

@@ -26,10 +26,7 @@ namespace refactor::kernel {
             // !a.dataType.isFloat() ||
             !ARTHIMETIC.contains(op) ||
             // At least one of a,b should have the same shape as c
-            (a.shape != c.shape && b.shape != c.shape)
-            // Sub only supports brocasting b
-            // (a.shape != c.shape && op == Op::Sub)
-            ) {
+            (a.shape != c.shape && b.shape != c.shape)) {
             return nullptr;
         }
 
@@ -124,9 +121,9 @@ namespace refactor::kernel {
         auto handle = res.fetchOrStore<CnnlContext>()->handle;
         size_t workspaceSize;
         CNNL_ASSERT(cnnlGetBinaryWorkspaceSize(handle, d->aDesc,
-                                                   d->bDesc, d->cDesc,
-                                                   &workspaceSize));
-        
+                                               d->bDesc, d->cDesc,
+                                               &workspaceSize));
+
 
         res.fetchOrStore<CnnlContext>();
         auto routine = [d = std::move(d),
@@ -147,11 +144,11 @@ namespace refactor::kernel {
                      beta = d->f32
                                 ? factor<fp32_t>(0)
                                 : factor<fp64_t>(0);
-                    CNNL_ASSERT(cnnlOpTensor(handle, d->opDesc,
-                                             &alphaA, d->aDesc, a,
-                                             &alphaB, d->bDesc, b,
-                                             workspace, workspaceSize,
-                                             &beta, d->cDesc, c));
+                CNNL_ASSERT(cnnlOpTensor(handle, d->opDesc,
+                                         &alphaA, d->aDesc, a,
+                                         &alphaB, d->bDesc, b,
+                                         workspace, workspaceSize,
+                                         &beta, d->cDesc, c));
             } else if (op == SimpleBinaryType::Div) {
                 CNNL_ASSERT(cnnlDiv_v2(handle,
                                        CNNL_COMPUTATION_HIGH_PRECISION,
@@ -179,7 +176,6 @@ namespace refactor::kernel {
                                          d->cDesc, c,
                                          workspace, workspaceSize));
             }
-            
         };
 
         return {std::move(routine), workspaceSize};
