@@ -35,7 +35,7 @@ namespace refactor::kernel {
                 }
             }
         }
-        if (rank == 0) {
+        if (rank <= 1) {
             dims = {{1, 1}};
             blockSize *= blockCount;
             blockCount = 1;
@@ -81,6 +81,7 @@ namespace refactor::kernel {
             perm.pop_back();
             --rank;
         }
+
         // 计算 stride
         struct StrideI {
             dim_t strideI;
