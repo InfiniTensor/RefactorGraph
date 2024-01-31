@@ -73,6 +73,12 @@ namespace refactor::kernel {
             }
             perm.resize(rank);
         }
+        if (rank <= 1) {
+            dims = {{1, 1}};
+            blockSize *= blockCount;
+            blockCount = 1;
+            return;
+        }
         // 合并末尾连续访存
         if (perm.back() == rank - 1) {
             blockSize *= shape.back();
@@ -81,7 +87,6 @@ namespace refactor::kernel {
             perm.pop_back();
             --rank;
         }
-
         // 计算 stride
         struct StrideI {
             dim_t strideI;
