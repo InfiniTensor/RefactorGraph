@@ -46,8 +46,10 @@ namespace refactor::kernel {
         struct Descriptors {
             cnnlTensorDescriptor_t inDesc, outDesc;
             cnnlCastDataType_t cast;
+            bool needCast;
 
-            Descriptors() : inDesc(nullptr), outDesc(nullptr) {
+            Descriptors(bool need) : inDesc(nullptr), outDesc(nullptr),
+                                     needCast(need) {
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&inDesc));
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&outDesc));
             }
@@ -56,15 +58,22 @@ namespace refactor::kernel {
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(outDesc));
             }
         };
-        auto d = std::make_shared<Descriptors>();
-        d->cast = castType(from, to);
+        auto d = std::make_shared<Descriptors>(from != to);
+        if (d->needCast) {
+            d->cast = castType(from, to);
+        }
         setCnnlTensor(d->inDesc, from, slice(shape.data(), shape.size()));
         setCnnlTensor(d->outDesc, to, slice(shape.data(), shape.size()));
 
         res.fetchOrStore<CnnlContext>();
         return [d = std::move(d)](Resources &res, void *workspace, void const *const *inputs, void *const *outputs) {
-            CNNL_ASSERT(cnnlCastDataType(res.fetchOrStore<CnnlContext>()->handle,
-                                         d->inDesc, inputs[0], d->cast, d->outDesc, outputs[0]));
+            if (d->needCast) {
+                CNNL_ASSERT(cnnlCastDataType(res.fetchOrStore<CnnlContext>()->handle,
+                                             d->inDesc, inputs[0], d->cast, d->outDesc, outputs[0]));
+            } else {
+                CNNL_ASSERT(cnnlCopy(res.fetchOrStore<CnnlContext>()->handle,
+                                     d->inDesc, inputs[0], d->outDesc, outputs[0]));
+            }
         };
     }
 

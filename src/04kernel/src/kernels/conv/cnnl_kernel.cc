@@ -29,15 +29,10 @@ namespace refactor::kernel {
             return nullptr;
         }
 
-        std::optional<ExpandInfoCnnl> biasExpand = std::nullopt;
+        int biasSize_ = 0;
         if (b) {
             ASSERT(b->get().shape[0] == y.shape[1], "");
-            std::vector<dim_t> input(y.rank(), 1);
-            input[1] = y.shape[1];
-            biasExpand.emplace(ExpandInfoCnnl(
-                b->get().dataType,
-                slice(input.data(), input.size()),
-                slice(y.shape.data(), y.rank())));
+            biasSize_ = b->get().shape[0];
         }
 
         // group is not supported
@@ -70,7 +65,7 @@ namespace refactor::kernel {
             {d[0], d[1]},
             {p[0], p[1], p[2], p[3]},
             {s[0], s[1]},
-            std::move(biasExpand),
+            biasSize_,
         });
     }
 
@@ -92,22 +87,18 @@ namespace refactor::kernel {
 
         // RAII for closure
         struct Descriptors {
-            cnnlTensorDescriptor_t x, y, w;
+            cnnlTensorDescriptor_t x, y, w, b;
             cnnlTensorDescriptor_t xTrans, yTrans, wTrans;
             cnnlTransposeDescriptor_t NCHW2NHWC, NHWC2NCHW;
             cnnlConvolutionDescriptor_t conv;
             cnnlConvolutionForwardAlgo_t algo;
-            // std::optional<ExtraPadding> extraPadding;
-            std::optional<Routine> biasExpand;
-            bool f32;
+            bool bias;
 
-            Descriptors(decltype(f32) f32_)
-                :// extraPadding(std::nullopt),
-                  biasExpand(std::nullopt),
-                  f32(f32_) {
+            Descriptors(decltype(bias) bias_) : bias(bias_) {
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&x));
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&y));
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&w));
+                CNNL_ASSERT(cnnlCreateTensorDescriptor(&b));
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&xTrans));
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&yTrans));
                 CNNL_ASSERT(cnnlCreateTensorDescriptor(&wTrans));
@@ -119,6 +110,7 @@ namespace refactor::kernel {
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(x));
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(y));
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(w));
+                CNNL_ASSERT(cnnlDestroyTensorDescriptor(b));
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(xTrans));
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(yTrans));
                 CNNL_ASSERT(cnnlDestroyTensorDescriptor(wTrans));
@@ -130,11 +122,8 @@ namespace refactor::kernel {
             Descriptors(const Descriptors &) = delete;
             Descriptors(Descriptors &&) = delete;
         };
-        auto d = std::make_shared<Descriptors>(info.dt != DataType::F64);
-        // d->extraPadding = ExtraPadding::build(info.dt, info.xShape, info.pad);
-        if (info.biasExpand) {
-            d->biasExpand = ExpandCnnl(*info.biasExpand).lower(res).routine;
-        }
+        auto d = std::make_shared<Descriptors>(info.biasSize > 0);
+
         int xs[]{
             info.xShape[0],
             info.xShape[1],
@@ -154,10 +143,15 @@ namespace refactor::kernel {
         setCnnlTensor(d->x, info.dt, slice(xs, 4));
         setCnnlTensor(d->y, info.dt, slice(info.yShape, 4));
         setCnnlTensor(d->w, info.dt, slice(info.wShape, 4));
+
         CNNL_ASSERT(cnnlSetTensorDescriptor(d->xTrans, CNNL_LAYOUT_NHWC, cnnlDataTypeConvert(info.dt), 4, xsNHWC.data()));
         CNNL_ASSERT(cnnlSetTensorDescriptor(d->yTrans, CNNL_LAYOUT_NHWC, cnnlDataTypeConvert(info.dt), 4, ysNHWC.data()));
         CNNL_ASSERT(cnnlSetTensorDescriptor(d->wTrans, CNNL_LAYOUT_NHWC, cnnlDataTypeConvert(info.dt), 4, wsNHWC.data()));
-        
+        if (d->bias) {
+            int biasDim[] = {1, 1, 1, info.biasSize};
+            CNNL_ASSERT(cnnlSetTensorDescriptor(d->b, CNNL_LAYOUT_NHWC, cnnlDataTypeConvert(info.dt), 4, biasDim));
+        }
+
         auto xTransSize = cnnlGetTensorElementNum(d->xTrans) * info.dt.size();
         auto yTransSize = cnnlGetTensorElementNum(d->yTrans) * info.dt.size();
         auto wTransSize = cnnlGetTensorElementNum(d->wTrans) * info.dt.size();
@@ -188,10 +182,6 @@ namespace refactor::kernel {
             handle, d->xTrans, d->wTrans, d->yTrans, NULL,
             d->conv, d->algo, &convWorkspaceSize));
 
-        // if (d->extraPadding) {
-        //     workspaceSize = hardware::alignBytes(workspaceSize, 256);
-        // }
-
         size_t workspaceSize = xTransSize + yTransSize + wTransSize + std::max({xWorkspaceSize, wWorkspaceSize, yWorkspaceSize, convWorkspaceSize});
 
         res.fetchOrStore<CnnlContext>();
@@ -201,12 +191,6 @@ namespace refactor::kernel {
             auto handle = res.fetchOrStore<CnnlContext>()->handle;
             void const *x = inputs[0], *w = inputs[1];
             void *y = outputs[0];
-            // if (auto f = d->extraPadding; f) {
-            //     x = (*f)(x, reinterpret_cast<uint8_t *>(workspace) + workspaceSize);
-            // }
-            // if (auto f = d->biasExpand; f) {
-            //     (*f)(res, workspace, inputs + 2, outputs);
-            // }
 
             void *xTrans = workspace;
             void *wTrans = reinterpret_cast<uint8_t *>(xTrans) + xTransSize;
@@ -218,19 +202,16 @@ namespace refactor::kernel {
                                          d->xTrans, xTrans, opWorkspace, xWorkspaceSize));
             CNNL_ASSERT(cnnlTranspose_v2(handle, d->NCHW2NHWC, d->w, w,
                                          d->wTrans, wTrans, opWorkspace, wWorkspaceSize));
-            
-            // build alpha/beta for double
-            auto a = d->f32 ? factor<fp32_t>(1) : factor<fp64_t>(1),
-                 b = d->f32
-                         ? factor<fp32_t>(d->biasExpand ? 1 : 0)
-                         : factor<fp64_t>(d->biasExpand ? 1 : 0);
+
+            auto bDesc = (d->bias) ? d->b : NULL;
+            auto bData = (d->bias) ? inputs[2] : NULL;
             CNNL_ASSERT(cnnlConvolutionForward(
                 handle,
-                d->conv, d->algo, &a,
+                d->conv, d->algo, NULL,
                 d->xTrans, xTrans, d->wTrans, wTrans,
-                NULL, NULL, opWorkspace, convWorkspaceSize,
-                &b, d->yTrans, yTrans));
-            
+                bDesc, bData, opWorkspace, convWorkspaceSize,
+                NULL, d->yTrans, yTrans));
+
             // transpose NHWC intermediates to NCHW
             CNNL_ASSERT(cnnlTranspose_v2(handle, d->NHWC2NCHW, d->yTrans, yTrans,
                                          d->y, y, opWorkspace, yWorkspaceSize));

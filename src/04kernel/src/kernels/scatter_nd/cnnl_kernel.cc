@@ -78,7 +78,6 @@ namespace refactor::kernel {
             CNNL_ASSERT(cnnlScatterNd_v2(res.fetchOrStore<CnnlContext>()->handle, CNNL_SCATTERND_UPDATE,
                                          d->indexDesc, inputs[1], d->updateDesc, inputs[2],
                                          d->inDesc, inputs[0], d->outDesc, outputs[0]));
-            BANG_ASSERT(cnrtQueueSync(res.fetchOrStore<CnnlContext>()->queue));
         };
     }
 #endif

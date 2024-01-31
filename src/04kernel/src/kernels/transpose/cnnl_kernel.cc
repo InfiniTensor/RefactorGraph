@@ -72,8 +72,12 @@ namespace refactor::kernel {
         };
 
         auto d = std::make_shared<Descriptors>(info.dataType != DT::F64);
-        setCnnlTensor(d->x, info.dataType, slice(info.inDim.data(), info.inDim.size()));
-        setCnnlTensor(d->y, info.dataType, slice(info.outDim.data(), info.outDim.size()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(
+            d->x, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(info.dataType),
+            info.inDim.size(), info.inDim.data()));
+        CNNL_ASSERT(cnnlSetTensorDescriptor(
+            d->y, CNNL_LAYOUT_ARRAY, cnnlDataTypeConvert(info.dataType),
+            info.outDim.size(), info.outDim.data()));
         CNNL_ASSERT(cnnlSetTransposeDescriptor(d->trans, info.perm.size(), info.perm.data()));
 
         auto handle = res.fetchOrStore<CnnlContext>()->handle;

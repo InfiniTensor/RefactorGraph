@@ -19,7 +19,7 @@ namespace refactor::kernel {
                 dilation[2],
                 pad[4],
                 stride[2];
-            std::optional<ExpandInfoCnnl> biasExpand;
+            int biasSize;
         } info;
 
         explicit ConvCnnl(decltype(info)) noexcept;
