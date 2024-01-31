@@ -29,7 +29,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("repeats not support")));
         }
         EXPECT_VAL(repeats.shape[0], repeatsSize)
-        ASSERT(repeatsSize == rank, ERROR_MSG("repeats size error"));
+        ASSERT(repeatsSize == rank, "repeats size error");
 
         auto repeats_ = repeats.data->get<int64_t>();
         Shape output(rank, DimExpr(1));
