@@ -2,13 +2,10 @@
 #define COMPUTATION_SELECT_H
 
 #include "../operator.h"
+#include "kernel/collectors/select.h"
 
 namespace refactor::computation {
-
-    enum class SelectType {
-        Max,
-        Min,
-    };
+    using kernel::SelectType;
 
     struct Select final : public Operator {
         SelectType type;
@@ -19,6 +16,7 @@ namespace refactor::computation {
         static size_t typeId(SelectType) noexcept;
         size_t opTypeId() const noexcept final;
         std::string_view name() const noexcept final;
+        kernel::CollectorBox candidateKernels(Target) const noexcept final;
     };
 
 }// namespace refactor::computation

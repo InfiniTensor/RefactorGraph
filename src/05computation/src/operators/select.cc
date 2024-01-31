@@ -1,4 +1,5 @@
 ﻿#include "computation/operators/select.h"
+#include "kernel/collectors/select.h"
 
 namespace refactor::computation {
 
@@ -28,6 +29,11 @@ namespace refactor::computation {
             default:
                 UNREACHABLE();
         }
+    }
+
+    auto Select::candidateKernels(Target target) const noexcept -> kernel::CollectorBox {
+        using Collector_ = kernel::SelectCollector;
+        return std::make_unique<Collector_>(target, type);
     }
 
 }// namespace refactor::computation
