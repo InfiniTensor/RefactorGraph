@@ -1,5 +1,5 @@
 #include "cuda_kernel.hh"
-#include "kernel/cuda/reduce.cuh"
+#include <cub/cub.cuh>
 
 namespace refactor::kernel {
     using namespace runtime;
@@ -18,8 +18,8 @@ namespace refactor::kernel {
     template<> __device__ __forceinline__ nv_bfloat16 reciprocal<nv_bfloat16>(nv_bfloat16 x) { return hrcp(x); }
 
     // blockDim.x === BLOCK_DIM
-    template<class T>
-    __global__ void blockSoftmaxKernel(
+    template<int BLOCK_DIM, class T>
+    __launch_bounds__(BLOCK_DIM) __global__ void blockSoftmaxKernel(
         T const *__restrict x,
         T *__restrict y,
         int mid,
@@ -40,8 +40,10 @@ namespace refactor::kernel {
         for (int i = threadIdx.x + blockDim.x; i < mid; i += blockDim.x) {
             maxSumThread = MaxSum::reduce(maxSumThread, {x[id + i * stride], 1});// reduce the data to one block
         }
+        using BlockReduce = cub::BlockReduce<MaxSum, BLOCK_DIM>;
+        __shared__ typename BlockReduce::TempStorage tempStorage;
         __shared__ MaxSum maxSumTotal;
-        auto maxSumBlock = cuda::blockReduce(maxSumThread, {-__FLT_MAX__, 0}, MaxSum::reduce);
+        auto maxSumBlock = BlockReduce(tempStorage).Reduce(maxSumThread, MaxSum::reduce);
         if (threadIdx.x == 0) {
             maxSumTotal = maxSumBlock;// must set threadIdx.x = 0 write the output to memory
         }
@@ -111,7 +113,7 @@ namespace refactor::kernel {
             auto y = reinterpret_cast<T *>(outputs[0]);
             int numBlocks = info.pre * info.post;
             if (info.mid > 1024) {
-                blockSoftmaxKernel<<<numBlocks, 1024>>>(x, y, info.mid, info.post);
+                blockSoftmaxKernel<1024><<<numBlocks, 1024>>>(x, y, info.mid, info.post);
             } else {
                 int blockDimX, mid = static_cast<int>(info.mid);
                 for (blockDimX = 32; blockDimX > 4 && mid < blockDimX; blockDimX /= 2) {}

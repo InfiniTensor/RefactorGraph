@@ -1,7 +1,8 @@
 ﻿#include "../../utilities/cuda/cublaslt_utils.cuh"
 #include "cuda_kernel.hh"
 #include "hardware/functions.h"
-#include "kernel/cuda/reduce.cuh"
+#include "kernel/cuda/functions.cuh"
+#include <cub/block/block_reduce.cuh>
 
 namespace refactor::kernel {
     using K = AttentionCuda;
@@ -27,7 +28,7 @@ namespace refactor::kernel {
 
     // gridDim.x = batch * nHead
     // gridDim.y = seqLen
-    // blockDim.x = min(1024, attLen)
+    // blockDim.x = 1024
     // sizeof(shared) = attLen * sizeof(float)
     template<class T, class Mask>
     static __global__ void softmax(
@@ -36,25 +37,34 @@ namespace refactor::kernel {
         uint32_t attLen,
         uint32_t bufLen) {
         // 找到这个线程块对应的 attention 区域
-        att += (blockIdx.x * gridDim.x + gridDim.y) * bufLen;
+        att += (blockIdx.x * gridDim.y + blockIdx.y) * bufLen;
         // 将输入装入共享内存并 cast + mask
         extern __shared__ float shared[];// size = attLen = pastSeqLen + seqLen
         for (auto i = threadIdx.x; i < attLen; i += blockDim.x) {
             shared[i] = mask(blockIdx.y, gridDim.y, i, attLen) ? float(att[i]) : -__FLT_MAX__;
         }
 
+        using BlockReduce = cub::BlockReduce<float, 1024>;
+        __shared__ typename BlockReduce::TempStorage tempStorage;
+        __shared__ float sharedMax, sharedSum;
+
         float localMax = -1e20;
         for (auto i = threadIdx.x; i < attLen; i += blockDim.x) {
             localMax = cub::Max()(localMax, shared[i]);
         }
-        localMax = cuda::blockReduce(localMax, -1e20f, cub::Max());
+        localMax = BlockReduce(tempStorage).Reduce(localMax, cub::Max(), attLen);
+        if (threadIdx.x == 0) { sharedMax = localMax; }
+        __syncthreads();
 
         float localSum = 1e-20;
         for (auto i = threadIdx.x; i < attLen; i += blockDim.x) {
-            localSum += shared[i] = expf(shared[i] - localMax);
+            localSum += shared[i] = expf(shared[i] - sharedMax);
         }
-        localSum = cuda::blockReduce(localSum, 1e-20f, cub::Sum());
-        auto reciprocal = fdividef(1, localSum);
+        localSum = BlockReduce(tempStorage).Reduce(localSum, cub::Sum(), attLen);
+        if (threadIdx.x == 0) { sharedSum = localSum; }
+        __syncthreads();
+
+        auto reciprocal = fdividef(1, sharedSum);
         for (auto i = threadIdx.x; i < attLen; i += blockDim.x) {
             att[i] = shared[i] * reciprocal;
         }

@@ -13,7 +13,7 @@ using namespace hardware;
 TEST(kernel, AttentionCudaNoKvCache) {
     // build routine
     AttentionInfo info{
-        .dataType = DataType::FP16,
+        .dataType = DataType::F32,
         .batch = 1,
         .nHead = 4,
         .nKVHead = 4,
@@ -23,9 +23,9 @@ TEST(kernel, AttentionCudaNoKvCache) {
         .concatCache = false,
         .resetCache = false,
     };
-    auto q = Tensor::share(DataType::FP16, Shape{info.batch, info.nHead, info.seqLen, info.headDim}),
-         k = Tensor::share(DataType::FP16, Shape{info.batch, info.nKVHead, info.seqLen, info.headDim}),
-         v = Tensor::share(DataType::FP16, Shape{info.batch, info.nKVHead, info.seqLen, info.headDim}),
+    auto q = Tensor::share(DataType::F32, Shape{info.batch, info.nHead, info.seqLen, info.headDim}),
+         k = Tensor::share(DataType::F32, Shape{info.batch, info.nKVHead, info.seqLen, info.headDim}),
+         v = Tensor::share(DataType::F32, Shape{info.batch, info.nKVHead, info.seqLen, info.headDim}),
          o = q;
     auto kernel = AttentionCuda::build(info);
     ASSERT_TRUE(kernel);
@@ -38,6 +38,15 @@ TEST(kernel, AttentionCudaNoKvCache) {
          vGpu = dev.malloc(v->bytesSize()),
          oGpu = dev.malloc(o->bytesSize()),
          workspace = dev.malloc(workspaceSize);
+    // put input data
+    std::vector<float>
+        q_(q->elementsSize(), 1),
+        k_(k->elementsSize(), 1),
+        v_(v->elementsSize(), 1),
+        o_(o->elementsSize());
+    qGpu->copyFromHost(q_.data());
+    kGpu->copyFromHost(k_.data());
+    vGpu->copyFromHost(v_.data());
     // inference
     {
         void const *inputs[]{*qGpu, *kGpu, *vGpu};
