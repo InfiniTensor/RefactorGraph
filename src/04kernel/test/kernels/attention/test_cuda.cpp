@@ -2,6 +2,7 @@
 
 #include "../../../src/kernels/attention/cuda_kernel.hh"
 #include "hardware/device_manager.h"
+#include "kernel/cuda/functions.cuh"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -43,6 +44,7 @@ TEST(kernel, AttentionCudaNoKvCache) {
         void *outputs[]{*oGpu};
         routine(res, *workspace, inputs, outputs);
     }
+    cuda::sync();
 }
 
 #endif

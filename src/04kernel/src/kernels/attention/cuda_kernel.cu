@@ -12,25 +12,27 @@ namespace refactor::kernel {
     //  seqLen: 此次处理的词数
     //   posId: 在 kv cache 中的位置
     //  attLen = pastSeqLen + seqLen
-    static __forceinline__ __device__ bool
-    causualMask(int tokenId, int seqLen,
-                int posId, int attLen) {
-        // tokenId ↓ |<---attLen---->|
-        //         0 | * * ... *     |
-        //         1 | * * ... * *   |
-        //         2 | * * ... * * * |
-        // seqLen: 3 |---------------|
-        return attLen + tokenId >= posId + seqLen;
-    }
+    struct AttentionCausualMask {
+        __forceinline__ __device__ bool
+        operator()(int tokenId, int seqLen,
+                   int posId, int attLen) {
+            // tokenId ↓ |<---attLen---->|
+            //         0 | * * ... *     |
+            //         1 | * * ... * *   |
+            //         2 | * * ... * * * |
+            // seqLen: 3 |---------------|
+            return attLen + tokenId >= posId + seqLen;
+        }
+    };
 
     // gridDim.x = batch * nHead
     // gridDim.y = seqLen
     // blockDim.x = min(1024, attLen)
     // sizeof(shared) = attLen * sizeof(float)
-    template<class T>
+    template<class T, class Mask>
     static __global__ void softmax(
         T *__restrict__ att,
-        bool (*mask)(int, int, int, int),
+        Mask mask,
         uint32_t attLen,
         uint32_t bufLen) {
         // 找到这个线程块对应的 attention 区域
@@ -161,7 +163,7 @@ namespace refactor::kernel {
                                   std::min(1024u, attLen),
                                   attLen * sizeof(float),
                                   stream>>>(
-                            att, causualMask, attLen, bufLen);
+                            att, AttentionCausualMask(), attLen, bufLen);
                         {
                             half alpha = 1, beta = 0;
                             cublasLtMatmul(
