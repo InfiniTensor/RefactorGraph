@@ -140,6 +140,7 @@ namespace refactor::kernel {
                         auto att = reinterpret_cast<half *>(workspace);
                         auto workspaceQK = reinterpret_cast<uint8_t *>(workspace) + hardware::alignBytes(info.attSize(0), 256);
                         auto workspaceAV = workspaceQK + hardware::alignBytes(d->workspaceSizeQK, 256);
+                        auto stream = cudaStreamLegacy;
                         {
                             half alpha = rsqrtf(info.headDim), beta = 0;
                             cublasLtMatmul(
@@ -152,13 +153,14 @@ namespace refactor::kernel {
                                 att, d->att.get(),
                                 &d->algoQK,
                                 workspaceQK, d->workspaceSizeQK,
-                                cudaStreamLegacy);
+                                stream);
                         }
                         auto attLen = info.attLen(0);
                         auto bufLen = attLen;
                         softmax<<<dim3(info.batch * info.nHead, info.seqLen),
                                   std::min(1024u, attLen),
-                                  attLen * sizeof(float)>>>(
+                                  attLen * sizeof(float),
+                                  stream>>>(
                             att, causualMask, attLen, bufLen);
                         {
                             half alpha = 1, beta = 0;
@@ -172,7 +174,7 @@ namespace refactor::kernel {
                                 o, d->q.get(),
                                 &d->algoAV,
                                 workspaceAV, d->workspaceSizeAV,
-                                cudaStreamLegacy);
+                                stream);
                         };
                     };
 

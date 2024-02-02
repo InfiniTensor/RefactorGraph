@@ -109,7 +109,7 @@ namespace refactor::kernel::cublas {
         CUDA_ASSERT(cudaGetDeviceProperties(&prop, device));
 
         auto workspace = std::numeric_limits<uint64_t>::max();
-        auto alignment = prop.textureAlignment;
+        uint32_t alignment = prop.textureAlignment;
 
         cublasLtMatmulPreference_t preference;
         CUBLASLT_ASSERT(cublasLtMatmulPreferenceCreate(&preference));
