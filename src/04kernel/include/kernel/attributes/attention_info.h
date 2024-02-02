@@ -12,6 +12,7 @@ namespace refactor::kernel {
 
         dim_t attLen(dim_t pastSeqLen) const noexcept;
         size_t attSize(dim_t pastSeqLen) const noexcept;
+        size_t maxAttSize() const noexcept;
     };
 
 }// namespace refactor::kernel

@@ -10,4 +10,8 @@ namespace refactor::kernel {
         return batch * nHead * seqLen * attLen(pastSeqLen) * dataType.size();
     }
 
+    size_t AttentionInfo::maxAttSize() const noexcept {
+        return batch * nHead * seqLen * (cacheLen ? cacheLen : seqLen) * dataType.size();
+    }
+
 }// namespace refactor::kernel

@@ -68,7 +68,8 @@ namespace refactor::kernel::cublas {
          MatMulDescriptor const &,
          MatrixDescriptor const &,
          MatrixDescriptor const &,
-         MatrixDescriptor const &);
+         MatrixDescriptor const &,
+         uint64_t);
 
 }// namespace refactor::kernel::cublas
 

@@ -101,14 +101,14 @@ namespace refactor::kernel::cublas {
          MatMulDescriptor const &matmul,
          MatrixDescriptor const &a,
          MatrixDescriptor const &b,
-         MatrixDescriptor const &c) {
+         MatrixDescriptor const &c,
+         uint64_t maxWorkspace) {
 
         int device;
         CUDA_ASSERT(cudaGetDevice(&device));
         cudaDeviceProp prop;
         CUDA_ASSERT(cudaGetDeviceProperties(&prop, device));
 
-        auto workspace = std::numeric_limits<uint64_t>::max();
         uint32_t alignment = prop.textureAlignment;
 
         cublasLtMatmulPreference_t preference;
@@ -116,8 +116,8 @@ namespace refactor::kernel::cublas {
         CUBLASLT_ASSERT(cublasLtMatmulPreferenceSetAttribute(
             preference,
             CUBLASLT_MATMUL_PREF_MAX_WORKSPACE_BYTES,
-            &workspace,
-            sizeof(workspace)));
+            &maxWorkspace,
+            sizeof(maxWorkspace)));
         CUBLASLT_ASSERT(cublasLtMatmulPreferenceSetAttribute(
             preference,
             CUBLASLT_MATMUL_PREF_MIN_ALIGNMENT_A_BYTES,
