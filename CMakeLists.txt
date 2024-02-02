@@ -12,12 +12,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Download with:
+#
+# mkdir -p cmake
+# wget -O cmake/CPM.cmake https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake
+include(cmake/CPM.cmake)
+
 if(USE_CUDA)
+    CPMAddPackage(NAME CCCL SOURCE_DIR ${CMAKE_SOURCE_DIR}/3rd-party/cccl)
+
     add_compile_definitions(USE_CUDA)
     enable_language(CUDA)
     set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-        set(CMAKE_CUDA_ARCHITECTURES 80)
+        set(CMAKE_CUDA_ARCHITECTURES native)
     endif()
     if(NOT DEFINED CMAKE_CUDA_STANDARD)
         set(CMAKE_CUDA_STANDARD 17)
@@ -45,7 +53,7 @@ endif()
 if (USE_BANG)
     add_compile_definitions(USE_BANG)
     include_directories(src/kernels/mlu/include)
-    
+
     # Neuware Evironment
     if ((NOT DEFINED NEUWARE_HOME) AND (NOT DEFINED ENV{NEUWARE_HOME}))
         message(FATAL_ERROR "NEUWARE_HOME is not defined from cmake or env")
@@ -55,14 +63,14 @@ if (USE_BANG)
         set(NEUWARE_HOME $ENV{NEUWARE_HOME} CACHE STRING "NEUWARE_HOME directory for Cambricon Neuware development")
     endif()
     message(STATUS "NEUWARE_HOME: ${NEUWARE_HOME}")
-    
+
     # cnrt cndrv cnnl
     include_directories("${NEUWARE_HOME}/include")
     find_library(CAMBRICON_CNNL libcnnl.so "${NEUWARE_HOME}/lib64")
     find_library(CAMBRICON_CNRT libcnrt.so "${NEUWARE_HOME}/lib64")
     find_library(CAMBRICON_CNDRV libcndrv.so "${NEUWARE_HOME}/lib64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++ -Wall")
-  
+
     if ((NOT DEFINED TARGET_CPU_ARCH) AND (NOT DEFINED ENV{TARGET_CPU_ARCH}))
         execute_process(COMMAND uname -m OUTPUT_VARIABLE _uname_m OUTPUT_STRIP_TRAILING_WHITESPACE)
         set(TARGET_CPU_ARCH "${_uname_m}" CACHE STRING "Target CPU ARCH")

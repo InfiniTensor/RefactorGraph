@@ -26,7 +26,8 @@ if(USE_CUDA)
     # nvrtc  for cuda kernel compile
     # cublas for matmul
     # cudnn  for conv and others
-    target_link_libraries(kernel PUBLIC cuda nvrtc cublas cublasLt cudnn kernel_cuda)
+    target_link_libraries(kernel PUBLIC cuda kernel_cuda)
+    target_link_libraries(kernel PRIVATE nvrtc cublas cublasLt cudnn)
     target_include_directories(kernel PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
     find_package(NCCL REQUIRED)

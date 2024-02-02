@@ -1,6 +1,7 @@
 ﻿#include "../../utilities/cuda/cublaslt_utils.cuh"
 #include "cuda_kernel.hh"
 #include "hardware/functions.h"
+#include "kernel/cuda/reduce.cuh"
 
 namespace refactor::kernel {
     using K = AttentionCuda;
