@@ -26,6 +26,7 @@ namespace refactor::kernel {
     // gridDim.x = batch * nHead
     // gridDim.y = seqLen
     // blockDim.x = min(1024, attLen)
+    // sizeof(shared) = attLen * sizeof(float)
     template<class T>
     static __global__ void softmax(
         T *__restrict__ att,
@@ -154,7 +155,9 @@ namespace refactor::kernel {
                                 workspaceQK, d->workspaceSizeQK,
                                 cudaStreamLegacy);
                         }
-                        softmax<<<dim3(info.batch * info.nHead, info.seqLen), info.seqLen>>>(
+                        softmax<<<dim3(info.batch * info.nHead, info.seqLen),
+                                  info.seqLen,
+                                  info.seqLen * sizeof(float)>>>(
                             att, causualMask, info.seqLen, info.seqLen);
                         {
                             half alpha = 1, beta = 0;
