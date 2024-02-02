@@ -71,7 +71,7 @@ namespace refactor::kernel {
                     MatMulDescriptor mul;
                     MatrixDescriptor q, k, v, att;
                     cublasLtMatmulAlgo_t algoQK, algoAV;
-                    size_t attSize, workspaceSizeQK, workspaceSizeAV;
+                    size_t workspaceSizeQK, workspaceSizeAV;
 
                     Descriptors(CublasLtContext const &context,
                                 AttentionInfo info)
@@ -112,8 +112,7 @@ namespace refactor::kernel {
                               .order = ROW_MAJOR,
                               .batchCount = static_cast<int32_t>(info.batch * info.nHead),
                               .batchStride = static_cast<int64_t>(info.seqLen * info.seqLen),
-                          }),
-                          attSize(info.batch * info.nHead * info.seqLen * info.seqLen * info.dataType.size()) {
+                          }) {
                         auto [algoQK_, workspaceSizeQK_] = tune(context.handle, mul, q, k, att);
                         auto [algoAV_, workspaceSizeAV_] = tune(context.handle, mul, att, v, q);
                         algoQK = algoQK_;
@@ -125,7 +124,7 @@ namespace refactor::kernel {
 
                 auto const &context = *res.fetchOrStore<CublasLtContext>();
                 auto d = std::make_shared<Descriptors>(context, info);
-                auto workspaceSize = d->attSize;
+                auto workspaceSize = info.attSize(0);
                 workspaceSize = hardware::alignBytes(workspaceSize, 256);
                 workspaceSize += d->workspaceSizeQK;
                 workspaceSize += d->workspaceSizeAV;
@@ -139,7 +138,7 @@ namespace refactor::kernel {
                         auto v = inputs[2];
                         auto o = outputs[0];
                         auto att = reinterpret_cast<half *>(workspace);
-                        auto workspaceQK = reinterpret_cast<uint8_t *>(workspace) + hardware::alignBytes(d->attSize, 256);
+                        auto workspaceQK = reinterpret_cast<uint8_t *>(workspace) + hardware::alignBytes(info.attSize(0), 256);
                         auto workspaceAV = workspaceQK + hardware::alignBytes(d->workspaceSizeQK, 256);
                         {
                             half alpha = rsqrtf(info.headDim), beta = 0;
@@ -155,10 +154,12 @@ namespace refactor::kernel {
                                 workspaceQK, d->workspaceSizeQK,
                                 cudaStreamLegacy);
                         }
+                        auto attLen = info.attLen(0);
+                        auto bufLen = attLen;
                         softmax<<<dim3(info.batch * info.nHead, info.seqLen),
-                                  info.seqLen,
-                                  info.seqLen * sizeof(float)>>>(
-                            att, causualMask, info.seqLen, info.seqLen);
+                                  std::min(1024u, attLen),
+                                  attLen * sizeof(float)>>>(
+                            att, causualMask, attLen, bufLen);
                         {
                             half alpha = 1, beta = 0;
                             cublasLtMatmul(

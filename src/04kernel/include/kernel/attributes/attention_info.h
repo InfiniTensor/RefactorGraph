@@ -9,6 +9,9 @@ namespace refactor::kernel {
         DataType dataType;
         dim_t batch, nHead, nKVHead, seqLen, headDim, cacheLen;
         bool concatCache, resetCache;
+
+        dim_t attLen(dim_t pastSeqLen) const noexcept;
+        size_t attSize(dim_t pastSeqLen) const noexcept;
     };
 
 }// namespace refactor::kernel
