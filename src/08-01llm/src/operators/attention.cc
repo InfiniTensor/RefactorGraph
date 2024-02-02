@@ -9,7 +9,7 @@ namespace refactor::llm {
         : Operator(), maxSeqLen(maxSeqLen_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto maxSeqLen = attributes.getOrInsert("max_seq_len", {0}).float_();
+        auto maxSeqLen = attributes.getOrInsert("max_seq_len", {0}).int_();
         return OpBox(std::make_unique<Op>(maxSeqLen));
     }
     auto Op::typeId() -> size_t {
@@ -129,7 +129,7 @@ namespace refactor::llm {
 
     auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::Attention;
-        return std::make_unique<Op_>(maxSeqLen);
+        return std::make_unique<Op_>();
     }
 
 }// namespace refactor::llm

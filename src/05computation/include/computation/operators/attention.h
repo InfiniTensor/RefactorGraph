@@ -6,14 +6,14 @@
 namespace refactor::computation {
 
     struct Attention final : public Operator {
-        dim_t maxSeqLen;
 
-        constexpr Attention(decltype(maxSeqLen) maxSeqLen_) noexcept
-            : Operator(), maxSeqLen(maxSeqLen_) {}
+        constexpr Attention() noexcept = default;
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;
         std::string_view name() const noexcept final;
+        kernel::CollectorBox candidateKernels(Target) const final;
+        std::string serialize() const noexcept final;
     };
 
 }// namespace refactor::computation
