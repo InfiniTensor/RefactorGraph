@@ -3,6 +3,12 @@
 
 #include "../device.h"
 
+#define CUDA_ASSERT(STATUS)                                                          \
+    if (auto status = (STATUS); status != cudaSuccess) {                             \
+        RUNTIME_ERROR(fmt::format("cuda failed on \"" #STATUS "\" with \"{}\" ({})", \
+                                  cudaGetErrorString(status), (int) status));        \
+    }
+
 namespace refactor::hardware {
 
     class Nvidia final : public Device {

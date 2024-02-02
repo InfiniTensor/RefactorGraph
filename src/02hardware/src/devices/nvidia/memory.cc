@@ -1,14 +1,8 @@
 ﻿#ifdef USE_CUDA
 
 #include "memory.hh"
-#include "common.h"
+#include "hardware/devices/nvidia.h"
 #include <cuda_runtime.h>
-
-#define CUDA_ASSERT(STATUS)                                                          \
-    if (auto status = (STATUS); status != cudaSuccess) {                             \
-        RUNTIME_ERROR(fmt::format("cuda failed on \"" #STATUS "\" with \"{}\" ({})", \
-                                  cudaGetErrorString(status), (int) status));        \
-    }
 
 namespace refactor::hardware {
     using M = NvidiaMemory;

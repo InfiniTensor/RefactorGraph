@@ -1,17 +1,13 @@
 ﻿#ifndef KERNEL_ATTENTION_CUDA_KERNEL_HH
 #define KERNEL_ATTENTION_CUDA_KERNEL_HH
 
+#include "kernel/attributes/attention_info.h"
 #include "kernel/kernel.h"
-#include "kernel/tensor.h"
 
 namespace refactor::kernel {
 
     struct AttentionCuda final : public Kernel {
-        struct {
-            DataType dataType;
-            dim_t batch, nHead, nKVHead, pastSeqLen, seqLen, cacheLen, headDim;
-            bool resetCache;
-        } info;
+        AttentionInfo info;
 
         AttentionCuda(decltype(info)) noexcept;
 
