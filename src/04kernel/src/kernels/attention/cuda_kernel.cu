@@ -7,6 +7,44 @@ namespace refactor::kernel {
     using K = AttentionCuda;
     using namespace cublas;
 
+    static __forceinline__ __device__ bool mask(int tokid, int posid) {
+        return true;
+    }
+
+    // gridDim.x = batch * nHead
+    // gridDim.y = seqLen
+    template<class T, class Mask>
+    static __global__ void softmax(
+        T *__restrict__ attention,
+        Mask mask,
+        uint32_t seqLen,
+        uint32_t bufLen) {
+        // int offset = (blockIdx.x * len_q + blockIdx.y) * len_buf;
+        // SharedMemory<float> shared;
+        // float *smem = shared.getPointer();
+
+        // for (int i = threadIdx.x; i < len_buf; i += blockDim.x) {
+        //     T pb = (position_bias == nullptr) ? T(0.) : position_bias[offset + i];
+        //     smem[i] = mask[blockIdx.y * len_buf + i] > 0 ? x[offset + i] * scale + pb : -Inf<T>();
+        // }
+        // float local_max = -1e20;
+        // for (int i = threadIdx.x; i < len_buf; i += blockDim.x) {
+        //     local_max = fmaxf(local_max, smem[i]);
+        // }
+        // local_max = functions::blockReduceMax<float>(local_max);
+
+        // float local_sum = 1e-20;
+        // for (int i = threadIdx.x; i < len_buf; i += blockDim.x) {
+        //     float v = expf(float(smem[i]) - local_max);
+        //     smem[i] = v;
+        //     local_sum += v;
+        // }
+        // local_sum = functions::blockReduceSum<float>(local_sum);
+        // for (int i = threadIdx.x; i < len_buf; i += blockDim.x) {
+        //     x[offset + i] = float(smem[i]) / local_sum;
+        // }
+    }
+
     RoutineWorkspace K::lower(Resources &res) const {
         auto handle = res.fetchOrStore<CublasLtContext>()->handle;
 
@@ -23,9 +61,9 @@ namespace refactor::kernel {
                     size_t attSize, workspaceSizeQK, workspaceSizeAV;
 
                     Descriptors(CublasLtContext const &context,
-                                cublasComputeType_t compute,
                                 AttentionInfo info)
-                        : mul(compute, CUDA_R_32F),
+                        : mul(computeTypeConvert(info.dataType),
+                              dataTypeConvert(info.dataType)),
                           q(MatrixLayout{
                               .dataType = dataTypeConvert(info.dataType),
                               .rows = static_cast<uint64_t>(info.seqLen),
@@ -73,11 +111,10 @@ namespace refactor::kernel {
                 };
 
                 auto const &context = *res.fetchOrStore<CublasLtContext>();
-                auto d = std::make_shared<Descriptors>(context, CUBLAS_COMPUTE_32F, info);
+                auto d = std::make_shared<Descriptors>(context, info);
                 auto workspaceSize = d->attSize;
                 workspaceSize = hardware::alignBytes(workspaceSize, 256);
                 workspaceSize += d->workspaceSizeQK;
-                workspaceSize = hardware::alignBytes(workspaceSize, 256);
                 workspaceSize += d->workspaceSizeAV;
                 workspaceSize = hardware::alignBytes(workspaceSize, 256);
 
@@ -105,7 +142,8 @@ namespace refactor::kernel {
                             workspaceQK, d->workspaceSizeQK,
                             cudaStreamLegacy);
 
-                        // TODO inline mask && softmax
+                        softmax<<<dim3(info.batch * info.nHead, info.seqLen), info.seqLen>>>(
+                            att, mask, info.seqLen, info.seqLen);
 
                         cublasLtMatmul(
                             handle, d->mul.get(),

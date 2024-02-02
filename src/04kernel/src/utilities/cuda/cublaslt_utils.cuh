@@ -30,6 +30,7 @@ namespace refactor::kernel::cublas {
     };
 
     cudaDataType dataTypeConvert(DataType);
+    cublasComputeType_t computeTypeConvert(DataType);
 
     class MatMulDescriptor {
         cublasLtMatmulDesc_t _internal;

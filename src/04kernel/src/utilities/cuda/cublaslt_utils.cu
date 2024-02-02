@@ -34,6 +34,21 @@ namespace refactor::kernel::cublas {
         switch (dt) {
             case DataType::F32:
                 return CUDA_R_32F;
+            case DataType::FP16:
+                return CUDA_R_16F;
+            case DataType::BF16:
+                return CUDA_R_16BF;
+            default:
+                TODO("");
+        }
+    }
+    cublasComputeType_t computeTypeConvert(DataType dt) {
+        switch (dt) {
+            case DataType::F32:
+            case DataType::BF16:
+                return CUBLAS_COMPUTE_32F;
+            case DataType::FP16:
+                return CUBLAS_COMPUTE_16F;
             default:
                 TODO("");
         }
