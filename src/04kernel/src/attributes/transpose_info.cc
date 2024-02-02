@@ -35,7 +35,7 @@ namespace refactor::kernel {
                 }
             }
         }
-        if (rank == 0) {
+        if (rank <= 1) {
             dims = {{1, 1}};
             blockSize *= blockCount;
             blockCount = 1;
@@ -72,6 +72,12 @@ namespace refactor::kernel {
                 }
             }
             perm.resize(rank);
+        }
+        if (rank <= 1) {
+            dims = {{1, 1}};
+            blockSize *= blockCount;
+            blockCount = 1;
+            return;
         }
         // 合并末尾连续访存
         if (perm.back() == rank - 1) {

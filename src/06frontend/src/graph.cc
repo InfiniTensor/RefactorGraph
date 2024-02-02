@@ -102,7 +102,7 @@ namespace refactor::frontend {
             for (auto i : range0_(inputs.size())) {
                 auto j = inputs[i];
                 auto const &input = _internal.edges[j].tensor;
-                ASSERT(input, "The {}th input of \"{}\" is nullptr", i, _internal.nodes[nodeIdx].name);
+                ASSERT(input, "The input[{}] of \"{}\" is nullptr", i, _internal.nodes[nodeIdx].name);
                 auto checked = edgeChanged[2 * j];    // NOTICE `std::vector<bool>::operator[]` 产生常引用！！！
                 auto changed = edgeChanged[2 * j + 1];// NOTICE `std::vector<bool>::operator[]` 产生常引用！！！
                 if (!checked) {
