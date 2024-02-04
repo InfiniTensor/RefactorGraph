@@ -29,6 +29,7 @@ namespace refactor::kernel {
             CASE(Sqrt);
             CASE(Sigmoid);
             CASE(Erf);
+            CASE(Exp);
             CASE(Neg);
             CASE(Not);
             CASE(HardSwish);

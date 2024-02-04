@@ -17,6 +17,7 @@ namespace refactor::onnx {
         Cos,
         Cosh,
         Erf,
+        Exp,
         HardSwish,
         Identity,
         Log,

@@ -20,6 +20,7 @@ namespace refactor::kernel {
             Op::Neg,
             Op::Erf,
             Op::HardSwish,
+            Op::Exp,
         };
         return supportedOp.contains(op) && a.dataType.isCpuNumberic()
                    ? std::make_unique<K>(op, a.dataType, a.elementsSize())
@@ -182,6 +183,13 @@ namespace refactor::kernel {
                 switch (dataType) {
                     CASE(hardswishFun, F32);
                     CASE(hardswishFun, F64);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Exp:
+                switch (dataType) {
+                    CASE(std::exp, F32);
+                    CASE(std::exp, F64);
                     default:
                         UNREACHABLE();
                 }

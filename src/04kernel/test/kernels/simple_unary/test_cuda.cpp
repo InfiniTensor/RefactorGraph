@@ -53,6 +53,7 @@ TEST(kernel, SimpleUnaryCuda) {
     testOp(SimpleUnaryType::Tanh);
     testOp(SimpleUnaryType::Erf);
     testOp(SimpleUnaryType::HardSwish);
+    testOp(SimpleUnaryType::Exp);
 }
 
 #endif

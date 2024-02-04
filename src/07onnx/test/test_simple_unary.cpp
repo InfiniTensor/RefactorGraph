@@ -36,4 +36,17 @@ TEST(infer, SimpleUnary) {
         ASSERT_EQ(y->dataType, DataType::F32);
         ASSERT_EQ(y->shape, (Shape{DimExpr(2), DimExpr(3)}));
     }
+    {
+        // Exp Test
+        auto edges = Edges{
+            {Tensor::share(DataType::F32, Shape{DimExpr(2), DimExpr(3)}, {}), ""}};
+        count_t inputs[]{0};
+        auto infered = SimpleUnary(SimpleUnaryType::Exp).infer(TensorRefs(edges, inputs), {true});
+        ASSERT_TRUE(infered.isOk());
+        auto outputs = std::move(infered.unwrap());
+        ASSERT_EQ(outputs.size(), 1);
+        auto y = std::move(outputs[0]);
+        ASSERT_EQ(y->dataType, DataType::F32);
+        ASSERT_EQ(y->shape, (Shape{DimExpr(2), DimExpr(3)}));
+    }
 }
