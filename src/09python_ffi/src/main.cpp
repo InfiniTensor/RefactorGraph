@@ -3,6 +3,7 @@
 #include "import.h"
 #include "llm/operators.h"
 #include "onnx/operators.h"
+#include "search.h"
 #include <pybind11/stl.h>// keep this line to convert stl types
 
 namespace py = pybind11;
@@ -26,6 +27,7 @@ namespace refactor::python_ffi {
         py::class_<Device::Blob, Arc<Device::Blob>>(m, "Pinned"      );
 
         m   .def("config_log"      , &configLog                  , return_::automatic )
+            .def("random_search"   , &randomSearch               , return_::move      )
             .def("find_device"     , &findDevice                 , return_::move      )
             .def("_make_operator"  , &makeOp                     , return_::move      )
             .def("_make_tensor"    , &makeTensor                 , return_::move      )
