@@ -11,7 +11,7 @@ namespace refactor::onnx {
         : Operator(), equation(std::move(equation_)) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        return OpBox(std::make_unique<Op>(std::move(attributes.at("equation").string())));
+        return OpBox(std::make_unique<Op>(std::move(attributes["equation"].string())));
     }
     auto Op::typeId() -> size_t {
         static uint8_t ID = 1;

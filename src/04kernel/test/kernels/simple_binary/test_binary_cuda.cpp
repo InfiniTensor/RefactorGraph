@@ -103,7 +103,14 @@ TEST(kernel, BinaryCudaFmodF32) {
 }
 
 TEST(kernel, BinaryCudaBroadcast) {
-    testBinaryCuda<DataType::I8>(SimpleBinaryType::Add, Shape{1, 2, 3, 4, 5, 6}, Shape{}, Shape{1, 2, 3, 4, 5, 6});
+    testBinaryCuda<DataType::F32>(SimpleBinaryType::Sub,
+                                  Shape{1, 2, 3, 4, 5, 6},
+                                  Shape{},
+                                  Shape{1, 2, 3, 4, 5, 6});
+    testBinaryCuda<DataType::F32>(SimpleBinaryType::Div,
+                                  Shape{},
+                                  Shape{1, 2, 3, 4, 5, 6},
+                                  Shape{1, 2, 3, 4, 5, 6});
 }
 
 #endif

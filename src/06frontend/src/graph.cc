@@ -98,26 +98,20 @@ namespace refactor::frontend {
         auto const startTime = high_resolution_clock::now();
         // 拓扑遍历
         for (auto [nodeIdx, inputs, outputs] : _internal.topology) {
-            auto unknownEdge = false, inputChanged = false;
-            for (auto i : inputs) {
-                auto const &input = _internal.edges[i].tensor;
-                if (!input) {// 有入边未知
-                    unknownEdge = true;
-                    break;
-                }
-                auto checked = edgeChanged[2 * i];    // NOTICE `std::vector<bool>::operator[]` 产生常引用！！！
-                auto changed = edgeChanged[2 * i + 1];// NOTICE `std::vector<bool>::operator[]` 产生常引用！！！
+            auto inputChanged = false;
+            for (auto i : range0_(inputs.size())) {
+                auto j = inputs[i];
+                auto const &input = _internal.edges[j].tensor;
+                ASSERT(input, "The input[{}] of \"{}\" is nullptr", i, _internal.nodes[nodeIdx].name);
+                auto checked = edgeChanged[2 * j];    // NOTICE `std::vector<bool>::operator[]` 产生常引用！！！
+                auto changed = edgeChanged[2 * j + 1];// NOTICE `std::vector<bool>::operator[]` 产生常引用！！！
                 if (!checked) {
                     checked = true;
-                    if (changed = _edgeSnapshot[i] != *input) {
-                        _edgeSnapshot[i] = input->snapshot();
+                    if (changed = _edgeSnapshot[j] != *input) {
+                        _edgeSnapshot[j] = input->snapshot();
                     }
                 }
                 inputChanged |= changed;
-            }
-            // 有入边未知，跳过节点
-            if (unknownEdge) {
-                continue;
             }
             if (!inputChanged && std::all_of(outputs.begin(), outputs.end(),
                                              [this](auto i) { return _internal.edges[i].tensor; })) {

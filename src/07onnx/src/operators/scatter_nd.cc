@@ -5,9 +5,9 @@
 namespace refactor::onnx {
     using Op = ScatterND;
 
-    auto Op::build(ModelContext const &ctx, std::string_view, Attributes attrs) -> OpBox {
-        if (auto it = attrs.find("reduction"); it != attrs.end()) {
-            ASSERT(it->second.isString() && it->second.string() == "none",
+    auto Op::build(ModelContext const &ctx, std::string_view, Attributes attributes) -> OpBox {
+        if (auto opt = attributes.get("reduction"); opt) {
+            ASSERT(opt->get().isString() && opt->get().string() == "none",
                    "currently only support `reduction = none`");
         }
         return OpBox(std::make_unique<Op>());

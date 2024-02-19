@@ -5,8 +5,8 @@
 namespace refactor::onnx {
     using Op = Tile;
 
-    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Tile operator should not have attributes");
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
+        EXPECT_NO_ATTRI;
         return OpBox(std::make_unique<Op>());
     }
     auto Op::typeId() -> size_t {
@@ -29,7 +29,7 @@ namespace refactor::onnx {
             return Err(InferError(ERROR_MSG("repeats not support")));
         }
         EXPECT_VAL(repeats.shape[0], repeatsSize)
-        ASSERT(repeatsSize == rank, ERROR_MSG("repeats size error"));
+        ASSERT(repeatsSize == rank, "repeats size error");
 
         auto repeats_ = repeats.data->get<int64_t>();
         Shape output(rank, DimExpr(1));

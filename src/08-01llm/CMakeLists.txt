@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(llm VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
+
+file(GLOB_RECURSE LLM_SRC src/*.cc src/*.cpp)
+add_library(llm STATIC ${LLM_SRC})
+target_link_libraries(llm PUBLIC frontend)
+target_include_directories(llm PUBLIC include)
+
+file(GLOB_RECURSE LLM_TEST test/*.cpp)
+if(LLM_TEST)
+    add_executable(llm_test ${LLM_TEST})
+    add_test(llm_test llm_test)
+    target_link_libraries(llm_test llm GTest::gtest_main Backward::Object)
+endif()

@@ -14,10 +14,10 @@ namespace refactor::onnx {
           transB(transB_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto alpha = defaultOr(attributes, "alpha", {1.0f}).float_();
-        auto beta = defaultOr(attributes, "beta", {1.0f}).float_();
-        auto transA = defaultOr(attributes, "transA", {0}).int_() != 0;
-        auto transB = defaultOr(attributes, "transB", {0}).int_() != 0;
+        auto alpha = attributes.getOrInsert( "alpha", {1.0f}).float_();
+        auto beta = attributes.getOrInsert( "beta", {1.0f}).float_();
+        auto transA = attributes.getOrInsert( "transA", {0}).int_() != 0;
+        auto transB = attributes.getOrInsert( "transB", {0}).int_() != 0;
         return OpBox(std::make_unique<Op>(alpha, beta, transA, transB));
     }
     auto Op::typeId() -> size_t {

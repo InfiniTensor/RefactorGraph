@@ -23,7 +23,6 @@ namespace refactor::kernel {
         std::vector<runtime::Edge> edges_(edges.size(), {nullptr, SIZE_MAX});
         for (auto [nodeIdx, inputs, outputs] : topology) {
             for (auto outputIdx : outputs) {
-                if (!edgeRc[outputIdx]) { continue; }
                 if (globalOutputs.contains(outputIdx)) {
                     edges_[outputIdx].stackOffset--;
                 } else {
@@ -33,6 +32,11 @@ namespace refactor::kernel {
             if (auto &node = nodes[nodeIdx]; node.workspaceOffset) {
                 auto wsSize = node.workspaceOffset;
                 calculator.free(node.workspaceOffset = calculator.alloc(wsSize), wsSize);
+            }
+            for (auto outputIdx : outputs) {
+                if (!edgeRc[outputIdx]) {
+                    calculator.free(edges_[outputIdx].stackOffset, edges[outputIdx].size);
+                }
             }
             for (auto inputIdx : inputs) {
                 ASSERT(edgeRc[inputIdx], "double free");

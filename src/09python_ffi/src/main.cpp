@@ -1,6 +1,7 @@
 ﻿#include "communication/operators.h"
 #include "hardware/device.h"
 #include "import.h"
+#include "llm/operators.h"
 #include "onnx/operators.h"
 #include <pybind11/stl.h>// keep this line to convert stl types
 
@@ -14,6 +15,7 @@ namespace refactor::python_ffi {
         using namespace frontend;
 
         onnx::register_();
+        llm::register_();
         communication::register_();
 
         // clang-format off
@@ -34,6 +36,7 @@ namespace refactor::python_ffi {
         py::class_<Compiler , Arc<Compiler>>(m, "Compiler" )
             .def("substitute"      , &Compiler::substitute       , return_::automatic )
             .def("set_input"       , &Compiler::setInput         , return_::automatic )
+            .def("set_input_info"  , &Compiler::setInputInfo     , return_::automatic )
             .def("check_variables" , &Compiler::fillEdgeInfo     , return_::move      )
             .def("zero_inputs"     , &Compiler::zeroInputs       , return_::move      )
             .def("get_tensor"      , &Compiler::getTensor        , return_::move      )

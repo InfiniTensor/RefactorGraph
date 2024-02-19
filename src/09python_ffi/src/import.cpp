@@ -56,16 +56,16 @@ namespace refactor::python_ffi {
 
     SharedOp
     makeOp(AttributeMap ctx, Name opType, AttributeMap attrs) {
-        std::unordered_map<Name, Attribute> attrs_;
+        Attributes attrs_;
         for (auto &[name, value] : attrs) {
-            attrs_.insert({std::move(name), {std::move(value)}});
+            attrs_.insert(std::move(name), {std::move(value)});
         }
         std::unordered_map<Name, Attribute> ctx_;
         for (auto &[name, value] : ctx) {
             ctx_.insert({std::move(name), {std::move(value)}});
         }
         return std::make_shared<OpBox>(Operator::build(
-            ctx_, fmt::format("onnx::{}", opType), std::move(attrs_)));
+            ctx_, std::move(opType), std::move(attrs_)));
     }
 
     Arc<Compiler>

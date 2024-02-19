@@ -33,8 +33,9 @@ namespace refactor::kernel {
                 int64_t k = info.idxType == DataType::I64
                                 ? reinterpret_cast<int64_t const *>(inputs[1])[d.rem]
                                 : reinterpret_cast<int32_t const *>(inputs[1])[d.rem];
+                auto quot = k >= 0 ? d.quot : d.quot + 1;
                 std::memcpy(info.postfix * i + output,
-                            info.postfix * (d.quot * info.midSizeI + k) + data,
+                            info.postfix * (quot * info.midSizeI + k) + data,
                             info.postfix);
             });
         };

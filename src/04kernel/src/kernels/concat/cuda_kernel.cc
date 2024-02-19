@@ -82,13 +82,6 @@ extern "C" __global__ void kernel(
         auto segments = ss.str();
 
         ss.str("");
-        for (auto i : range0_(inputCount)) {
-            ss << std::endl
-               << "            reinterpret_cast<char const *>(inputs[" << i << "]), ";
-        }
-        auto castInputs = ss.str();
-
-        ss.str("");
         ss << "Concat_" << info.blockCount << ',' << unit;
         for (auto seg : info.segments) {
             ss << ',' << seg;

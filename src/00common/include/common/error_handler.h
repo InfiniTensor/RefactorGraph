@@ -30,9 +30,9 @@ namespace refactor {
     std::abort()
 
 #ifndef DISABLE_ASSERT
-#define ASSERT(CONDITION, F, ...)                                                      \
-    {                                                                                  \
-        if (!(CONDITION)) RUNTIME_ERROR(fmt::format("Assertion: " #F, ##__VA_ARGS__)); \
+#define ASSERT(CONDITION, F, ...)                                                     \
+    {                                                                                 \
+        if (!(CONDITION)) RUNTIME_ERROR(fmt::format("Assertion: " F, ##__VA_ARGS__)); \
     }
 #else
 #define ASSERT(CONDITION, F)

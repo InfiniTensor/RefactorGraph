@@ -25,6 +25,8 @@ namespace refactor::kernel {
         Erf,
         Neg,
         Not,
+        HardSwish,
+        Exp,
     };
 
     std::string_view unaryName(SimpleUnaryType type);

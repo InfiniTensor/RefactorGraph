@@ -10,10 +10,10 @@ namespace refactor::onnx {
           end(end_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto start = defaultOr(attributes, "start", {0}).int_();
+        auto start = attributes.getOrInsert("start", {0}).int_();
         std::optional<Int> end = std::nullopt;
-        if (auto it = attributes.find("end"); it != attributes.end()) {
-            end.emplace(it->second.int_());
+        if (auto opt = attributes.get("end"); opt) {
+            end.emplace(opt->get().int_());
         }
         return OpBox(std::make_unique<Op>(start, end));
     }

@@ -49,7 +49,18 @@ namespace refactor::frontend {
         Tensor_ const &tensor() const;
         Tensors const &tensors() const;
     };
-    using Attributes = std::unordered_map<std::string, Attribute>;
+    class Attributes {
+        std::unordered_map<std::string, Attribute> map;
+
+    public:
+        void insert(std::string, Attribute);
+        bool empty() const;
+        Attribute &operator[](const char *);
+        Attribute const &operator[](const char *) const;
+        std::optional<std::reference_wrapper<Attribute>> get(const char *);
+        std::optional<std::reference_wrapper<Attribute const>> get(const char *) const;
+        Attribute &getOrInsert(const char *, Attribute);
+    };
     using ModelContext = std::unordered_map<std::string, Attribute>;
 
     class Operator;
@@ -98,6 +109,46 @@ namespace refactor::frontend {
             return dynamic_cast<T *>(op.operator->());
         }
     };
+
+    using ShapeResult = Result<Shape, std::string>;
+    using ShapeRefs = std::vector<std::reference_wrapper<Shape const>>;
+
+    /// @brief 多方向形状广播。
+    /// @param inputs 所有输入的形状。
+    /// @return 广播后的形状。
+    ShapeResult multidirBroadcast(ShapeRefs const &);
+
+    /// @brief 单方向形状广播。
+    /// @param target 目标形状。
+    /// @param test 测试形状。
+    /// @return 测试形状是否可以广播到目标形状。
+    bool unidirBroadcast(Shape const &target, Shape const &test);
+
+#define EXPECT_NO_ATTRI \
+    ASSERT(attributes.empty(), "{} operator should not have attributes", opType)
+
+#define EXPECT_SIZE(N)                                         \
+    if (inputs.size() != (N)) {                                \
+        return Err(InferError(ERROR_MSG("Input size error"))); \
+    }
+
+#define EXPECT_VAL(DIM, VAL)                                             \
+    int64_t VAL;                                                         \
+    if ((DIM).hasValue()) {                                              \
+        VAL = (DIM).value();                                             \
+    } else {                                                             \
+        return Err(InferError(UnknownVariable{(DIM.variable()->name)})); \
+    }
+
+#define MULTIDIR_BROADCAST(SHAPES)                              \
+    Shape output;                                               \
+    {                                                           \
+        auto res = multidirBroadcast(SHAPES);                   \
+        if (res.isErr()) {                                      \
+            return Err(InferError(ERROR_MSG(res.unwrapErr()))); \
+        }                                                       \
+        output = std::move(res.unwrap());                       \
+    }
 
 }// namespace refactor::frontend
 

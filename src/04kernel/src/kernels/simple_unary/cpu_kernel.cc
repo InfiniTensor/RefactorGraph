@@ -19,6 +19,8 @@ namespace refactor::kernel {
             Op::Tanh,
             Op::Neg,
             Op::Erf,
+            Op::HardSwish,
+            Op::Exp,
         };
         return supportedOp.contains(op) && a.dataType.isCpuNumberic()
                    ? std::make_unique<K>(op, a.dataType, a.elementsSize())
@@ -48,6 +50,12 @@ namespace refactor::kernel {
     template<class T> auto convertTanh(T x) noexcept -> T {
         using M = std::conditional_t<sizeof(T) <= 4, float, double>;
         return static_cast<T>(std::tanh(static_cast<M>(x)));
+    }
+    template<class T> auto hardswishFun(T x) noexcept -> T {
+        auto mid = x / 6.f + .5f;
+        return (mid <= 0)   ? 0
+               : (1 <= mid) ? x
+                            : x * mid;
     }
     auto copyForUnsigned(size_t n) noexcept -> Routine {
         return [n](runtime::Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
@@ -168,6 +176,20 @@ namespace refactor::kernel {
                     CASE(std::erf, U16);
                     CASE(std::erf, U32);
                     CASE(std::erf, U64);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::HardSwish:
+                switch (dataType) {
+                    CASE(hardswishFun, F32);
+                    CASE(hardswishFun, F64);
+                    default:
+                        UNREACHABLE();
+                }
+            case Op::Exp:
+                switch (dataType) {
+                    CASE(std::exp, F32);
+                    CASE(std::exp, F64);
                     default:
                         UNREACHABLE();
                 }

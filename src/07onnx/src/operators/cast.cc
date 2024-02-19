@@ -10,7 +10,7 @@ namespace refactor::onnx {
         : Operator(), to(to_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto to = *DataType::parse(attributes.at("to").int_());
+        auto to = *DataType::parse(attributes["to"].int_());
         return OpBox(std::make_unique<Op>(to));
     }
     auto Op::typeId() -> size_t {

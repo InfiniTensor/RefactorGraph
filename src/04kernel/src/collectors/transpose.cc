@@ -11,17 +11,17 @@ namespace refactor::kernel {
     std::vector<KernelBox>
     TransposeCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         auto const &data = inputs[0].get();
-        auto info = TransposeInfo(data.shape, perm);
+        auto info = TransposeInfo(data.dataType, data.shape, perm);
 
         std::vector<KernelBox> ans;
         switch (_target) {
             case decltype(_target)::Cpu:
-                if (auto ptr = TransposeCpu::build(data.dataType, info); ptr) {
+                if (auto ptr = TransposeCpu::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
             case decltype(_target)::Nvidia:
-                if (auto ptr = TransposeCuda::build(data.dataType, info); ptr) {
+                if (auto ptr = TransposeCuda::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

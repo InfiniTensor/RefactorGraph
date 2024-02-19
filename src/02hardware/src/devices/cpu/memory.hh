@@ -6,11 +6,11 @@
 namespace refactor::hardware {
 
     class CpuMemory final : public Memory {
-        void *malloc(size_t) noexcept final;
-        void free(void *) noexcept final;
-        void *copyHD(void *dst, void const *src, size_t bytes) const noexcept final;
-        void *copyDH(void *dst, void const *src, size_t bytes) const noexcept final;
-        void *copyDD(void *dst, void const *src, size_t bytes) const noexcept final;
+        void *malloc(size_t) final;
+        void free(void *) final;
+        void *copyHD(void *dst, void const *src, size_t bytes) const final;
+        void *copyDH(void *dst, void const *src, size_t bytes) const final;
+        void *copyDD(void *dst, void const *src, size_t bytes) const final;
     };
 
 }// namespace refactor::hardware

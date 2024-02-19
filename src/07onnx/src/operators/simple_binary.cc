@@ -1,6 +1,9 @@
 ﻿#include "simple_binary.hh"
 #include "common.h"
 #include "computation/operators/simple_binary.h"
+#include "kernel/collectors/simple_binary.h"
+#include "runtime/resource.h"
+#include <execution>
 
 namespace refactor::onnx {
     using Op = SimpleBinary;
@@ -10,7 +13,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        auto fmod = defaultOr(attributes, "fmod", {0}).int_();
+        auto fmod = attributes.getOrInsert("fmod", {0}).int_();
         // clang-format off
         auto type =
             opType == "onnx::Add" ? Ty::Add :
@@ -68,7 +71,7 @@ namespace refactor::onnx {
             case Ty::Fmod: {
                 static uint8_t ID = 10;
                 return reinterpret_cast<size_t>(&ID);
-            }            
+            }
             default:
                 UNREACHABLE();
         }
@@ -93,30 +96,6 @@ namespace refactor::onnx {
         // clang-format on
     }
 
-    template<decltype(DataType::internal) T>
-    void calculate(Ty ty, void *dst, void const *a, void const *b) {
-        using T_ = typename primitive<T>::type;
-        auto a_ = *reinterpret_cast<T_ const *>(a);
-        auto b_ = *reinterpret_cast<T_ const *>(b);
-        auto dst_ = reinterpret_cast<T_ *>(dst);
-        switch (ty) {
-            case Ty::Add:
-                *dst_ = a_ + b_;
-                break;
-            case Ty::Sub:
-                *dst_ = a_ - b_;
-                break;
-            case Ty::Mul:
-                *dst_ = a_ * b_;
-                break;
-            case Ty::Div:
-                *dst_ = a_ / b_;
-                break;
-            default:
-                UNREACHABLE();
-        }
-    }
-
     auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(2)
 
@@ -139,35 +118,36 @@ namespace refactor::onnx {
             return Ok(Tensors{std::move(ans)});
         }
 
-        auto eleSize = dataType.size();
-        auto dst = reinterpret_cast<uint8_t *>(ans->malloc());
-        for (auto i : range0_(ans->elementsSize())) {
-            auto indices = locateN(ans->shape, i);
-            auto a_ = locate1(a, indices),
-                 b_ = locate1(b, indices);
-            auto dst_ = dst + i * eleSize;
-            //-------------------------------------
-#define CASE(T)                                     \
-    case DataType::T:                               \
-        calculate<DataType::T>(type, dst_, a_, b_); \
-        break
-            //-------------------------------------
-            switch (dataType.internal) {
-                CASE(F32);
-                CASE(F64);
-                CASE(I32);
-                CASE(I64);
-                CASE(I8);
-                CASE(I16);
-                CASE(U8);
-                CASE(U16);
-                CASE(U32);
-                CASE(U64);
-                default:
-                    ans->free();
-                    break;
-            }
+        {
+            using Shape = kernel::Shape;
+            using Tensor = kernel::Tensor;
+            using LayoutType = kernel::LayoutType;
+
+            Shape t1Shape(a.shape.size(), 1);
+            Shape t2Shape(b.shape.size(), 1);
+            Shape oShape(ans->shape.size(), 1);
+            std::transform(std::execution::unseq,
+                           a.shape.begin(), a.shape.end(), t1Shape.begin(),
+                           [](auto const &i) { return static_cast<dim_t>(i.value()); });
+            std::transform(std::execution::unseq,
+                           b.shape.begin(), b.shape.end(), t2Shape.begin(),
+                           [](auto const &i) { return static_cast<dim_t>(i.value()); });
+            auto t1 = Tensor::share(a.dataType, t1Shape, LayoutType::Others, a.data);
+            auto t2 = Tensor::share(b.dataType, t2Shape, LayoutType::Others, b.data);
+            std::transform(std::execution::unseq,
+                           ans->shape.begin(), ans->shape.end(), oShape.begin(),
+                           [](auto const &i) { return static_cast<dim_t>(i.value()); });
+            auto o = Tensor::share(a.dataType, oShape, LayoutType::Others);
+            runtime::Resources res;
+            auto type_ = static_cast<kernel::SimpleBinaryType>(type);
+            const auto collector = kernel::SimpleBinaryCollector(computation::Target::Cpu, type_);
+            auto routine = std::move(collector.filter({*t1, *t2}, {*o}).at(0))->lower(res).routine;
+            void const *inputsCpu[]{*t1->data, *t2->data};
+            void *outputsCpu[]{o->malloc()};
+            routine(res, nullptr, inputsCpu, outputsCpu);
+            ans->data = o->data;
         }
+
         return Ok(Tensors{std::move(ans)});
     }
 

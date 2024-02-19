@@ -13,8 +13,8 @@ namespace refactor::onnx {
           reverse(reverse_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto exclusive = defaultOr(attributes, "exclusive", {0}).int_() != 0;
-        auto reverse = defaultOr(attributes, "reverse", {0}).int_() != 0;
+        auto exclusive = attributes.getOrInsert("exclusive", {0}).int_() != 0;
+        auto reverse = attributes.getOrInsert("reverse", {0}).int_() != 0;
         return OpBox(std::make_unique<Op>(exclusive, reverse));
     }
     auto Op::typeId() -> size_t {

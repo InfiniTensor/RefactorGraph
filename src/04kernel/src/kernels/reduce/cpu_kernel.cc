@@ -54,7 +54,7 @@ namespace refactor::kernel {
             perm.push_back(axis);
             onAxesSize *= shape[axis];
         }
-        TransposeInfo info = TransposeInfo(shape, perm);
+        TransposeInfo info(T, shape, perm);
         dt (*accumulate)(dt const a, dt const b);
         switch (reduceType) {
             case ReduceType::Mean:

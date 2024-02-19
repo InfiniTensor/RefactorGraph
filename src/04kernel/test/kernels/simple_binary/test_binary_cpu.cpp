@@ -80,7 +80,7 @@ TEST(kernel, BinaryCpu) {
     testBinaryCPU(SimpleBinaryType::Mul, [](float a, float b) { return a * b; });
     testBinaryCPU(SimpleBinaryType::Div, [](float a, float b) { return a / b; });
     testModCPU(SimpleBinaryType::Mod, [](int a, int b) { return a % b; });
-    testFmodWithI32CPU(SimpleBinaryType::Fmod, [](int a, int b) { return a % b < 0 ? (a % b + b) : (a % b); });
+    testFmodWithI32CPU(SimpleBinaryType::Fmod, [](int a, int b) { return static_cast<int32_t>(std::fmod(a, b)); });
     testBinaryCPU(SimpleBinaryType::Fmod, [](float a, float b) { return std::fmod(a, b); });
 }
 

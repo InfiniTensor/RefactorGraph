@@ -7,7 +7,7 @@ namespace refactor::kernel::cuda {
     __global__ static void sliceKernel(
         unsigned long long n,
         uint8_t const *__restrict__ src,
-        DimInfo const *__restrict__ dims,
+        SliceDimInfo const *__restrict__ dims,
         uint8_t *__restrict__ dst,
         unsigned int rank,
         unsigned int blockSize) {
@@ -29,7 +29,7 @@ namespace refactor::kernel::cuda {
 
     void launchSlice(
         KernelLaunchParameters const &params,
-        void const *src, DimInfo const *dims, void *output,
+        void const *src, SliceDimInfo const *dims, void *output,
         unsigned int rank,
         unsigned int blockSize) {
         sliceKernel<<<

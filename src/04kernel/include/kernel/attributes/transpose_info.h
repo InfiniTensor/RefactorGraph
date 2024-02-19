@@ -19,9 +19,9 @@ namespace refactor::kernel {
         ///        如果使用 uint32_t 并 inline，则共 8x4+8 = 40 字节，
         ///        这样拷贝开销还是可以接受的。
         absl::InlinedVector<Dimension, 4> dims;
-        dim_t size;
+        dim_t blockSize, blockCount;
 
-        TransposeInfo(Shape const &, Permutation const &);
+        TransposeInfo(DataType, Shape const &, Permutation const &);
         dim_t locate(dim_t) const noexcept;
     };
 

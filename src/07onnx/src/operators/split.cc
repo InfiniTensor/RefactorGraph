@@ -12,8 +12,8 @@ namespace refactor::onnx {
           numOutputs(numOutputs_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto axis = defaultOr(attributes, "axis", {0}).int_();
-        auto numOutputs = defaultOr(attributes, "num_outputs", {0}).int_();
+        auto axis = attributes.getOrInsert("axis", {0}).int_();
+        auto numOutputs = attributes.getOrInsert("num_outputs", {0}).int_();
         return OpBox(std::make_unique<Op>(axis, numOutputs));
     }
     auto Op::typeId() -> size_t {
@@ -39,13 +39,13 @@ namespace refactor::onnx {
         auto dependencies = extractDependency(inputs);
         if (inputs.size() == 1) {
             Tensors ans(numOutputs, nullptr);
-            auto each = total + numOutputs - 1 / numOutputs;
+            auto each = (total + numOutputs - 1) / numOutputs;
             for (auto i : range0_(numOutputs)) {
                 if (total > each) {
                     ans[i] = Tensor::share(input.dataType, input.shape, dependencies);
                     ans[i]->shape[axis_] = DimExpr(each);
                 } else {
-                    ASSERT(i == numOutputs - 1, ERROR_MSG("Split error"));
+                    ASSERT(i == numOutputs - 1, "Split error");
                     ans[i] = Tensor::share(input.dataType, input.shape, dependencies);
                     ans[i]->shape[axis_] = DimExpr(total);
                 }

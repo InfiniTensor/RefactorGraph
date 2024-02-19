@@ -11,7 +11,7 @@ namespace refactor::onnx {
         : Operator(), type(type_) {}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Select operator should not have attributes");
+        EXPECT_NO_ATTRI;
 
         auto type = opType == "onnx::Max"   ? Ty::Max
                     : opType == "onnx::Min" ? Ty::Min

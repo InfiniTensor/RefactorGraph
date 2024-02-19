@@ -7,8 +7,8 @@ namespace refactor::onnx {
     using computation::Dimensions;
     using Op = Slice;
 
-    auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        ASSERT(attributes.empty(), "Slice operator should not have attributes");
+    auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
+        EXPECT_NO_ATTRI;
         return OpBox(std::make_unique<Op>());
     }
     auto Op::typeId() -> size_t {
