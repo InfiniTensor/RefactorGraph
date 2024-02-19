@@ -59,4 +59,5 @@ TEST(kernel, SimpleUnaryCpu) {
     testOp(SimpleUnaryType::Erf, std::erf);
     testOpWithData(SimpleUnaryType::HardSwish,
                    VecFloat{0.000000, 0.666667, 1.666667, 3.000000, 4.000000, 5.000000});
+    testOpWithData(SimpleUnaryType::Exp, VecFloat{1.000000, 2.718282, 7.389056, 20.085537, 54.598148, 148.413162});
 }
