@@ -19,4 +19,8 @@ namespace refactor::kernel::cuda {
         CUDA_ASSERT(cudaMemcpy(dst, src, size, cudaMemcpyDeviceToHost));
     }
 
+    void setCudaDevice(int id) {
+        cudaSetDevice(id);
+    }
+
 }// namespace refactor::kernel::cuda
