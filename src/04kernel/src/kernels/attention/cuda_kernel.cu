@@ -75,12 +75,13 @@ namespace refactor::kernel {
         void const *__restrict__ value,
         dim_t pageStrideI,
         dim_t pageStrideO,
-        dim_t lineStride,
-        dim_t pastOffset) {
-
-        auto tid = blockIdx.x * blockDim.x + threadIdx.x,
-             dst = tid / pageStrideO * pageStrideI + pastOffset + tid % pageStrideO;
-        reinterpret_cast<float4 *>(cache)[dst] = reinterpret_cast<float4 const *>(value)[tid];
+        dim_t pastOffset,
+        dim_t n_items) {
+        auto tid = blockIdx.x * blockDim.x + threadIdx.x;
+        if (tid < n_items) {
+            auto dst = tid / pageStrideI * pageStrideO + pastOffset + (tid % pageStrideI);
+            reinterpret_cast<float4 *>(cache)[dst] = reinterpret_cast<float4 const *>(value)[tid];
+        }
     }
     constexpr uint64_t DYNAMIC_WORKSPACE_SIZE = 40 << 20;// 试出来 40MiB 是够用的
 
@@ -231,7 +232,8 @@ namespace refactor::kernel {
                         auto q = inputs[0];
                         auto k = inputs[1];
                         auto v = inputs[2];
-                        auto past = *reinterpret_cast<int64_t const *>(inputs[3]);
+                        int64_t past;
+                        cudaMemcpy(&past, inputs[3], sizeof(int64_t), cudaMemcpyDeviceToHost);
                         auto attLen = info.attLen(past);
                         auto o = reinterpret_cast<half *>(outputs[0]);
                         auto kCache = reinterpret_cast<half *>(outputs[1]);
@@ -242,19 +244,18 @@ namespace refactor::kernel {
                             auto itemsPerLine = info.headDim * sizeof(half) / sizeof(float4);
                             auto threads = info.batch * info.nHead * info.seqLen * itemsPerLine;
                             auto blocks = (threads + 1023) / 1024;
-
                             concatCache<<<blocks, 1024, 0, stream>>>(
                                 kCache, k,
                                 info.seqLen * itemsPerLine,
                                 info.cacheLen * itemsPerLine,
-                                itemsPerLine,
-                                past * itemsPerLine);
+                                past * itemsPerLine,
+                                threads);
                             concatCache<<<blocks, 1024, 0, stream>>>(
                                 vCache, v,
                                 info.seqLen * itemsPerLine,
                                 info.cacheLen * itemsPerLine,
-                                itemsPerLine,
-                                past * itemsPerLine);
+                                past * itemsPerLine,
+                                threads);
                         }
                         MatrixDescriptor
                             q_(MatrixLayout{
