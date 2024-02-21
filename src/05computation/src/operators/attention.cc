@@ -1,4 +1,5 @@
 ﻿#include "computation/operators/attention.h"
+#include "kernel/collectors/attention.h"
 
 namespace refactor::computation {
     using Op = Attention;
@@ -9,5 +10,12 @@ namespace refactor::computation {
     }
     auto Op::opTypeId() const noexcept -> size_t { return typeId(); }
     auto Op::name() const noexcept -> std::string_view { return "Attention"; }
+    auto Op::candidateKernels(Target target) const -> kernel::CollectorBox {
+        using Collector_ = kernel::AttentionCollector;
+        return std::make_unique<Collector_>(target);
+    }
+    auto Op::serialize() const noexcept -> std::string {
+        return "Attention()";
+    }
 
 }// namespace refactor::computation

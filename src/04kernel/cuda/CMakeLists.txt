@@ -4,7 +4,7 @@ project(kernel_cuda)
 file(GLOB_RECURSE KERNEL_CUDA_SUB_SRC src/*.cu)
 
 add_library(kernel_cuda STATIC ${KERNEL_CUDA_SUB_SRC})
-target_link_libraries(kernel_cuda PUBLIC common)
+target_link_libraries(kernel_cuda PUBLIC common CCCL::CCCL)
 target_include_directories(kernel_cuda PUBLIC include)
 
 file(GLOB_RECURSE KERNEL_CUDA_TEST test/*.cu)

@@ -9,7 +9,7 @@ namespace refactor::llm {
         : Operator(), maxSeqLen(maxSeqLen_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
-        auto maxSeqLen = attributes.getOrInsert("max_seq_len", {0}).float_();
+        auto maxSeqLen = attributes.getOrInsert("max_seq_len", {0}).int_();
         return OpBox(std::make_unique<Op>(maxSeqLen));
     }
     auto Op::typeId() -> size_t {
@@ -80,10 +80,10 @@ namespace refactor::llm {
                 if (pastSeqLen.dataType != DataType::I64 || pastSeqLen.shape != Shape{DimExpr(1)}) {
                     return Err(InferError(ERROR_MSG("Past seqlen error")));
                 }
-                auto pastSeqLenVal = pastSeqLen.data->get<int64_t>()[0];
                 if (maxSeqLen <= 0) {
+                    auto pastSeqLenVal = pastSeqLen.data->get<int64_t>()[0];
                     return outputs(pastSeqLenVal + seqlen);
-                } else if (maxSeqLen >= pastSeqLenVal + seqlen) {
+                } else if (maxSeqLen >= 1 + seqlen) {
                     return outputs(maxSeqLen);
                 } else {
                     return Err(InferError(ERROR_MSG("max_seq_len must not less than seqlen")));
@@ -94,7 +94,6 @@ namespace refactor::llm {
                 if (pastSeqLen.dataType != DataType::I64 || pastSeqLen.shape != Shape{DimExpr(1)}) {
                     return Err(InferError(ERROR_MSG("Past seqlen error")));
                 }
-                auto pastSeqLenVal = pastSeqLen.data->get<int64_t>()[0];
 
                 auto const &kCahce = inputs[4],
                            &vCache = inputs[5];
@@ -107,15 +106,14 @@ namespace refactor::llm {
                     kCahce.shape[3] != kvShape[3] ||
                     kCahce.shape[0] != kvShape[0] ||
                     kCahce.shape[2] != kvShape[2] ||
-                    kCahce.shape[3] != kvShape[3] ||
-                    pastSeqLenVal < kCacheSeqLen ||
-                    pastSeqLenVal < vCacheSeqLen) {
+                    kCahce.shape[3] != kvShape[3]) {
                     return Err(InferError(ERROR_MSG("KV cache error")));
                 }
 
                 if (maxSeqLen <= 0) {
+                    auto pastSeqLenVal = pastSeqLen.data->get<int64_t>()[0];
                     return outputs(pastSeqLenVal + seqlen);
-                } else if (maxSeqLen >= pastSeqLenVal + seqlen) {
+                } else if (maxSeqLen >= 1 + seqlen) {
                     return outputs(maxSeqLen);
                 } else {
                     return Err(InferError(ERROR_MSG("max_seq_len must not less than seqlen")));
@@ -129,7 +127,7 @@ namespace refactor::llm {
 
     auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::Attention;
-        return std::make_unique<Op_>(maxSeqLen);
+        return std::make_unique<Op_>();
     }
 
 }// namespace refactor::llm

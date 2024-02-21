@@ -4,12 +4,6 @@
 #ifdef USE_CUDA
 #include "memory.hh"
 #include <cuda_runtime.h>
-
-#define CUDA_ASSERT(STATUS)                                                          \
-    if (auto status = (STATUS); status != cudaSuccess) {                             \
-        RUNTIME_ERROR(fmt::format("cuda failed on \"" #STATUS "\" with \"{}\" ({})", \
-                                  cudaGetErrorString(status), (int) status));        \
-    }
 #endif
 
 namespace refactor::hardware {
