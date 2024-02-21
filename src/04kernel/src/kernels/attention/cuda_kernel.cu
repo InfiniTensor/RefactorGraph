@@ -1,4 +1,4 @@
-﻿#include "../../utilities/cuda/cublaslt_utils.cuh"
+﻿#include "../../utilities/cuda/cublas_context.hh"
 #include "cuda_kernel.hh"
 #include "hardware/functions.h"
 #include "kernel/cuda/functions.cuh"
@@ -91,124 +91,125 @@ namespace refactor::kernel {
         constexpr auto ROW_MAJOR = CUBLASLT_ORDER_ROW;
         constexpr auto COL_MAJOR = CUBLASLT_ORDER_COL;
 
-        if (!info.cacheLen) {
-            if (info.nHead == info.nKVHead) {
-                // RAII for closure
-                struct Descriptors {
-                    MatMulDescriptor mul;
-                    MatrixDescriptor q, k, v, att;
-                    cublasLtMatmulAlgo_t algoQK, algoAV;
-                    size_t workspaceSizeQK, workspaceSizeAV;
+        // if (!info.cacheLen) {
+        //     if (info.nHead == info.nKVHead) {
+        //         // RAII for closure
+        //         struct Descriptors {
+        //             MatMulDescriptor mul;
+        //             MatrixDescriptor q, k, v, att;
+        //             cublasLtMatmulAlgo_t algoQK, algoAV;
+        //             size_t workspaceSizeQK, workspaceSizeAV;
 
-                    Descriptors(CublasLtContext const &context,
-                                AttentionInfo info)
-                        : mul(computeTypeConvert(info.dataType),
-                              dataTypeConvert(info.dataType)),
-                          q(MatrixLayout{
-                              .dataType = dataTypeConvert(info.dataType),
-                              .rows = static_cast<uint64_t>(info.seqLen),
-                              .cols = static_cast<uint64_t>(info.headDim),
-                              .majorStride = static_cast<int64_t>(info.headDim),
-                              .order = ROW_MAJOR,
-                              .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                              .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
-                          }),
-                          k(MatrixLayout{
-                              .dataType = dataTypeConvert(info.dataType),
-                              .rows = static_cast<uint64_t>(info.headDim),
-                              .cols = static_cast<uint64_t>(info.seqLen),
-                              .majorStride = static_cast<int64_t>(info.headDim),
-                              .order = COL_MAJOR,
-                              .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                              .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
-                          }),
-                          v(MatrixLayout{
-                              .dataType = dataTypeConvert(info.dataType),
-                              .rows = static_cast<uint64_t>(info.seqLen),
-                              .cols = static_cast<uint64_t>(info.headDim),
-                              .majorStride = static_cast<int64_t>(info.headDim),
-                              .order = ROW_MAJOR,
-                              .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                              .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
-                          }),
-                          att(MatrixLayout{
-                              .dataType = dataTypeConvert(info.dataType),
-                              .rows = static_cast<uint64_t>(info.seqLen),
-                              .cols = static_cast<uint64_t>(info.seqLen),
-                              .majorStride = static_cast<int64_t>(info.seqLen),
-                              .order = ROW_MAJOR,
-                              .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                              .batchStride = static_cast<int64_t>(info.seqLen * info.seqLen),
-                          }) {
-                        auto [algoQK_, workspaceSizeQK_] = tune(context.handle, mul, q, k, att, DYNAMIC_WORKSPACE_SIZE);
-                        auto [algoAV_, workspaceSizeAV_] = tune(context.handle, mul, att, v, q, DYNAMIC_WORKSPACE_SIZE);
-                        algoQK = algoQK_;
-                        algoAV = algoAV_;
-                        workspaceSizeQK = workspaceSizeQK_;
-                        workspaceSizeAV = workspaceSizeAV_;
-                    }
-                };
+        //             Descriptors(CublasLtContext const &context,
+        //                         AttentionInfo info)
+        //                 : mul(computeTypeConvert(info.dataType),
+        //                       dataTypeConvert(info.dataType)),
+        //                   q(MatrixLayout{
+        //                       .dataType = dataTypeConvert(info.dataType),
+        //                       .rows = static_cast<uint64_t>(info.seqLen),
+        //                       .cols = static_cast<uint64_t>(info.headDim),
+        //                       .majorStride = static_cast<int64_t>(info.headDim),
+        //                       .order = ROW_MAJOR,
+        //                       .batchCount = static_cast<int32_t>(info.batch * info.nHead),
+        //                       .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
+        //                   }),
+        //                   k(MatrixLayout{
+        //                       .dataType = dataTypeConvert(info.dataType),
+        //                       .rows = static_cast<uint64_t>(info.headDim),
+        //                       .cols = static_cast<uint64_t>(info.seqLen),
+        //                       .majorStride = static_cast<int64_t>(info.headDim),
+        //                       .order = COL_MAJOR,
+        //                       .batchCount = static_cast<int32_t>(info.batch * info.nHead),
+        //                       .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
+        //                   }),
+        //                   v(MatrixLayout{
+        //                       .dataType = dataTypeConvert(info.dataType),
+        //                       .rows = static_cast<uint64_t>(info.seqLen),
+        //                       .cols = static_cast<uint64_t>(info.headDim),
+        //                       .majorStride = static_cast<int64_t>(info.headDim),
+        //                       .order = ROW_MAJOR,
+        //                       .batchCount = static_cast<int32_t>(info.batch * info.nHead),
+        //                       .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
+        //                   }),
+        //                   att(MatrixLayout{
+        //                       .dataType = dataTypeConvert(info.dataType),
+        //                       .rows = static_cast<uint64_t>(info.seqLen),
+        //                       .cols = static_cast<uint64_t>(info.seqLen),
+        //                       .majorStride = static_cast<int64_t>(info.seqLen),
+        //                       .order = ROW_MAJOR,
+        //                       .batchCount = static_cast<int32_t>(info.batch * info.nHead),
+        //                       .batchStride = static_cast<int64_t>(info.seqLen * info.seqLen),
+        //                   }) {
+        //                 auto [algoQK_, workspaceSizeQK_] = tune(context.handle, mul, q, k, att, DYNAMIC_WORKSPACE_SIZE);
+        //                 auto [algoAV_, workspaceSizeAV_] = tune(context.handle, mul, att, v, q, DYNAMIC_WORKSPACE_SIZE);
+        //                 algoQK = algoQK_;
+        //                 algoAV = algoAV_;
+        //                 workspaceSizeQK = workspaceSizeQK_;
+        //                 workspaceSizeAV = workspaceSizeAV_;
+        //             }
+        //         };
 
-                auto const &context = *res.fetchOrStore<CublasLtContext>();
-                auto d = std::make_shared<Descriptors>(context, info);
-                auto workspaceSize = info.attSize(0);
-                workspaceSize = hardware::alignBytes(workspaceSize, 256);
-                workspaceSize += d->workspaceSizeQK;
-                workspaceSize += d->workspaceSizeAV;
-                workspaceSize = hardware::alignBytes(workspaceSize, 256);
+        //         auto const &context = *res.fetchOrStore<CublasLtContext>();
+        //         auto d = std::make_shared<Descriptors>(context, info);
+        //         auto workspaceSize = info.attSize(0);
+        //         workspaceSize = hardware::alignBytes(workspaceSize, 256);
+        //         workspaceSize += d->workspaceSizeQK;
+        //         workspaceSize += d->workspaceSizeAV;
+        //         workspaceSize = hardware::alignBytes(workspaceSize, 256);
 
-                auto routine = [d = std::move(d), info = this->info]//
-                    (Resources & res, void *workspace, void const *const *inputs, void *const *outputs) {
-                        auto handle = res.fetchOrStore<CublasLtContext>()->handle;
-                        auto q = inputs[0];
-                        auto k = inputs[1];
-                        auto v = inputs[2];
-                        auto o = outputs[0];
-                        auto att = reinterpret_cast<half *>(workspace);
-                        auto workspaceQK = reinterpret_cast<uint8_t *>(workspace) + hardware::alignBytes(info.attSize(0), 256);
-                        auto workspaceAV = workspaceQK + hardware::alignBytes(d->workspaceSizeQK, 256);
-                        auto stream = cudaStreamLegacy;
-                        {
-                            half alpha = rsqrtf(info.headDim), beta = 0;
-                            cublasLtMatmul(
-                                handle, d->mul.get(),
-                                &alpha,
-                                q, d->q.get(),
-                                k, d->k.get(),
-                                &beta,
-                                att, d->att.get(),
-                                att, d->att.get(),
-                                &d->algoQK,
-                                workspaceQK, d->workspaceSizeQK,
-                                stream);
-                        }
-                        auto attLen = info.attLen(0);
-                        auto bufLen = attLen;
-                        softmax<<<dim3(info.batch * info.nHead, info.seqLen),
-                                  std::min(1024u, attLen),
-                                  attLen * sizeof(float),
-                                  stream>>>(
-                            att, AttentionCausualMask(), attLen, bufLen);
-                        {
-                            half alpha = 1, beta = 0;
-                            cublasLtMatmul(
-                                handle, d->mul.get(),
-                                &alpha,
-                                att, d->att.get(),
-                                v, d->v.get(),
-                                &beta,
-                                o, d->q.get(),
-                                o, d->q.get(),
-                                &d->algoAV,
-                                workspaceAV, d->workspaceSizeAV,
-                                stream);
-                        }
-                    };
+        //         auto routine = [d = std::move(d), info = this->info]//
+        //             (Resources & res, void *workspace, void const *const *inputs, void *const *outputs) {
+        //                 auto handle = res.fetchOrStore<CublasLtContext>()->handle;
+        //                 auto q = inputs[0];
+        //                 auto k = inputs[1];
+        //                 auto v = inputs[2];
+        //                 auto o = outputs[0];
+        //                 auto att = reinterpret_cast<half *>(workspace);
+        //                 auto workspaceQK = reinterpret_cast<uint8_t *>(workspace) + hardware::alignBytes(info.attSize(0), 256);
+        //                 auto workspaceAV = workspaceQK + hardware::alignBytes(d->workspaceSizeQK, 256);
+        //                 auto stream = cudaStreamLegacy;
+        //                 {
+        //                     half alpha = rsqrtf(info.headDim), beta = 0;
+        //                     cublasLtMatmul(
+        //                         handle, d->mul.get(),
+        //                         &alpha,
+        //                         q, d->q.get(),
+        //                         k, d->k.get(),
+        //                         &beta,
+        //                         att, d->att.get(),
+        //                         att, d->att.get(),
+        //                         &d->algoQK,
+        //                         workspaceQK, d->workspaceSizeQK,
+        //                         stream);
+        //                 }
+        //                 auto attLen = info.attLen(0);
+        //                 auto bufLen = attLen;
+        //                 softmax<<<dim3(info.batch * info.nHead, info.seqLen),
+        //                           std::min(1024u, attLen),
+        //                           attLen * sizeof(float),
+        //                           stream>>>(
+        //                     att, AttentionCausualMask(), attLen, bufLen);
+        //                 {
+        //                     half alpha = 1, beta = 0;
+        //                     cublasLtMatmul(
+        //                         handle, d->mul.get(),
+        //                         &alpha,
+        //                         att, d->att.get(),
+        //                         v, d->v.get(),
+        //                         &beta,
+        //                         o, d->q.get(),
+        //                         o, d->q.get(),
+        //                         &d->algoAV,
+        //                         workspaceAV, d->workspaceSizeAV,
+        //                         stream);
+        //                 }
+        //             };
 
-                return {std::move(routine), workspaceSize};
-            }
-            TODO("");
-        }
+        //         return {std::move(routine), workspaceSize};
+        //     }
+        //     TODO("");
+        // }
+
         if (info.concatCache && !info.resetCache) {
             if (info.nHead == info.nKVHead) {
 
@@ -226,55 +227,9 @@ namespace refactor::kernel {
                 auto attentionSize = info.maxAttSize();
                 auto workspaceSize = DYNAMIC_WORKSPACE_SIZE + attentionSize;
 
-                for (auto attLen = 0; attLen < 2048; ++attLen) {
-                    MatrixDescriptor
-                        q_(MatrixLayout{
-                            .dataType = dataTypeConvert(info.dataType),
-                            .rows = static_cast<uint64_t>(info.seqLen),
-                            .cols = static_cast<uint64_t>(info.headDim),
-                            .majorStride = static_cast<int64_t>(info.headDim),
-                            .order = ROW_MAJOR,
-                            .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                            .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
-                        }),
-                        k_(MatrixLayout{
-                            .dataType = dataTypeConvert(info.dataType),
-                            .rows = static_cast<uint64_t>(info.headDim),
-                            .cols = static_cast<uint64_t>(attLen),
-                            .majorStride = static_cast<int64_t>(info.headDim),
-                            .order = COL_MAJOR,
-                            .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                            .batchStride = static_cast<int64_t>(info.cacheLen * info.headDim),
-                        }),
-                        v_(MatrixLayout{
-                            .dataType = dataTypeConvert(info.dataType),
-                            .rows = static_cast<uint64_t>(attLen),
-                            .cols = static_cast<uint64_t>(info.headDim),
-                            .majorStride = static_cast<int64_t>(info.headDim),
-                            .order = ROW_MAJOR,
-                            .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                            .batchStride = static_cast<int64_t>(info.cacheLen * info.headDim),
-                        }),
-                        att_(MatrixLayout{
-                            .dataType = dataTypeConvert(info.dataType),
-                            .rows = static_cast<uint64_t>(info.seqLen),
-                            .cols = static_cast<uint64_t>(attLen),
-                            .majorStride = static_cast<int64_t>(info.cacheLen),
-                            .order = ROW_MAJOR,
-                            .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                            .batchStride = static_cast<int64_t>(info.cacheLen * info.seqLen),
-                        });
-                    tune(handle, d->mul,
-                         q_, k_, att_,
-                         DYNAMIC_WORKSPACE_SIZE);
-                    tune(handle, d->mul,
-                         att_, v_, q_,
-                         DYNAMIC_WORKSPACE_SIZE);
-                }
-
                 auto routine = [d = std::move(d), info = this->info]//
                     (Resources & res, void *workspace, void const *const *inputs, void *const *outputs) {
-                        auto handle = res.fetchOrStore<CublasLtContext>()->handle;
+                        auto handle = res.fetchOrStore<CublasContext>()->handle;
                         auto q = inputs[0];
                         auto k = inputs[1];
                         auto v = inputs[2];
@@ -303,60 +258,85 @@ namespace refactor::kernel {
                                 past * itemsPerLine,
                                 threads);
                         }
-                        MatrixDescriptor
-                            q_(MatrixLayout{
-                                .dataType = dataTypeConvert(info.dataType),
-                                .rows = static_cast<uint64_t>(info.seqLen),
-                                .cols = static_cast<uint64_t>(info.headDim),
-                                .majorStride = static_cast<int64_t>(info.headDim),
-                                .order = ROW_MAJOR,
-                                .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                                .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
-                            }),
-                            k_(MatrixLayout{
-                                .dataType = dataTypeConvert(info.dataType),
-                                .rows = static_cast<uint64_t>(info.headDim),
-                                .cols = static_cast<uint64_t>(attLen),
-                                .majorStride = static_cast<int64_t>(info.headDim),
-                                .order = COL_MAJOR,
-                                .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                                .batchStride = static_cast<int64_t>(info.cacheLen * info.headDim),
-                            }),
-                            v_(MatrixLayout{
-                                .dataType = dataTypeConvert(info.dataType),
-                                .rows = static_cast<uint64_t>(attLen),
-                                .cols = static_cast<uint64_t>(info.headDim),
-                                .majorStride = static_cast<int64_t>(info.headDim),
-                                .order = ROW_MAJOR,
-                                .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                                .batchStride = static_cast<int64_t>(info.cacheLen * info.headDim),
-                            }),
-                            att_(MatrixLayout{
-                                .dataType = dataTypeConvert(info.dataType),
-                                .rows = static_cast<uint64_t>(info.seqLen),
-                                .cols = static_cast<uint64_t>(attLen),
-                                .majorStride = static_cast<int64_t>(info.cacheLen),
-                                .order = ROW_MAJOR,
-                                .batchCount = static_cast<int32_t>(info.batch * info.nHead),
-                                .batchStride = static_cast<int64_t>(info.cacheLen * info.seqLen),
-                            });
+                        // MatrixDescriptor
+                        //     q_(MatrixLayout{
+                        //         .dataType = dataTypeConvert(info.dataType),
+                        //         .rows = static_cast<uint64_t>(info.seqLen),
+                        //         .cols = static_cast<uint64_t>(info.headDim),
+                        //         .majorStride = static_cast<int64_t>(info.headDim),
+                        //         .order = ROW_MAJOR,
+                        //         .batchCount = static_cast<int32_t>(info.batch * info.nHead),
+                        //         .batchStride = static_cast<int64_t>(info.seqLen * info.headDim),
+                        //     }),
+                        //     k_(MatrixLayout{
+                        //         .dataType = dataTypeConvert(info.dataType),
+                        //         .rows = static_cast<uint64_t>(info.headDim),
+                        //         .cols = static_cast<uint64_t>(attLen),
+                        //         .majorStride = static_cast<int64_t>(info.headDim),
+                        //         .order = COL_MAJOR,
+                        //         .batchCount = static_cast<int32_t>(info.batch * info.nHead),
+                        //         .batchStride = static_cast<int64_t>(info.cacheLen * info.headDim),
+                        //     }),
+                        //     v_(MatrixLayout{
+                        //         .dataType = dataTypeConvert(info.dataType),
+                        //         .rows = static_cast<uint64_t>(attLen),
+                        //         .cols = static_cast<uint64_t>(info.headDim),
+                        //         .majorStride = static_cast<int64_t>(info.headDim),
+                        //         .order = ROW_MAJOR,
+                        //         .batchCount = static_cast<int32_t>(info.batch * info.nHead),
+                        //         .batchStride = static_cast<int64_t>(info.cacheLen * info.headDim),
+                        //     }),
+                        //     att_(MatrixLayout{
+                        //         .dataType = dataTypeConvert(info.dataType),
+                        //         .rows = static_cast<uint64_t>(info.seqLen),
+                        //         .cols = static_cast<uint64_t>(attLen),
+                        //         .majorStride = static_cast<int64_t>(info.cacheLen),
+                        //         .order = ROW_MAJOR,
+                        //         .batchCount = static_cast<int32_t>(info.batch * info.nHead),
+                        //         .batchStride = static_cast<int64_t>(info.cacheLen * info.seqLen),
+                        //     });
                         {
-                            auto [algo, workspaceSize] = tune(
-                                handle, d->mul,
-                                q_, k_, att_,
-                                DYNAMIC_WORKSPACE_SIZE);
+                            // auto [algo, workspaceSize] = tune(
+                            //     handle, d->mul,
+                            //     q_, k_, att_,
+                            //     DYNAMIC_WORKSPACE_SIZE);
                             half alpha = rsqrtf(info.headDim), beta = 0;
-                            cublasLtMatmul(
-                                handle, d->mul.get(),
-                                &alpha,
-                                q, q_.get(),
-                                kCache, k_.get(),
-                                &beta,
-                                att, att_.get(),
-                                att, att_.get(),
-                                &algo,
-                                workspace, workspaceSize,
-                                stream);
+                            // cublasLtMatmul(
+                            //     handle, d->mul.get(),
+                            //     &alpha,
+                            //     q, q_.get(),
+                            //     kCache, k_.get(),
+                            //     &beta,
+                            //     att, att_.get(),
+                            //     att, att_.get(),
+                            //     &algo,
+                            //     workspace, workspaceSize,
+                            //     stream);
+                            cublasGemmStridedBatchedEx(
+                                handle,                      // handle
+                                CUBLAS_OP_T,                 // trans a
+                                CUBLAS_OP_N,                 // trans b
+                                attLen,                      // m
+                                info.seqLen,                 // n
+                                info.headDim,                // k
+                                &alpha,                      // alpha
+                                kCache,                      // a
+                                CUDA_R_16F,                  // a type
+                                info.headDim,                // lda
+                                info.cacheLen * info.headDim,// a stride
+                                q,                           // b
+                                CUDA_R_16F,                  // b type
+                                info.headDim,                // ldb
+                                info.seqLen * info.headDim,  // b stride
+                                &beta,                       // beta
+                                att,                         // c
+                                CUDA_R_16F,                  // c type
+                                info.cacheLen,               // ldc
+                                info.cacheLen * info.seqLen, // c stride
+                                info.batch * info.nHead,     // batch count
+                                CUDA_R_32F,                  // compute type
+                                CUBLAS_GEMM_DEFAULT          // algo
+                            );
                         }
                         softmax<<<dim3(info.batch * info.nHead, info.seqLen),
                                   std::min(1024u, attLen),
@@ -364,22 +344,47 @@ namespace refactor::kernel {
                                   stream>>>(
                             att, AttentionCausualMask(), attLen, info.cacheLen);
                         {
-                            auto [algo, workspaceSize] = tune(
-                                handle, d->mul,
-                                att_, v_, q_,
-                                DYNAMIC_WORKSPACE_SIZE);
+                            // auto [algo, workspaceSize] = tune(
+                            //     handle, d->mul,
+                            //     att_, v_, q_,
+                            //     DYNAMIC_WORKSPACE_SIZE);
                             half alpha = 1, beta = 0;
-                            cublasLtMatmul(
-                                handle, d->mul.get(),
-                                &alpha,
-                                att, att_.get(),
-                                vCache, v_.get(),
-                                &beta,
-                                o, q_.get(),
-                                o, q_.get(),
-                                &algo,
-                                workspace, workspaceSize,
-                                stream);
+                            // cublasLtMatmul(
+                            //     handle, d->mul.get(),
+                            //     &alpha,
+                            //     att, att_.get(),
+                            //     vCache, v_.get(),
+                            //     &beta,
+                            //     o, q_.get(),
+                            //     o, q_.get(),
+                            //     &algo,
+                            //     workspace, workspaceSize,
+                            //     stream);
+                            cublasGemmStridedBatchedEx(
+                                handle,                      // handle
+                                CUBLAS_OP_N,                 // trans a
+                                CUBLAS_OP_N,                 // trans b
+                                attLen,                      // m
+                                info.seqLen,                 // n
+                                info.headDim,                // k
+                                &alpha,                      // alpha
+                                vCache,                      // a
+                                CUDA_R_16F,                  // a type
+                                info.headDim,                // lda
+                                info.cacheLen * info.headDim,// a stride
+                                att,                         // b
+                                CUDA_R_16F,                  // b type
+                                info.cacheLen,               // ldb
+                                info.cacheLen * info.seqLen, // b stride
+                                &beta,                       // beta
+                                o,                           // c
+                                CUDA_R_16F,                  // c type
+                                info.headDim,                // ldc
+                                info.seqLen * info.headDim,  // c stride
+                                info.batch * info.nHead,     // batch count
+                                CUDA_R_32F,                  // compute type
+                                CUBLAS_GEMM_DEFAULT          // algo
+                            );
                         }
                     };
 
