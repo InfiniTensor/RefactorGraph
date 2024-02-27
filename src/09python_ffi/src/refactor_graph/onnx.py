@@ -3,12 +3,11 @@ from onnx import ModelProto, NodeProto, AttributeProto
 from onnx.numpy_helper import to_array
 from onnx.external_data_helper import ExternalDataInfo
 from typing import Any
-from python_ffi import (
-    Compiler,
+from refactor_graph import (
     Tensor,
-    find_device,
-    _make_data,
+    Compiler,
     _make_data_ex,
+    _make_data,
     _make_tensor,
     _make_compiler,
     _make_operator,
@@ -80,22 +79,41 @@ def _raise(attr: AttributeProto) -> None:
 
 def _parse_attribute(node: NodeProto, base_dir: str) -> dict[str, Any]:
     return {
-        attr.name: attr.i
-        if attr.type == AttributeProto.INT
-        else attr.ints
-        if attr.type == AttributeProto.INTS
-        else attr.f
-        if attr.type == AttributeProto.FLOAT
-        else attr.floats
-        if attr.type == AttributeProto.FLOATS
-        else attr.s
-        if attr.type == AttributeProto.STRING
-        else attr.strings
-        if attr.type == AttributeProto.STRINGS
-        else _make_data(to_array(attr.t, base_dir))
-        if attr.type == AttributeProto.TENSOR
-        else [_make_data(to_array(t, base_dir)) for t in attr.tensors]
-        if attr.type == AttributeProto.TENSORS
-        else _raise(attr)
+        attr.name: (
+            attr.i
+            if attr.type == AttributeProto.INT
+            else (
+                attr.ints
+                if attr.type == AttributeProto.INTS
+                else (
+                    attr.f
+                    if attr.type == AttributeProto.FLOAT
+                    else (
+                        attr.floats
+                        if attr.type == AttributeProto.FLOATS
+                        else (
+                            attr.s
+                            if attr.type == AttributeProto.STRING
+                            else (
+                                attr.strings
+                                if attr.type == AttributeProto.STRINGS
+                                else (
+                                    _make_data(to_array(attr.t, base_dir))
+                                    if attr.type == AttributeProto.TENSOR
+                                    else (
+                                        [
+                                            _make_data(to_array(t, base_dir))
+                                            for t in attr.tensors
+                                        ]
+                                        if attr.type == AttributeProto.TENSORS
+                                        else _raise(attr)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
         for attr in node.attribute
     }
