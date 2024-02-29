@@ -14,13 +14,17 @@ namespace refactor::kernel {
         return [strides = thrust::device_vector<DimStride>(strides),
                 params = cuda::ThreadsDistributer()(info.blockCount),
                 eleSize = info.blockSize](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
-            cuda::launchTranspose(
-                params,
-                inputs[0],
-                strides.data().get(),
-                outputs[0],
-                strides.size(),
-                eleSize);
+            if (auto rank = strides.size(); rank == 1) {
+                cudaMemcpy(outputs[0], inputs[0], eleSize, cudaMemcpyDeviceToDevice);
+            } else {
+                cuda::launchTranspose(
+                    params,
+                    inputs[0],
+                    strides.data().get(),
+                    outputs[0],
+                    rank,
+                    eleSize);
+            }
         };
     }
 
