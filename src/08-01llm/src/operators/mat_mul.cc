@@ -6,16 +6,19 @@ namespace refactor::llm {
     using Op = MatMul;
 
     Op::MatMul(
+        float _alpha,
+        float _beta,
         decltype(transA) transA_,
         decltype(transB) transB_)
         : Operator(),
-          transA(transA_),
-          transB(transB_) {}
+          alpha(_alpha), beta(_beta), transA(transA_), transB(transB_) {}
 
     auto Op::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox {
+        auto alpha = attributes.getOrInsert( "alpha", {1.0f}).float_();
+        auto beta = attributes.getOrInsert( "beta", {1.0f}).float_();
         auto transA = attributes.getOrInsert("transA", {0}).int_() != 0;
         auto transB = attributes.getOrInsert("transB", {0}).int_() != 0;
-        return OpBox(std::make_unique<Op>(transA, transB));
+        return OpBox(std::make_unique<Op>(alpha, beta, transA, transB));
     }
     auto Op::typeId() -> size_t {
         static uint8_t ID = 1;
@@ -81,7 +84,7 @@ namespace refactor::llm {
 
     auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::MatMul;
-        return std::make_unique<Op_>(1., 1., transA, transB);
+        return std::make_unique<Op_>(alpha, beta, transA, transB);
     }
 
 }// namespace refactor::llm
