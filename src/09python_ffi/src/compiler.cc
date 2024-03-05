@@ -95,6 +95,7 @@ namespace refactor::python_ffi {
         // clang-format off
         auto target_ = target == "cpu"  ? Target::Cpu
                      : target == "cuda" ? Target::Nvidia
+                     : target == "mlu" ? Target::Mlu
                      : UNREACHABLEX(Target, "Unknown target: {}", target);
         // clang-format on
         return compileOn(hardware::device::fetch(target_),
