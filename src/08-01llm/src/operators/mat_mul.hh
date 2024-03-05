@@ -7,9 +7,10 @@ namespace refactor::llm {
     using namespace frontend;
 
     struct MatMul final : public Operator {
+        float alpha, beta;
         bool transA, transB;
 
-        MatMul(decltype(transA), decltype(transB));
+        MatMul(decltype(alpha), decltype(beta), decltype(transA), decltype(transB));
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();
