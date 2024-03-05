@@ -1,4 +1,5 @@
 #include "kernel/collectors/softmax.h"
+#include "../kernels/softmax/bang_kernel.hh"
 #include "../kernels/softmax/cnnl_kernel.hh"
 #include "../kernels/softmax/cpu_kernel.hh"
 #include "../kernels/softmax/cuda_kernel.hh"
@@ -31,6 +32,9 @@ namespace refactor::kernel {
             }
             case decltype(_target)::Mlu: {
                 if (auto ptr = SoftmaxCnnl::build(cnnl::SoftmaxAlgo::ACCURATE, info); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                if (auto ptr = SoftmaxBang::build(info); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
