@@ -1,4 +1,5 @@
 ﻿#include "kernel/collectors/split.h"
+#include "../kernels/split/cnnl_kernel.hh"
 #include "../kernels/split/cpu_kernel.hh"
 #include "../kernels/split/cuda_kernel.hh"
 
@@ -7,6 +8,8 @@ namespace refactor::kernel {
     std::vector<KernelBox>
     SplitCollector::filter(TensorRefs inputs, TensorRefs outputs) const {
         SplitInfo info(axis, outputs);
+
+        auto const &a = inputs[0];
 
         std::vector<KernelBox> ans;
         switch (_target) {
@@ -17,6 +20,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = SplitCuda::build(info); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = SplitCnnl::build(axis, a, outputs); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

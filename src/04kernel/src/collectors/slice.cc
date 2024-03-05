@@ -1,6 +1,7 @@
 ﻿#include "kernel/collectors/slice.h"
 #include "../kernels/slice/cpu_kernel.hh"
 #include "../kernels/slice/cuda_kernel.hh"
+#include "../kernels/slice/cnnl_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -23,6 +24,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = SliceCuda::build(info); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = SliceCnnl::build(inputs[0].get().dataType, dimentions, inputs[0].get().shape, outputs[0].get().shape); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

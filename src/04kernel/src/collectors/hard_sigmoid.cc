@@ -1,4 +1,5 @@
 #include "kernel/collectors/hard_sigmoid.h"
+#include "../kernels/hard_sigmoid/cnnl_kernel.hh"
 #include "../kernels/hard_sigmoid/cpu_kernel.hh"
 #include "../kernels/hard_sigmoid/cuda_kernel.hh"
 
@@ -17,6 +18,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = HardSigmoidCuda::build(alpha, beta, a); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = HardSigmoidCnnl::build(alpha, beta, a); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

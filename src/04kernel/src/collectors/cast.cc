@@ -1,6 +1,7 @@
 ﻿#include "kernel/collectors/cast.h"
 #include "../kernels/cast/cpu_kernel.hh"
 #include "../kernels/cast/cuda_kernel.hh"
+#include "../kernels/cast/cnnl_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -21,6 +22,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = CastCuda::build(from, to); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = CastCnnl::build(from, to); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

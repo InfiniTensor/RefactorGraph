@@ -1,4 +1,5 @@
 #include "kernel/collectors/pad.h"
+#include "../kernels/pad/cnnl_kernel.hh"
 #include "../kernels/pad/cpu_kernel.hh"
 #include "../kernels/pad/cuda_kernel.hh"
 
@@ -22,6 +23,11 @@ namespace refactor::kernel {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = PadCnnl::build(dims, input.get().dataType, mode, const_value); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
             default:
                 UNREACHABLEX(void, "Unknown target");
         }
@@ -29,4 +35,3 @@ namespace refactor::kernel {
     }
 
 }// namespace refactor::kernel
-

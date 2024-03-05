@@ -1,6 +1,7 @@
 ﻿#include "kernel/collectors/batch_normalization.h"
 #include "../kernels/batch_normalization/cpu_kernel.hh"
 #include "../kernels/batch_normalization/cudnn_kernel.hh"
+#include "../kernels/batch_normalization/cnnl_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -19,6 +20,9 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 REGISTER(BatchNormalizationCudnn)
+                break;
+            case decltype(_target)::Mlu:
+                REGISTER(BatchNormalizationCnnl)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

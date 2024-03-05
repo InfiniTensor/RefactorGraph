@@ -1,6 +1,7 @@
 #include "kernel/collectors/select.h"
 #include "../kernels/select/cpu_kernel.hh"
 #include "../kernels/select/cuda_kernel.hh"
+#include "../kernels/select/cnnl_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -34,6 +35,9 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 REGISTER(SelectCuda)
+                break;
+            case decltype(_target)::Mlu:
+                REGISTER(SelectCnnl)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

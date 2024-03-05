@@ -1,4 +1,5 @@
 ﻿#include "kernel/collectors/conv.h"
+#include "../kernels/conv/cnnl_kernel.hh"
 #include "../kernels/conv/cudnn_kernel.hh"
 
 namespace refactor::kernel {
@@ -20,6 +21,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = ConvCudnn::build(poolAttrs, x, w, b, y); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = ConvCnnl::build(poolAttrs, x, w, b, y); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

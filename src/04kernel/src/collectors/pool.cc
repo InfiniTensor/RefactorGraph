@@ -1,5 +1,6 @@
 ﻿#include "kernel/collectors/pool.h"
 #include "../kernels/pool/cudnn_kernel.hh"
+#include "../kernels/pool/cnnl_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -26,6 +27,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = PoolCudnn::build(type, ceil, kernelShape, attributes, x, y); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = PoolCnnl::build(type, ceil, kernelShape, attributes, x, y); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;

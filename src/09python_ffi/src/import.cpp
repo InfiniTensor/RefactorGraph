@@ -16,6 +16,7 @@ namespace refactor::python_ffi {
         // clang-format off
         auto type_ = type == "cpu"    ? Device::Type::Cpu
                    : type == "nvidia" ? Device::Type::Nvidia
+                   : type == "mlu" ? Device::Type::Mlu
                    : UNREACHABLEX(Device::Type, "Unknown device type: \"{}\"", type);
         // clang-format on
         return device::init(type_, card, "");

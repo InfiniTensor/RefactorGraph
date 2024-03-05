@@ -1,6 +1,7 @@
 ﻿#include "kernel/collectors/scatter_nd.h"
 #include "../kernels/scatter_nd/cpu_kernel.hh"
 #include "../kernels/scatter_nd/cuda_kernel.hh"
+#include "../kernels/scatter_nd/cnnl_kernel.hh"
 
 namespace refactor::kernel {
 
@@ -20,6 +21,11 @@ namespace refactor::kernel {
                 break;
             case decltype(_target)::Nvidia:
                 if (auto ptr = ScatterNDCuda::build(std::move(info)); ptr) {
+                    ans.emplace_back(std::move(ptr));
+                }
+                break;
+            case decltype(_target)::Mlu:
+                if (auto ptr = ScatterNDCnnl::build(inputs, outputs); ptr) {
                     ans.emplace_back(std::move(ptr));
                 }
                 break;
