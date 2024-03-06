@@ -4,15 +4,16 @@
 #include "common.h"
 #include <cnnl.h>
 
-#define BANG_ASSERT(STATUS)                                                          \
-    if (auto status = (STATUS); status != CNRT_RET_SUCCESS) {                        \
-        RUNTIME_ERROR(fmt::format("bang failed on \"" #STATUS "\" with \"{}\" ({})", \
-                                  cnrtGetErrorStr(status), (int) status));           \
+#define BANG_ASSERT(STATUS)                                                         \
+    if (auto status = (STATUS); status != CNRT_RET_SUCCESS) {                       \
+        fmt::println(fmt::format("bang failed on \"" #STATUS "\" with \"{}\" ({})", \
+                                 cnrtGetErrorStr(status), (int) status));           \
+        abort();                                                                    \
     }
 
 #define CNNL_ASSERT(STATUS)                                      \
     if (auto status = (STATUS); status != CNNL_STATUS_SUCCESS) { \
-        fmt::println("cnnl failed on \"" #STATUS "\" with {}",  \
+        fmt::println("cnnl failed on \"" #STATUS "\" with {}",   \
                      cnnlGetErrorString(status));                \
         abort();                                                 \
     }
@@ -38,4 +39,3 @@ namespace refactor::kernel::cnnl {
 }// namespace refactor::kernel::cnnl
 
 #endif// KERNEL_CNNL_FUNCTIONS_H
-

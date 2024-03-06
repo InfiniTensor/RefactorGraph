@@ -14,7 +14,6 @@ TEST(kernel, SoftmaxBang) {
     auto xTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5, 4});
     auto outTensor = Tensor::share(DataType::F32, Shape{2, 3, 2, 5, 4});
     dim_t axis = 1;
-    int nDim = 5;
     auto kCpu = SoftmaxCpu::build(SoftmaxInfo(*xTensor, axis));
     auto kBang = SoftmaxBang::build(SoftmaxInfo(*xTensor, axis));
     ASSERT_TRUE(kCpu && kBang);
