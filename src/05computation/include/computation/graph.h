@@ -26,6 +26,7 @@ namespace refactor::computation {
         Graph(graph_topo::GraphTopo, std::vector<Node>, std::vector<Edge>) noexcept;
 
         void layoutPermute();
+        void optimize();
 
         kernel::Graph lower(Target) const;
         auto internal() const -> decltype(_internal) const &;
@@ -33,6 +34,17 @@ namespace refactor::computation {
         auto serialize(bool withData) const
             -> std::pair<std::string, std::vector<uint8_t>>;
     };
+
+    //GraphMutant used to graph optimize
+    class GraphMutant {
+        graph_topo::LinkedGraph<Node, Edge> _internal;
+
+    public:
+        explicit GraphMutant(Graph const &) noexcept;
+        auto internal() const -> decltype(_internal) const &;
+        auto internal() -> decltype(_internal) &;
+    };
+
 
 }// namespace refactor::computation
 
