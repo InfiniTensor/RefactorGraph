@@ -11,6 +11,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+find_package(OpenMP)
+if(OpenMP_C_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif()
+if(OpenMP_CXX_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 if(USE_CUDA)
     add_compile_definitions(USE_CUDA)
@@ -77,6 +84,7 @@ endif()
 add_compile_options(-march=native) # this will cause error in some machine
 add_compile_options(-mtune=native)
 add_compile_options(-Wall)
+
 
 add_subdirectory(3rd-party/backward-cpp)
 
