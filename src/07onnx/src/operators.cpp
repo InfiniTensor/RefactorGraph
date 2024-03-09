@@ -38,6 +38,7 @@
 #include "operators/transpose.hh"
 #include "operators/unsqueeze.hh"
 #include "operators/where.hh"
+#include "operators/topk.hh"
 
 namespace refactor::onnx {
 
@@ -131,6 +132,7 @@ namespace refactor::onnx {
         REGISTER(Where                , Where                );
         REGISTER(HardSigmoid          , HardSigmoid          );
         REGISTER(Pad                  , Pad                  );
+        REGISTER(TopK                 , TopK                 );
         // clang-format on
 #undef REGISTER
     }
