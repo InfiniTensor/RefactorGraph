@@ -1,6 +1,7 @@
 ﻿#include "computation/operators/cast.h"
 #include "cast.hh"
 #include "common.h"
+#include "computation/operators/identity.h"
 #include <execution>
 
 namespace refactor::onnx {
@@ -30,7 +31,6 @@ namespace refactor::onnx {
 
     auto Op::infer(TensorRefs inputs, InferOptions const &options) const -> InferResult {
         EXPECT_SIZE(1)
-
         auto const &input = inputs[0];
         auto ans = Tensor::share(to, input.shape, extractDependency(inputs));
         if (!options.shouldCalculate(inputs, {*ans})) {
@@ -116,8 +116,13 @@ namespace refactor::onnx {
         }
         return Ok(Tensors{std::move(ans)});
     }
-    auto Op::lower(TensorRefs) const -> computation::OpBox {
+    auto Op::lower(TensorRefs inputs) const -> computation::OpBox {
         using Op_ = computation::Cast;
+        auto const &input = inputs[0];
+        auto from = input.dataType;
+        if (from == to) {
+            return std::make_unique<computation::Identity>();
+        }
         return std::make_unique<Op_>();
     }
 

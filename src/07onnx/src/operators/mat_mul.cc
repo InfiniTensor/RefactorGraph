@@ -63,7 +63,7 @@ namespace refactor::onnx {
 
     auto Op::lower(TensorRefs) const -> computation::OpBox {
         using Op_ = computation::MatMul;
-        return std::make_unique<Op_>(1.0, 1.0, false, false);
+        return std::make_unique<Op_>(1.0, 0.0, false, false);
     }
 
 }// namespace refactor::onnx

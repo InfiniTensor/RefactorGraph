@@ -155,7 +155,7 @@ namespace refactor::python_ffi {
             msg += ']';
             RUNTIME_ERROR(std::move(msg));
         }
-        _g.fillEdgeInfo(false);
+        _g.fillEdgeInfo(true);
 
         namespace fs = std::filesystem;
         auto path = fs::path(std::move(path_));

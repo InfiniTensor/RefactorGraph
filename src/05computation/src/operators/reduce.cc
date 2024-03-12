@@ -116,7 +116,7 @@ namespace refactor::computation {
         return std::make_unique<kernel::ReduceCollector>(target, type, axes);
     }
     auto Op::serialize() const noexcept -> std::string {
-        return fmt::format("{}({}/{}, {})",
+        return fmt::format("{}({}, {}, {})",
                            name(),
                            vec2str(axes),
                            rank,
