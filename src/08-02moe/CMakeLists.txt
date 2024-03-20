@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(moe VERSION 0.0.0 LANGUAGES CXX)
+message(STATUS "Project " ${PROJECT_NAME} " version " ${PROJECT_VERSION})
+
+file(GLOB_RECURSE MOE_SRC src/*.cc src/*.cpp)
+add_library(moe STATIC ${MOE_SRC})
+target_link_libraries(moe PUBLIC frontend)
+target_include_directories(moe PUBLIC include)
+
+file(GLOB_RECURSE MOE_TEST test/*.cpp)
+if(MOE_TEST)
+    add_executable(moe_test ${MOE_TEST})
+    add_test(moe_test moe_test)
+    target_link_libraries(moe_test moe GTest::gtest_main Backward::Object)
+endif()

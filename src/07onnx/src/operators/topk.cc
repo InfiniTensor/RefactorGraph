@@ -6,7 +6,7 @@
 namespace refactor::onnx {
     using Op = TopK;
 
-    Op::TopK(Int topk, Int axis):topk(topk), axis(axis){}
+    Op::TopK(Int topk, Int axis):Operator(), topk(topk), axis(axis){}
 
     auto Op::build(ModelContext const &, std::string_view opType, Attributes attributes) -> OpBox {
         auto axis = attributes["axis"].int_();
