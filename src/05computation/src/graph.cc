@@ -220,6 +220,7 @@ namespace refactor::computation {
     void Graph::optimize() {
         auto graphMutant = GraphMutant(*this);
         std::vector<std::string_view> passes = {
+            "LayernormFuse",
             // "MatMulTransposeFuse",
             // "ConvToMatmul",
         };
