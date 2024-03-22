@@ -121,7 +121,7 @@ class Operator:
                 ),
                 [],
             )
-        if self.type == "Relu":
+        if self.type in ["Relu", "Tanh"]:
             return (
                 make_node(
                     self.type,
@@ -166,6 +166,7 @@ class Operator:
             "Log",
             "Neg",
             "Sigmoid",
+            "Where",
         ]:
             return (
                 make_node(
@@ -235,14 +236,14 @@ class Operator:
                 ),
                 [shape],
             )
-        if self.type in ["Gather", "Concat", "Softmax"]:
+        if self.type in ["Gather", "Concat", "Softmax", "Split"]:
             meta = self.meta.split(b"/")
             axis = int(meta[0])
             return (
                 make_node(
                     self.type,
                     [tensors[i].name for i in self.topo.inputs],
-                    [tensors[self.topo.outputs[0]].name],
+                    [tensors[i].name for i in self.topo.outputs],
                     self.name,
                     domain=DEFAULT_DOMAIN,
                     axis=axis,
@@ -251,7 +252,7 @@ class Operator:
             )
         if self.type == "ReduceMean":
             meta = self.meta.split(b",")
-            keepDims = meta[2] == b"true"
+            keepDims = meta[2] == b" true"
             axes = [int(x) for x in split_array(meta[0])]
             return (
                 make_node(
@@ -311,7 +312,35 @@ class Operator:
                     [tensors[i].name for i in self.topo.outputs],
                     self.name,
                     domain="refactor",
-                    epsilon=1e-5,
+                    epsilon=float(self.meta.split(b"=")[0]),
+                ),
+                [],
+            )
+        if self.type == "LayerNormalization":
+            meta = self.meta.split(b",")
+            epsilon = float(meta[0].split(b"=")[0].strip())
+            axis = int(meta[1])
+            return (
+                make_node(
+                    self.type,
+                    [tensors[i].name for i in self.topo.inputs],
+                    [tensors[i].name for i in self.topo.outputs],
+                    self.name,
+                    domain="refactor",
+                    epsilon=epsilon,
+                    axis=axis,
+                ),
+                [],
+            )
+        if self.type == "RotaryPositionEmbedding":
+            return (
+                make_node(
+                    self.type,
+                    [tensors[i].name for i in self.topo.inputs],
+                    [tensors[i].name for i in self.topo.outputs],
+                    self.name,
+                    domain="refactor",
+                    theta=float(self.meta.split(b"=")[0]),
                 ),
                 [],
             )
@@ -364,7 +393,14 @@ def main():
     with open(data_path, "r") as f:
         with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:
             nodes = []
+            # for t in tensors:
+            #     if t.size != 0:
+            #         print(f"tensor_name is {t.name}")
             initializer = [
+                # (
+                #     ,
+                #     print(f"tensor_name is {t.name}"),
+                # )
                 make_tensor(
                     t.name,
                     t.dt,
@@ -391,6 +427,13 @@ def main():
                     for t in (tensors[i] for i in graph.outputs)
                 ],
                 initializer,
+                value_info=[
+                    make_tensor_value_info(t.name, t.dt, t.shape)
+                    for t in tensors
+                    if t.size == 0
+                    and t.name not in graph.inputs
+                    and t.name not in graph.outputs
+                ],
             )
             # model = make_model(
             #     graph, opset_imports=[make_opsetid(domain="", version=13)]
