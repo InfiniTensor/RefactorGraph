@@ -9,7 +9,7 @@ TEST(kernel, TopKCpu) {
     // build routine    
     auto inputTensor = Tensor::share(DataType::F32, Shape{3, 4});
     auto outputTensor0 = Tensor::share(DataType::F32, Shape{3, 3});
-    auto outputTensor1 = Tensor::share(DataType::U32, Shape{3, 3});
+    auto outputTensor1 = Tensor::share(DataType::I64, Shape{3, 3});
 
     auto kernel = TopKCpu::build(TopKInfo(3,1, *inputTensor));
     ASSERT_TRUE(kernel);
@@ -28,7 +28,7 @@ TEST(kernel, TopKCpu) {
   
     // check
     std::vector<float> expectVal = {3,2,1,7,6,5,11,10,9};
-    std::vector<uint32_t> expectIdx = {3,2,1,3,2,1,3,2,1};
+    std::vector<int64_t> expectIdx = {3,2,1,3,2,1,3,2,1};
     std::for_each(out0.begin(), out0.end(),[](const float &val){std::cout<<val<<" ";});
 
     for(size_t i=0;i< expectVal.size(); ++i){

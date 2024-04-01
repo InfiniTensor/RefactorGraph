@@ -1,5 +1,5 @@
 #include "../src/operators/moe.hh"
-#include "operators.h"
+#include "moe/operators.h"
 #include <gtest/gtest.h>
 
 using namespace refactor;
@@ -9,7 +9,7 @@ TEST(infer, AssignPos) {
     moe::register_();
     auto edges = Edges{
         
-        {Tensor::share(DataType::I16, Shape{DimExpr(8), DimExpr(2)}, {}), ""},//gate 8*2
+        {Tensor::share(DataType::I64, Shape{DimExpr(8), DimExpr(2)}, {}), ""},//gate 8*2
     };
     count_t inputs[]{0};
     auto infered = AssignPos(2,4).infer(TensorRefs(edges, inputs), {true});
@@ -20,6 +20,6 @@ TEST(infer, AssignPos) {
     ASSERT_EQ(expert_cnt->dataType, DataType::F32);
     ASSERT_EQ(expert_cnt->shape, (Shape{DimExpr(4)}));
     auto pos = std::move(outputs[1]);
-    ASSERT_EQ(pos->dataType, DataType::I16);
+    ASSERT_EQ(pos->dataType, DataType::I64);
     ASSERT_EQ(pos->shape, (Shape{DimExpr(16)}));
 }

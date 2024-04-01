@@ -29,7 +29,7 @@ namespace refactor::kernel {
             auto src = reinterpret_cast<float const *>(inputs[0]);
             
             auto dstVal = reinterpret_cast<float*>(outputs[0]);//T
-            auto dstIndex = reinterpret_cast<uint32_t*>(outputs[1]);
+            auto dstIndex = reinterpret_cast<int64_t*>(outputs[1]);
                        
             
             size_t M = info.getElementSize() / info.getAxisElementSize();
@@ -40,7 +40,7 @@ namespace refactor::kernel {
             auto outStride2 = inStride2;
 
             for(size_t m = 0; m < M; m ++){
-                using PairType = std::pair<float, uint8_t>;
+                using PairType = std::pair<float, int64_t>;
                 std::list<PairType> list;
                 for(size_t n = 0; n < N; n++){                    
                     auto srcIdx = m /inStride2 * inStride1 + m % inStride2 + n * inStride2;                    
@@ -49,7 +49,7 @@ namespace refactor::kernel {
                 list.sort([](const PairType &a, const PairType &b)->bool{return a.first > b.first;});
                 
                 size_t offset = m /inStride2 * outStride1 + m % inStride2;
-                std::for_each_n(list.begin(), (uint32_t)info.topk,
+                std::for_each_n(list.begin(), (int64_t)info.topk,
                             [&](auto &elem) {                                
                                 dstVal[offset] = elem.first;
                                 dstIndex[offset] = elem.second;

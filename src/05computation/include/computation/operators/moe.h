@@ -6,9 +6,9 @@
 namespace refactor::computation {
 
     struct AssignPos final : public Operator {
-        uint32_t topk,numExperts;
+        int64_t topk,numExperts;
 
-        constexpr explicit AssignPos(uint32_t topk, uint32_t numExperts) noexcept : Operator(), 
+        constexpr explicit AssignPos(int64_t topk, int64_t numExperts) noexcept : Operator(), 
             topk(topk), numExperts(numExperts){}
 
         static size_t typeId() noexcept;
@@ -20,9 +20,9 @@ namespace refactor::computation {
 
      struct Reorder final : public Operator {
         bool scatter;
-        uint32_t topk;
+        int64_t topk;
 
-        constexpr explicit Reorder(bool scatter, uint32_t topk) noexcept : Operator(), 
+        constexpr explicit Reorder(bool scatter, int64_t topk) noexcept : Operator(), 
             scatter(scatter), topk(topk){}
 
         static size_t typeId() noexcept;

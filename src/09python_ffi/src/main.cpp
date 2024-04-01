@@ -3,6 +3,7 @@
 #include "import.h"
 #include "llm/operators.h"
 #include "onnx/operators.h"
+#include "moe/operators.h"
 #include <pybind11/stl.h>// keep this line to convert stl types
 
 namespace py = pybind11;
@@ -17,6 +18,7 @@ namespace refactor::python_ffi {
         onnx::register_();
         llm::register_();
         communication::register_();
+        moe::register_();
 
         // clang-format off
 

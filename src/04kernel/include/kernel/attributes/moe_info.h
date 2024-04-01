@@ -6,17 +6,17 @@
 namespace refactor::kernel {
 
     struct AssignPosInfo {
-        uint32_t top, expert_num;
-        uint32_t elementSize;
+        int64_t top, expert_num;
+        int64_t elementSize;
         
-        AssignPosInfo(uint32_t top, uint32_t expert_num, Tensor const &gate);        
+        AssignPosInfo(int64_t top, int64_t expert_num, Tensor const &gate);        
     };
 
     struct ReorderInfo{
         bool scatter;  
-        uint32_t top;
-        uint32_t blockNum, blockSize;
-        ReorderInfo(bool scatter, uint32_t top, TensorRefs inputs);
+        int64_t top;
+        int64_t blockNum, blockSize;
+        ReorderInfo(bool scatter, int64_t top, TensorRefs inputs);
     };
 
 }// namespace refactor::kernel

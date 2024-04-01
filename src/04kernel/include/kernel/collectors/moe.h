@@ -16,8 +16,8 @@ namespace refactor::kernel {
 
     struct ReorderCollector final : public InfoCollector {
         bool scatter;
-        uint32_t topk;
-        constexpr ReorderCollector(decltype(_target) target, bool scatter, uint32_t topk) noexcept
+        int64_t topk;
+        constexpr ReorderCollector(decltype(_target) target, bool scatter, int64_t topk) noexcept
             : InfoCollector(target) ,scatter(scatter), topk(topk){}
 
         std::vector<KernelBox>

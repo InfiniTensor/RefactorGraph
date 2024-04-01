@@ -25,16 +25,16 @@ namespace refactor::kernel {
     auto AssignPosCpu::lower(Resources &) const noexcept -> RoutineWorkspace {
         using namespace runtime;
         return [info = this->info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
-            auto gate = reinterpret_cast<uint8_t const *>(inputs[0]);
+            auto gate = reinterpret_cast<int64_t const *>(inputs[0]);
              
-            auto expert_cnt = reinterpret_cast<uint8_t*>(outputs[0]);//T
-            auto pos = reinterpret_cast<uint8_t*>(outputs[1]);
+            auto expert_cnt = reinterpret_cast<int64_t*>(outputs[0]);//T
+            auto pos = reinterpret_cast<int64_t*>(outputs[1]);
             std::memset(expert_cnt, 0, info.expert_num);
             for (size_t i = 0; i < info.elementSize; i ++){
                 ASSERT (gate[i] >= 0 && gate[i] < info.expert_num, "gate exceeds expert idx scope!");
                 expert_cnt[gate[i]] ++;
             }
-            std::vector<uint8_t> expert_accumlate;
+            std::vector<int64_t> expert_accumlate;
             expert_accumlate.assign(info.expert_num, 0);
             for (size_t i=0; i<expert_accumlate.size(); ++i){
                 expert_accumlate[i] = (i==0) ? expert_cnt[i] : (expert_accumlate[i-1] + expert_cnt[i]);
@@ -69,7 +69,7 @@ namespace refactor::kernel {
         using namespace runtime;
         return [info = this->info](Resources &, void *workspace, void const *const *inputs, void *const *outputs) {
             auto input = reinterpret_cast<float const *>(inputs[0]);
-            auto pos = reinterpret_cast<uint32_t const *>(inputs[1]);
+            auto pos = reinterpret_cast<int64_t const *>(inputs[1]);
             auto dstVal = reinterpret_cast<float*>(outputs[0]);//T
                              
             for(size_t i = 0; i<info.blockNum; i++){

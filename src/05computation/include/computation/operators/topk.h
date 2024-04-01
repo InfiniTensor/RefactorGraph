@@ -6,8 +6,8 @@
 namespace refactor::computation {
 
     struct TopK final : public Operator {
-        uint32_t topk,axis;
-        constexpr TopK(uint32_t topk, uint32_t axis) noexcept : topk(topk), axis(axis){}
+        int64_t topk, axis;
+        constexpr TopK(int64_t topk, int64_t axis) noexcept : topk(topk), axis(axis){}
 
         static size_t typeId() noexcept;
         size_t opTypeId() const noexcept final;

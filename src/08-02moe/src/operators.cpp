@@ -1,4 +1,4 @@
-#include "operators.h"
+#include "moe/operators.h"
 #include "operators/moe.hh"
 
 namespace refactor::moe {

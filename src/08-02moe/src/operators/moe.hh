@@ -7,8 +7,8 @@ namespace refactor::moe {
     using namespace frontend;
 
     struct AssignPos final : public Operator {
-        uint32_t topk, numExperts;
-        explicit AssignPos(uint32_t topk, uint32_t numExperts);
+        Int topk, numExperts;
+        explicit AssignPos(Int topk, Int numExperts);
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();
@@ -21,8 +21,8 @@ namespace refactor::moe {
 
     struct Reorder final : public Operator {
         bool scatter;  
-        uint32_t top, dim;
-        explicit Reorder(bool scatter, uint32_t topk, uint32_t dim);
+        Int top, dim;
+        explicit Reorder(bool scatter, Int topk, Int dim);
 
         static OpBox build(ModelContext const &, std::string_view, Attributes);
         static size_t typeId();

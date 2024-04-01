@@ -4,7 +4,7 @@
 
 namespace refactor::moe {
 
-    AssignPos::AssignPos(uint32_t topk, uint32_t numExperts) : Operator() ,topk(topk), numExperts(numExperts){}
+    AssignPos::AssignPos(Int topk, Int numExperts) : Operator() ,topk(topk), numExperts(numExperts){}
 
     auto AssignPos::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox { 
         auto topk = attributes["topk"].int_();
@@ -23,8 +23,10 @@ namespace refactor::moe {
         EXPECT_SIZE(1)
 
         auto const &gate = inputs[0];
-        
-        if (gate.dataType != DataType::I16) {
+        if(topk < 0 || numExperts < 0 || topk > numExperts){
+            return Err(InferError(ERROR_MSG("topk or numExperts is error")));
+        }
+        if (gate.dataType != DataType::I64) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
         
@@ -37,7 +39,7 @@ namespace refactor::moe {
         return std::make_unique<Op_>(topk, numExperts);
     }
 
-    Reorder::Reorder(bool scatter, uint32_t topk, uint32_t dim) : Operator() ,scatter(scatter), top(topk), dim(dim){}
+    Reorder::Reorder(bool scatter, Int topk, Int dim) : Operator() ,scatter(scatter), top(topk), dim(dim){}
 
     auto Reorder::build(ModelContext const &, std::string_view, Attributes attributes) -> OpBox { 
         auto topk = attributes["topk"].int_();
@@ -59,12 +61,15 @@ namespace refactor::moe {
         auto const &pos = inputs[1];
         if (dim != 0)
             return Err(InferError(ERROR_MSG("dim is not right!")));
-        if(scatter && input.elementsSize() * top != pos.elementsSize())
+        if(top < 0 ){
+            return Err(InferError(ERROR_MSG("topkis error")));
+        }
+        if(scatter && input.elementsSize()/input.shape[input.shape.size()-1].value() * top != pos.elementsSize())
             return Err(InferError(ERROR_MSG("Inputs data size are not right!")));
-        else if(!scatter && input.elementsSize()  != pos.elementsSize())
+        else if(!scatter &&  input.elementsSize()/input.shape[input.shape.size()-1].value()   != pos.elementsSize())
             return Err(InferError(ERROR_MSG("Inputs data size are not right!")));
 
-        if (pos.dataType != DataType::I16) {
+        if (pos.dataType != DataType::I64) {
             return Err(InferError(ERROR_MSG("Input data type not support")));
         }
         

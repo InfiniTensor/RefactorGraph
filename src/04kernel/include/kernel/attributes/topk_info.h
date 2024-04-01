@@ -7,12 +7,12 @@ namespace refactor::kernel {
 
     struct TopKInfo {
         
-        uint8_t topk;
-        uint8_t axis;
+        int64_t topk;
+        int64_t axis;
         size_t in_stride, in_stride_pre_axis, out_stride_pre_axis;
         size_t elem_size, axis_elem_size;
         
-        TopKInfo(uint8_t topk, uint8_t axis, Tensor const &input);
+        TopKInfo(int64_t topk, int64_t axis, Tensor const &input);
         size_t getElementSize() const {return  elem_size;}
         size_t getAxisElementSize()const { return axis_elem_size;}
         size_t getInStride()const{return in_stride;}

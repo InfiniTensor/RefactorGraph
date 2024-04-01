@@ -3,7 +3,7 @@
 
 namespace refactor::kernel {
 
-TopKInfo::TopKInfo(uint8_t topk, uint8_t axis, Tensor const &input):topk(topk), 
+TopKInfo::TopKInfo(int64_t topk, int64_t axis, Tensor const &input):topk(topk), 
             axis(axis),
             in_stride(input.strides()[axis]),
             in_stride_pre_axis(axis == 0 ? 0 : input.strides()[axis - 1]),
