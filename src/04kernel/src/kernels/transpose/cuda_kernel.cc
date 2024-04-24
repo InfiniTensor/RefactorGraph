@@ -5,7 +5,7 @@ namespace refactor::kernel {
     using Info = TransposeInfo;
 
     K::TransposeCuda(Info info_) noexcept
-        : Kernel(), info(std::move(info_)) {}
+        : Kernel(), info(info_.reform(16)) {}
 
     auto K::build(Info info) noexcept -> KernelBox {
 #ifndef USE_CUDA

@@ -118,4 +118,24 @@ namespace refactor::kernel {
         return ans;
     }
 
+    TransposeInfo TransposeInfo::reform(dim_t maxblockSize) const noexcept {
+        auto ans = *this;
+        ans.reformAssign(maxblockSize);
+        return ans;
+    }
+    void TransposeInfo::reformAssign(dim_t maxblockSize) noexcept {
+        if (dims.empty()) { return; }
+        auto blockSize_ = std::gcd(blockSize, maxblockSize);
+        if (blockSize_ == blockSize) { return; }
+        auto times = blockSize / blockSize_;
+        blockCount *= times;
+        blockSize = blockSize_;
+        for (auto &s : dims) {
+            s.strideI *= times;
+            s.strideO *= times;
+        }
+        dims.resize(dims.size() + 1);
+        dims.rbegin()[0] = {1, 1};
+    }
+
 }// namespace refactor::kernel

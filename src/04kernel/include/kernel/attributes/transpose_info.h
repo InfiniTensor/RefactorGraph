@@ -23,6 +23,8 @@ namespace refactor::kernel {
 
         TransposeInfo(DataType, Shape const &, Permutation const &);
         dim_t locate(dim_t) const noexcept;
+        TransposeInfo reform(dim_t maxblockSize) const noexcept;
+        void reformAssign(dim_t maxblockSize) noexcept;
     };
 
 }// namespace refactor::kernel
