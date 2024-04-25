@@ -8,6 +8,7 @@
 #include "operators/constant_of_shape.hh"
 #include "operators/conv.hh"
 #include "operators/cum_sum.hh"
+#include "operators/depth_to_space.hh"
 #include "operators/dequantize_linear.hh"
 #include "operators/dynamic_quantize_linear.hh"
 #include "operators/einsum.hh"
@@ -131,6 +132,7 @@ namespace refactor::onnx {
         REGISTER(Where                , Where                );
         REGISTER(HardSigmoid          , HardSigmoid          );
         REGISTER(Pad                  , Pad                  );
+        REGISTER(DepthToSpace         , DepthToSpace         );
         // clang-format on
 #undef REGISTER
     }
