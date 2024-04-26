@@ -2,6 +2,7 @@
 #define COMPUTATION_PASS_REGISTER_H
 #include "pass/conv_to_matmul.h"
 #include "pass/converter.h"
+#include "pass/gelu_fuse.h"
 #include "pass/layernorm_fuse.h"
 #include "pass/matmul_transpose.h"
 
@@ -12,6 +13,7 @@ namespace refactor::computation {
         REGISTER(MatMulTransposeFuse, MatMulTransposeFuse)
         REGISTER(ConvToMatmul, ConvToMatmul)
         REGISTER(LayernormFuse, LayernormFuse)
+        REGISTER(GeluFuse, GeluFuse)
     };
 
 

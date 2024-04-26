@@ -221,6 +221,7 @@ namespace refactor::computation {
         auto graphMutant = GraphMutant(*this);
         std::vector<std::string_view> passes = {
             "LayernormFuse",
+            "GeluFuse",
             // "MatMulTransposeFuse",
             // "ConvToMatmul",
         };

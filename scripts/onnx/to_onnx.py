@@ -344,6 +344,17 @@ class Operator:
                 ),
                 [],
             )
+        if self.type == "Gelu":
+            return (
+                make_node(
+                    self.type,
+                    [tensors[i].name for i in self.topo.inputs],
+                    [tensors[i].name for i in self.topo.outputs],
+                    self.name,
+                    domain="refactor",
+                ),
+                [],
+            )
 
         raise ValueError(f"Unsupported operator {self.type}")
 
