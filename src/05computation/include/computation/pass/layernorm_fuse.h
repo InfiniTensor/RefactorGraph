@@ -4,6 +4,7 @@
 #include "../graph.h"
 #include "computation/operators/layernorm.h"
 #include "computation/operators/reduce.h"
+#include "computation/operators/reshape.h"
 #include "computation/operators/simple_binary.h"
 #include "computation/operators/simple_unary.h"
 #include "computation/pass/converter.h"
@@ -20,13 +21,13 @@ namespace refactor::computation {
                     continue;
                 }
                 size_t optype = opMatch->info().op->opTypeId();
-                if (optype != SimpleBinary::typeId(refactor::kernel::SimpleBinaryType::Add)) {
+                if (optype != SimpleBinary::typeId(refactor::kernel::SimpleBinaryType::Add) && optype != Reshape::typeId()) {
                     continue;
                 }
                 if (opMatch->successors().size() < 2) {
                     continue;
                 }
-                auto input = opMatch->inputs()[0]->info().tensor;
+                auto input = opMatch->outputs()[0]->info().tensor;
                 auto targets = opMatch->outputs()[0]->targets();
                 auto ReduceMeanOp = *targets.begin();
                 auto SubOp1 = *(std::next(targets.begin()));

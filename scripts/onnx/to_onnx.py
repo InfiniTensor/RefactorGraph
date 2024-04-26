@@ -121,7 +121,7 @@ class Operator:
                 ),
                 [],
             )
-        if self.type in ["Relu", "Tanh"]:
+        if self.type in ["Relu", "Tanh", "Erf", "Max"]:
             return (
                 make_node(
                     self.type,
@@ -448,7 +448,7 @@ def main():
             save_model(
                 model,
                 outputfile,
-                save_as_external_data=True,
+                # save_as_external_data=True,
                 all_tensors_to_one_file=True,
             )
             check_model(outputfile)
