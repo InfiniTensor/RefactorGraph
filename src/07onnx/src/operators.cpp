@@ -19,6 +19,7 @@
 #include "operators/gemm.hh"
 #include "operators/global_pool.hh"
 #include "operators/hard_sigmoid.hh"
+#include "operators/layernorm.hh"
 #include "operators/mat_mul.hh"
 #include "operators/mat_mul_integer.hh"
 #include "operators/pad.hh"
@@ -133,6 +134,7 @@ namespace refactor::onnx {
         REGISTER(HardSigmoid          , HardSigmoid          );
         REGISTER(Pad                  , Pad                  );
         REGISTER(DepthToSpace         , DepthToSpace         );
+        REGISTER(LayerNormalization   , Layernorm           );
         // clang-format on
 #undef REGISTER
     }
