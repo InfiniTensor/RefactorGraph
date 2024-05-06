@@ -3,12 +3,14 @@
 
 namespace refactor::kernel {
 
-TopKInfo::TopKInfo(int64_t topk, int64_t axis, Tensor const &input):topk(topk), 
-            axis(axis),
-            in_stride(input.strides()[axis]),
-            in_stride_pre_axis(axis == 0 ? 0 : input.strides()[axis - 1]),
-            out_stride_pre_axis(in_stride_pre_axis/input.shape[axis]*topk),
-            elem_size(input.elementsSize()),
-            axis_elem_size(input.shape[axis]){}        
+TopKInfo::TopKInfo(uint32_t topk, uint32_t axis, Tensor const &input){
+    this->topk =topk;
+    auto tmpStride =  axis == 0 ? 0 : input.strides()[axis - 1];
+    this->stride = {input.strides()[axis],\
+                tmpStride,\
+                tmpStride/input.shape[axis]*topk};
+    this->size = {input.shape[axis], \
+                input.elementsSize()/input.shape[axis]};
+}        
 
 }

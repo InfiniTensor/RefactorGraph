@@ -40,7 +40,7 @@ namespace refactor::onnx {
         auto dependencies = extractDependency(inputs);
         ans[0] = Tensor::share(input.dataType, input.shape, dependencies);
         ans[0]->shape[axis_] = DimExpr(topk);
-        ans[1] = Tensor::share(DataType::I64, input.shape, dependencies);            
+        ans[1] = Tensor::share(DataType::U32, input.shape, dependencies);            
         ans[1]->shape[axis_] = DimExpr(topk);  
         return Ok(Tensors{std::move(ans)});
     }

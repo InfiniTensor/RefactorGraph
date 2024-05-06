@@ -6,9 +6,9 @@
 namespace refactor::kernel {
 
     struct TopKCollector final : public InfoCollector {
-        int64_t topk, axis;
+        uint32_t topk, axis;
 
-        constexpr TopKCollector(decltype(_target) target, int64_t topk, int64_t axis_) noexcept
+        constexpr TopKCollector(decltype(_target) target, uint32_t topk, uint32_t axis_) noexcept
             : InfoCollector(target), topk(topk), axis(axis_) {}
 
         std::vector<KernelBox>

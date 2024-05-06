@@ -6,18 +6,17 @@
 namespace refactor::kernel {
 
     struct TopKInfo {
+        struct Stride{
+            dim_t axis,  in_pre, out_pre;
+         };
+         struct Size{
+            dim_t axis, except_axis;
+         };
+        uint32_t topk;
+        Stride stride;
+        Size size;
         
-        int64_t topk;
-        int64_t axis;
-        size_t in_stride, in_stride_pre_axis, out_stride_pre_axis;
-        size_t elem_size, axis_elem_size;
-        
-        TopKInfo(int64_t topk, int64_t axis, Tensor const &input);
-        size_t getElementSize() const {return  elem_size;}
-        size_t getAxisElementSize()const { return axis_elem_size;}
-        size_t getInStride()const{return in_stride;}
-        size_t getInStridePreAxis()const{return in_stride_pre_axis;}
-        size_t getOutStridePreAxis()const {return out_stride_pre_axis;}
+        TopKInfo(uint32_t topk, uint32_t axis, Tensor const &input);     
     };
 
 }// namespace refactor::kernel

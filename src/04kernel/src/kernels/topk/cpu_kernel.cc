@@ -1,6 +1,6 @@
 #include "cpu_kernel.hh"
 #include <execution>
-#include <list>
+#include <vector>
 
 namespace refactor::kernel {
     using K = TopKCpu;
@@ -29,31 +29,31 @@ namespace refactor::kernel {
             auto src = reinterpret_cast<float const *>(inputs[0]);
             
             auto dstVal = reinterpret_cast<float*>(outputs[0]);//T
-            auto dstIndex = reinterpret_cast<int64_t*>(outputs[1]);
+            auto dstIndex = reinterpret_cast<uint32_t*>(outputs[1]);
                        
             
-            size_t M = info.getElementSize() / info.getAxisElementSize();
-            size_t N = info.getAxisElementSize();
-            auto inStride1 = info.getInStridePreAxis();
-            auto inStride2 = info.getInStride();
-            auto outStride1 = info.getOutStridePreAxis();
-            auto outStride2 = inStride2;
+            size_t M = info.size.except_axis; 
+            size_t N = info.size.axis;
 
             for(size_t m = 0; m < M; m ++){
-                using PairType = std::pair<float, int64_t>;
-                std::list<PairType> list;
+                using PairType = std::pair<float, uint32_t>;
+                std::vector<PairType> list;
                 for(size_t n = 0; n < N; n++){                    
-                    auto srcIdx = m /inStride2 * inStride1 + m % inStride2 + n * inStride2;                    
+                    auto srcIdx = m /info.stride.axis * info.stride.in_pre + m % info.stride.axis + n * info.stride.axis;                    
                     list.push_back({src[srcIdx],n});                    
                 }
-                list.sort([](const PairType &a, const PairType &b)->bool{return a.first > b.first;});
+                //list.sort([](const PairType &a, const PairType &b)->bool{return a.first > b.first;});
+                std::partial_sort(list.begin(), \
+                    list.begin() + info.topk, \
+                    list.end(), \
+                    [](const PairType &a, const PairType &b)->bool{return a.first > b.first;});
                 
-                size_t offset = m /inStride2 * outStride1 + m % inStride2;
-                std::for_each_n(list.begin(), (int64_t)info.topk,
+                size_t offset = m /info.stride.axis * info.stride.out_pre + m % info.stride.axis;
+                std::for_each_n(list.begin(), (uint32_t)info.topk,
                             [&](auto &elem) {                                
                                 dstVal[offset] = elem.first;
                                 dstIndex[offset] = elem.second;
-                                offset += outStride2;
+                                offset += info.stride.axis;
                             });   
             }
         };
