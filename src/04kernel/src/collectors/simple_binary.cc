@@ -2,6 +2,7 @@
 #include "../kernels/simple_binary/binary_cudnn.hh"
 #include "../kernels/simple_binary/cpu_kernel.hh"
 #include "../kernels/simple_binary/cuda_kernel.hh"
+#include "../kernels/simple_binary/binary_cnnl.hh"
 
 namespace refactor::kernel {
 
@@ -49,6 +50,9 @@ namespace refactor::kernel {
             case decltype(_target)::Nvidia:
                 REGISTER_BROCAST(BinaryCudnn)
                 REGISTER(BinaryCuda)
+                break;
+            case decltype(_target)::Mlu:
+                REGISTER_BROCAST(BinaryCnnl)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

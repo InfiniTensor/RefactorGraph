@@ -2,6 +2,8 @@
 #include "../kernels/simple_unary/cpu_kernel.hh"
 #include "../kernels/simple_unary/cuda_kernel.hh"
 #include "../kernels/simple_unary/cudnn_activation_kernel.hh"
+#include "../kernels/simple_unary/cnnl_activation_kernel.hh"
+#include "../kernels/simple_unary/cnnl_simple_unary_kernel.hh"
 #include "common.h"
 
 namespace refactor::kernel {
@@ -55,6 +57,10 @@ namespace refactor::kernel {
             case decltype(_target)::Nvidia:
                 REGISTER(ActivationCudnn)
                 REGISTER(SimpleUnaryCuda)
+                break;
+            case decltype(_target)::Mlu:
+                REGISTER(ActivationCnnl)
+                REGISTER(SimpleUnaryCnnl)
                 break;
             default:
                 UNREACHABLEX(void, "Unknown target");

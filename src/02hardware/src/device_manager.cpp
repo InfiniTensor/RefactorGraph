@@ -2,6 +2,7 @@
 #include "hardware/devices/cpu.h"
 #include "hardware/devices/mlu.h"
 #include "hardware/devices/nvidia.h"
+#include "hardware/devices/mlu.h"
 
 namespace refactor::hardware::device {
 
