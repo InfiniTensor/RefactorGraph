@@ -16,16 +16,16 @@ namespace refactor::kernel {
          * Assume bias C has been broadcast to Y already. Beta should be 0 in the absence of bias.
          */
         void matrixMultiply(TI const *a, TI const *b, TO *y) const noexcept {
-            // #pragma omp parallel for
-            for (size_t i = 0; i < M; i++) {
-                for (size_t j = 0; j < N; j++) {
-                    TO sum = 0;
-                    // #pragma omp simd reduction(+ : sum)
-                    for (size_t k = 0; k < K; k++) {
-                        sum += static_cast<TO>(a[i * strideA0 + k * strideA1] * b[k * strideB0 + j * strideB1]);
-                    }
-                    y[i * N + j] = beta * y[i * N + j] + alpha * sum;
+#pragma omp parallel for simd
+            for (size_t ind = 0; ind < M * N; ind++) {
+                size_t i = ind / N;
+                size_t j = ind % N;
+                TO sum = 0;
+
+                for (size_t k = 0; k < K; k++) {
+                    sum += static_cast<TO>(a[i * strideA0 + k * strideA1] * b[k * strideB0 + j * strideB1]);
                 }
+                y[ind] = beta * y[ind] + alpha * sum;
             }
         }
     };
