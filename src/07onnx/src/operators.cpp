@@ -20,6 +20,7 @@
 #include "operators/global_pool.hh"
 #include "operators/hard_sigmoid.hh"
 #include "operators/layernorm.hh"
+#include "operators/leaky_relu.hh"
 #include "operators/mat_mul.hh"
 #include "operators/mat_mul_integer.hh"
 #include "operators/pad.hh"
@@ -123,6 +124,7 @@ namespace refactor::onnx {
         REGISTER(Identity             , SimpleUnary          );
         REGISTER(HardSwish            , SimpleUnary          );
         REGISTER(Exp                  , SimpleUnary          );
+        REGISTER(Floor                , SimpleUnary          );
         REGISTER(Slice                , Slice                );
         REGISTER(Softmax              , Softmax              );
         REGISTER(Split                , Split                );
@@ -135,6 +137,7 @@ namespace refactor::onnx {
         REGISTER(Pad                  , Pad                  );
         REGISTER(DepthToSpace         , DepthToSpace         );
         REGISTER(LayerNormalization   , Layernorm           );
+        REGISTER(LeakyRelu            , LeakyRelu          );
         // clang-format on
 #undef REGISTER
     }

@@ -89,6 +89,10 @@ namespace refactor::computation {
                 static uint8_t ID = 21;
                 return reinterpret_cast<size_t>(&ID);
             }
+            case SimpleUnaryType::Floor: {
+                static uint8_t ID = 22;
+                return reinterpret_cast<size_t>(&ID);
+            }
             default:
                 UNREACHABLE();
         }
@@ -140,6 +144,8 @@ namespace refactor::computation {
                 return "HardSwish";
             case SimpleUnaryType::Exp:
                 return "Exp";
+            case SimpleUnaryType::Floor:
+                return "Floor";
             default:
                 UNREACHABLE();
         }

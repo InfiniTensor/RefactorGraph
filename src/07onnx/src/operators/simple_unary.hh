@@ -30,6 +30,7 @@ namespace refactor::onnx {
         Sigmoid,
         Tan,
         Tanh,
+        Floor,
     };
 
     struct SimpleUnary final : public Operator {

@@ -39,6 +39,7 @@ namespace refactor::onnx {
         opType == "onnx::Identity"? Ty::Identity:
         opType == "onnx::HardSwish" ? Ty::HardSwish :
         opType == "onnx::Exp"     ? Ty::Exp :
+        opType == "onnx::Floor"   ? Ty::Floor   :
         UNREACHABLEX(Ty, "Unsupported unary operator: {}", opType);
         // clang-format on
 
@@ -139,6 +140,10 @@ namespace refactor::onnx {
                 static uint8_t ID = 23;
                 return reinterpret_cast<size_t>(&ID);
             }
+            case Ty::Floor: {
+                static uint8_t ID = 24;
+                return reinterpret_cast<size_t>(&ID);
+            }
             default:
                 UNREACHABLE();
         }
@@ -171,6 +176,7 @@ namespace refactor::onnx {
             case Ty::Identity : return "onnx::Identity";
             case Ty::HardSwish : return "onnx::HardSwish";
             case Ty::Exp      : return "onnx::Exp";
+            case Ty::Floor    : return "onnx::Floor";
             default: UNREACHABLE();
         }
         // clang-format on
@@ -200,7 +206,7 @@ namespace refactor::onnx {
              Ty::Cos, Ty::Cosh,
              Ty::Sin, Ty::Sinh,
              Ty::Tan, Ty::HardSwish},
-            {Ty::Tanh, Ty::Sqrt, Ty::Sigmoid, Ty::Log, Ty::Exp},
+            {Ty::Tanh, Ty::Sqrt, Ty::Sigmoid, Ty::Log, Ty::Exp, Ty::Floor},
             {Ty::Neg},
             {Ty::Identity}};
         if (SET[0].contains(type)) {
@@ -301,6 +307,7 @@ namespace refactor::onnx {
             case Ty::Identity : return std::make_unique<computation::Identity>();
             case Ty::HardSwish      : type_ = Ty_::HardSwish      ; break;
             case Ty::Exp      : type_ = Ty_::Exp      ; break;
+            case Ty::Floor    : type_ = Ty_::Floor    ; break;
             default: UNREACHABLE();
         }
         // clang-format on

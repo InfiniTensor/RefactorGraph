@@ -355,6 +355,18 @@ class Operator:
                 ),
                 [],
             )
+        if self.type == "LeakyRelu":
+            return (
+                make_node(
+                    self.type,
+                    [tensors[i].name for i in self.topo.inputs],
+                    [tensors[i].name for i in self.topo.outputs],
+                    self.name,
+                    domain=DEFAULT_DOMAIN,
+                    alpha=float(self.meta),
+                ),
+                [],
+            )
 
         raise ValueError(f"Unsupported operator {self.type}")
 
