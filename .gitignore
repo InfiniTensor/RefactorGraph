@@ -12,5 +12,7 @@ __pycache__/
 *.npy
 *.meta
 
+compile_commands.json
+
 /scripts/*.py
 !/scripts/format.py
